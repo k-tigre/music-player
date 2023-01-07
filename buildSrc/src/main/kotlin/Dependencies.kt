@@ -1,0 +1,182 @@
+@file:Suppress("SpellCheckingInspection")
+
+import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.kotlin.dsl.project
+
+enum class Library(group: String, artifact: String, version: Version) {
+    AndroidXAppcompat("androidx.appcompat", "appcompat", Version.AndroidXAppcompat),
+    AndroidXCore("androidx.core", "core-ktx", Version.AndroidXCore),
+    AndoirdXAnnotation("androidx.annotation", "annotation", Version.AndroidXAnnotation),
+    AndroidXSplash("androidx.core", "core-splashscreen", Version.AndroidXSplash),
+
+    KotlinStd("org.jetbrains.kotlin", "kotlin-stdlib-jdk8", Version.Kotlin),
+
+    CoroutinesCore("org.jetbrains.kotlinx", "kotlinx-coroutines-core", Version.Coroutines),
+    CoroutinesAndroid("org.jetbrains.kotlinx", "kotlinx-coroutines-android", Version.Coroutines),
+
+    MaterialComponents("com.google.android.material", "material", Version.MaterialComponents),
+    Leakcanary("com.squareup.leakcanary", "leakcanary-android", Version.Leakcanary),
+
+    ComposeUI("androidx.compose.ui", "ui", Version.Compose),
+    ComposeUIToolkit("androidx.compose.ui", "ui-tooling", Version.Compose),
+    ComposeFoundation("androidx.compose.foundation", "foundation", Version.Compose),
+    ComposeMaterial("androidx.compose.material", "material", Version.Compose),
+    ActivityCompose("androidx.activity", "activity-compose", Version.AndroidXActivity),
+
+    CoilCompose("io.coil-kt", "coil-compose", Version.CoilCompose),
+
+    DebugComposeUiTooling("androidx.compose.ui", "ui-tooling", Version.Compose),
+    DebugComposeUiToolingPreview("androidx.compose.ui", "ui-tooling-preview", Version.Compose),
+
+    AccompanistPager("com.google.accompanist", "accompanist-pager", Version.Accompanist),
+    AccompanistPagerInidcators("com.google.accompanist", "accompanist-pager-indicators", Version.Accompanist),
+
+    // TODO compose preview not working, check issue: https://issuetracker.google.com/issues/227767363
+    DebugComposeCustomView("androidx.customview", "customview", Version.DebugComposeCustomView),
+    DebugComposeCustomViewPoolingcontainer(
+        "androidx.customview",
+        "customview-poolingcontainer",
+        Version.DebugComposeCustomViewPoolingcontainer
+    ),
+    ;
+
+    val notation = "$group:$artifact:${version.value}"
+
+    internal enum class Version(val value: String) {
+        AndroidXActivity("1.6.1"),
+        AndroidXAppcompat("1.5.1"),
+        AndroidXCore("1.9.0"),
+        AndroidXAnnotation("1.4.0"),
+        AndroidXSplash("1.0.0"),
+        Kotlin("1.7.20"),
+        Coroutines("1.6.4"),
+        MaterialComponents("1.7.0"),
+        Leakcanary("2.9.1"),
+        Compose("1.3.0"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
+        Accompanist("0.25.1") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
+        DebugComposeCustomView("1.2.0-alpha02"),
+        DebugComposeCustomViewPoolingcontainer("1.0.0"),
+
+        CoilCompose("2.2.0"),
+    }
+}
+
+enum class Toolkit(
+    internal val libs: List<Library> = emptyList(),
+    internal val projects: List<Project> = emptyList()
+) {
+    Compose(
+        listOf(
+            Library.ComposeUI,
+            Library.ComposeUIToolkit,
+            Library.ComposeFoundation,
+            Library.ComposeMaterial,
+            Library.ActivityCompose
+        )
+    ),
+    UI(
+        libs = listOf(
+            Library.ComposeUI,
+            Library.ComposeUIToolkit,
+            Library.ComposeFoundation,
+            Library.ComposeMaterial,
+            Library.ActivityCompose,
+        ),
+        projects = listOf(
+            Project.Core.Presentation.Tools.Compose,
+        )
+    )
+}
+
+enum class FirebaseLibrary(group: String, artifact: String) {
+    FirebaseCrashLytics("com.google.firebase", "firebase-crashlytics-ktx"),
+    FirebaseAnalytics("com.google.firebase", "firebase-analytics-ktx")
+    ;
+
+    val notation = "$group:$artifact"
+
+    companion object {
+        val bom = "com.google.firebase:firebase-bom:29.0.3"
+    }
+}
+
+enum class Plugin(group: String, artifact: String, version: Version) {
+    Android("com.android.tools.build", "gradle", Version.Android),
+    Kotlin("org.jetbrains.kotlin", "kotlin-gradle-plugin", Version.Kotlin),
+    Google("com.google.gms", "google-services", Version.Google),
+    Crashlytics("com.google.firebase", "firebase-crashlytics-gradle", Version.Crashlytics),
+    Versions("com.github.ben-manes", "gradle-versions-plugin", Version.Versions),
+    ;
+
+    internal val notation = "$group:$artifact:${version.value}"
+
+    enum class Id(val value: String) {
+        AndroidApplication("com.android.application"),
+        AndroidLibrary("com.android.library"),
+        KotlinAndroid("org.jetbrains.kotlin.android"),
+        KotlinParcelize("kotlin-parcelize"),
+        KotlinJvm("org.jetbrains.kotlin.jvm"),
+        JavaLibrary("java-library"),
+        GoogleServices("com.google.gms.google-services"),
+        Crashlytics("com.google.firebase.crashlytics"),
+        Versions("com.github.ben-manes.versions"),
+    }
+
+    private enum class Version(val value: String) {
+        Android("7.3.1"),
+        Kotlin(Library.Version.Kotlin.value),
+        Google("4.3.13"),
+        Crashlytics("2.9.1"),
+        Versions("0.42.0"),
+    }
+}
+
+const val KotlinCompilerExtensionVersion = "1.3.2" /*must be synchronized with kotlin and agp version*/
+
+enum class Tools(val version: String) {
+    Build("33.0.0"),
+}
+
+sealed class Project(val id: String) {
+    sealed class Core(id: String) : Project(":core$id") {
+
+        sealed class Platform(id: String) : Core(":platform$id") {
+            object Resources : Platform(":resources")
+            object Formatter : Platform(":formatter")
+        }
+
+        sealed class Presentation(id: String) : Core(":presentation$id") {
+            sealed class Tools(id: String) : Presentation(":tools$id") {
+                object Compose : Tools(":compose")
+            }
+        }
+
+        sealed class Domain(id: String) : Core(":domain$id") {
+
+        }
+
+        sealed class Data(id: String) : Core(":data$id") {
+
+        }
+    }
+}
+
+fun DependencyHandler.plugin(plugin: Plugin) = add(ScriptHandler.CLASSPATH_CONFIGURATION, plugin.notation)
+
+fun DependencyHandler.implementation(toolkit: Toolkit) {
+    toolkit.libs.forEach(::implementation)
+    toolkit.projects.forEach(::implementation)
+}
+
+fun DependencyHandler.implementation(library: Library) = add("implementation", library.notation)
+fun DependencyHandler.debugImplementation(library: Library) = add("debugImplementation", library.notation)
+fun DependencyHandler.implementation(vararg firebaseLibrary: FirebaseLibrary) {
+    add("implementation", platform(FirebaseLibrary.bom))
+    firebaseLibrary.forEach { lib -> add("implementation", lib.notation) }
+}
+
+fun DependencyHandler.implementation(project: Project) = add("implementation", project(project.id))
+fun DependencyHandler.api(project: Project) = add("api", project(project.id))
+fun DependencyHandler.api(library: Library) = add("api", library.notation)
+fun DependencyHandler.debugApi(library: Library) = add("debugApi", library.notation)

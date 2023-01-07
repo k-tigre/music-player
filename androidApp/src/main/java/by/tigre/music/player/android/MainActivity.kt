@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import by.tigre.music.player.R
 import by.tigre.music.player.android.presentation.background.BackgroundService
 
 class MainActivity : AppCompatActivity() {

@@ -12,8 +12,8 @@ import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import androidx.core.app.NotificationCompat.Action
 import androidx.core.app.NotificationCompat.Builder
+import by.tigre.music.player.R
 import by.tigre.music.player.android.MainActivity
-import by.tigre.music.player.android.R
 import by.tigre.music.player.android.extension.getNotificationManager
 import by.tigre.music.player.android.extension.registerBroadcastReceiver
 import by.tigre.music.player.android.extension.unregisterBroadcastReceiver
