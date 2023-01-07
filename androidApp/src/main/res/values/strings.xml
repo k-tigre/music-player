@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="button_tap_to_retry">Tap to retry</string>
+    <string name="button_got_it">Got It</string>
+    <string name="button_continue">Continue</string>
+
+</resources>
