@@ -49,6 +49,8 @@ dependencies {
     implementation(Library.KotlinStd)
     implementation(Library.MaterialComponents)
     implementation(Library.AndroidXSplash)
+    implementation(Library.AccompanistPager)
+    implementation(Library.AccompanistPagerInidcators)
 
     implementation(Toolkit.UI)
 

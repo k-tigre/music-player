@@ -20,13 +20,12 @@ enum class Library(group: String, artifact: String, version: Version) {
 
     ComposeUI("androidx.compose.ui", "ui", Version.Compose),
     ComposeUIToolkit("androidx.compose.ui", "ui-tooling", Version.Compose),
-    ComposeFoundation("androidx.compose.foundation", "foundation", Version.Compose),
-    ComposeMaterial("androidx.compose.material", "material", Version.Compose),
+    ComposeFoundation("androidx.compose.foundation", "foundation", Version.ComposeFoundation),
+    ComposeMaterial("androidx.compose.material", "material", Version.ComposeFoundation),
     ActivityCompose("androidx.activity", "activity-compose", Version.AndroidXActivity),
 
     CoilCompose("io.coil-kt", "coil-compose", Version.CoilCompose),
 
-    DebugComposeUiTooling("androidx.compose.ui", "ui-tooling", Version.Compose),
     DebugComposeUiToolingPreview("androidx.compose.ui", "ui-tooling-preview", Version.Compose),
 
     AccompanistPager("com.google.accompanist", "accompanist-pager", Version.Accompanist),
@@ -53,12 +52,13 @@ enum class Library(group: String, artifact: String, version: Version) {
         Coroutines("1.6.4"),
         MaterialComponents("1.7.0"),
         Leakcanary("2.9.1"),
-        Compose("1.3.0"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
-        Accompanist("0.25.1") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
+        Compose("1.3.2"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
+        ComposeFoundation("1.3.1"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
+        Accompanist("0.28.0") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
+        CoilCompose("2.2.2"),
+
         DebugComposeCustomView("1.2.0-alpha02"),
         DebugComposeCustomViewPoolingcontainer("1.0.0"),
-
-        CoilCompose("2.2.0"),
     }
 }
 
@@ -72,6 +72,7 @@ enum class Toolkit(
             Library.ComposeUIToolkit,
             Library.ComposeFoundation,
             Library.ComposeMaterial,
+            Library.CoilCompose,
             Library.ActivityCompose
         )
     ),

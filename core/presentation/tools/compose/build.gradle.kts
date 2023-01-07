@@ -13,6 +13,5 @@ dependencies {
     // Preview
     debugApi(Library.DebugComposeCustomView)
     debugApi(Library.DebugComposeCustomViewPoolingcontainer)
-    debugApi(Library.DebugComposeUiTooling)
     debugApi(Library.DebugComposeUiToolingPreview)
 }
