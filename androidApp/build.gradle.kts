@@ -1,37 +1,57 @@
 plugins {
-    id("com.android.application")
-    kotlin("android")
+    id(Plugin.Id.AndroidApplication.value)
+    id(Plugin.Id.KotlinAndroid.value)
+//    id(Plugin.Id.Crashlytics.value)
 }
 
 android {
-    compileSdk = 33
     defaultConfig {
-        applicationId = "by.tigre.music.player.android"
-        minSdk = 24
-        targetSdk = 33
-        versionCode = 1
-        versionName = "1.0"
-    }
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-            manifestPlaceholders["appName"] = "Music"
-        }
+        applicationId = Application.id
+        namespace = Application.id
 
-        getByName("debug") {
-            isMinifyEnabled = false
-            manifestPlaceholders["appName"] = "Music Dev"
+        versionName = Application.version.name
+        versionCode = Application.version.code
+        resourceConfigurations.addAll(listOf("en", "ru"))
+    }
+
+    buildTypes {
+        Environment.values().forEach { env ->
+            named(env.gradleName) {
+                isDebuggable = env.debuggable
+                isMinifyEnabled = env.useProguard
+                isShrinkResources = env.useProguard
+
+//                signingConfig = signingConfigs.findByName(env.gradleName) TODO
+
+                applicationIdSuffix = env.suffix
+                manifestPlaceholders["appName"] = "${Application.name}${env.appNameSuffix}"
+                if (env.useProguard) {
+                    proguardFiles("rules.proguard", getDefaultProguardFile(com.android.build.gradle.ProguardFiles.ProguardFile.DONT_OPTIMIZE.fileName))
+                }
+
+                matchingFallbacks.add(Environment.Debug.gradleName)
+            }
         }
     }
 
     buildFeatures {
-        viewBinding = true
+        compose = true
+        buildConfig = true
+        viewBinding = false
     }
 }
 
 dependencies {
-    implementation("com.google.android.material:material:1.5.0")
-    implementation("androidx.appcompat:appcompat:1.4.1")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0")
+    implementation(Library.AndroidXCore)
+    implementation(Library.AndroidXAppcompat)
+    implementation(Library.CoroutinesAndroid)
+
+    implementation(Library.KotlinStd)
+    implementation(Library.MaterialComponents)
+    implementation(Library.AndroidXSplash)
+
+    implementation(Toolkit.UI)
+
+    // debugImplementation because LeakCanary should only run in debug builds.
+    debugImplementation(Library.Leakcanary)
 }
