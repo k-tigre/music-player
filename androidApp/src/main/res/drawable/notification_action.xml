@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape /><!-- For the button in the notification, an icon is required.
+This is an empty icon shape so that the button is displayed without an icon. -->
