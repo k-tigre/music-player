@@ -10,4 +10,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "MusicPlayer"
 include(":androidApp")
-include(":core:presentation:tools:compose")
+include(":core:data:playback")
+include(":tools:presentation:compose")
+include(":tools:entity")
+include(":tools:coroutines")

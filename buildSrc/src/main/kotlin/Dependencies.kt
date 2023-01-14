@@ -85,7 +85,7 @@ enum class Toolkit(
             Library.ActivityCompose,
         ),
         projects = listOf(
-            Project.Core.Presentation.Tools.Compose,
+            Project.Tools.Presentation.Compose,
         )
     )
 }
@@ -139,27 +139,32 @@ enum class Tools(val version: String) {
     Build("33.0.0"),
 }
 
-sealed class Project(val id: String) {
-    sealed class Core(id: String) : Project(":core$id") {
+sealed class Project(id: String) {
+    val name: String = ":$id"
 
-        sealed class Platform(id: String) : Core(":platform$id") {
-            object Resources : Platform(":resources")
-            object Formatter : Platform(":formatter")
+    sealed class Core(id: String) : Project("core:$id") {
+
+        sealed class Platform(id: String) : Core("platform:$id") {
+            object Resources : Platform("resources")
+            object Formatter : Platform("formatter")
         }
 
-        sealed class Presentation(id: String) : Core(":presentation$id") {
-            sealed class Tools(id: String) : Presentation(":tools$id") {
-                object Compose : Tools(":compose")
-            }
-        }
-
-        sealed class Domain(id: String) : Core(":domain$id") {
+        sealed class Domain(id: String) : Core("domain:$id") {
 
         }
 
-        sealed class Data(id: String) : Core(":data$id") {
+        sealed class Data(id: String) : Core("data:$id") {
 
         }
+    }
+
+    sealed class Tools(id: String) : Project("tools:$id") {
+        sealed class Presentation(id: String) : Tools("presentation:$id") {
+            object Compose : Presentation("compose")
+        }
+
+        object Entity : Tools("entity")
+        object Coroutines : Tools("coroutines")
     }
 }
 
@@ -177,7 +182,7 @@ fun DependencyHandler.implementation(vararg firebaseLibrary: FirebaseLibrary) {
     firebaseLibrary.forEach { lib -> add("implementation", lib.notation) }
 }
 
-fun DependencyHandler.implementation(project: Project) = add("implementation", project(project.id))
-fun DependencyHandler.api(project: Project) = add("api", project(project.id))
+fun DependencyHandler.implementation(project: Project) = add("implementation", project(project.name))
+fun DependencyHandler.api(project: Project) = add("api", project(project.name))
 fun DependencyHandler.api(library: Library) = add("api", library.notation)
 fun DependencyHandler.debugApi(library: Library) = add("debugApi", library.notation)

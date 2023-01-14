@@ -51,6 +51,7 @@ dependencies {
     implementation(Library.AndroidXSplash)
     implementation(Library.AccompanistPager)
     implementation(Library.AccompanistPagerInidcators)
+    implementation(Project.Tools.Coroutines)
 
     implementation(Toolkit.UI)
 
