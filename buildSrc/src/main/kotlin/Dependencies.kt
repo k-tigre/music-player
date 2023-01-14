@@ -21,7 +21,10 @@ enum class Library(group: String, artifact: String, version: Version) {
     ComposeUI("androidx.compose.ui", "ui", Version.Compose),
     ComposeUIToolkit("androidx.compose.ui", "ui-tooling", Version.Compose),
     ComposeFoundation("androidx.compose.foundation", "foundation", Version.ComposeFoundation),
-    ComposeMaterial("androidx.compose.material", "material", Version.ComposeFoundation),
+    ComposeMaterial("androidx.compose.material3", "material3", Version.ComposeMaterial),
+    ComposeMaterialIcons("androidx.compose.material3", "material3-icons", Version.ComposeMaterial),
+    ComposeMaterialRipple("androidx.compose.material3", "material3-ripple", Version.ComposeMaterial),
+    ComposeMaterialWindowSize("androidx.compose.material3", "material3-window-size-class", Version.ComposeMaterial),
     ActivityCompose("androidx.activity", "activity-compose", Version.AndroidXActivity),
 
     CoilCompose("io.coil-kt", "coil-compose", Version.CoilCompose),
@@ -30,6 +33,9 @@ enum class Library(group: String, artifact: String, version: Version) {
 
     AccompanistPager("com.google.accompanist", "accompanist-pager", Version.Accompanist),
     AccompanistPagerInidcators("com.google.accompanist", "accompanist-pager-indicators", Version.Accompanist),
+
+    Decompose("com.arkivanov.decompose", "decompose", Version.Decompose),
+    DecomposeExtensions("com.arkivanov.decompose", "extensions-compose-jetpack", Version.Decompose),
 
     // TODO compose preview not working, check issue: https://issuetracker.google.com/issues/227767363
     DebugComposeCustomView("androidx.customview", "customview", Version.DebugComposeCustomView),
@@ -54,8 +60,10 @@ enum class Library(group: String, artifact: String, version: Version) {
         Leakcanary("2.9.1"),
         Compose("1.3.2"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
         ComposeFoundation("1.3.1"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
+        ComposeMaterial("1.0.1"),
         Accompanist("0.28.0") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
         CoilCompose("2.2.2"),
+        Decompose("0.8.0"),
 
         DebugComposeCustomView("1.2.0-alpha02"),
         DebugComposeCustomViewPoolingcontainer("1.0.0"),
@@ -72,8 +80,17 @@ enum class Toolkit(
             Library.ComposeUIToolkit,
             Library.ComposeFoundation,
             Library.ComposeMaterial,
+//            Library.ComposeMaterialIcons,
+//            Library.ComposeMaterialRipple,
+            Library.ComposeMaterialWindowSize,
             Library.CoilCompose,
             Library.ActivityCompose
+        )
+    ),
+    Decompose(
+        listOf(
+            Library.Decompose,
+            Library.DecomposeExtensions
         )
     ),
     UI(
@@ -82,10 +99,14 @@ enum class Toolkit(
             Library.ComposeUIToolkit,
             Library.ComposeFoundation,
             Library.ComposeMaterial,
+//            Library.ComposeMaterialIcons,
+//            Library.ComposeMaterialRipple,
+            Library.ComposeMaterialWindowSize,
             Library.ActivityCompose,
         ),
         projects = listOf(
             Project.Tools.Presentation.Compose,
+            Project.Tools.Presentation.Decompose,
         )
     )
 }
@@ -161,6 +182,7 @@ sealed class Project(id: String) {
     sealed class Tools(id: String) : Project("tools:$id") {
         sealed class Presentation(id: String) : Tools("presentation:$id") {
             object Compose : Presentation("compose")
+            object Decompose : Presentation("decompose")
         }
 
         object Entity : Tools("entity")
