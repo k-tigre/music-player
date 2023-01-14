@@ -1,13 +1,10 @@
 package by.tigre.music.player.android.presentation.background
 
-import by.tigre.music.player.android.extension.awaitClose
-import by.tigre.music.player.android.extension.log
-import by.tigre.music.player.android.extension.tickerFlow
 import by.tigre.music.player.android.presentation.background.BackgroundView.Action
+import by.tigre.music.player.tools.coroutines.extensions.awaitClose
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
@@ -21,6 +18,7 @@ interface BackgroundPresenter : CoroutineScope {
 
         init {
             view.onCreate()
+
             launch {
                 awaitClose { view.onDestroy() }
             }
