@@ -103,6 +103,8 @@ enum class Toolkit(
 //            Library.ComposeMaterialRipple,
             Library.ComposeMaterialWindowSize,
             Library.ActivityCompose,
+            Library.Decompose,
+            Library.DecomposeExtensions
         ),
         projects = listOf(
             Project.Tools.Presentation.Compose,
@@ -176,6 +178,10 @@ sealed class Project(id: String) {
 
         sealed class Data(id: String) : Core("data:$id") {
 
+        }
+
+        sealed class Presentation(id: String) : Core("presentation:$id") {
+            object Catalog : Presentation("catalog")
         }
     }
 

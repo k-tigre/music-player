@@ -51,7 +51,6 @@ fun ProgressIndicator(
         CircularProgressIndicator(
             modifier = Modifier.size(size.size - size.strokeWidth),
             strokeWidth = size.strokeWidth,
-            progress = 0.5f,
             color = progress
         )/*foreground*/
     }

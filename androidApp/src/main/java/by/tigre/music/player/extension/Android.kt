@@ -1,4 +1,4 @@
-package by.tigre.music.player.android.extension
+package by.tigre.music.player.extension
 
 import android.app.Activity
 import android.app.ActivityManager

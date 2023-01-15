@@ -1,4 +1,4 @@
-package by.tigre.music.player.android.extension
+package by.tigre.music.player.extension
 
 import android.util.Log
 import kotlinx.coroutines.flow.Flow

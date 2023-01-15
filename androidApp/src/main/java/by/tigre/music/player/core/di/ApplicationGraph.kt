@@ -1,4 +1,4 @@
-package by.tigre.music.player.android.core.di
+package by.tigre.music.player.core.di
 
 class ApplicationGraph {
     companion object {

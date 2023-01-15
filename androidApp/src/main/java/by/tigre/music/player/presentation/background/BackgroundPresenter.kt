@@ -1,6 +1,6 @@
-package by.tigre.music.player.android.presentation.background
+package by.tigre.music.player.presentation.background
 
-import by.tigre.music.player.android.presentation.background.BackgroundView.Action
+import by.tigre.music.player.presentation.background.BackgroundView.Action
 import by.tigre.music.player.tools.coroutines.extensions.awaitClose
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
