@@ -1,4 +1,4 @@
-package by.tigre.music.player.android.presentation.background
+package by.tigre.music.player.presentation.background
 
 import android.app.Service
 import android.content.Intent

@@ -47,13 +47,10 @@ dependencies {
     implementation(Library.CoroutinesAndroid)
 
     implementation(Library.KotlinStd)
-    implementation(Library.MaterialComponents)
-    implementation(Library.AndroidXSplash)
-    implementation(Library.AccompanistPager)
-    implementation(Library.AccompanistPagerInidcators)
-    implementation(Project.Tools.Coroutines)
-
     implementation(Toolkit.UI)
+
+    implementation(Project.Tools.Coroutines)
+    implementation(Project.Core.Presentation.Catalog)
 
     // debugImplementation because LeakCanary should only run in debug builds.
     debugImplementation(Library.Leakcanary)

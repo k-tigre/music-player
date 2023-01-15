@@ -39,6 +39,8 @@ subprojects {
             }
 
             buildFeatures.buildConfig = false
+            buildFeatures.viewBinding = false
+            buildFeatures.compose = false
 
             composeOptions.kotlinCompilerExtensionVersion = KotlinCompilerExtensionVersion
 

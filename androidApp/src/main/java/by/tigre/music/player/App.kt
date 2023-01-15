@@ -1,7 +1,7 @@
-package by.tigre.music.player.android
+package by.tigre.music.player
 
 import android.app.Application
-import by.tigre.music.player.android.core.di.ApplicationGraph
+import by.tigre.music.player.core.di.ApplicationGraph
 
 class App : Application() {
     lateinit var graph: ApplicationGraph

@@ -1,4 +1,4 @@
-package by.tigre.music.player.android.presentation.background
+package by.tigre.music.player.presentation.background
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -13,11 +13,11 @@ import android.os.Build.VERSION_CODES
 import androidx.core.app.NotificationCompat.Action
 import androidx.core.app.NotificationCompat.Builder
 import by.tigre.music.player.R
-import by.tigre.music.player.android.MainActivity
-import by.tigre.music.player.android.extension.getNotificationManager
-import by.tigre.music.player.android.extension.registerBroadcastReceiver
-import by.tigre.music.player.android.extension.unregisterBroadcastReceiver
-import by.tigre.music.player.android.presentation.background.BackgroundView.Action.RestoreScreen
+import by.tigre.music.player.MainActivity
+import by.tigre.music.player.extension.getNotificationManager
+import by.tigre.music.player.extension.registerBroadcastReceiver
+import by.tigre.music.player.extension.unregisterBroadcastReceiver
+import by.tigre.music.player.presentation.background.BackgroundView.Action.RestoreScreen
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 

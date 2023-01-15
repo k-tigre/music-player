@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="retry_action">Повторить</string>
+    <string name="error_something_went_wrong">Что-то пошло не так</string>
+
+</resources>
