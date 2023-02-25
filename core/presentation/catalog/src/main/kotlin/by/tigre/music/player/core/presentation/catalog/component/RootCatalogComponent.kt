@@ -19,6 +19,7 @@ interface RootCatalogComponent {
     val childStack: Value<ChildStack<*, CatalogChild>>
 
     sealed interface CatalogChild {
+        class CatalogFolder(val component: CatalogFolderSelectorComponent) : CatalogChild
         class ArtistsList(val component: ArtistListComponent) : CatalogChild
         class AlbumsList(val component: AlbumListComponent) : CatalogChild
         class SongsList(val component: SongsListComponent) : CatalogChild
@@ -31,6 +32,10 @@ interface RootCatalogComponent {
         private val navigation = StackNavigation<CatalogConfig>()
 
         private val navigator = object : CatalogNavigator {
+            override fun showArtists() {
+                navigation.push(CatalogConfig.ArtistsList)
+            }
+
             override fun showShowAlbums(artist: Artist) {
                 navigation.push(CatalogConfig.AlbumsList(artist))
             }
@@ -50,7 +55,7 @@ interface RootCatalogComponent {
 
         private val stack = appChildStack(
             source = navigation,
-            initialStack = { listOf(CatalogConfig.ArtistsList) },
+            initialStack = { listOf(CatalogConfig.CatalogFolder) },
             childFactory = ::child,
             handleBackButton = true
         )
@@ -86,11 +91,23 @@ interface RootCatalogComponent {
                         )
                     )
                 }
+
+                is CatalogConfig.CatalogFolder -> {
+                    CatalogChild.CatalogFolder(
+                        componentProvider.createCatalogFolderSelectorComponent(
+                            context = context,
+                            navigator = navigator
+                        )
+                    )
+                }
             }
 
         override val childStack: Value<ChildStack<*, CatalogChild>> = stack
 
         private sealed interface CatalogConfig : Parcelable {
+
+            @Parcelize
+            object CatalogFolder : CatalogConfig
 
             @Parcelize
             object ArtistsList : CatalogConfig
