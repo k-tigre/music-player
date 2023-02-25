@@ -9,7 +9,7 @@ import kotlin.coroutines.CoroutineContext
 
 class BaseComponentContextImpl(
     componentContext: ComponentContext,
-    override val coroutineContext: CoroutineContext = Dispatchers.Main + SupervisorJob()
+    override val coroutineContext: CoroutineContext = Dispatchers.IO + SupervisorJob()
 ) : BaseComponentContext, ComponentContext by componentContext {
 
     init {

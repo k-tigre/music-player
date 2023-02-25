@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -34,11 +35,10 @@ fun ErrorScreen(
         verticalArrangement = Arrangement.Center
     ) {
 
-        Image(
+        Icon(
             painter = painterResource(R.drawable.ic_baseline_error_outline_24),
             contentDescription = "error",
             modifier = Modifier.size(64.dp),
-            contentScale = ContentScale.FillBounds
         )
 
         Text(

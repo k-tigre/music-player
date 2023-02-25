@@ -51,6 +51,8 @@ dependencies {
 
     implementation(Project.Tools.Coroutines)
     implementation(Project.Core.Presentation.Catalog)
+    implementation(Project.Core.Platform.Permossion)
+    implementation(Project.Core.Data.Storage.Preferences)
 
     // debugImplementation because LeakCanary should only run in debug builds.
     debugImplementation(Library.Leakcanary)

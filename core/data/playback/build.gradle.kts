@@ -8,4 +8,5 @@ dependencies {
     implementation(Library.CoroutinesCore)
     implementation(Project.Tools.Entity)
     implementation(Project.Tools.Coroutines)
+    implementation(Project.Core.Entity.Catalog)
 }

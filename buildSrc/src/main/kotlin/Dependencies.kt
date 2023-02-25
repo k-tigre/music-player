@@ -15,7 +15,6 @@ enum class Library(group: String, artifact: String, version: Version) {
     CoroutinesCore("org.jetbrains.kotlinx", "kotlinx-coroutines-core", Version.Coroutines),
     CoroutinesAndroid("org.jetbrains.kotlinx", "kotlinx-coroutines-android", Version.Coroutines),
 
-    MaterialComponents("com.google.android.material", "material", Version.MaterialComponents),
     Leakcanary("com.squareup.leakcanary", "leakcanary-android", Version.Leakcanary),
 
     ComposeUI("androidx.compose.ui", "ui", Version.Compose),
@@ -31,6 +30,7 @@ enum class Library(group: String, artifact: String, version: Version) {
 
     DebugComposeUiToolingPreview("androidx.compose.ui", "ui-tooling-preview", Version.Compose),
 
+    AccompanistPermission("com.google.accompanist", "accompanist-permissions", Version.Accompanist),
     AccompanistPager("com.google.accompanist", "accompanist-pager", Version.Accompanist),
     AccompanistPagerInidcators("com.google.accompanist", "accompanist-pager-indicators", Version.Accompanist),
 
@@ -56,12 +56,11 @@ enum class Library(group: String, artifact: String, version: Version) {
         AndroidXSplash("1.0.0"),
         Kotlin("1.7.20"),
         Coroutines("1.6.4"),
-        MaterialComponents("1.7.0"),
         Leakcanary("2.9.1"),
         Compose("1.3.2"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
         ComposeFoundation("1.3.1"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
         ComposeMaterial("1.0.1"),
-        Accompanist("0.28.0") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
+        Accompanist("0.29.1-alpha") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
         CoilCompose("2.2.2"),
         Decompose("0.8.0"),
 
@@ -170,6 +169,7 @@ sealed class Project(id: String) {
         sealed class Platform(id: String) : Core("platform:$id") {
             object Resources : Platform("resources")
             object Formatter : Platform("formatter")
+            object Permossion : Platform("permission")
         }
 
         sealed class Domain(id: String) : Core("domain:$id") {
@@ -177,11 +177,20 @@ sealed class Project(id: String) {
         }
 
         sealed class Data(id: String) : Core("data:$id") {
+            object Playback : Data("playback")
+            object Catalog : Data("catalog")
 
+            sealed class Storage(id: String) : Data("storage:$id") {
+                object Preferences : Storage("preferences")
+            }
         }
 
         sealed class Presentation(id: String) : Core("presentation:$id") {
             object Catalog : Presentation("catalog")
+        }
+
+        sealed class Entity(id: String): Core("entity:$id"){
+            object Catalog : Entity("catalog")
         }
     }
 

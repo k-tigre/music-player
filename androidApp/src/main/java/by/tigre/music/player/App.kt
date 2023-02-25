@@ -9,6 +9,6 @@ class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        graph = ApplicationGraph.create()
+        graph = ApplicationGraph.create(this)
     }
 }
