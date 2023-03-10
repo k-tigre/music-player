@@ -138,24 +138,23 @@ interface DbHelper {
                 val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
                 val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
                 val dColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
-                val nnum = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
-                val albumIdC = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
-                val artistC = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST_ID)
-                val ARTIST = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-                val ALBUM = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
-                val TRACK = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK)
+                val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
+                val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+                val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
+                val trackColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK)
                 while (cursor.moveToNext()) {
                     println(
-                        "!!!!! !!!!! cursor album=$albumId, id=${cursor.getLong(idColumn)}  --TRACK=${cursor.getString(TRACK)} -- albumIdC=${cursor.getLong(albumIdC)} -- artistC=${cursor.getLong(artistC)} --ARTIST=${cursor.getString(ARTIST)} --ALBUM=${cursor.getString(ALBUM)} --name=${cursor.getString(nameColumn)} -- DISPLAY_NAME=${
-                            cursor.getString(
-                                dColumn
-                            )
-                        } --DATA=${cursor.getString(nnum)} -- ${File(cursor.getString(nnum)).run { "$name--$parent -- ${exists()} -- ${canRead()}" }}"
+                        "!!!!! !!!!! cursor album=$albumId, id=${cursor.getLong(idColumn)}  --TRACK=${cursor.getString(trackColumn)} -" +
+                                "- ARTIST=${cursor.getString(artistColumn)} --ALBUM=${cursor.getString(albumColumn)} -" +
+                                "- name=${cursor.getString(nameColumn)} -- DISPLAY_NAME=${cursor.getString(dColumn)} --" +
+                                "DATA=${cursor.getString(dataColumn)} -- ${File(cursor.getString(dataColumn)).run { "$name--$parent -- ${exists()} -- ${canRead()}" }}"
                     )
                     songs.add(
                         Song(
                             id = cursor.getLong(idColumn),
-                            name = "${cursor.getString(TRACK)} - ${cursor.getString(nameColumn)}",
+                            name = "${cursor.getString(trackColumn)} - ${cursor.getString(nameColumn)}",
+                            album = cursor.getString(albumColumn),
+                            artist = cursor.getString(artistColumn)
                         )
                     )
                 }

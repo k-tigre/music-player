@@ -16,7 +16,6 @@ dependencies {
     implementation(Library.CoroutinesAndroid)
 
     implementation(Library.KotlinStd)
-    implementation(Library.AccompanistPermission)
 //    implementation(Library.AccompanistPager)
 //    implementation(Library.AccompanistPagerInidcators)
     implementation(Project.Tools.Coroutines)

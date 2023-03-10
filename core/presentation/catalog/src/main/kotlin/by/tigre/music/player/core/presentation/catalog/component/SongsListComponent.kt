@@ -1,9 +1,9 @@
 package by.tigre.music.player.core.presentation.catalog.component
 
 import by.tigre.music.player.core.data.catalog.CatalogSource
+import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.music.player.core.presentation.catalog.entiry.Album
-import by.tigre.music.player.core.presentation.catalog.entiry.Song
 import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigator
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.ScreenContentState
@@ -19,6 +19,7 @@ interface SongsListComponent {
 
     fun retry()
     fun onSongClicked(song: Song)
+fun onBackClicked()
 
     class Impl(
         context: BaseComponentContext,
@@ -35,12 +36,7 @@ interface SongsListComponent {
                 flow { emit(catalogSource.getSongsByAlbum(albumId = album.id)) }
             },
             mapDataToState = { songs ->
-                Content(songs.map { song ->
-                    Song(
-                        id = song.id,
-                        name = song.name
-                    )
-                })
+                Content(songs)
             }
         )
 
@@ -52,6 +48,10 @@ interface SongsListComponent {
 
         override fun onSongClicked(song: Song) {
 
+        }
+
+        override fun onBackClicked() {
+            navigator.showPreviousScreen()
         }
     }
 }
