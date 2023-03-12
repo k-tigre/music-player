@@ -1,9 +1,10 @@
 package by.tigre.music.player.core.presentation.catalog.component
 
 import by.tigre.music.player.core.data.catalog.CatalogSource
+import by.tigre.music.player.core.data.playback.PlaybackController
+import by.tigre.music.player.core.entiry.catalog.Album
+import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
-import by.tigre.music.player.core.presentation.catalog.entiry.Album
-import by.tigre.music.player.core.presentation.catalog.entiry.Artist
 import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigator
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.ScreenContentState
@@ -21,6 +22,7 @@ interface AlbumListComponent {
     fun retry()
     fun onAlbumClicked(album: Album)
     fun onBackClicked()
+    fun onPlayAlbumClicked(album: Album)
 
     class Impl(
         context: BaseComponentContext,
@@ -30,6 +32,7 @@ interface AlbumListComponent {
     ) : AlbumListComponent, BaseComponentContext by context {
 
         private val catalogSource: CatalogSource = dependency.catalogSource
+        private val playbackController: PlaybackController = dependency.playbackController
 
         private val stateDelegate = ScreenContentStateDelegate(
             scope = this,
@@ -38,14 +41,7 @@ interface AlbumListComponent {
                     .log("catalogSource.getAlbums")
             },
             mapDataToState = { albums ->
-                Content(albums.map { album ->
-                    Album(
-                        id = album.id,
-                        songs = album.songCount,
-                        name = album.name,
-                        years = album.years
-                    )
-                })
+                Content(albums)
             }
         )
 
@@ -61,6 +57,10 @@ interface AlbumListComponent {
 
         override fun onAlbumClicked(album: Album) {
             navigator.showSongs(album)
+        }
+
+        override fun onPlayAlbumClicked(album: Album) {
+            playbackController.playAlbum(album)
         }
     }
 }

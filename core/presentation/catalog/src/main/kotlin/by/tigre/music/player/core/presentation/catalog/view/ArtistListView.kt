@@ -3,7 +3,6 @@ package by.tigre.music.player.core.presentation.catalog.view
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,8 +21,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.presentation.catalog.component.ArtistListComponent
-import by.tigre.music.player.core.presentation.catalog.entiry.Artist
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
@@ -36,7 +35,7 @@ class ArtistListView(
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    override fun Draw() {
+    override fun Draw(modifier: Modifier) {
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(
@@ -57,16 +56,19 @@ class ArtistListView(
                         .fillMaxSize()
                         .padding(paddingValues),
                     targetState = screenState,
-                    animationSpec = tween(500)
+                    animationSpec = tween(500),
+                    label = "state"
                 ) { state ->
 
                     when (state) {
                         is ScreenContentState.Loading -> {
                             ProgressIndicator(Modifier.fillMaxSize(), ProgressIndicatorSize.LARGE)
                         }
+
                         is ScreenContentState.Error -> {
                             ErrorScreen(retryAction = component::retry)
                         }
+
                         is ScreenContentState.Content -> {
                             DrawContent(state.value)
                         }
@@ -98,12 +100,12 @@ class ArtistListView(
 
                         Text(
                             modifier = Modifier.padding(horizontal = 16.dp),
-                            text = "Albums: ${artist.albums}"
+                            text = "Albums: ${artist.albumCount}"
                         )
 
                         Text(
                             modifier = Modifier.padding(horizontal = 16.dp),
-                            text = "Songs: ${artist.songs}"
+                            text = "Songs: ${artist.songCount}"
                         )
 
                         Spacer(modifier = Modifier.size(8.dp))

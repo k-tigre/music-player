@@ -1,8 +1,8 @@
 package by.tigre.music.player.core.presentation.catalog.component
 
+import by.tigre.music.player.core.entiry.catalog.Album
+import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.presentation.catalog.di.CatalogComponentProvider
-import by.tigre.music.player.core.presentation.catalog.entiry.Album
-import by.tigre.music.player.core.presentation.catalog.entiry.Artist
 import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigator
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.appChildStack

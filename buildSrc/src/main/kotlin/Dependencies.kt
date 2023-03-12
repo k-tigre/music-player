@@ -15,6 +15,14 @@ enum class Library(group: String, artifact: String, version: Version) {
     CoroutinesCore("org.jetbrains.kotlinx", "kotlinx-coroutines-core", Version.Coroutines),
     CoroutinesAndroid("org.jetbrains.kotlinx", "kotlinx-coroutines-android", Version.Coroutines),
 
+    SQLDelightAndroid("com.squareup.sqldelight", "android-driver", Version.SQLDelight),
+    SQLDelightCoroutines("com.squareup.sqldelight", "coroutines-extensions", Version.SQLDelight),
+
+    // ExoPlayer
+    ExoPlayerCore("com.google.android.exoplayer", "exoplayer-core", Version.ExoPlayer),
+    ExoPlayerUi("com.google.android.exoplayer", "exoplayer-ui", Version.ExoPlayer),
+    ExoPlayerMedisSession("com.google.android.exoplayer", "extension-mediasession", Version.ExoPlayer),
+
     Leakcanary("com.squareup.leakcanary", "leakcanary-android", Version.Leakcanary),
 
     ComposeUI("androidx.compose.ui", "ui", Version.Compose),
@@ -56,6 +64,8 @@ enum class Library(group: String, artifact: String, version: Version) {
         AndroidXSplash("1.0.0"),
         Kotlin("1.7.20"),
         Coroutines("1.6.4"),
+        SQLDelight("1.5.5"),
+        ExoPlayer("2.17.1"),
         Leakcanary("2.9.1"),
         Compose("1.3.2"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
         ComposeFoundation("1.3.1"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
@@ -130,6 +140,7 @@ enum class Plugin(group: String, artifact: String, version: Version) {
     Google("com.google.gms", "google-services", Version.Google),
     Crashlytics("com.google.firebase", "firebase-crashlytics-gradle", Version.Crashlytics),
     Versions("com.github.ben-manes", "gradle-versions-plugin", Version.Versions),
+    SQLDelight("com.squareup.sqldelight", "gradle-plugin", Version.SQLDelight)
     ;
 
     internal val notation = "$group:$artifact:${version.value}"
@@ -144,6 +155,7 @@ enum class Plugin(group: String, artifact: String, version: Version) {
         GoogleServices("com.google.gms.google-services"),
         Crashlytics("com.google.firebase.crashlytics"),
         Versions("com.github.ben-manes.versions"),
+        SQLDelight("com.squareup.sqldelight"),
     }
 
     private enum class Version(val value: String) {
@@ -152,6 +164,7 @@ enum class Plugin(group: String, artifact: String, version: Version) {
         Google("4.3.13"),
         Crashlytics("2.9.1"),
         Versions("0.42.0"),
+        SQLDelight(Library.Version.SQLDelight.value),
     }
 }
 
@@ -182,15 +195,21 @@ sealed class Project(id: String) {
 
             sealed class Storage(id: String) : Data("storage:$id") {
                 object Preferences : Storage("preferences")
+
+                sealed class Database(id: String) : Storage("database:$id") {
+                    object Music : Database("music")
+                }
             }
         }
 
         sealed class Presentation(id: String) : Core("presentation:$id") {
             object Catalog : Presentation("catalog")
+            object Player : Presentation("player")
         }
 
-        sealed class Entity(id: String): Core("entity:$id"){
+        sealed class Entity(id: String) : Core("entity:$id") {
             object Catalog : Entity("catalog")
+            object Playback : Entity("playback")
         }
     }
 

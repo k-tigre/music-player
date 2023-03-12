@@ -1,12 +1,12 @@
 package by.tigre.music.player.core.presentation.catalog.di
 
+import by.tigre.music.player.core.entiry.catalog.Album
+import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.presentation.catalog.component.AlbumListComponent
 import by.tigre.music.player.core.presentation.catalog.component.ArtistListComponent
 import by.tigre.music.player.core.presentation.catalog.component.RootCatalogComponent
 import by.tigre.music.player.core.presentation.catalog.component.RootCatalogComponent.Impl
 import by.tigre.music.player.core.presentation.catalog.component.SongsListComponent
-import by.tigre.music.player.core.presentation.catalog.entiry.Album
-import by.tigre.music.player.core.presentation.catalog.entiry.Artist
 import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigator
 import by.tigre.music.player.presentation.base.BaseComponentContext
 

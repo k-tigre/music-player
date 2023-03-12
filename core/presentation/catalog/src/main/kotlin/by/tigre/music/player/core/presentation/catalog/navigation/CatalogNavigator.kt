@@ -1,7 +1,7 @@
 package by.tigre.music.player.core.presentation.catalog.navigation
 
-import by.tigre.music.player.core.presentation.catalog.entiry.Album
-import by.tigre.music.player.core.presentation.catalog.entiry.Artist
+import by.tigre.music.player.core.entiry.catalog.Album
+import by.tigre.music.player.core.entiry.catalog.Artist
 
 interface CatalogNavigator {
     fun showArtists()
