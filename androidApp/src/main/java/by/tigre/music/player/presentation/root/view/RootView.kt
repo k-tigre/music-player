@@ -12,6 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
+import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
+import by.tigre.music.player.presentation.root.component.Root
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
@@ -19,12 +22,14 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 
 class RootView(
-    private val DrawRoot: @Composable () -> Unit
+    private val component: Root,
+    private val catalogViewProvider: CatalogViewProvider,
+    private val playerViewProvider: PlayerViewProvider
 ) : ComposableView {
 
     @OptIn(ExperimentalPermissionsApi::class)
     @Composable
-    override fun Draw() {
+    override fun Draw(modifier: Modifier) {
         val permissionState = rememberPermissionState(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 Manifest.permission.READ_MEDIA_AUDIO
@@ -37,6 +42,19 @@ class RootView(
             DrawRoot()
         } else {
             DrawPermissionsRequest(permissionState)
+        }
+    }
+
+    @Composable
+    private fun DrawRoot() {
+        Column(modifier = Modifier.fillMaxSize()) {
+            catalogViewProvider.createRootView(component.catalogComponent).Draw(
+                Modifier
+                    .weight(1f)
+            )
+
+//            playerViewProvider.createSmallPlayerView(component.playerComponent).Draw(Modifier.align(Alignment.BottomCenter))
+            playerViewProvider.createSmallPlayerView(component.playerComponent).Draw(Modifier)
         }
     }
 

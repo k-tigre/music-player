@@ -1,9 +1,10 @@
 package by.tigre.music.player.core.presentation.catalog.component
 
 import by.tigre.music.player.core.data.catalog.CatalogSource
+import by.tigre.music.player.core.data.playback.PlaybackController
+import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
-import by.tigre.music.player.core.presentation.catalog.entiry.Album
 import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigator
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.ScreenContentState
@@ -19,7 +20,7 @@ interface SongsListComponent {
 
     fun retry()
     fun onSongClicked(song: Song)
-fun onBackClicked()
+    fun onBackClicked()
 
     class Impl(
         context: BaseComponentContext,
@@ -29,6 +30,7 @@ fun onBackClicked()
     ) : SongsListComponent, BaseComponentContext by context {
 
         private val catalogSource: CatalogSource = dependency.catalogSource
+        private val playbackController: PlaybackController = dependency.playbackController
 
         private val stateDelegate = ScreenContentStateDelegate(
             scope = this,
@@ -47,7 +49,7 @@ fun onBackClicked()
         }
 
         override fun onSongClicked(song: Song) {
-
+            playbackController.playSongs(listOf(song), 0)
         }
 
         override fun onBackClicked() {

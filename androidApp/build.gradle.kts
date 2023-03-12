@@ -51,8 +51,12 @@ dependencies {
 
     implementation(Project.Tools.Coroutines)
     implementation(Project.Core.Presentation.Catalog)
+    implementation(Project.Core.Presentation.Player)
     implementation(Project.Core.Platform.Permossion)
     implementation(Project.Core.Data.Storage.Preferences)
+    implementation(Project.Core.Data.Storage.Database.Music)
+    implementation(Project.Core.Data.Playback)
+    implementation(Project.Core.Data.Catalog)
     implementation(Library.AccompanistPermission)
 
     // debugImplementation because LeakCanary should only run in debug builds.

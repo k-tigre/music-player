@@ -21,25 +21,25 @@ class RootCatalogView(
 ) : ComposableView {
 
     @Composable
-    override fun Draw() {
+    override fun Draw(modifier: Modifier) {
         val childStack by component.childStack.subscribeAsState()
 
         Children(
             stack = childStack,
-            modifier = Modifier.fillMaxSize(),
+            modifier = modifier.fillMaxSize(),
             animation = stackAnimation(fade())
         ) {
             when (val child = it.instance) {
                 is CatalogChild.AlbumsList -> {
-                    viewProvider.createAlbumsListView(child.component).Draw()
+                    viewProvider.createAlbumsListView(child.component).Draw(Modifier)
                 }
 
                 is CatalogChild.ArtistsList -> {
-                    viewProvider.createArtistsListView(child.component).Draw()
+                    viewProvider.createArtistsListView(child.component).Draw(Modifier)
                 }
 
                 is CatalogChild.SongsList -> {
-                    viewProvider.createSongsListView(child.component).Draw()
+                    viewProvider.createSongsListView(child.component).Draw(Modifier)
                 }
 
             }

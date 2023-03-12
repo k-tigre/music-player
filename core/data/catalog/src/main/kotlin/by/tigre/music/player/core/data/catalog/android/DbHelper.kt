@@ -6,13 +6,13 @@ import android.provider.MediaStore
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.Song
-import java.io.File
 
 interface DbHelper {
     suspend fun getArtists(): List<Artist>
     suspend fun getAlbums(artistId: Long): List<Album>
     suspend fun getSongsByArtist(artistId: Long): List<Song>
     suspend fun getSongsByAlbum(albumId: Long): List<Song>
+    suspend fun getSongById(id: Long): Song?
 
     class Impl(private val context: Context) : DbHelper {
 
@@ -106,6 +106,43 @@ interface DbHelper {
             TODO("Not yet implemented")
         }
 
+        override suspend fun getSongById(id: Long): Song? {
+            val projection = arrayOf(
+                MediaStore.Audio.Media._ID,
+                MediaStore.Audio.Media.ARTIST,
+                MediaStore.Audio.Media.ALBUM,
+                MediaStore.Audio.Media.TITLE,
+                MediaStore.Audio.Media.IS_MUSIC,
+                MediaStore.Audio.Media.DATA,
+            )
+
+            val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+            } else {
+                MediaStore.Audio.Media.getContentUri("external")
+            }
+
+            return context.contentResolver.query(
+                collection,
+                projection,
+                "${MediaStore.Audio.Media.IS_MUSIC} != ? AND ${MediaStore.Audio.Media._ID} == ?",
+                arrayOf("0", id.toString()),
+                null
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    Song(
+                        id = cursor.getLong( cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)),
+                        name = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)),
+                        album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)),
+                        artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)),
+                        path = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))
+                    )
+                } else {
+                    null
+                }
+            }
+        }
+
         override suspend fun getSongsByAlbum(albumId: Long): List<Song> {
             val projection = arrayOf(
                 MediaStore.Audio.Media._ID,
@@ -137,24 +174,18 @@ interface DbHelper {
                 println("!!!!! !!!!! cursor count = ${cursor.count}")
                 val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
                 val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
-                val dColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
                 val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
                 val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
                 val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
                 val trackColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK)
                 while (cursor.moveToNext()) {
-                    println(
-                        "!!!!! !!!!! cursor album=$albumId, id=${cursor.getLong(idColumn)}  --TRACK=${cursor.getString(trackColumn)} -" +
-                                "- ARTIST=${cursor.getString(artistColumn)} --ALBUM=${cursor.getString(albumColumn)} -" +
-                                "- name=${cursor.getString(nameColumn)} -- DISPLAY_NAME=${cursor.getString(dColumn)} --" +
-                                "DATA=${cursor.getString(dataColumn)} -- ${File(cursor.getString(dataColumn)).run { "$name--$parent -- ${exists()} -- ${canRead()}" }}"
-                    )
                     songs.add(
                         Song(
                             id = cursor.getLong(idColumn),
                             name = "${cursor.getString(trackColumn)} - ${cursor.getString(nameColumn)}",
                             album = cursor.getString(albumColumn),
-                            artist = cursor.getString(artistColumn)
+                            artist = cursor.getString(artistColumn),
+                            path = cursor.getString(dataColumn)
                         )
                     )
                 }

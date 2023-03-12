@@ -1,0 +1,27 @@
+import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage;
+
+CREATE TABLE Queue(
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+status INTEGER AS PlaybackQueueStorage.QueueItem.State NOT NULL DEFAULT 0,
+song_id INTEGER NOT NULL
+);
+
+insertNew:
+INSERT INTO Queue(song_id)
+VALUES(?);
+
+updateStatus:
+UPDATE Queue SET status = ? WHERE id = ?;
+
+updateStatusBySongId:
+UPDATE Queue SET status = ? WHERE song_id = ?;
+
+
+selectAll:
+SELECT * FROM Queue LIMIT :limit;
+
+deleteById:
+DELETE FROM Queue WHERE id = ?;
+
+deleteAll:
+DELETE FROM Queue;

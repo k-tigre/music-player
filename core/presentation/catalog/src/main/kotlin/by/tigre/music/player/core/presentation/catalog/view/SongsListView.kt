@@ -39,7 +39,7 @@ class SongsListView(
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    override fun Draw() {
+    override fun Draw(modifier: Modifier) {
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(
@@ -76,7 +76,8 @@ class SongsListView(
                         .fillMaxSize()
                         .padding(paddingValues),
                     targetState = screenState,
-                    animationSpec = tween(500)
+                    animationSpec = tween(500),
+                    label = ""
                 ) { state ->
 
                     when (state) {

@@ -14,6 +14,7 @@ buildscript {
         plugin(Plugin.Google)
         plugin(Plugin.Crashlytics)
         plugin(Plugin.Versions)
+        plugin(Plugin.SQLDelight)
     }
 }
 

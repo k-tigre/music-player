@@ -1,7 +1,9 @@
 package by.tigre.music.player.core.data.entiry.playback
 
-interface MediaItemWrapper {
-    val item: Any
+import by.tigre.music.player.core.entiry.catalog.Song
 
-    class Impl(override val item: Any): MediaItemWrapper // TODO connect to player
+interface MediaItemWrapper {
+    val item: Song
+
+    class Impl(override val item: Song): MediaItemWrapper
 }

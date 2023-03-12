@@ -14,11 +14,14 @@ include(":androidApp")
 include(":core:data:playback")
 include(":core:data:catalog")
 include(":core:data:storage:preferences")
+include(":core:data:storage:database:music")
 include(":core:platform:permission")
 
 include(":core:entity:catalog")
+include(":core:entity:playback")
 
 include(":core:presentation:catalog")
+include(":core:presentation:player")
 
 include(":tools:presentation:compose")
 include(":tools:presentation:decompose")

@@ -8,12 +8,12 @@ interface PlaybackPlayer {
     val progress: Flow<Progress>
     val state: StateFlow<State>
 
-    fun stop()
-    fun pause()
-    fun resume()
-    fun seekTo(position: Long)
-    fun setMediaItem(item: MediaItemWrapper, position: Long)
+    suspend fun stop()
+    suspend fun pause()
+    suspend fun resume()
+    suspend fun seekTo(position: Long)
+    suspend fun setMediaItem(item: MediaItemWrapper, position: Long)
 
-    enum class State { Idle, Ready, Playing, Buffering, Ended }
+    enum class State { Idle, Paused, Playing,  Ended }
     data class Progress(val position: Long, val duration: Long)
 }
