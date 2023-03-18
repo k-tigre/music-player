@@ -11,6 +11,7 @@ dependencies {
     implementation(Project.Core.Entity.Catalog)
     implementation(Project.Core.Entity.Playback)
     implementation(Project.Tools.Entity)
+    implementation(Project.Tools.Coroutines)
 }
 
 sqldelight {

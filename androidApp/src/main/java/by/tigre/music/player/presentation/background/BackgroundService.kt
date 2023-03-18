@@ -3,21 +3,32 @@ package by.tigre.music.player.presentation.background
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import by.tigre.music.player.App
+import by.tigre.music.player.core.presentation.catalog.view.BackgroundComponent
+import by.tigre.music.player.core.presentation.catalog.view.BackgroundPlayerView
 import kotlinx.coroutines.cancel
 
 class BackgroundService : Service() {
-    private var model: BackgroundPresenter? = null
+    private val component: BackgroundComponent by lazy {
+        BackgroundComponent.Impl(dependency = (application as App).graph)
+    }
+    private val view: BackgroundPlayerView by lazy {
+        BackgroundPlayerView(
+            service = this,
+            component = component
+        )
+    }
+
 
     override fun onCreate() {
         super.onCreate()
-        model = BackgroundPresenter.Impl(
-            view = BackgroundView.Impl(this),
-        )
+        view.onCreate()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        model?.cancel()
+        component.cancel()
+        view.destroy()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY

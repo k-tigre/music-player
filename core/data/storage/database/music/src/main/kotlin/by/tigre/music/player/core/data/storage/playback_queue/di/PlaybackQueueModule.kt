@@ -6,8 +6,8 @@ import by.tigre.music.player.core.data.storage.music.DatabaseMusic
 import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
 import by.tigre.music.player.core.data.storage.playback_queue.impl.PlaybackQueueStorageImpl
 import by.tigre.music.player.core.data.storage.playback_queue.impl.QueueStateAdapter
+import by.tigre.music.player.tools.coroutines.CoroutineModule
 import com.squareup.sqldelight.android.AndroidSqliteDriver
-import kotlinx.coroutines.CoroutineScope
 import music.Queue
 
 interface PlaybackQueueModule {
@@ -15,7 +15,7 @@ interface PlaybackQueueModule {
 
     class Impl(
         context: Context,
-        scope: CoroutineScope
+        coroutineModule: CoroutineModule
     ) : PlaybackQueueModule {
         private val database: DatabaseMusic by lazy {
             DatabaseMusic(
@@ -32,7 +32,12 @@ interface PlaybackQueueModule {
             )
         }
 
-        override val playbackQueueStorage: PlaybackQueueStorage by lazy { PlaybackQueueStorageImpl(database, scope) }
+        override val playbackQueueStorage: PlaybackQueueStorage by lazy {
+            PlaybackQueueStorageImpl(
+                database = database,
+                scope = coroutineModule.scope
+            )
+        }
 
     }
 }
