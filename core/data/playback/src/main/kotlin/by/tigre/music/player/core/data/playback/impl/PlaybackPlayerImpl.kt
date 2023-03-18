@@ -24,8 +24,8 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 
-internal class PlaybackPlayerImpl(context: Context, scope: CoreScope): PlaybackPlayer {
-       override val state = MutableStateFlow(PlaybackPlayer.State.Idle)
+internal class PlaybackPlayerImpl(context: Context, scope: CoreScope) : PlaybackPlayer {
+    override val state = MutableStateFlow(PlaybackPlayer.State.Idle)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val progress: Flow<PlaybackPlayer.Progress> by lazy {
@@ -82,7 +82,7 @@ internal class PlaybackPlayerImpl(context: Context, scope: CoreScope): PlaybackP
         }
     }
 
-    private val player: ExoPlayer by lazy {
+    override val player: ExoPlayer by lazy {
         val audioAttributes = AudioAttributes.Builder()
             .setContentType(C.CONTENT_TYPE_MUSIC)
             .setUsage(C.USAGE_MEDIA)

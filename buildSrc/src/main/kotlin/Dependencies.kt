@@ -205,6 +205,7 @@ sealed class Project(id: String) {
         sealed class Presentation(id: String) : Core("presentation:$id") {
             object Catalog : Presentation("catalog")
             object Player : Presentation("player")
+            object BackgroundPlayer : Presentation("background_player")
         }
 
         sealed class Entity(id: String) : Core("entity:$id") {
@@ -221,6 +222,10 @@ sealed class Project(id: String) {
 
         object Entity : Tools("entity")
         object Coroutines : Tools("coroutines")
+
+        sealed class Platform(id: String) : Tools("platform:$id") {
+            object Utils : Platform("utils")
+        }
     }
 }
 

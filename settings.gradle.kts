@@ -22,8 +22,10 @@ include(":core:entity:playback")
 
 include(":core:presentation:catalog")
 include(":core:presentation:player")
+include(":core:presentation:background_player")
 
 include(":tools:presentation:compose")
 include(":tools:presentation:decompose")
 include(":tools:entity")
 include(":tools:coroutines")
+include(":tools:platform:utils")

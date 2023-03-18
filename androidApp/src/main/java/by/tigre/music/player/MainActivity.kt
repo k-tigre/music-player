@@ -25,11 +25,12 @@ class MainActivity : AppCompatActivity() {
         val root = Root.Impl(
             context = BaseComponentContextImpl(defaultComponentContext()),
             catalogComponentProvider = CatalogComponentProvider.Impl(graph),
-            playerComponentProvider = PlayerComponentProvider.Impl(graph)
+            playerComponentProvider = PlayerComponentProvider.Impl(graph),
+            dependency = graph
         )
 
         setContent {
-            AppMaterial.AppTheme() {
+            AppMaterial.AppTheme {
                 Surface(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
                     RootView(
                         root,

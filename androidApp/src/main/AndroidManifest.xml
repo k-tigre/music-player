@@ -18,6 +18,10 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <intent-filter>
+                <action android:name="by.tigre.player.PLAYBACK_ACTION_RESTORE" />
+            </intent-filter>
         </activity>
 
         <service
