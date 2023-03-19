@@ -58,21 +58,21 @@ enum class Library(group: String, artifact: String, version: Version) {
 
     internal enum class Version(val value: String) {
         AndroidXActivity("1.6.1"),
-        AndroidXAppcompat("1.5.1"),
+        AndroidXAppcompat("1.6.1"),
         AndroidXCore("1.9.0"),
         AndroidXAnnotation("1.4.0"),
         AndroidXSplash("1.0.0"),
-        Kotlin("1.7.20"),
+        Kotlin("1.8.10"),
         Coroutines("1.6.4"),
         SQLDelight("1.5.5"),
-        ExoPlayer("2.17.1"),
-        Leakcanary("2.9.1"),
-        Compose("1.3.2"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
+        ExoPlayer("2.18.4"),
+        Leakcanary("2.10"),
+        Compose("1.3.3"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
         ComposeFoundation("1.3.1"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
         ComposeMaterial("1.0.1"),
-        Accompanist("0.29.1-alpha") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
+        Accompanist("0.29.2-rc") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
         CoilCompose("2.2.2"),
-        Decompose("0.8.0"),
+        Decompose("1.0.0"),
 
         DebugComposeCustomView("1.2.0-alpha02"),
         DebugComposeCustomViewPoolingcontainer("1.0.0"),
@@ -130,7 +130,7 @@ enum class FirebaseLibrary(group: String, artifact: String) {
     val notation = "$group:$artifact"
 
     companion object {
-        val bom = "com.google.firebase:firebase-bom:29.0.3"
+        val bom = "com.google.firebase:firebase-bom:31.2.3"
     }
 }
 
@@ -168,7 +168,7 @@ enum class Plugin(group: String, artifact: String, version: Version) {
     }
 }
 
-const val KotlinCompilerExtensionVersion = "1.3.2" /*must be synchronized with kotlin and agp version*/
+const val KotlinCompilerExtensionVersion = "1.4.3" /*must be synchronized with kotlin and agp version*/
 
 enum class Tools(val version: String) {
     Build("33.0.0"),
