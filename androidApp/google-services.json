@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "388261074221",
+    "project_id": "music-player-cd425",
+    "storage_bucket": "music-player-cd425.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:388261074221:android:9aac6bd5ce7662a8492fa4",
+        "android_client_info": {
+          "package_name": "by.tigre.music.player.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "388261074221-o37g2qvhim3hoan4m9fvbd91sqr0ghs5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "by.tigre.music.player.dev",
+            "certificate_hash": "ff25242e6d58b911cf81b384717e4afe6d80dd25"
+          }
+        },
+        {
+          "client_id": "388261074221-8o580k6t0h5fglrei8ulla5cusibgj85.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8I6rjMpi8dXQAGnyt93P7Nd3IAdsiBVw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "388261074221-8o580k6t0h5fglrei8ulla5cusibgj85.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

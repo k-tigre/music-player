@@ -3,7 +3,8 @@
 plugins {
     id(Plugin.Id.AndroidApplication.value)
     id(Plugin.Id.KotlinAndroid.value)
-//    id(Plugin.Id.Crashlytics.value)
+    id(Plugin.Id.GoogleServices.value)
+    id(Plugin.Id.Crashlytics.value)
 }
 
 android {
@@ -89,6 +90,7 @@ dependencies {
     implementation(Project.Core.Data.Catalog)
     implementation(Project.Core.Entity.Catalog)
     implementation(Library.AccompanistPermission)
+    implementation(FirebaseLibrary.FirebaseAnalytics, FirebaseLibrary.FirebaseCrashLytics)
 
     // debugImplementation because LeakCanary should only run in debug builds.
     debugImplementation(Library.Leakcanary)
