@@ -57,21 +57,21 @@ enum class Library(group: String, artifact: String, version: Version) {
     val notation = "$group:$artifact:${version.value}"
 
     internal enum class Version(val value: String) {
-        AndroidXActivity("1.6.1"),
+        AndroidXActivity("1.7.2"),
         AndroidXAppcompat("1.6.1"),
         AndroidXCore("1.9.0"),
         AndroidXAnnotation("1.4.0"),
         AndroidXSplash("1.0.0"),
-        Kotlin("1.8.10"),
-        Coroutines("1.6.4"),
+        Kotlin("1.8.21"),
+        Coroutines("1.7.1"),
         SQLDelight("1.5.5"),
-        ExoPlayer("2.18.4"),
-        Leakcanary("2.10"),
-        Compose("1.3.3"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
-        ComposeFoundation("1.3.1"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
-        ComposeMaterial("1.0.1"),
-        Accompanist("0.29.2-rc") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
-        CoilCompose("2.2.2"),
+        ExoPlayer("2.18.7"),
+        Leakcanary("2.11"),
+        Compose("1.4.3"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
+        ComposeFoundation("1.4.3"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
+        ComposeMaterial("1.1.0"),
+        Accompanist("0.31.3-beta") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
+        CoilCompose("2.4.0"),
         Decompose("1.0.0"),
 
         DebugComposeCustomView("1.2.0-alpha02"),
@@ -130,7 +130,7 @@ enum class FirebaseLibrary(group: String, artifact: String) {
     val notation = "$group:$artifact"
 
     companion object {
-        val bom = "com.google.firebase:firebase-bom:31.2.3"
+        val bom = "com.google.firebase:firebase-bom:32.1.0"
     }
 }
 
@@ -159,7 +159,7 @@ enum class Plugin(group: String, artifact: String, version: Version) {
     }
 
     private enum class Version(val value: String) {
-        Android("7.3.1"),
+        Android("8.0.2"),
         Kotlin(Library.Version.Kotlin.value),
         Google("4.3.13"),
         Crashlytics("2.9.1"),
@@ -168,7 +168,7 @@ enum class Plugin(group: String, artifact: String, version: Version) {
     }
 }
 
-const val KotlinCompilerExtensionVersion = "1.4.3" /*must be synchronized with kotlin and agp version*/
+const val KotlinCompilerExtensionVersion = "1.4.7" /*must be synchronized with kotlin and agp version*/
 
 enum class Tools(val version: String) {
     Build("33.0.0"),

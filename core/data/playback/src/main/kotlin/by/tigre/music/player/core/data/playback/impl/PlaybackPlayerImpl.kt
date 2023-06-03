@@ -84,7 +84,7 @@ internal class PlaybackPlayerImpl(context: Context, scope: CoreScope) : Playback
 
     override val player: ExoPlayer by lazy {
         val audioAttributes = AudioAttributes.Builder()
-            .setContentType(C.CONTENT_TYPE_MUSIC)
+            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
             .setUsage(C.USAGE_MEDIA)
             .build()
 
