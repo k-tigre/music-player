@@ -1,7 +1,6 @@
 package by.tigre.music.player.presentation.root.view
 
 import android.Manifest
-import android.content.Intent
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,17 +15,14 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import by.tigre.music.player.R
 import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
-import by.tigre.music.player.presentation.background.BackgroundService
 import by.tigre.music.player.presentation.root.component.Root
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import com.arkivanov.decompose.extensions.compose.jetpack.stack.Children
@@ -36,7 +32,6 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import kotlinx.coroutines.launch
 
 class RootView(
     private val component: Root,
@@ -65,16 +60,6 @@ class RootView(
 
     @Composable
     private fun DrawMain() {
-        val context = LocalContext.current
-        LaunchedEffect(Unit) {
-            launch {
-                component.onStartServiceEvent
-                    .collect {
-                        context.startForegroundService(Intent(context, BackgroundService::class.java))
-                    }
-            }
-        }
-
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
