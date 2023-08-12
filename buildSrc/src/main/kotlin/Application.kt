@@ -3,7 +3,7 @@ object Application {
     val version: Version = Version(0, 2, 0)
     const val name: String = "Music"
 
-    const val SDK_COMPILE = 33
+    const val SDK_COMPILE = 34
     const val SDK_MINIMUM = 26
     const val SDK_TARGET = 33
 
