@@ -1,17 +1,18 @@
 package by.tigre.music.player.core.data.playback.impl
 
 import android.content.Context
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import by.tigre.music.player.core.data.entiry.playback.MediaItemWrapper
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
 import by.tigre.music.player.logger.Log
 import by.tigre.music.player.tools.coroutines.CoreScope
 import by.tigre.music.player.tools.coroutines.extensions.tickerFlow
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.PlaybackException
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.audio.AudioAttributes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -125,10 +126,20 @@ internal class PlaybackPlayerImpl(
 
     override suspend fun setMediaItem(item: MediaItemWrapper, position: Long) {
         withContext(Dispatchers.Main) {
-            player.setMediaItem(MediaItem.Builder().setUri(item.item.path).build(), position)
+            player.setMediaItem(
+                MediaItem.Builder()
+                    .setUri(item.item.path)
+                    .setMediaMetadata(
+                        MediaMetadata.Builder()
+                            .setArtist(item.item.artist)
+                            .setAlbumTitle(item.item.album)
+                            .setTitle(item.item.name)
+                            .build()
+                    )
+                    .build(),
+                position
+            )
             player.prepare()
         }
     }
-
-
 }

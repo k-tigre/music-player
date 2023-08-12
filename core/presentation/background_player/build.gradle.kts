@@ -10,12 +10,12 @@ android {
 
 dependencies {
     implementation(Library.AndroidXCore)
+    implementation(Library.AndoirdXAnnotation)
     implementation(Library.CoroutinesAndroid)
 
     implementation(Library.KotlinStd)
-    implementation(Library.ExoPlayerMedisSession)
-    implementation(Library.ExoPlayerCore)
-    implementation(Library.ExoPlayerUi)
+    api(Library.MediaSession)
+    implementation(Library.MediaCommon)
     implementation(Project.Tools.Coroutines)
     implementation(Project.Tools.Platform.Utils)
     implementation(Project.Core.Data.Playback)

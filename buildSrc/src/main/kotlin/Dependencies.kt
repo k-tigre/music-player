@@ -24,6 +24,11 @@ enum class Library(group: String, artifact: String, version: Version) {
     ExoPlayerUi("com.google.android.exoplayer", "exoplayer-ui", Version.ExoPlayer),
     ExoPlayerMedisSession("com.google.android.exoplayer", "extension-mediasession", Version.ExoPlayer),
 
+    MediaPlayer("androidx.media3", "media3-exoplayer", Version.Media3),
+    MediaUi("androidx.media3", "media3-ui", Version.Media3),
+    MediaCommon("androidx.media3", "media3-common", Version.Media3),
+    MediaSession("androidx.media3", "media3-session", Version.Media3),
+
     Leakcanary("com.squareup.leakcanary", "leakcanary-android", Version.Leakcanary),
 
     ComposeUI("androidx.compose.ui", "ui", Version.Compose),
@@ -64,6 +69,7 @@ enum class Library(group: String, artifact: String, version: Version) {
         Coroutines("1.7.3"),
         SQLDelight("2.0.0"),
         ExoPlayer("2.19.1"),
+        Media3("1.1.0"),
         Leakcanary("2.12"),
         Compose("1.5.4"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
         ComposeFoundation("1.5.4"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/

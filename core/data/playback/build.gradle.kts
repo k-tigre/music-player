@@ -6,7 +6,8 @@ plugins {
 dependencies {
     implementation(Library.KotlinStd)
     implementation(Library.CoroutinesCore)
-    implementation(Library.ExoPlayerCore)
+    implementation(Library.MediaCommon)
+    implementation(Library.MediaPlayer)
     implementation(Project.Tools.Entity)
     implementation(Project.Tools.Coroutines)
     implementation(Project.Logger.Core)

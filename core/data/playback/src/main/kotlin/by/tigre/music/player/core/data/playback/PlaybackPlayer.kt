@@ -1,7 +1,7 @@
 package by.tigre.music.player.core.data.playback
 
+import androidx.media3.common.Player
 import by.tigre.music.player.core.data.entiry.playback.MediaItemWrapper
-import com.google.android.exoplayer2.Player
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 

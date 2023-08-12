@@ -1,4 +1,4 @@
-package by.tigre.music.player.core.presentation.backgound_player.view
+package by.tigre.music.player.core.presentation.backgound_player.presentation.component
 
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
 import by.tigre.music.player.core.entiry.catalog.Song
