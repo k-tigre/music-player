@@ -10,9 +10,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,6 +29,7 @@ import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.presentation.catalog.component.ArtistListComponent
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.tools.platform.compose.ComposableView
+import by.tigre.music.player.tools.platform.compose.view.EmptyScreen
 import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicator
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicatorSize
@@ -46,6 +51,14 @@ class ArtistListView(
                             overflow = TextOverflow.Ellipsis
                         )
                     },
+                    actions = {
+                        IconButton(onClick = component::retry) {
+                            Icon(
+                                imageVector = Icons.Filled.Refresh,
+                                contentDescription = "Reload"
+                            )
+                        }
+                    }
                 )
             },
             content = { paddingValues ->
@@ -81,37 +94,45 @@ class ArtistListView(
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun DrawContent(artists: List<Artist>) {
-        LazyColumn(
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            artists.forEach { artist ->
-                item {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        onClick = { component.onArtistClicked(artist) },
-                    ) {
+        if (artists.isEmpty()) {
+            EmptyScreen(
+                reloadAction = component::retry,
+                message = "No songs found. Try put some mp3 media files on your device storage, for example into folder \"Music\""
+            )
+        } else {
+            LazyColumn(
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                artists.forEach { artist ->
+                    item {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            onClick = { component.onArtistClicked(artist) },
+                        ) {
 
-                        Text(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                            text = artist.name,
-                        )
+                            Text(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                text = artist.name,
+                            )
 
-                        Text(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            text = "Albums: ${artist.albumCount}"
-                        )
+                            Text(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                text = "Albums: ${artist.albumCount}"
+                            )
 
-                        Text(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            text = "Songs: ${artist.songCount}"
-                        )
+                            Text(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                text = "Songs: ${artist.songCount}"
+                            )
 
-                        Spacer(modifier = Modifier.size(8.dp))
+                            Spacer(modifier = Modifier.size(8.dp))
+                        }
                     }
                 }
             }
         }
+
     }
 }

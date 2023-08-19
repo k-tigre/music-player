@@ -7,7 +7,6 @@ import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigat
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.presentation.base.ScreenContentStateDelegate
-import by.tigre.music.player.tools.coroutines.extensions.log
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 
@@ -29,9 +28,7 @@ interface ArtistListComponent {
         private val stateDelegate = ScreenContentStateDelegate(
             scope = this,
             loadData = {
-
                 flow { emit(catalogSource.getArtists()) }
-                    .log("catalogSource.getArtists")
             },
             mapDataToState = { artists ->
                 ScreenContentState.Content(artists)

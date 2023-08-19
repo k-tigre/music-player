@@ -97,7 +97,7 @@ interface RootCatalogComponent {
         private sealed interface CatalogConfig : Parcelable {
 
             @Parcelize
-            object ArtistsList : CatalogConfig
+            data object ArtistsList : CatalogConfig
 
             @Parcelize
             class AlbumsList(val artist: Artist) : CatalogConfig

@@ -2,6 +2,8 @@
 <resources>
 
     <string name="retry_action">Повторить</string>
-    <string name="error_something_went_wrong">Что-то пошло не так</string>
+    <string name="reload_action">Перезагрузить</string>
+    <string name="screen_state_error_something_went_wrong_title">Что-то пошло не так</string>
+    <string name="screen_state_empty_title">Ничего нету</string>
 
 </resources>
