@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -96,7 +97,7 @@ class SmallPlayerView(
     private fun BoxScope.DrawProgress() {
         val position = component.position.collectAsState()
 
-        var sliderPosition by remember { mutableStateOf(0f) }
+        var sliderPosition by remember { mutableFloatStateOf(0f) }
         var sliderEnabled by remember { mutableStateOf(false) }
 
         Slider(
@@ -121,6 +122,10 @@ class SmallPlayerView(
     @Composable
     private fun DrawActions() {
         val state = component.state.collectAsState()
+
+        IconButton(onClick = component::prev) {
+            Icon(contentDescription = null, painter = painterResource(id = R.drawable.baseline_skip_previous_24))
+        }
 
         if (state.value == SmallPlayerComponent.State.Playing) {
             IconButton(onClick = component::pause) {

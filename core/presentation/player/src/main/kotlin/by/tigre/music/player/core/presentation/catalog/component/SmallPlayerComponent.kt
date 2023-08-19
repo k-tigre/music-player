@@ -23,6 +23,7 @@ interface SmallPlayerComponent {
     fun pause()
     fun play()
     fun next()
+    fun prev()
     fun seekTo(fraction: Float)
     fun showQueue()
 
@@ -81,6 +82,10 @@ interface SmallPlayerComponent {
 
         override fun next() {
             playbackController.playNext()
+        }
+
+        override fun prev() {
+            playbackController.playPrev()
         }
 
         override fun showQueue() {

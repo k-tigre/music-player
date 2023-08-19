@@ -8,7 +8,7 @@ interface PlaybackQueueStorage {
 
     fun playSongs(items: List<Song>)
     fun playQueue(queue: List<QueueItem>)
-    fun setSongPlayed(id: Long, nextId: Long?)
+    fun updateSongStates(finishedId: Long?, playingId: Long, pendingId: Long?)
 
     data class QueueItem(val id: Long, val songsId: Long, val state: State) {
         enum class State {

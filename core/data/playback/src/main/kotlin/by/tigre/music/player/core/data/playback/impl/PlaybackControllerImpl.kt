@@ -74,15 +74,54 @@ internal class PlaybackControllerImpl(
                         Action.PlayNext -> {
                             val next = queue.firstOrNull { it.state == PlaybackQueueStorage.QueueItem.State.Pending }?.id
                             if (next != null) {
-                                val current = queue.firstOrNull { it.state == PlaybackQueueStorage.QueueItem.State.Playing }?.id ?: -1
-                                storage.setSongPlayed(id = current, nextId = next)
+                                val current = queue.firstOrNull { it.state == PlaybackQueueStorage.QueueItem.State.Playing }?.id
+                                storage.updateSongStates(finishedId = current, playingId = next, pendingId = null)
                             } else {
-                                storage.playQueue(queue)
+                                storage.playQueue(queue.mapIndexed { index, item ->
+                                    item.copy(
+                                        state = if (index == 0) {
+                                            PlaybackQueueStorage.QueueItem.State.Playing
+                                        } else {
+                                            PlaybackQueueStorage.QueueItem.State.Pending
+                                        }
+                                    )
+                                })
                             }
                         }
 
                         Action.PlayPrev -> {
-                            // TODO
+                            val prev = queue.lastOrNull { it.state == PlaybackQueueStorage.QueueItem.State.Finish }?.id
+                            if (prev != null) {
+                                val current = queue.firstOrNull { it.state == PlaybackQueueStorage.QueueItem.State.Playing }?.id ?: -1
+                                storage.updateSongStates(finishedId = null, playingId = prev, pendingId = current)
+                            } else {
+                                storage.playQueue(queue.mapIndexed { index, item ->
+                                    item.copy(
+                                        state = if (index == queue.size - 1) {
+                                            PlaybackQueueStorage.QueueItem.State.Playing
+                                        } else {
+                                            PlaybackQueueStorage.QueueItem.State.Finish
+                                        }
+                                    )
+                                })
+                            }
+                        }
+
+                        is Action.PlaySongInQueue -> {
+                            var isFind = false
+                            storage.playQueue(
+                                queue.map { item ->
+                                    val state = if (isFind.not() && item.songsId == action.songId) {
+                                        isFind = true
+                                        PlaybackQueueStorage.QueueItem.State.Playing
+                                    } else if (isFind) {
+                                        PlaybackQueueStorage.QueueItem.State.Pending
+                                    } else {
+                                        PlaybackQueueStorage.QueueItem.State.Finish
+                                    }
+                                    item.copy(state = state)
+                                }
+                            )
                         }
                     }
                 }
@@ -133,6 +172,11 @@ internal class PlaybackControllerImpl(
         resume()
     }
 
+    override fun playSongInQueue(id: Long) {
+        action.tryEmit(Action.PlaySongInQueue(id))
+        resume()
+    }
+
     override fun playAlbum(album: Album) {
         action.tryEmit(Action.PlayAlbum(album))
         resume()
@@ -147,6 +191,7 @@ internal class PlaybackControllerImpl(
         data object PlayPrev : Action
 
         data class PlayNewSongs(val items: List<Song>, val startPosition: Int) : Action
+        data class PlaySongInQueue(val songId: Long) : Action
         data class PlayAlbum(val album: Album) : Action
     }
 }

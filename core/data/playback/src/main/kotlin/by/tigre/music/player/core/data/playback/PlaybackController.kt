@@ -17,5 +17,6 @@ interface PlaybackController {
     fun resume()
     fun stop()
     fun playSongs(items: List<Song>, startPosition: Int)
+    fun playSongInQueue(id: Long)
     fun playAlbum(album: Album)
 }

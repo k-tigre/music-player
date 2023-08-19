@@ -37,20 +37,20 @@ class PlaybackQueueStorageImpl(private val database: DatabaseMusic, scope: Corou
     override fun playQueue(queue: List<QueueItem>) {
         database.queueQueries.transaction {
             database.queueQueries.deleteAll()
-            queue.forEachIndexed { index, item ->
+            queue.forEach { item ->
                 database.queueQueries.insertNewWithStatus(
                     song_id = item.songsId,
-                    status = if (index == 0) QueueItem.State.Playing else QueueItem.State.Pending
+                    status = item.state
                 )
             }
         }
     }
 
-    override fun setSongPlayed(id: Long, nextId: Long?) {
+    override fun updateSongStates(finishedId: Long?, playingId: Long, pendingId: Long?) {
         database.queueQueries.transaction {
-            database.queueQueries.updateStatus(status = QueueItem.State.Finish, id = id)
-            if (nextId != null)
-                database.queueQueries.updateStatus(status = QueueItem.State.Playing, id = nextId)
+            finishedId?.let { database.queueQueries.updateStatus(status = QueueItem.State.Finish, id = it) }
+            pendingId?.let { database.queueQueries.updateStatus(status = QueueItem.State.Pending, id = it) }
+            database.queueQueries.updateStatus(status = QueueItem.State.Playing, id = playingId)
         }
     }
 }
