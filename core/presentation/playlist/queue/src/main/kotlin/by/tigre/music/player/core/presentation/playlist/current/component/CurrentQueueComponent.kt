@@ -45,7 +45,7 @@ interface CurrentQueueComponent {
         }
 
         override fun onSongClicked(song: Song) {
-            playbackController.playSongs(listOf(song), 0)
+            playbackController.playSongInQueue(song.id)
         }
 
         override fun onBackClicked() {
