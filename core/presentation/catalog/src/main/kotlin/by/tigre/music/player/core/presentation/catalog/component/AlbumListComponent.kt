@@ -10,7 +10,6 @@ import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.presentation.base.ScreenContentState.Content
 import by.tigre.music.player.presentation.base.ScreenContentStateDelegate
-import by.tigre.music.player.tools.coroutines.extensions.log
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 
@@ -38,7 +37,6 @@ interface AlbumListComponent {
             scope = this,
             loadData = {
                 flow { emit(catalogSource.getAlbums(artist.id)) }
-                    .log("catalogSource.getAlbums")
             },
             mapDataToState = { albums ->
                 Content(albums)

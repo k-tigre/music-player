@@ -21,11 +21,11 @@ import by.tigre.music.player.tools.platform.compose.AppMaterial
 import by.tigre.music.playercompose.R
 
 @Composable
-fun ErrorScreen(
+fun EmptyScreen(
     modifier: Modifier = Modifier,
-    title: String = stringResource(id = R.string.screen_state_error_something_went_wrong_title),
-    message: String? = null,
-    retryAction: () -> Unit
+    title: String = stringResource(id = R.string.screen_state_empty_title),
+    message: String,
+    reloadAction: () -> Unit
 ) {
     Column(
         modifier = modifier.fillMaxSize(),
@@ -46,23 +46,21 @@ fun ErrorScreen(
             textAlign = TextAlign.Center
         )
 
-        if (message != null) {
-            Text(
-                text = message,
-                modifier = Modifier.padding(top = 16.dp),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
-        }
+        Text(
+            text = message,
+            modifier = Modifier.padding(top = 16.dp),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center
+        )
 
         OutlinedButton(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .padding(16.dp),
-            onClick = retryAction,
+            onClick = reloadAction,
         ) {
             Text(
-                text = stringResource(R.string.retry_action),
+                text = stringResource(R.string.reload_action),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center
             )
@@ -72,22 +70,23 @@ fun ErrorScreen(
 
 @Preview(showBackground = true)
 @Composable
-private fun ErrorScreenPreview() {
+private fun EmptyScreenPreview() {
     AppMaterial.AppTheme {
-        ErrorScreen(
-            title = "Что-то пошло очень не так",
+        EmptyScreen(
+            title = "Ничего не удалось найти",
             message = "Попробуйте повторить",
-            retryAction = {}
+            reloadAction = {}
         )
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun ErrorScreenPreview2() {
+private fun EmptyScreenPreview2() {
     AppMaterial.AppTheme {
-        ErrorScreen(
-            retryAction = {}
+        EmptyScreen(
+            reloadAction = {},
+            message = "Попробуйте повторить",
         )
     }
 }
