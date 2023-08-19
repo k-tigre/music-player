@@ -11,6 +11,8 @@ import by.tigre.music.player.core.presentation.catalog.di.CatalogComponentProvid
 import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.music.player.core.presentation.catalog.di.PlayerComponentProvider
 import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
+import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueComponentProvider
+import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
 import by.tigre.music.player.presentation.base.BaseComponentContextImpl
 import by.tigre.music.player.presentation.root.component.Root
 import by.tigre.music.player.presentation.root.view.RootView
@@ -26,6 +28,7 @@ class MainActivity : AppCompatActivity() {
             context = BaseComponentContextImpl(defaultComponentContext()),
             catalogComponentProvider = CatalogComponentProvider.Impl(graph),
             playerComponentProvider = PlayerComponentProvider.Impl(graph),
+            currentQueueComponent = CurrentQueueComponentProvider.Impl(graph),
             dependency = graph
         )
 
@@ -35,7 +38,8 @@ class MainActivity : AppCompatActivity() {
                     RootView(
                         root,
                         catalogViewProvider = CatalogViewProvider.Impl(),
-                        playerViewProvider = PlayerViewProvider.Impl()
+                        playerViewProvider = PlayerViewProvider.Impl(),
+                        currentQueueViewProvider = CurrentQueueViewProvider.Impl()
                     ).Draw(Modifier)
                 }
             }

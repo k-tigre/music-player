@@ -1,6 +1,7 @@
 package by.tigre.music.player.core.presentation.catalog.view
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -65,7 +66,9 @@ class SmallPlayerView(
     @Composable
     private fun DrawItem(modifier: Modifier, song: Song) {
         Row(
-            modifier = modifier.systemBarsPadding(),
+            modifier = modifier
+                .systemBarsPadding()
+                .clickable { component.showQueue() },
             verticalAlignment = Alignment.CenterVertically
         ) {
             // image

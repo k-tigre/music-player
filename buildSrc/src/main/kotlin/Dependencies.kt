@@ -182,7 +182,7 @@ sealed class Project(id: String) {
         sealed class Platform(id: String) : Core("platform:$id") {
             object Resources : Platform("resources")
             object Formatter : Platform("formatter")
-            object Permossion : Platform("permission")
+            object Permission : Platform("permission")
         }
 
         sealed class Domain(id: String) : Core("domain:$id") {
@@ -205,6 +205,7 @@ sealed class Project(id: String) {
         sealed class Presentation(id: String) : Core("presentation:$id") {
             object Catalog : Presentation("catalog")
             object Player : Presentation("player")
+            object PlaylistCurrentQueue : Presentation("playlist:queue")
             object BackgroundPlayer : Presentation("background_player")
         }
 

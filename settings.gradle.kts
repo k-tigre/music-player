@@ -20,6 +20,7 @@ include(":core:entity:catalog")
 include(":core:entity:playback")
 
 include(":core:presentation:catalog")
+include(":core:presentation:playlist:queue")
 include(":core:presentation:player")
 include(":core:presentation:background_player")
 

@@ -7,20 +7,18 @@ import by.tigre.music.player.core.data.playback.PlaybackPlayer
 import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Song
+import by.tigre.music.player.core.entiry.playback.SongInQueueItem
 import by.tigre.music.player.tools.coroutines.CoreScope
-import by.tigre.music.player.tools.coroutines.extensions.log
 import by.tigre.music.player.tools.coroutines.extensions.withLatestFrom
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -41,6 +39,24 @@ internal class PlaybackControllerImpl(
             }
         }
         .stateIn(scope, SharingStarted.WhileSubscribed(), initialValue = null)
+
+    override val currentQueue: Flow<List<SongInQueueItem>> =
+        combine(
+            storage.currentQueue
+                .map {
+                    it.map(PlaybackQueueStorage.QueueItem::songsId)
+                }
+                .distinctUntilChanged()
+                .map { ids -> catalog.getSongsByIds(ids) },
+            storage.currentQueue.map { it.find { item -> item.state == PlaybackQueueStorage.QueueItem.State.Playing } }
+        ) { songs, playingItem ->
+            songs.map { song ->
+                SongInQueueItem(
+                    song,
+                    isPlaying = song.id == playingItem?.songsId
+                )
+            }
+        }.stateIn(scope, SharingStarted.WhileSubscribed(), initialValue = emptyList())
 
     init {
         scope.launch {
@@ -122,20 +138,14 @@ internal class PlaybackControllerImpl(
         resume()
     }
 
-    //    override fun playSongs(item: Playlist) {
-//        action.tryEmit(Action.PlayNewPlaylist(item))
-//    }
-
     override fun stop() {
         scope.launch { player.stop() }
     }
 
     private sealed interface Action {
-        object PlayNext : Action
-        object PlayPrev : Action
-//        object Pause : Action
-//        object Resume : Action
-//        object Stop : Action
+        data object PlayNext : Action
+        data object PlayPrev : Action
+
         data class PlayNewSongs(val items: List<Song>, val startPosition: Int) : Action
         data class PlayAlbum(val album: Album) : Action
     }

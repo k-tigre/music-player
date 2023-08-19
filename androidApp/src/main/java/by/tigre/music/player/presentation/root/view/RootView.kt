@@ -3,6 +3,8 @@ package by.tigre.music.player.presentation.root.view
 import android.Manifest
 import android.content.Intent
 import android.os.Build
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,12 +13,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
+import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
 import by.tigre.music.player.presentation.background.BackgroundService
 import by.tigre.music.player.presentation.root.component.Root
 import by.tigre.music.player.tools.platform.compose.ComposableView
@@ -29,7 +33,8 @@ import kotlinx.coroutines.launch
 class RootView(
     private val component: Root,
     private val catalogViewProvider: CatalogViewProvider,
-    private val playerViewProvider: PlayerViewProvider
+    private val playerViewProvider: PlayerViewProvider,
+    private val currentQueueViewProvider: CurrentQueueViewProvider
 ) : ComposableView {
 
     @OptIn(ExperimentalPermissionsApi::class)
@@ -63,11 +68,24 @@ class RootView(
         }
 
         Column(modifier = Modifier.fillMaxSize()) {
-            catalogViewProvider.createRootView(component.catalogComponent).Draw(
-                Modifier
-                    .weight(1f)
-            )
+            val isQueueVisible = component.isCurrentQueueVisible.collectAsState().value
 
+            Crossfade(
+                modifier = Modifier.weight(1f),
+                targetState = isQueueVisible,
+                animationSpec = tween(500),
+                label = ""
+            ) { state ->
+                if (state) {
+                    currentQueueViewProvider.createCurrentQueueView(component.currentQueueComponent)
+                        .Draw(Modifier)
+                } else {
+                    catalogViewProvider.createRootView(component.catalogComponent)
+                        .Draw(Modifier)
+                }
+            }
+
+            // TODO move to bottom sheet
             playerViewProvider.createSmallPlayerView(component.playerComponent).Draw(Modifier)
         }
     }

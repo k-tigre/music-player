@@ -7,6 +7,7 @@ import by.tigre.music.player.core.data.storage.playback_queue.di.PlaybackQueueMo
 import by.tigre.music.player.core.presentation.backgound_player.di.PlayerBackgroundDependency
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
+import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueDependency
 import by.tigre.music.player.tools.coroutines.CoroutineModule
 
 class ApplicationGraph(
@@ -15,6 +16,7 @@ class ApplicationGraph(
 ) : CatalogDependency,
     PlayerDependency,
     PlayerBackgroundDependency,
+    CurrentQueueDependency,
     PlaybackModule by playbackModule,
     CatalogModule by catalogModule {
 

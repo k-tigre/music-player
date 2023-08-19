@@ -10,6 +10,10 @@ insertNew:
 INSERT INTO Queue(song_id)
 VALUES(?);
 
+insertNewWithStatus:
+INSERT INTO Queue(song_id, status)
+VALUES(?, ?);
+
 updateStatus:
 UPDATE Queue SET status = ? WHERE id = ?;
 

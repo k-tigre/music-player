@@ -25,6 +25,7 @@ fun EmptyScreen(
     modifier: Modifier = Modifier,
     title: String = stringResource(id = R.string.screen_state_empty_title),
     message: String,
+    actionTitle: String = stringResource(R.string.reload_action),
     reloadAction: () -> Unit
 ) {
     Column(
@@ -60,7 +61,7 @@ fun EmptyScreen(
             onClick = reloadAction,
         ) {
             Text(
-                text = stringResource(R.string.reload_action),
+                text = actionTitle,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center
             )

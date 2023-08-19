@@ -12,6 +12,7 @@ interface DbHelper {
     suspend fun getAlbums(artistId: Long): List<Album>
     suspend fun getSongsByArtist(artistId: Long): List<Song>
     suspend fun getSongsByAlbum(albumId: Long): List<Song>
+    suspend fun getSongsByIds(ids: List<Long>): List<Song>
     suspend fun getSongById(id: Long): Song?
 
     class Impl(private val context: Context) : DbHelper {
@@ -169,6 +170,62 @@ interface DbHelper {
                 projection,
                 "${MediaStore.Audio.Media.IS_MUSIC} != ? AND ${MediaStore.Audio.Media.ALBUM_ID} == ?",
                 arrayOf("0", albumId.toString()),
+                MediaStore.Audio.Media.TRACK + " ASC"
+            )?.use { cursor ->
+                println("!!!!! !!!!! cursor count = ${cursor.count}")
+                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+                val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+                val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
+                val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+                val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
+                val trackColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK)
+                while (cursor.moveToNext()) {
+                    songs.add(
+                        Song(
+                            id = cursor.getLong(idColumn),
+                            name = "${cursor.getString(trackColumn)} - ${cursor.getString(nameColumn)}",
+                            album = cursor.getString(albumColumn),
+                            artist = cursor.getString(artistColumn),
+                            path = cursor.getString(dataColumn)
+                        )
+                    )
+                }
+            }
+            return songs
+        }
+
+        override suspend fun getSongsByIds(ids: List<Long>): List<Song> {
+            val projection = arrayOf(
+                MediaStore.Audio.Media._ID,
+                MediaStore.Audio.Media.ALBUM_ID,
+                MediaStore.Audio.Media.ARTIST_ID,
+                MediaStore.Audio.Media.ARTIST,
+                MediaStore.Audio.Media.ALBUM,
+                MediaStore.Audio.Media.DISPLAY_NAME,
+                MediaStore.Audio.Media.TITLE,
+                MediaStore.Audio.Media.IS_MUSIC,
+                MediaStore.Audio.Media.TRACK,
+                MediaStore.Audio.Media.DATA,
+            )
+            val songs = mutableListOf<Song>()
+
+            val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+            } else {
+                MediaStore.Audio.Media.getContentUri("external")
+            }
+
+            context.contentResolver.query(
+                collection,
+                projection,
+                "${MediaStore.Audio.Media.IS_MUSIC} != ? AND ${MediaStore.Audio.Media._ID} IN ${
+                    ids.joinToString(
+                        separator = ",",
+                        postfix = ")",
+                        prefix = "("
+                    )
+                }",
+                arrayOf("0"),
                 MediaStore.Audio.Media.TRACK + " ASC"
             )?.use { cursor ->
                 println("!!!!! !!!!! cursor count = ${cursor.count}")
