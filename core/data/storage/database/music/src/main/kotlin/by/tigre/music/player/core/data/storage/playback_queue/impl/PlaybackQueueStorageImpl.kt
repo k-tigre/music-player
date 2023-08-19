@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.shareIn
 
 class PlaybackQueueStorageImpl(private val database: DatabaseMusic, scope: CoroutineScope) : PlaybackQueueStorage {
+
     override val currentQueue: Flow<List<QueueItem>> =
         database.queueQueries.selectAll(
             limit = 10000,
@@ -36,11 +37,11 @@ class PlaybackQueueStorageImpl(private val database: DatabaseMusic, scope: Corou
     override fun playQueue(queue: List<QueueItem>) {
         database.queueQueries.transaction {
             database.queueQueries.deleteAll()
-            queue.forEach { (id) ->
-                database.queueQueries.insertNew(id)
-            }
-            queue.firstOrNull()?.let {
-                database.queueQueries.updateStatus(status = QueueItem.State.Playing, id = it.id)
+            queue.forEachIndexed { index, item ->
+                database.queueQueries.insertNewWithStatus(
+                    song_id = item.songsId,
+                    status = if (index == 0) QueueItem.State.Playing else QueueItem.State.Pending
+                )
             }
         }
     }

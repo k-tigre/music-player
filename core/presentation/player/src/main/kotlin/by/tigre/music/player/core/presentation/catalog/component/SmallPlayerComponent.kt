@@ -3,6 +3,7 @@ package by.tigre.music.player.core.presentation.catalog.component
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
 import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
+import by.tigre.music.player.core.presentation.catalog.navigation.PlayerNavigator
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.tools.coroutines.extensions.throttleFirst
 import by.tigre.music.player.tools.coroutines.extensions.withLatestFrom
@@ -23,10 +24,12 @@ interface SmallPlayerComponent {
     fun play()
     fun next()
     fun seekTo(fraction: Float)
+    fun showQueue()
 
     class Impl(
         context: BaseComponentContext,
         dependency: PlayerDependency,
+        private val navigator: PlayerNavigator
     ) : SmallPlayerComponent, BaseComponentContext by context {
         private val playbackController = dependency.playbackController
 
@@ -78,6 +81,10 @@ interface SmallPlayerComponent {
 
         override fun next() {
             playbackController.playNext()
+        }
+
+        override fun showQueue() {
+            navigator.showQueue()
         }
     }
 

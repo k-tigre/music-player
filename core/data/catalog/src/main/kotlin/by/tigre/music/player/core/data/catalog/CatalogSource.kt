@@ -9,5 +9,6 @@ interface CatalogSource {
     suspend fun getAlbums(artistId: Long): List<Album>
     suspend fun getSongsByArtist(artistId: Long): List<Song>
     suspend fun getSongsByAlbum(albumId: Long): List<Song>
+    suspend fun getSongsByIds(ids: List<Long>): List<Song>
     suspend fun getSongById(id: Long): Song?
 }
