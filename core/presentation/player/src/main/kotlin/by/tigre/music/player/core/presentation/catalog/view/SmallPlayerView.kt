@@ -1,15 +1,19 @@
 package by.tigre.music.player.core.presentation.catalog.view
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -42,21 +46,29 @@ class SmallPlayerView(
             Box(
                 modifier = modifier
                     .fillMaxWidth()
-                    .offset(y = -0.dp)
+                    .offset(y = 0.dp)
             ) {
                 Box(
                     modifier = modifier
                         .fillMaxWidth()
                         .padding(top = 0.dp)
-                        .background(MaterialTheme.colorScheme.tertiaryContainer)
-//                        .padding(bottom = 24.dp)
+                        .background(
+                            MaterialTheme.colorScheme.tertiaryContainer,
+                            shape = MaterialTheme.shapes.extraLarge.copy(
+                                bottomStart = CornerSize(0),
+                                bottomEnd = CornerSize(0)
+                            )
+                        )
                 ) {
-
-                    Row {
-                        DrawItem(song = current, modifier = Modifier.weight(1f))
+                    Row(Modifier.padding(horizontal = 16.dp)) {
+                        DrawItem(
+                            modifier = Modifier
+                                .weight(1f)
+                                .animateContentSize(tween(250)),
+                            song = current
+                        )
                         DrawActions()
                     }
-
                 }
 
                 DrawProgress()
@@ -72,8 +84,6 @@ class SmallPlayerView(
                 .clickable { component.showQueue() },
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // image
-
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -102,9 +112,9 @@ class SmallPlayerView(
 
         Slider(
             modifier = Modifier
-                .offset(y = -24.dp)
+                .offset(y = (-24).dp)
                 .fillMaxWidth()
-                .padding(horizontal = 0.dp)
+                .padding(horizontal = 16.dp)
                 .align(Alignment.TopCenter),
             value = if (sliderEnabled) sliderPosition else position.value,
             onValueChange = {
@@ -120,24 +130,36 @@ class SmallPlayerView(
     }
 
     @Composable
-    private fun DrawActions() {
+    private fun RowScope.DrawActions() {
         val state = component.state.collectAsState()
 
-        IconButton(onClick = component::prev) {
+        IconButton(
+            modifier = Modifier.align(Alignment.CenterVertically),
+            onClick = component::prev
+        ) {
             Icon(contentDescription = null, painter = painterResource(id = R.drawable.baseline_skip_previous_24))
         }
 
         if (state.value == SmallPlayerComponent.State.Playing) {
-            IconButton(onClick = component::pause) {
+            IconButton(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                onClick = component::pause
+            ) {
                 Icon(contentDescription = null, painter = painterResource(id = R.drawable.baseline_pause_24))
             }
         } else {
-            IconButton(onClick = component::play) {
+            IconButton(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                onClick = component::play
+            ) {
                 Icon(contentDescription = null, painter = painterResource(id = R.drawable.baseline_play_arrow_24))
             }
         }
 
-        IconButton(onClick = component::next) {
+        IconButton(
+            modifier = Modifier.align(Alignment.CenterVertically),
+            onClick = component::next
+        ) {
             Icon(contentDescription = null, painter = painterResource(id = R.drawable.baseline_skip_next_24))
         }
     }

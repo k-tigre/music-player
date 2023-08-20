@@ -8,15 +8,23 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import by.tigre.music.player.R
 import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
@@ -26,6 +34,7 @@ import by.tigre.music.player.tools.platform.compose.ComposableView
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.jetpack.pages.Pages
 import com.arkivanov.decompose.extensions.compose.jetpack.pages.PagesScrollAnimation
+import com.arkivanov.decompose.extensions.compose.jetpack.subscribeAsState
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
@@ -70,23 +79,73 @@ class RootView(
             }
         }
 
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            bottomBar = {
+                Column {
+                    playerViewProvider.createSmallPlayerView(component.playerComponent).Draw(Modifier)
 
+                    NavigationBar {
+                        val pages = component.pages.subscribeAsState()
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            Pages(
-                pages = component.pages,
-                onPageSelected = component::selectPage,
-                scrollAnimation = PagesScrollAnimation.Custom(tween(500)),
-                modifier = Modifier.weight(1f),
-            ) { _, page ->
-                when (page) {
-                    is Root.PageComponentChild.Catalog -> catalogViewProvider.createRootView(page.component).Draw(Modifier)
-                    is Root.PageComponentChild.Queue -> currentQueueViewProvider.createCurrentQueueView(page.component).Draw(Modifier)
+                        NavigationBarItem(
+                            modifier = Modifier.navigationBarsPadding(),
+                            selected = pages.value.selectedIndex == 0,
+                            onClick = { component.selectPage(0) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.baseline_format_list_numbered_24),
+                                    contentDescription = "Playlist"
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = "Playlist",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            },
+                        )
+
+                        NavigationBarItem(
+                            modifier = Modifier.navigationBarsPadding(),
+                            selected = pages.value.selectedIndex == 1,
+                            onClick = { component.selectPage(1) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.outline_library_music_24),
+                                    contentDescription = "Library"
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = "Library",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            },
+                        )
+                    }
                 }
             }
-
-            // TODO move to bottom sheet
-            playerViewProvider.createSmallPlayerView(component.playerComponent).Draw(Modifier)
+        ) { paddings ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddings)
+            ) {
+                Pages(
+                    pages = component.pages,
+                    onPageSelected = component::selectPage,
+                    scrollAnimation = PagesScrollAnimation.Custom(tween(500)),
+                    modifier = Modifier,
+                ) { _, page ->
+                    when (page) {
+                        is Root.PageComponentChild.Catalog -> catalogViewProvider.createRootView(page.component).Draw(Modifier)
+                        is Root.PageComponentChild.Queue -> currentQueueViewProvider.createCurrentQueueView(page.component).Draw(Modifier)
+                    }
+                }
+            }
         }
     }
 

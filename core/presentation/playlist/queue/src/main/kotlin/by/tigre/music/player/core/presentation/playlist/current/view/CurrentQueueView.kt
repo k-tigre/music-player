@@ -9,14 +9,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -55,14 +51,6 @@ class CurrentQueueView(
                             )
                         }
                     },
-                    navigationIcon = {
-                        IconButton(onClick = component::onBackClicked) {
-                            Icon(
-                                imageVector = Icons.Filled.Close,
-                                contentDescription = "Close"
-                            )
-                        }
-                    },
                 )
             },
             content = { paddingValues ->
@@ -97,7 +85,7 @@ class CurrentQueueView(
     private fun DrawContent(songs: List<SongInQueueItem>) {
         if (songs.isEmpty()) {
             EmptyScreen(
-                reloadAction = component::onBackClicked,
+                reloadAction = component::onAddToQueueClicked,
                 title = "No songs in current playlist",
                 message = "Select some track for playing",
                 actionTitle = "Select from catalog"
@@ -107,7 +95,7 @@ class CurrentQueueView(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                songs.forEach { item ->
+                songs.forEachIndexed { index, item ->
                     item {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
@@ -117,7 +105,7 @@ class CurrentQueueView(
                         ) {
                             Text(
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                text = item.song.name,
+                                text = "(${index + 1}) - ${item.song.name}"
                             )
 
                             Text(

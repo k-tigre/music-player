@@ -18,7 +18,7 @@ interface CurrentQueueComponent {
 
     fun retry()
     fun onSongClicked(song: Song)
-    fun onBackClicked()
+    fun onAddToQueueClicked()
 
     class Impl(
         context: BaseComponentContext,
@@ -48,8 +48,8 @@ interface CurrentQueueComponent {
             playbackController.playSongInQueue(song.id)
         }
 
-        override fun onBackClicked() {
-            navigator.onCloseQueue()
+        override fun onAddToQueueClicked() {
+            navigator.onOpenCatalog()
         }
     }
 }
