@@ -3,8 +3,6 @@ package by.tigre.music.player.presentation.root.view
 import android.Manifest
 import android.content.Intent
 import android.os.Build
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,9 +29,8 @@ import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueV
 import by.tigre.music.player.presentation.background.BackgroundService
 import by.tigre.music.player.presentation.root.component.Root
 import by.tigre.music.player.tools.platform.compose.ComposableView
-import com.arkivanov.decompose.ExperimentalDecomposeApi
-import com.arkivanov.decompose.extensions.compose.jetpack.pages.Pages
-import com.arkivanov.decompose.extensions.compose.jetpack.pages.PagesScrollAnimation
+import com.arkivanov.decompose.extensions.compose.jetpack.stack.Children
+import com.arkivanov.decompose.extensions.compose.jetpack.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.jetpack.subscribeAsState
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
@@ -66,7 +63,6 @@ class RootView(
         }
     }
 
-    @OptIn(ExperimentalFoundationApi::class, ExperimentalDecomposeApi::class)
     @Composable
     private fun DrawMain() {
         val context = LocalContext.current
@@ -90,7 +86,7 @@ class RootView(
 
                         NavigationBarItem(
                             modifier = Modifier.navigationBarsPadding(),
-                            selected = pages.value.selectedIndex == 0,
+                            selected = pages.value.active.instance is Root.PageComponentChild.Queue,
                             onClick = { component.selectPage(0) },
                             icon = {
                                 Icon(
@@ -109,7 +105,7 @@ class RootView(
 
                         NavigationBarItem(
                             modifier = Modifier.navigationBarsPadding(),
-                            selected = pages.value.selectedIndex == 1,
+                            selected = pages.value.active.instance is Root.PageComponentChild.Catalog,
                             onClick = { component.selectPage(1) },
                             icon = {
                                 Icon(
@@ -134,17 +130,13 @@ class RootView(
                     .fillMaxSize()
                     .padding(paddings)
             ) {
-                Pages(
-                    pages = component.pages,
-                    onPageSelected = component::selectPage,
-                    scrollAnimation = PagesScrollAnimation.Custom(tween(500)),
-                    modifier = Modifier,
-                ) { _, page ->
-                    when (page) {
-                        is Root.PageComponentChild.Catalog -> catalogViewProvider.createRootView(page.component).Draw(Modifier)
-                        is Root.PageComponentChild.Queue -> currentQueueViewProvider.createCurrentQueueView(page.component).Draw(Modifier)
+                Children(stack = component.pages, animation = stackAnimation()) {
+                    when (val child = it.instance) {
+                        is Root.PageComponentChild.Catalog -> catalogViewProvider.createRootView(child.component).Draw(Modifier)
+                        is Root.PageComponentChild.Queue -> currentQueueViewProvider.createCurrentQueueView(child.component).Draw(Modifier)
                     }
                 }
+
             }
         }
     }

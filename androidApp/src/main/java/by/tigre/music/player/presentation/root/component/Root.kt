@@ -10,12 +10,11 @@ import by.tigre.music.player.core.presentation.playlist.current.component.Curren
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueComponentProvider
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.appChildContext
-import by.tigre.music.player.presentation.base.appChildPages
+import by.tigre.music.player.presentation.base.appChildStack
 import com.arkivanov.decompose.ExperimentalDecomposeApi
-import com.arkivanov.decompose.router.pages.ChildPages
-import com.arkivanov.decompose.router.pages.Pages
-import com.arkivanov.decompose.router.pages.PagesNavigation
-import com.arkivanov.decompose.router.pages.select
+import com.arkivanov.decompose.router.stack.ChildStack
+import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.bringToFront
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.parcelable.Parcelable
 import kotlinx.coroutines.FlowPreview
@@ -35,7 +34,7 @@ interface Root {
 
     val onStartServiceEvent: Flow<Unit>
 
-    val pages: Value<ChildPages<*, PageComponentChild>>
+    val pages: Value<ChildStack<*, PageComponentChild>>
 
     fun selectPage(index: Int)
 
@@ -55,7 +54,7 @@ interface Root {
 
         private val playbackController = dependency.playbackController
 
-        private val navigation = PagesNavigation<Config>()
+        private val navigation = StackNavigation<Config>()
 
         override val playerComponent: SmallPlayerComponent by lazy {
             playerComponentProvider.createSmallPlayerComponent(
@@ -68,15 +67,10 @@ interface Root {
 
         override val onStartServiceEvent = MutableSharedFlow<Unit>()
 
-        override val pages: Value<ChildPages<*, PageComponentChild>> =
-            appChildPages(
+        override val pages: Value<ChildStack<*, PageComponentChild>> =
+            appChildStack(
                 source = navigation,
-                initialPages = {
-                    Pages(
-                        items = listOf(Config.Queue, Config.Catalog),
-                        selectedIndex = 0,
-                    )
-                },
+                initialStack = { listOf(Config.Queue) },
             ) { config, componentContext ->
                 when (config) {
                     Config.Catalog -> PageComponentChild.Catalog(
@@ -84,7 +78,8 @@ interface Root {
                     )
 
                     Config.Queue -> PageComponentChild.Queue(
-                        currentQueueComponent.createCurrentQueueComponent(componentContext,
+                        currentQueueComponent.createCurrentQueueComponent(
+                            componentContext,
                             navigator = { selectPage(1) }
                         )
                     )
@@ -103,7 +98,11 @@ interface Root {
         }
 
         override fun selectPage(index: Int) {
-            navigation.select(index = index)
+            when (index) {
+                0 -> navigation.bringToFront(Config.Queue)
+                1 -> navigation.bringToFront(Config.Catalog)
+            }
+
         }
 
 
