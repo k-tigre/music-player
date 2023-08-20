@@ -5,6 +5,7 @@ plugins {
     id(Plugin.Id.KotlinAndroid.value)
     id(Plugin.Id.GoogleServices.value)
     id(Plugin.Id.Crashlytics.value)
+    id(Plugin.Id.KotlinParcelize.value)
 }
 
 android {
@@ -91,6 +92,7 @@ dependencies {
     implementation(Project.Core.Data.Catalog)
     implementation(Project.Core.Entity.Catalog)
     implementation(Library.AccompanistPermission)
+    implementation(Library.AccompanistPager)
     implementation(FirebaseLibrary.FirebaseAnalytics, FirebaseLibrary.FirebaseCrashLytics)
 
     // debugImplementation because LeakCanary should only run in debug builds.
