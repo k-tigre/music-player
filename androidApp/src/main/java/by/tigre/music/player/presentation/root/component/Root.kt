@@ -55,17 +55,18 @@ interface Root {
 
         private val playbackController = dependency.playbackController
 
+        private val navigation = PagesNavigation<Config>()
+
         override val playerComponent: SmallPlayerComponent by lazy {
             playerComponentProvider.createSmallPlayerComponent(
-                appChildContext("player"),
+                context = appChildContext("player"),
                 navigator = {
-                    selectPage(0)
-                })
+                    /*open player view*/
+                }
+            )
         }
 
         override val onStartServiceEvent = MutableSharedFlow<Unit>()
-
-        private val navigation = PagesNavigation<Config>()
 
         override val pages: Value<ChildPages<*, PageComponentChild>> =
             appChildPages(
