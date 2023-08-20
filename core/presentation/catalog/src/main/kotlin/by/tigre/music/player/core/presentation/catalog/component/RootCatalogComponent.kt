@@ -72,6 +72,7 @@ interface RootCatalogComponent {
                         )
                     )
                 }
+
                 is CatalogConfig.AlbumsList -> {
                     CatalogChild.AlbumsList(
                         componentProvider.createAlbumListComponent(
@@ -81,6 +82,7 @@ interface RootCatalogComponent {
                         )
                     )
                 }
+
                 is CatalogConfig.SongsList -> {
                     CatalogChild.SongsList(
                         componentProvider.createSongsListComponent(

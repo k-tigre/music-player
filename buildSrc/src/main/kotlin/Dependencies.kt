@@ -72,7 +72,7 @@ enum class Library(group: String, artifact: String, version: Version) {
         ComposeMaterial("1.1.1"),
         Accompanist("0.31.6-rc") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
         CoilCompose("2.4.0"),
-        Decompose("2.0.1"),
+        Decompose("2.1.0-alpha-07"),
 
         DebugComposeCustomView("1.2.0-alpha02"),
         DebugComposeCustomViewPoolingcontainer("1.0.0"),

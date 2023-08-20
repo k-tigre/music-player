@@ -3,8 +3,8 @@ package by.tigre.music.player.presentation.root.view
 import android.Manifest
 import android.content.Intent
 import android.os.Build
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +13,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -24,6 +23,9 @@ import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueV
 import by.tigre.music.player.presentation.background.BackgroundService
 import by.tigre.music.player.presentation.root.component.Root
 import by.tigre.music.player.tools.platform.compose.ComposableView
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.extensions.compose.jetpack.pages.Pages
+import com.arkivanov.decompose.extensions.compose.jetpack.pages.PagesScrollAnimation
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
@@ -55,6 +57,7 @@ class RootView(
         }
     }
 
+    @OptIn(ExperimentalFoundationApi::class, ExperimentalDecomposeApi::class)
     @Composable
     private fun DrawMain() {
         val context = LocalContext.current
@@ -67,21 +70,18 @@ class RootView(
             }
         }
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            val isQueueVisible = component.isCurrentQueueVisible.collectAsState().value
 
-            Crossfade(
+
+        Column(modifier = Modifier.fillMaxSize()) {
+            Pages(
+                pages = component.pages,
+                onPageSelected = component::selectPage,
+                scrollAnimation = PagesScrollAnimation.Custom(tween(500)),
                 modifier = Modifier.weight(1f),
-                targetState = isQueueVisible,
-                animationSpec = tween(500),
-                label = ""
-            ) { state ->
-                if (state) {
-                    currentQueueViewProvider.createCurrentQueueView(component.currentQueueComponent)
-                        .Draw(Modifier)
-                } else {
-                    catalogViewProvider.createRootView(component.catalogComponent)
-                        .Draw(Modifier)
+            ) { _, page ->
+                when (page) {
+                    is Root.PageComponentChild.Catalog -> catalogViewProvider.createRootView(page.component).Draw(Modifier)
+                    is Root.PageComponentChild.Queue -> currentQueueViewProvider.createCurrentQueueView(page.component).Draw(Modifier)
                 }
             }
 
