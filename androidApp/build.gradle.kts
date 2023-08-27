@@ -1,11 +1,15 @@
 @file:Suppress("UnstableApiUsage")
 
+import com.github.triplet.gradle.androidpublisher.ReleaseStatus
+
+
 plugins {
     id(Plugin.Id.AndroidApplication.value)
     id(Plugin.Id.KotlinAndroid.value)
     id(Plugin.Id.GoogleServices.value)
     id(Plugin.Id.Crashlytics.value)
     id(Plugin.Id.KotlinParcelize.value)
+    id(Plugin.Id.GooglePlayPublisher.value)
 }
 
 android {
@@ -97,4 +101,10 @@ dependencies {
 
     // debugImplementation because LeakCanary should only run in debug builds.
     debugImplementation(Library.Leakcanary)
+}
+
+play {
+    track.set("internal")
+    userFraction.set(1.0)
+    releaseStatus.set(ReleaseStatus.COMPLETED)
 }
