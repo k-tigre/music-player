@@ -16,6 +16,6 @@ interface PlaybackPlayer {
     suspend fun seekTo(position: Long)
     suspend fun setMediaItem(item: MediaItemWrapper, position: Long)
 
-    enum class State { Idle, Paused, Playing,  Ended }
+    enum class State { Idle, Paused, Playing, Ended }
     data class Progress(val position: Long, val duration: Long)
 }

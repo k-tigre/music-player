@@ -4,7 +4,6 @@ import android.content.Context
 import by.tigre.music.player.core.data.catalog.di.CatalogModule
 import by.tigre.music.player.core.data.playback.PlaybackController
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
-import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
 import by.tigre.music.player.core.data.playback.impl.MediaItemWrapperProviderImpl
 import by.tigre.music.player.core.data.playback.impl.PlaybackControllerImpl
 import by.tigre.music.player.core.data.playback.impl.PlaybackPlayerImpl
@@ -32,7 +31,12 @@ interface PlaybackModule {
                 catalog = catalogModule.catalogSource
             )
         }
-        override val playbackPlayer: PlaybackPlayer by lazy { PlaybackPlayerImpl(context, coroutineModule.scope) }
 
+        override val playbackPlayer: PlaybackPlayer by lazy {
+            PlaybackPlayerImpl(
+                context = context,
+                scope = coroutineModule.scope
+            )
+        }
     }
 }
