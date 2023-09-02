@@ -24,7 +24,10 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 
-internal class PlaybackPlayerImpl(context: Context, scope: CoreScope) : PlaybackPlayer {
+internal class PlaybackPlayerImpl(
+    context: Context,
+    scope: CoreScope
+) : PlaybackPlayer {
     override val state = MutableStateFlow(PlaybackPlayer.State.Idle)
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -89,8 +92,8 @@ internal class PlaybackPlayerImpl(context: Context, scope: CoreScope) : Playback
             .build()
 
         ExoPlayer.Builder(context)
-            .setAudioAttributes(audioAttributes, false)
-            .setHandleAudioBecomingNoisy(false)
+            .setAudioAttributes(audioAttributes, true)
+            .setHandleAudioBecomingNoisy(true)
             .build().also { it.addListener(playerStateListener) }
     }
 
@@ -115,7 +118,6 @@ internal class PlaybackPlayerImpl(context: Context, scope: CoreScope) : Playback
     }
 
     override suspend fun seekTo(position: Long) {
-//        TODO("Not yet implemented")
         withContext(Dispatchers.Main) {
             player.seekTo(position)
         }

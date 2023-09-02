@@ -61,7 +61,7 @@ interface DbHelper {
 
         override suspend fun getAlbums(artistId: Long): List<Album> {
             val projection = arrayOf(
-                MediaStore.Audio.Artists.Albums._ID,
+                MediaStore.Audio.Artists.Albums.ALBUM_ID,
                 MediaStore.Audio.Artists.Albums.ALBUM,
                 MediaStore.Audio.Artists.Albums.NUMBER_OF_SONGS,
                 MediaStore.Audio.Artists.Albums.FIRST_YEAR,
@@ -83,7 +83,7 @@ interface DbHelper {
                 MediaStore.Audio.Albums.FIRST_YEAR + " ASC"
             )?.use { cursor ->
                 println("!!!!! !!!!! cursor count = ${cursor.count}")
-                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.Albums._ID)
+                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.Albums.ALBUM_ID)
                 val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.Albums.ALBUM)
                 val countColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.Albums.NUMBER_OF_SONGS)
                 val firstYearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.Albums.FIRST_YEAR)
