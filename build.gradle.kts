@@ -16,6 +16,7 @@ buildscript {
         plugin(Plugin.Versions)
         plugin(Plugin.SQLDelight)
         plugin(Plugin.GooglePlayPublisher)
+        plugin(Plugin.FirebasePublisher)
     }
 }
 
