@@ -141,7 +141,8 @@ enum class Plugin(group: String, artifact: String, version: Version) {
     Crashlytics("com.google.firebase", "firebase-crashlytics-gradle", Version.Crashlytics),
     Versions("com.github.ben-manes", "gradle-versions-plugin", Version.Versions),
     SQLDelight("app.cash.sqldelight", "gradle-plugin", Version.SQLDelight),
-    GooglePlayPublisher("com.github.triplet.gradle", "play-publisher", Version.GooglePlayPublisher)
+    GooglePlayPublisher("com.github.triplet.gradle", "play-publisher", Version.GooglePlayPublisher),
+    FirebasePublisher("com.google.firebase", "firebase-appdistribution-gradle", Version.FirebasePublisher)
     ;
 
     internal val notation = "$group:$artifact:${version.value}"
@@ -157,7 +158,8 @@ enum class Plugin(group: String, artifact: String, version: Version) {
         Crashlytics("com.google.firebase.crashlytics"),
         Versions("com.github.ben-manes.versions"),
         SQLDelight("app.cash.sqldelight"),
-        GooglePlayPublisher("com.github.triplet.play")
+        GooglePlayPublisher("com.github.triplet.play"),
+        FirebasePublisher("com.google.firebase.appdistribution")
     }
 
     private enum class Version(val value: String) {
@@ -168,6 +170,7 @@ enum class Plugin(group: String, artifact: String, version: Version) {
         Versions("0.42.0"),
         SQLDelight(Library.Version.SQLDelight.value),
         GooglePlayPublisher("3.8.4"),
+        FirebasePublisher("4.0.0"),
     }
 }
 

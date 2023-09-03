@@ -10,6 +10,7 @@ plugins {
     id(Plugin.Id.Crashlytics.value)
     id(Plugin.Id.KotlinParcelize.value)
     id(Plugin.Id.GooglePlayPublisher.value)
+    id(Plugin.Id.FirebasePublisher.value)
 }
 
 android {
@@ -65,6 +66,13 @@ android {
                 }
 
                 matchingFallbacks.add(Environment.Debug.gradleName)
+
+                if (env == Environment.Debug) {
+                    firebaseAppDistribution {
+                        artifactType = "APK"
+                        groups = "test-group"
+                    }
+                }
             }
         }
     }
