@@ -15,14 +15,10 @@
             android:name=".MainActivity"
             android:configChanges="orientation|locale|uiMode"
             android:exported="true"
-            android:launchMode="singleTask">
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
-            <intent-filter>
-                <action android:name="by.tigre.player.PLAYBACK_ACTION_RESTORE" />
             </intent-filter>
         </activity>
 
