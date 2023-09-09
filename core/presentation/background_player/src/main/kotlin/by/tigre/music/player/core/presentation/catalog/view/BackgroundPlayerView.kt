@@ -19,10 +19,10 @@ import kotlinx.coroutines.cancel
 class BackgroundPlayerView(
     private val service: Service,
     private val component: BackgroundComponent,
+    onIntentProvider: () -> Intent
 ) {
     private val scope = CoroutineScope(Dispatchers.Main)
     private val notificationManager = service.getNotificationManager()
-
 
     private val MEDIA_SESSION_TAG = "MEDIA_SESSION_TAG"
     private val playerNotificationManager: PlayerNotificationManager
@@ -46,13 +46,18 @@ class BackgroundPlayerView(
         }
 
         val mediaDescription = object : PlayerNotificationManager.MediaDescriptionAdapter {
-            // FIXME: intent to main activity
             private val pendingIntent =
-                PendingIntent.getActivity(service, 0, Intent("by.tigre.player.PLAYBACK_ACTION_RESTORE"), PendingIntent.FLAG_MUTABLE)
+                PendingIntent.getActivity(
+                    service,
+                    0,
+                    onIntentProvider(),
+                    PendingIntent.FLAG_IMMUTABLE
+                )
 
             override fun getCurrentContentTitle(player: Player): String = component.currentSong.value?.name ?: ""
 
-            override fun createCurrentContentIntent(player: Player): PendingIntent? = pendingIntent
+            override fun createCurrentContentIntent(player: Player): PendingIntent? =
+                pendingIntent.also { println("InternalPlayer: createCurrentContentIntent") }
 
             override fun getCurrentContentText(player: Player): String? = component.currentSong.value?.let { "${it.artist}/${it.album}" }
 
@@ -68,13 +73,13 @@ class BackgroundPlayerView(
             .setNotificationListener(listener)
             .build()
             .apply {
+                setUseFastForwardAction(false)
+                setUseRewindAction(false)
+                setUsePreviousActionInCompactView(true)
+                setUsePreviousAction(true)
                 setUseNextAction(true)
                 setUseNextActionInCompactView(true)
                 setUsePlayPauseActions(true)
-                setUseFastForwardAction(false)
-                setUsePreviousActionInCompactView(false)
-                setUsePreviousAction(false)
-                setUseRewindAction(false)
 
             }
 
@@ -86,15 +91,46 @@ class BackgroundPlayerView(
 
 
     fun onCreate() {
+        val player = InternalPlayerWrapper(component.getPlayer().player)
+
         mediaSessionCompat.isActive = true
-        playerNotificationManager.setPlayer(component.getPlayer().player)
-        mediaSessionConnector.setPlayer(component.getPlayer().player)
+        playerNotificationManager.setPlayer(player)
+        mediaSessionConnector.setPlayer(player)
     }
 
     fun destroy() {
         scope.cancel()
     }
 
+    private inner class InternalPlayerWrapper(private val player: Player) : Player by player {
+        override fun seekToNext() {
+            component.next()
+        }
+
+        override fun seekToPrevious() {
+            component.prev()
+        }
+
+        override fun play() {
+            component.play()
+        }
+
+        override fun pause() {
+            component.pause()
+        }
+
+        override fun seekToPreviousMediaItem() {
+            component.prev()
+        }
+
+        override fun seekToNextMediaItem() {
+            component.next()
+        }
+
+        override fun isCommandAvailable(command: Int): Boolean {
+            return if (command != Player.COMMAND_SEEK_TO_NEXT) player.isCommandAvailable(command) else true
+        }
+    }
 
     companion object {
         private const val SERVICE_NOTIFICATION_ID = 101
