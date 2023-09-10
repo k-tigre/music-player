@@ -14,7 +14,12 @@ interface CatalogComponentProvider {
     fun createRootCatalogComponent(context: BaseComponentContext): RootCatalogComponent
     fun createArtistListComponent(context: BaseComponentContext, navigator: CatalogNavigator): ArtistListComponent
     fun createAlbumListComponent(context: BaseComponentContext, navigator: CatalogNavigator, artist: Artist): AlbumListComponent
-    fun createSongsListComponent(context: BaseComponentContext, navigator: CatalogNavigator, album: Album): SongsListComponent
+    fun createSongsListComponent(
+        context: BaseComponentContext,
+        navigator: CatalogNavigator,
+        album: Album,
+        artist: Artist
+    ): SongsListComponent
 
     class Impl(
         private val dependency: CatalogDependency
@@ -37,8 +42,9 @@ interface CatalogComponentProvider {
         override fun createSongsListComponent(
             context: BaseComponentContext,
             navigator: CatalogNavigator,
-            album: Album
-        ): SongsListComponent = SongsListComponent.Impl(context, dependency, navigator, album)
+            album: Album,
+            artist: Artist
+        ): SongsListComponent = SongsListComponent.Impl(context, dependency, navigator, album, artist)
     }
 
 

@@ -16,8 +16,6 @@ dependencies {
     implementation(Library.CoroutinesAndroid)
 
     implementation(Library.KotlinStd)
-//    implementation(Library.AccompanistPager)
-//    implementation(Library.AccompanistPagerInidcators)
     implementation(Project.Tools.Coroutines)
     implementation(Project.Core.Data.Catalog)
     implementation(Project.Core.Data.Playback)

@@ -1,6 +1,7 @@
 package by.tigre.music.player.core.presentation.catalog.component
 
 import by.tigre.music.player.core.data.catalog.CatalogSource
+import by.tigre.music.player.core.data.playback.PlaybackController
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigator
@@ -16,6 +17,8 @@ interface ArtistListComponent {
 
     fun retry()
     fun onArtistClicked(artist: Artist)
+    fun onAddToPlayArtistClicked(artist: Artist)
+    fun onPlayArtistClicked(artist: Artist)
 
     class Impl(
         context: BaseComponentContext,
@@ -24,6 +27,7 @@ interface ArtistListComponent {
     ) : ArtistListComponent, BaseComponentContext by context {
 
         private val catalogSource: CatalogSource = dependency.catalogSource
+        private val playbackController: PlaybackController = dependency.playbackController
 
         private val stateDelegate = ScreenContentStateDelegate(
             scope = this,
@@ -43,6 +47,14 @@ interface ArtistListComponent {
 
         override fun onArtistClicked(artist: Artist) {
             navigator.showShowAlbums(artist)
+        }
+
+        override fun onAddToPlayArtistClicked(artist: Artist) {
+            playbackController.addArtistToPlay(artist.id)
+        }
+
+        override fun onPlayArtistClicked(artist: Artist) {
+            playbackController.playArtist(artist.id)
         }
     }
 }

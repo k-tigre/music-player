@@ -39,8 +39,8 @@ interface RootCatalogComponent {
                 navigation.push(CatalogConfig.AlbumsList(artist))
             }
 
-            override fun showSongs(album: Album) {
-                navigation.push(CatalogConfig.SongsList(album))
+            override fun showSongs(album: Album, artist: Artist) {
+                navigation.push(CatalogConfig.SongsList(album, artist))
             }
 
             override fun showPreviousScreen() {
@@ -88,7 +88,8 @@ interface RootCatalogComponent {
                         componentProvider.createSongsListComponent(
                             context = context,
                             navigator = navigator,
-                            album = config.album
+                            album = config.album,
+                            artist = config.artist
                         )
                     )
                 }
@@ -105,7 +106,7 @@ interface RootCatalogComponent {
             class AlbumsList(val artist: Artist) : CatalogConfig
 
             @Parcelize
-            class SongsList(val album: Album) : CatalogConfig
+            class SongsList(val album: Album, val artist: Artist) : CatalogConfig
         }
     }
 }

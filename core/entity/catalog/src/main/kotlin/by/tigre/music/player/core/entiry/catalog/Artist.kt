@@ -5,8 +5,13 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Artist(
-    val id: Long,
+    val id: Id,
     val name: String,
     val songCount: Int,
     val albumCount: Int
-) : Parcelable
+) : Parcelable {
+
+    @JvmInline
+    @Parcelize
+    value class Id(val value: Long) : Parcelable
+}

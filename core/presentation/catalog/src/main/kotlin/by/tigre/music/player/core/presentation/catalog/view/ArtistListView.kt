@@ -4,15 +4,11 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -29,8 +25,10 @@ import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.presentation.catalog.component.ArtistListComponent
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.tools.platform.compose.ComposableView
+import by.tigre.music.player.tools.platform.compose.view.CardWithPopup
 import by.tigre.music.player.tools.platform.compose.view.EmptyScreen
 import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
+import by.tigre.music.player.tools.platform.compose.view.PopupAction
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicator
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicatorSize
 
@@ -96,6 +94,7 @@ class ArtistListView(
     private fun DrawContent(artists: List<Artist>) {
         if (artists.isEmpty()) {
             EmptyScreen(
+                modifier = Modifier.padding(48.dp),
                 reloadAction = component::retry,
                 message = "No songs found. Try put some mp3 media files on your device storage, for example into folder \"Music\""
             )
@@ -106,29 +105,19 @@ class ArtistListView(
             ) {
                 artists.forEach { artist ->
                     item {
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            onClick = { component.onArtistClicked(artist) },
-                        ) {
-
-                            Text(
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                text = artist.name,
+                        CardWithPopup(
+                            modifier = Modifier,
+                            title = artist.name,
+                            onCardClicked = { component.onArtistClicked(artist) },
+                            popupActions = listOf(
+                                PopupAction("Play") { component.onPlayArtistClicked(artist) },
+                                PopupAction("Add to Queue") { component.onAddToPlayArtistClicked(artist) },
+                            ),
+                            descriptions = listOf(
+                                "Albums: ${artist.albumCount}",
+                                "Songs: ${artist.songCount}"
                             )
-
-                            Text(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                text = "Albums: ${artist.albumCount}"
-                            )
-
-                            Text(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                text = "Songs: ${artist.songCount}"
-                            )
-
-                            Spacer(modifier = Modifier.size(8.dp))
-                        }
+                        )
                     }
                 }
             }

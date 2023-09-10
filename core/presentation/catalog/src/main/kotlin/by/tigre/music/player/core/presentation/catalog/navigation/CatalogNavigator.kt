@@ -6,6 +6,6 @@ import by.tigre.music.player.core.entiry.catalog.Artist
 interface CatalogNavigator {
     fun showArtists()
     fun showShowAlbums(artist: Artist)
-    fun showSongs(album: Album)
+    fun showSongs(album: Album, artist: Artist)
     fun showPreviousScreen()
 }
