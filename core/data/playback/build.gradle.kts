@@ -9,6 +9,7 @@ dependencies {
     implementation(Library.ExoPlayerCore)
     implementation(Project.Tools.Entity)
     implementation(Project.Tools.Coroutines)
+    implementation(Project.Logger.Core)
     implementation(Project.Core.Entity.Catalog)
     implementation(Project.Core.Entity.Playback)
     implementation(Project.Core.Data.Storage.Database.Music)

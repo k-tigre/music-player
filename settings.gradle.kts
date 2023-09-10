@@ -29,3 +29,8 @@ include(":tools:presentation:decompose")
 include(":tools:entity")
 include(":tools:coroutines")
 include(":tools:platform:utils")
+
+include(":logger:core")
+include(":logger:logcat")
+include(":logger:crashlytics")
+include(":logger:internal-store")

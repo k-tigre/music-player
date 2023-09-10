@@ -39,7 +39,6 @@ interface DbHelper {
                 null,
                 MediaStore.Audio.Artists.ARTIST + " ASC"
             )?.use { cursor ->
-                println("!!!!! !!!!! cursor count = ${cursor.count}")
                 val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists._ID)
                 val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.ARTIST)
                 val songCountColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.NUMBER_OF_TRACKS)
@@ -82,7 +81,6 @@ interface DbHelper {
                 null,
                 MediaStore.Audio.Albums.FIRST_YEAR + " ASC"
             )?.use { cursor ->
-                println("!!!!! !!!!! cursor count = ${cursor.count}")
                 val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.Albums.ALBUM_ID)
                 val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.Albums.ALBUM)
                 val countColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.Albums.NUMBER_OF_SONGS_FOR_ARTIST)
@@ -133,7 +131,6 @@ interface DbHelper {
                 arrayOf("0", artistId.value.toString()),
                 MediaStore.Audio.Media.TRACK + " ASC"
             )?.use { cursor ->
-                println("!!!!! !!!!! cursor count = ${cursor.count}")
                 val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
                 val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
                 val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
@@ -223,7 +220,6 @@ interface DbHelper {
                 arrayOf("0", albumId.value.toString(), artistId.value.toString()),
                 MediaStore.Audio.Media.TRACK + " ASC"
             )?.use { cursor ->
-                println("!!!!! !!!!! cursor count = ${cursor.count}")
                 val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
                 val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
                 val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
@@ -280,7 +276,6 @@ interface DbHelper {
                 arrayOf("0"),
                 null
             )?.use { cursor ->
-                println("!!!!! !!!!! cursor count = ${cursor.count}")
                 val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
                 val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
                 val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
