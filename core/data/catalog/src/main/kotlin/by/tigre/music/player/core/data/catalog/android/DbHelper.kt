@@ -187,7 +187,7 @@ interface DbHelper {
                         album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)),
                         artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)),
                         path = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)),
-                        index = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK))
+                        index = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK)) ?: ""
                     )
                 } else {
                     null
@@ -235,7 +235,7 @@ interface DbHelper {
                         Song(
                             id = Song.Id(cursor.getLong(idColumn)),
                             name = cursor.getString(nameColumn),
-                            index = cursor.getString(trackColumn),
+                            index = cursor.getString(trackColumn) ?: "",
                             album = cursor.getString(albumColumn),
                             artist = cursor.getString(artistColumn),
                             path = cursor.getString(dataColumn)
@@ -292,7 +292,7 @@ interface DbHelper {
                         Song(
                             id = Song.Id(cursor.getLong(idColumn)),
                             name = cursor.getString(nameColumn),
-                            index = cursor.getString(trackColumn),
+                            index = cursor.getString(trackColumn) ?: "",
                             album = cursor.getString(albumColumn),
                             artist = cursor.getString(artistColumn),
                             path = cursor.getString(dataColumn)
