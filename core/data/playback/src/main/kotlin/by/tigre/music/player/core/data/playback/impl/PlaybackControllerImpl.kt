@@ -6,6 +6,7 @@ import by.tigre.music.player.core.data.playback.PlaybackController
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
 import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
 import by.tigre.music.player.core.entiry.catalog.Album
+import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.entiry.playback.SongInQueueItem
 import by.tigre.music.player.tools.coroutines.CoreScope
@@ -63,12 +64,28 @@ internal class PlaybackControllerImpl(
             action.withLatestFrom(storage.currentQueue)
                 .collect { (action, queue) ->
                     when (action) {
-                        is Action.PlayNewSongs -> {
-                            storage.playSongs(action.items)
+                        is Action.PlaySong -> {
+                            storage.playSongs(listOf(action.songId))
                         }
 
                         is Action.PlayAlbum -> {
-                            storage.playSongs(catalog.getSongsByAlbum(action.album.id))
+                            storage.playSongs(catalog.getSongsByAlbum(action.artistId, action.albumId).map(Song::id))
+                        }
+
+                        is Action.AddAlbumToQueue -> {
+                            storage.addSongs(catalog.getSongsByAlbum(action.artistId, action.albumId).map(Song::id))
+                        }
+
+                        is Action.AddSongToQueue -> {
+                            storage.addSongs(listOf(action.songId))
+                        }
+
+                        is Action.AddArtistToQueue -> {
+                            storage.playSongs(catalog.getSongsByArtist(action.artistId).map(Song::id))
+                        }
+
+                        is Action.PlayArtist -> {
+                            storage.playSongs(catalog.getSongsByArtist(action.artistId).map(Song::id))
                         }
 
                         Action.PlayNext -> {
@@ -167,19 +184,35 @@ internal class PlaybackControllerImpl(
         isPlaying.tryEmit(true)
     }
 
-    override fun playSongs(items: List<Song>, startPosition: Int) {
-        action.tryEmit(Action.PlayNewSongs(items, startPosition))
+    override fun playSong(id: Song.Id) {
+        action.tryEmit(Action.PlaySong(id))
         resume()
     }
 
-    override fun playSongInQueue(id: Long) {
+    override fun playSongInQueue(id: Song.Id) {
         action.tryEmit(Action.PlaySongInQueue(id))
         resume()
     }
 
-    override fun playAlbum(album: Album) {
-        action.tryEmit(Action.PlayAlbum(album))
+    override fun playAlbum(albumId: Album.Id, artistId: Artist.Id) {
+        action.tryEmit(Action.PlayAlbum(albumId, artistId))
         resume()
+    }
+
+    override fun addAlbumToPlay(id: Album.Id, artistId: Artist.Id) {
+        action.tryEmit(Action.AddAlbumToQueue(id, artistId))
+    }
+
+    override fun addSongToPlay(id: Song.Id) {
+        action.tryEmit(Action.AddSongToQueue(id))
+    }
+
+    override fun playArtist(id: Artist.Id) {
+        action.tryEmit(Action.PlayArtist(id))
+    }
+
+    override fun addArtistToPlay(id: Artist.Id) {
+        action.tryEmit(Action.AddArtistToQueue(id))
     }
 
     override fun stop() {
@@ -190,8 +223,12 @@ internal class PlaybackControllerImpl(
         data object PlayNext : Action
         data object PlayPrev : Action
 
-        data class PlayNewSongs(val items: List<Song>, val startPosition: Int) : Action
-        data class PlaySongInQueue(val songId: Long) : Action
-        data class PlayAlbum(val album: Album) : Action
+        data class PlaySong(val songId: Song.Id) : Action
+        data class PlaySongInQueue(val songId: Song.Id) : Action
+        data class PlayAlbum(val albumId: Album.Id, val artistId: Artist.Id) : Action
+        data class AddAlbumToQueue(val albumId: Album.Id, val artistId: Artist.Id) : Action
+        data class AddSongToQueue(val songId: Song.Id) : Action
+        data class PlayArtist(val artistId: Artist.Id) : Action
+        data class AddArtistToQueue(val artistId: Artist.Id) : Action
     }
 }

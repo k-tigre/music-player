@@ -1,6 +1,7 @@
 package by.tigre.music.player.core.data.playback
 
 import by.tigre.music.player.core.entiry.catalog.Album
+import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.entiry.playback.SongInQueueItem
 import kotlinx.coroutines.flow.Flow
@@ -16,7 +17,11 @@ interface PlaybackController {
     fun pause()
     fun resume()
     fun stop()
-    fun playSongs(items: List<Song>, startPosition: Int)
-    fun playSongInQueue(id: Long)
-    fun playAlbum(album: Album)
+    fun playSong(id: Song.Id)
+    fun playSongInQueue(id: Song.Id)
+    fun playAlbum(albumId: Album.Id, artistId: Artist.Id)
+    fun addAlbumToPlay(id: Album.Id, artistId: Artist.Id)
+    fun addSongToPlay(id: Song.Id)
+    fun playArtist(id: Artist.Id)
+    fun addArtistToPlay(id: Artist.Id)
 }

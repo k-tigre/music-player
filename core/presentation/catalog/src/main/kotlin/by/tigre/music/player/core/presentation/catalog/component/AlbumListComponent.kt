@@ -22,6 +22,7 @@ interface AlbumListComponent {
     fun onAlbumClicked(album: Album)
     fun onBackClicked()
     fun onPlayAlbumClicked(album: Album)
+    fun onAddToPlayAlbumClicked(album: Album)
 
     class Impl(
         context: BaseComponentContext,
@@ -54,11 +55,15 @@ interface AlbumListComponent {
         }
 
         override fun onAlbumClicked(album: Album) {
-            navigator.showSongs(album)
+            navigator.showSongs(album, artist)
         }
 
         override fun onPlayAlbumClicked(album: Album) {
-            playbackController.playAlbum(album)
+            playbackController.playAlbum(album.id, artist.id)
+        }
+
+        override fun onAddToPlayAlbumClicked(album: Album) {
+            playbackController.addAlbumToPlay(album.id, artist.id)
         }
     }
 }

@@ -17,19 +17,27 @@ class PlaybackQueueStorageImpl(private val database: DatabaseMusic, scope: Corou
         database.queueQueries.selectAll(
             limit = 10000,
             mapper = { id: Long, status: QueueItem.State, songId: Long ->
-                QueueItem(id = id, songsId = songId, status)
+                QueueItem(id = id, songsId = Song.Id(songId), status)
             }
         ).asFlow().mapToList()
             .shareIn(scope, SharingStarted.WhileSubscribed(), replay = 1)
 
-    override fun playSongs(items: List<Song>) {
+    override fun playSongs(items: List<Song.Id>) {
         database.queueQueries.transaction {
             database.queueQueries.deleteAll()
-            items.forEach { (id) ->
-                database.queueQueries.insertNew(id)
+            items.forEach { id ->
+                database.queueQueries.insertNew(id.value)
             }
             items.firstOrNull()?.let {
-                database.queueQueries.updateStatusBySongId(status = QueueItem.State.Playing, song_id = it.id)
+                database.queueQueries.updateStatusBySongId(status = QueueItem.State.Playing, song_id = it.value)
+            }
+        }
+    }
+
+    override fun addSongs(items: List<Song.Id>) {
+        database.queueQueries.transaction {
+            items.forEach { id ->
+                database.queueQueries.insertNew(id.value)
             }
         }
     }
@@ -39,7 +47,7 @@ class PlaybackQueueStorageImpl(private val database: DatabaseMusic, scope: Corou
             database.queueQueries.deleteAll()
             queue.forEach { item ->
                 database.queueQueries.insertNewWithStatus(
-                    song_id = item.songsId,
+                    song_id = item.songsId.value,
                     status = item.state
                 )
             }

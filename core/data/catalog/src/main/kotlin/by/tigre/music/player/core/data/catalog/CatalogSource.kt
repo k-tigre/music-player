@@ -6,9 +6,9 @@ import by.tigre.music.player.core.entiry.catalog.Song
 
 interface CatalogSource {
     suspend fun getArtists(): List<Artist>
-    suspend fun getAlbums(artistId: Long): List<Album>
-    suspend fun getSongsByArtist(artistId: Long): List<Song>
-    suspend fun getSongsByAlbum(albumId: Long): List<Song>
-    suspend fun getSongsByIds(ids: List<Long>): List<Song>
-    suspend fun getSongById(id: Long): Song?
+    suspend fun getAlbums(artistId: Artist.Id): List<Album>
+    suspend fun getSongsByArtist(artistId: Artist.Id): List<Song>
+    suspend fun getSongsByAlbum(artistId: Artist.Id, albumId: Album.Id): List<Song>
+    suspend fun getSongsByIds(ids: List<Song.Id>): List<Song>
+    suspend fun getSongById(id: Song.Id): Song?
 }

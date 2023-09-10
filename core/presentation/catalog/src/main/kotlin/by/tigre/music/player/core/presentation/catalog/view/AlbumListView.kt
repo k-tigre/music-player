@@ -2,22 +2,15 @@ package by.tigre.music.player.core.presentation.catalog.view
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -25,28 +18,26 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupProperties
 import by.tigre.music.player.core.entiry.catalog.Album
+import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.presentation.catalog.component.AlbumListComponent
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.tools.platform.compose.ComposableView
+import by.tigre.music.player.tools.platform.compose.view.CardWithPopup
 import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
+import by.tigre.music.player.tools.platform.compose.view.PopupAction
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicator
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicatorSize
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 class AlbumListView(
     private val component: AlbumListComponent,
@@ -63,13 +54,15 @@ class AlbumListView(
                             Text(
                                 text = "Albums of",
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.align(alignment = Alignment.CenterHorizontally)
                             )
                             Text(
                                 text = component.artist.name,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                style = MaterialTheme.typography.titleSmall
+                                style = MaterialTheme.typography.titleSmall,
+                                modifier = Modifier.align(alignment = Alignment.CenterHorizontally)
                             )
                         }
                     },
@@ -121,7 +114,6 @@ class AlbumListView(
         )
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun DrawContent(albums: List<Album>) {
         LazyColumn(
@@ -130,80 +122,43 @@ class AlbumListView(
         ) {
             albums.forEach { album ->
                 item {
-                    DrawItem(album = album)
-                }
-            }
-        }
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
-    @Composable
-    private fun DrawItem(album: Album) {
-        var popupControl by remember { mutableStateOf(false) }
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .combinedClickable(
-                    onLongClick = {
-                        popupControl = true
-                    },
-                    onClick = { component.onAlbumClicked(album) }
-                ),
-        ) {
-            Text(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                text = album.name,
-            )
-
-            album.years?.let { years ->
-                Text(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    text = "Years: $years"
-                )
-            }
-
-            Text(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                text = "Songs: ${album.songCount}"
-            )
-
-            Spacer(modifier = Modifier.size(8.dp))
-
-            if (popupControl) {
-                Popup(
-                    alignment = Alignment.CenterEnd,
-                    onDismissRequest = { popupControl = false },
-                    offset = IntOffset(-20, 0),
-                    properties = PopupProperties()
-                ) {
-
-                    Column(
-                        modifier = Modifier
-                            .shadow(elevation = 4.dp, shape = MaterialTheme.shapes.medium)
-                            .background(
-                                color = MaterialTheme.colorScheme.secondaryContainer,
-                                shape = MaterialTheme.shapes.medium
-                            )
-
+                    CardWithPopup(
+                        modifier = Modifier,
+                        title = album.name,
+                        onCardClicked = { component.onAlbumClicked(album) },
+                        popupActions = listOf(
+                            PopupAction("Play") { component.onPlayAlbumClicked(album) },
+                            PopupAction("Add to Queue") { component.onAddToPlayAlbumClicked(album) },
+                        ),
+                        descriptions = listOf(
+                            "Years: ${album.years}",
+                            "Songs: ${album.songCount}"
+                        )
                     )
-                    {
-                        TextButton(
-                            modifier = Modifier,
-                            onClick = {
-                                popupControl = false
-                                component.onPlayAlbumClicked(album)
-                            },
-                        ) {
-                            Text(
-                                text = "Play",
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        }
-                    }
-
-
                 }
             }
         }
     }
+}
+
+@Preview
+@Composable
+private fun Preview() {
+    AlbumListView(
+        component = object : AlbumListComponent {
+            override val screenState: StateFlow<ScreenContentState<List<Album>>> = MutableStateFlow(
+                ScreenContentState.Content(
+                    (1..10).map {
+                        Album(Album.Id(1), "Name long long long long long long long long long name $it".dropLast(it * 3), 10, "10-20")
+                    }
+                )
+            )
+            override val artist: Artist = Artist(Artist.Id(1), "Name", 10, 10)
+            override fun retry() = Unit
+            override fun onAlbumClicked(album: Album) = Unit
+            override fun onBackClicked() = Unit
+            override fun onPlayAlbumClicked(album: Album) = Unit
+            override fun onAddToPlayAlbumClicked(album: Album) = Unit
+        }
+    ).Draw(modifier = Modifier)
 }

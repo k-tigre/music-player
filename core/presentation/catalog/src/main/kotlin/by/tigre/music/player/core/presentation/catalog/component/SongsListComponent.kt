@@ -3,6 +3,7 @@ package by.tigre.music.player.core.presentation.catalog.component
 import by.tigre.music.player.core.data.catalog.CatalogSource
 import by.tigre.music.player.core.data.playback.PlaybackController
 import by.tigre.music.player.core.entiry.catalog.Album
+import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigator
@@ -19,14 +20,16 @@ interface SongsListComponent {
     val album: Album
 
     fun retry()
-    fun onSongClicked(song: Song)
+    fun onPlaySongClicked(song: Song)
+    fun onAddSongClicked(song: Song)
     fun onBackClicked()
 
     class Impl(
         context: BaseComponentContext,
         dependency: CatalogDependency,
         private val navigator: CatalogNavigator,
-        override val album: Album
+        override val album: Album,
+        artist: Artist
     ) : SongsListComponent, BaseComponentContext by context {
 
         private val catalogSource: CatalogSource = dependency.catalogSource
@@ -35,7 +38,7 @@ interface SongsListComponent {
         private val stateDelegate = ScreenContentStateDelegate(
             scope = this,
             loadData = {
-                flow { emit(catalogSource.getSongsByAlbum(albumId = album.id)) }
+                flow { emit(catalogSource.getSongsByAlbum(artistId = artist.id, albumId = album.id)) }
             },
             mapDataToState = { songs ->
                 Content(songs)
@@ -48,8 +51,12 @@ interface SongsListComponent {
             stateDelegate.reload()
         }
 
-        override fun onSongClicked(song: Song) {
-            playbackController.playSongs(listOf(song), 0)
+        override fun onPlaySongClicked(song: Song) {
+            playbackController.playSong(song.id)
+        }
+
+        override fun onAddSongClicked(song: Song) {
+            playbackController.addSongToPlay(song.id)
         }
 
         override fun onBackClicked() {

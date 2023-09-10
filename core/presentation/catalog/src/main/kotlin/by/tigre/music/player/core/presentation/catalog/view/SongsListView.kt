@@ -6,13 +6,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -30,7 +28,9 @@ import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.component.SongsListComponent
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.tools.platform.compose.ComposableView
+import by.tigre.music.player.tools.platform.compose.view.CardWithPopup
 import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
+import by.tigre.music.player.tools.platform.compose.view.PopupAction
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicator
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicatorSize
 
@@ -107,7 +107,6 @@ class SongsListView(
         )
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun DrawContent(songs: List<Song>) {
         LazyColumn(
@@ -116,21 +115,18 @@ class SongsListView(
         ) {
             songs.forEach { song ->
                 item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = { component.onSongClicked(song) },
-                    ) {
-                        Text(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                            text = song.name,
+                    CardWithPopup(
+                        modifier = Modifier,
+                        title = "${song.index} - ${song.name}",
+                        onCardClicked = { },
+                        popupActions = listOf(
+                            PopupAction("Play") { component.onPlaySongClicked(song) },
+                            PopupAction("Add to Queue") { component.onAddSongClicked(song) },
+                        ),
+                        descriptions = listOf(
+                            "${song.artist}/${song.album}"
                         )
-
-                        Text(
-                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 2.dp),
-                            text = "${song.artist}/${song.album}",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
+                    )
                 }
             }
         }

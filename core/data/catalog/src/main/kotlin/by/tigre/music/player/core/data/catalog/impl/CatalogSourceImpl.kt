@@ -11,9 +11,9 @@ internal class CatalogSourceImpl(
 ) : CatalogSource {
 
     override suspend fun getArtists(): List<Artist> = dbHelper.getArtists()
-    override suspend fun getAlbums(artistId: Long): List<Album> = dbHelper.getAlbums(artistId)
-    override suspend fun getSongsByArtist(artistId: Long): List<Song> = dbHelper.getSongsByArtist(artistId)
-    override suspend fun getSongsByAlbum(albumId: Long): List<Song> = dbHelper.getSongsByAlbum(albumId)
-    override suspend fun getSongById(id: Long): Song? = dbHelper.getSongById(id)
-    override suspend fun getSongsByIds(ids: List<Long>): List<Song> = dbHelper.getSongsByIds(ids)
+    override suspend fun getAlbums(artistId: Artist.Id): List<Album> = dbHelper.getAlbums(artistId)
+    override suspend fun getSongsByArtist(artistId: Artist.Id): List<Song> = dbHelper.getSongsByArtist(artistId)
+    override suspend fun getSongsByAlbum(artistId: Artist.Id, albumId: Album.Id): List<Song> = dbHelper.getSongsByAlbum(artistId, albumId)
+    override suspend fun getSongById(id: Song.Id): Song? = dbHelper.getSongById(id)
+    override suspend fun getSongsByIds(ids: List<Song.Id>): List<Song> = dbHelper.getSongsByIds(ids)
 }
