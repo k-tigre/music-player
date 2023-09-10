@@ -145,7 +145,7 @@ interface DbHelper {
                         Song(
                             id = Song.Id(cursor.getLong(idColumn)),
                             name = cursor.getString(nameColumn),
-                            index = cursor.getString(trackColumn),
+                            index = cursor.getString(trackColumn) ?: "",
                             album = cursor.getString(albumColumn),
                             artist = cursor.getString(artistColumn),
                             path = cursor.getString(dataColumn)
