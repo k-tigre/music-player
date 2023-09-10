@@ -81,7 +81,7 @@ internal class PlaybackControllerImpl(
                         }
 
                         is Action.AddArtistToQueue -> {
-                            storage.playSongs(catalog.getSongsByArtist(action.artistId).map(Song::id))
+                            storage.addSongs(catalog.getSongsByArtist(action.artistId).map(Song::id))
                         }
 
                         is Action.PlayArtist -> {
