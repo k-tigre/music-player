@@ -1,0 +1,27 @@
+CREATE TABLE Logs(
+id INTEGER PRIMARY KEY AUTOINCREMENT ,
+message TEXT,
+otherFields TEXT,
+thread TEXT,
+tag TEXT,
+stacktrace TEXT,
+level TEXT,
+timestemp INTEGER NOT NULL
+);
+
+insert:
+INSERT INTO Logs(message, otherFields,  thread, tag, stacktrace, level, timestemp)
+VALUES(?, ?, ?,?,?,?,?);
+
+getLastIds:
+SELECT id FROM Logs ORDER BY id DESC LIMIT :limit;
+
+get:
+SELECT * FROM Logs ORDER BY id DESC LIMIT :limit;
+
+getByTag:
+SELECT * FROM Logs WHERE tag LIKE ? ORDER BY id DESC LIMIT :limit;
+
+
+deleteOldest:
+DELETE FROM Logs WHERE timestemp < ?;

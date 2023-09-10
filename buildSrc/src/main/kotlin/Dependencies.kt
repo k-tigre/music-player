@@ -231,6 +231,13 @@ sealed class Project(id: String) {
             object Utils : Platform("utils")
         }
     }
+
+    sealed class Logger(id: String) : Project("logger:$id") {
+        object Core : Logger("core")
+        object Crashlytics : Logger("crashlytics")
+        object Logcat : Logger("logcat")
+        object InternalStore : Logger("internal-store")
+    }
 }
 
 fun DependencyHandler.plugin(plugin: Plugin) = add(ScriptHandler.CLASSPATH_CONFIGURATION, plugin.notation)

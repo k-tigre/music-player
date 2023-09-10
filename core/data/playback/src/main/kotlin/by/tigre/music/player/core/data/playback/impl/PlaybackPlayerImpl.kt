@@ -3,6 +3,7 @@ package by.tigre.music.player.core.data.playback.impl
 import android.content.Context
 import by.tigre.music.player.core.data.entiry.playback.MediaItemWrapper
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
+import by.tigre.music.player.logger.Log
 import by.tigre.music.player.tools.coroutines.CoreScope
 import by.tigre.music.player.tools.coroutines.extensions.tickerFlow
 import com.google.android.exoplayer2.C
@@ -60,7 +61,7 @@ internal class PlaybackPlayerImpl(
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            println("TEST: onPlayerError - $error")
+            Log.i { "TEST: onPlayerError - $error" }
             if (player.hasNextMediaItem().not()) {
                 state.tryEmit(PlaybackPlayer.State.Ended)
             } else {
@@ -72,7 +73,7 @@ internal class PlaybackPlayerImpl(
         }
 
         private fun handleState(@Player.State playbackState: Int, isPlaying: Boolean) {
-            println("TEST: handleState - $playbackState - $isPlaying")
+            Log.i { "TEST: handleState - $playbackState - $isPlaying" }
             state.tryEmit(
                 when (playbackState) {
                     Player.STATE_READY -> if (isPlaying) PlaybackPlayer.State.Playing else PlaybackPlayer.State.Paused

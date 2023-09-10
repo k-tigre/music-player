@@ -57,7 +57,7 @@ class BackgroundPlayerView(
             override fun getCurrentContentTitle(player: Player): String = component.currentSong.value?.name ?: ""
 
             override fun createCurrentContentIntent(player: Player): PendingIntent? =
-                pendingIntent.also { println("InternalPlayer: createCurrentContentIntent") }
+                pendingIntent
 
             override fun getCurrentContentText(player: Player): String? = component.currentSong.value?.let { "${it.artist}/${it.album}" }
 
