@@ -15,8 +15,8 @@ enum class Library(group: String, artifact: String, version: Version) {
     CoroutinesCore("org.jetbrains.kotlinx", "kotlinx-coroutines-core", Version.Coroutines),
     CoroutinesAndroid("org.jetbrains.kotlinx", "kotlinx-coroutines-android", Version.Coroutines),
 
-    SQLDelightAndroid("com.squareup.sqldelight", "android-driver", Version.SQLDelight),
-    SQLDelightCoroutines("com.squareup.sqldelight", "coroutines-extensions", Version.SQLDelight),
+    SQLDelightAndroid("app.cash.sqldelight", "android-driver", Version.SQLDelight),
+    SQLDelightCoroutines("app.cash.sqldelight", "coroutines-extensions", Version.SQLDelight),
 
     // ExoPlayer
     ExoPlayerCore("com.google.android.exoplayer", "exoplayer-core", Version.ExoPlayer),
@@ -64,7 +64,7 @@ enum class Library(group: String, artifact: String, version: Version) {
         AndroidXSplash("1.0.0"),
         Kotlin("1.9.10"),
         Coroutines("1.7.3"),
-        SQLDelight("1.5.5"),
+        SQLDelight("2.0.0"),
         ExoPlayer("2.19.1"),
         Leakcanary("2.12"),
         Compose("1.5.0"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
@@ -140,7 +140,7 @@ enum class Plugin(group: String, artifact: String, version: Version) {
     Google("com.google.gms", "google-services", Version.Google),
     Crashlytics("com.google.firebase", "firebase-crashlytics-gradle", Version.Crashlytics),
     Versions("com.github.ben-manes", "gradle-versions-plugin", Version.Versions),
-    SQLDelight("com.squareup.sqldelight", "gradle-plugin", Version.SQLDelight),
+    SQLDelight("app.cash.sqldelight", "gradle-plugin", Version.SQLDelight),
     GooglePlayPublisher("com.github.triplet.gradle", "play-publisher", Version.GooglePlayPublisher)
     ;
 
@@ -156,7 +156,7 @@ enum class Plugin(group: String, artifact: String, version: Version) {
         GoogleServices("com.google.gms.google-services"),
         Crashlytics("com.google.firebase.crashlytics"),
         Versions("com.github.ben-manes.versions"),
-        SQLDelight("com.squareup.sqldelight"),
+        SQLDelight("app.cash.sqldelight"),
         GooglePlayPublisher("com.github.triplet.play")
     }
 

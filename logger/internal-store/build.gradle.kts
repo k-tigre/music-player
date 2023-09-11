@@ -14,11 +14,10 @@ dependencies {
 }
 
 sqldelight {
-    database("DatabaseLog") {
-        packageName = "by.tigre.music.player.logger.db"
-        sourceFolders = listOf("sqldelight")
-        version = 1
-
-        schemaOutputDirectory = File(project.projectDir, "src/main/sqldelight")
+    databases {
+        create("DatabaseLog") {
+            packageName.set("by.tigre.music.player.logger.db")
+            generateAsync.set(true)
+        }
     }
 }

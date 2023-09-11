@@ -1,7 +1,7 @@
 package by.tigre.music.player.core.data.storage.playback_queue.impl
 
+import app.cash.sqldelight.ColumnAdapter
 import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
-import com.squareup.sqldelight.ColumnAdapter
 
 object QueueStateAdapter : ColumnAdapter<PlaybackQueueStorage.QueueItem.State, Long> {
     override fun decode(databaseValue: Long) = when (databaseValue) {
