@@ -2,11 +2,12 @@ package by.tigre.music.player.logger
 
 import android.content.Context
 import androidx.sqlite.db.SupportSQLiteDatabase
+import app.cash.sqldelight.async.coroutines.synchronous
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import by.tigre.music.player.logger.db.DatabaseLog
 import bytigremusicplayerloggerdb.Logs
-import com.squareup.sqldelight.android.AndroidSqliteDriver
-import com.squareup.sqldelight.runtime.coroutines.asFlow
-import com.squareup.sqldelight.runtime.coroutines.mapToList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
@@ -43,10 +44,10 @@ class DbLogger(
     private val db: DatabaseLog by lazy {
         DatabaseLog(
             AndroidSqliteDriver(
-                schema = DatabaseLog.Schema,
+                schema = DatabaseLog.Schema.synchronous(),
                 context = context,
                 name = "logs.db",
-                callback = object : AndroidSqliteDriver.Callback(DatabaseLog.Schema) {
+                callback = object : AndroidSqliteDriver.Callback(DatabaseLog.Schema.synchronous()) {
                     override fun onOpen(db: SupportSQLiteDatabase) {
                         db.execSQL("PRAGMA foreign_keys=ON;")
                     }
@@ -116,10 +117,10 @@ class DbLogger(
     }
 
     override suspend fun getLogsFlow(offset: Long): Flow<List<Logs>> {
-        return db.logEntityQueries.get(limit = 1000L).asFlow().mapToList()
+        return db.logEntityQueries.get(limit = 1000L).asFlow().mapToList(scope.coroutineContext)
     }
 
     override suspend fun getLogsFlow(offset: Long, tagFilter: String): Flow<List<Logs>> {
-        return db.logEntityQueries.getByTag(limit = 1000L, tag = tagFilter).asFlow().mapToList()
+        return db.logEntityQueries.getByTag(limit = 1000L, tag = tagFilter).asFlow().mapToList(scope.coroutineContext)
     }
 }

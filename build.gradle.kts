@@ -46,7 +46,7 @@ subprojects {
 
             composeOptions.kotlinCompilerExtensionVersion = KotlinCompilerExtensionVersion
 
-            namespace = "${Application.id}${name.replace(":", ".")}"
+            namespace = "${Application.id}${name.replace(":", ".").replace("-", "_")}"
         }
     }
 

@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 plugins {
     id(Plugin.Id.AndroidLibrary.value)
     id(Plugin.Id.KotlinAndroid.value)
@@ -15,11 +17,10 @@ dependencies {
 }
 
 sqldelight {
-    database("DatabaseMusic") {
-        packageName = "by.tigre.music.player.core.data.storage.music"
-        sourceFolders = listOf("sqldelight")
-        version = 4
-
-        schemaOutputDirectory = File(project.projectDir, "src/main/sqldelight")
+    databases {
+        create("DatabaseMusic") {
+            packageName = "by.tigre.music.player.core.data.storage.music"
+            generateAsync = true
+        }
     }
 }

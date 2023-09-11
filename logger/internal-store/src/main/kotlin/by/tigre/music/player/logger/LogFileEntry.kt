@@ -1,7 +1,7 @@
 package by.tigre.music.player.logger
 
 internal class LogFileEntry(
-    val level: Log.Level,
+    level: Log.Level,
     val fields: Array<out Pair<String, String>>
 ) {
     val levelText by lazy {

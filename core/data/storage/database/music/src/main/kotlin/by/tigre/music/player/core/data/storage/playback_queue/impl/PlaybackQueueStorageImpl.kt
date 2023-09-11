@@ -1,11 +1,11 @@
 package by.tigre.music.player.core.data.storage.playback_queue.impl
 
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
 import by.tigre.music.player.core.data.storage.music.DatabaseMusic
 import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
 import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage.QueueItem
 import by.tigre.music.player.core.entiry.catalog.Song
-import com.squareup.sqldelight.runtime.coroutines.asFlow
-import com.squareup.sqldelight.runtime.coroutines.mapToList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,10 +19,10 @@ class PlaybackQueueStorageImpl(private val database: DatabaseMusic, scope: Corou
             mapper = { id: Long, status: QueueItem.State, songId: Long ->
                 QueueItem(id = id, songsId = Song.Id(songId), status)
             }
-        ).asFlow().mapToList()
+        ).asFlow().mapToList(scope.coroutineContext)
             .shareIn(scope, SharingStarted.WhileSubscribed(), replay = 1)
 
-    override fun playSongs(items: List<Song.Id>) {
+    override suspend fun playSongs(items: List<Song.Id>) {
         database.queueQueries.transaction {
             database.queueQueries.deleteAll()
             items.forEach { id ->
@@ -34,7 +34,7 @@ class PlaybackQueueStorageImpl(private val database: DatabaseMusic, scope: Corou
         }
     }
 
-    override fun addSongs(items: List<Song.Id>) {
+    override suspend fun addSongs(items: List<Song.Id>) {
         database.queueQueries.transaction {
             items.forEach { id ->
                 database.queueQueries.insertNew(id.value)
@@ -42,7 +42,7 @@ class PlaybackQueueStorageImpl(private val database: DatabaseMusic, scope: Corou
         }
     }
 
-    override fun playQueue(queue: List<QueueItem>) {
+    override suspend fun playQueue(queue: List<QueueItem>) {
         database.queueQueries.transaction {
             database.queueQueries.deleteAll()
             queue.forEach { item ->
@@ -54,7 +54,7 @@ class PlaybackQueueStorageImpl(private val database: DatabaseMusic, scope: Corou
         }
     }
 
-    override fun updateSongStates(finishedId: Long?, playingId: Long, pendingId: Long?) {
+    override suspend fun updateSongStates(finishedId: Long?, playingId: Long, pendingId: Long?) {
         database.queueQueries.transaction {
             finishedId?.let { database.queueQueries.updateStatus(status = QueueItem.State.Finish, id = it) }
             pendingId?.let { database.queueQueries.updateStatus(status = QueueItem.State.Pending, id = it) }
