@@ -9,6 +9,8 @@ import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.entiry.playback.SongInQueueItem
+import by.tigre.music.player.logger.Log
+import by.tigre.music.player.logger.extensions.debugLog
 import by.tigre.music.player.tools.coroutines.CoreScope
 import by.tigre.music.player.tools.coroutines.extensions.withLatestFrom
 import kotlinx.coroutines.flow.Flow
@@ -39,6 +41,7 @@ internal class PlaybackControllerImpl(
                 catalog.getSongById(id = it.songsId)
             }
         }
+        .debugLog("PlaybackController", "currentItem")
         .stateIn(scope, SharingStarted.WhileSubscribed(), initialValue = null)
 
     override val currentQueue: Flow<List<SongInQueueItem>> =
@@ -61,7 +64,8 @@ internal class PlaybackControllerImpl(
 
     init {
         scope.launch {
-            action.withLatestFrom(storage.currentQueue)
+            action.debugLog("PlaybackController", "action")
+                .withLatestFrom(storage.currentQueue)
                 .collect { (action, queue) ->
                     when (action) {
                         is Action.PlaySong -> {
@@ -146,6 +150,7 @@ internal class PlaybackControllerImpl(
 
         scope.launch {
             player.state
+                .debugLog("PlaybackController", " player.state")
                 .filter { it == PlaybackPlayer.State.Ended }
                 .collect { playNext() }
         }
@@ -162,60 +167,74 @@ internal class PlaybackControllerImpl(
         }
 
         scope.launch {
-            isPlaying.collect {
+            isPlaying
+                .debugLog("PlaybackController", "isPlaying")
+                .collect {
                 if (it) player.resume() else player.pause()
             }
         }
     }
 
     override fun playNext() {
+        Log.d("PlaybackController") { "playNext" }
         action.tryEmit(Action.PlayNext)
     }
 
     override fun playPrev() {
+        Log.d("PlaybackController") { "playPrev" }
         action.tryEmit(Action.PlayPrev)
     }
 
     override fun pause() {
+        Log.d("PlaybackController") { "pause" }
         isPlaying.tryEmit(false)
     }
 
     override fun resume() {
+        Log.d("PlaybackController") { "resume" }
         isPlaying.tryEmit(true)
     }
 
     override fun playSong(id: Song.Id) {
+        Log.d("PlaybackController") { "playSong" }
         action.tryEmit(Action.PlaySong(id))
         resume()
     }
 
     override fun playSongInQueue(id: Song.Id) {
+        Log.d("PlaybackController") { "playSongInQueue" }
         action.tryEmit(Action.PlaySongInQueue(id))
         resume()
     }
 
     override fun playAlbum(albumId: Album.Id, artistId: Artist.Id) {
+        Log.d("PlaybackController") { "playAlbum" }
         action.tryEmit(Action.PlayAlbum(albumId, artistId))
         resume()
     }
 
     override fun addAlbumToPlay(id: Album.Id, artistId: Artist.Id) {
+        Log.d("PlaybackController") { "addAlbumToPlay" }
         action.tryEmit(Action.AddAlbumToQueue(id, artistId))
     }
 
     override fun addSongToPlay(id: Song.Id) {
+        Log.d("PlaybackController") { "addSongToPlay" }
         action.tryEmit(Action.AddSongToQueue(id))
     }
 
     override fun playArtist(id: Artist.Id) {
+        Log.d("PlaybackController") { "playArtist" }
         action.tryEmit(Action.PlayArtist(id))
     }
 
     override fun addArtistToPlay(id: Artist.Id) {
+        Log.d("PlaybackController") { "addArtistToPlay" }
         action.tryEmit(Action.AddArtistToQueue(id))
     }
 
     override fun stop() {
+        Log.d("PlaybackController") { "stop" }
         scope.launch { player.stop() }
     }
 
