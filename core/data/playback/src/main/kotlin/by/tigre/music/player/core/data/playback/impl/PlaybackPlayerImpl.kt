@@ -61,7 +61,7 @@ internal class PlaybackPlayerImpl(
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            Log.i { "TEST: onPlayerError - $error" }
+            Log.i("PlaybackPlayer") { "TEST: onPlayerError - $error" }
             if (player.hasNextMediaItem().not()) {
                 state.tryEmit(PlaybackPlayer.State.Ended)
             } else {
@@ -73,7 +73,7 @@ internal class PlaybackPlayerImpl(
         }
 
         private fun handleState(@Player.State playbackState: Int, isPlaying: Boolean) {
-            Log.i { "TEST: handleState - $playbackState - $isPlaying" }
+            Log.d("PlaybackPlayer") { "TEST: handleState - $playbackState - $isPlaying" }
             state.tryEmit(
                 when (playbackState) {
                     Player.STATE_READY -> if (isPlaying) PlaybackPlayer.State.Playing else PlaybackPlayer.State.Paused
