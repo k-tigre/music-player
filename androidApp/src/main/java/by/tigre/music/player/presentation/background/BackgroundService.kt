@@ -21,7 +21,6 @@ class BackgroundService : Service() {
         )
     }
 
-
     override fun onCreate() {
         super.onCreate()
         view.onCreate()
