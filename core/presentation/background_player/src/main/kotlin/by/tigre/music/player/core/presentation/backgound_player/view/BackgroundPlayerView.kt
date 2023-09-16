@@ -130,7 +130,7 @@ class BackgroundPlayerView(
 
         override fun stop() {
             Log.i("BackgroundPlayerView") { "stop" }
-            component.stop()
+            component.pause()
         }
 
         override fun release() {

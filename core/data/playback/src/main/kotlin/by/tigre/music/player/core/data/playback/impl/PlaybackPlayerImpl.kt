@@ -101,7 +101,6 @@ internal class PlaybackPlayerImpl(
     override suspend fun stop() {
         withContext(Dispatchers.Main) {
             player.playWhenReady = false
-            player.clearMediaItems()
             player.stop()
         }
     }
