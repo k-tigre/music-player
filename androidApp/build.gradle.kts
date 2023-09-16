@@ -96,7 +96,6 @@ dependencies {
     implementation(Project.Core.Data.Catalog)
     implementation(Project.Core.Entity.Catalog)
     implementation(Library.AccompanistPermission)
-    implementation(Library.AccompanistPager)
     implementation(FirebaseLibrary.FirebaseAnalytics, FirebaseLibrary.FirebaseCrashLytics)
 
     implementation(Project.Logger.Core)
@@ -106,6 +105,8 @@ dependencies {
 
     // debugImplementation because LeakCanary should only run in debug builds.
     debugImplementation(Library.Leakcanary)
+
+    debugImplementation(Project.DebugSettings)
 }
 
 play {

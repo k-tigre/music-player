@@ -16,7 +16,7 @@ class App : Application() {
         if (BuildConfig.DEBUG) {
             Log.init(Log.Level.VERBOSE, LogcatLogger(), CrashlyticsLogger(), DbLogger(this))
         } else {
-            Log.init(Log.Level.DEBUG, CrashlyticsLogger(), DbLogger(this))
+            Log.init(Log.Level.DEBUG, CrashlyticsLogger())
         }
 
         graph = ApplicationGraph.create(this)
