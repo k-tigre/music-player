@@ -28,6 +28,7 @@ enum class Library(group: String, artifact: String, version: Version) {
     ComposeUI("androidx.compose.ui", "ui", Version.Compose),
     ComposeUIToolkit("androidx.compose.ui", "ui-tooling", Version.Compose),
     ComposeFoundation("androidx.compose.foundation", "foundation", Version.ComposeFoundation),
+    ComposeMaterial1("androidx.compose.material", "material", Version.ComposeMaterial),
     ComposeMaterial("androidx.compose.material3", "material3", Version.ComposeMaterial),
     ComposeMaterialIcons("androidx.compose.material3", "material3-icons", Version.ComposeMaterial),
     ComposeMaterialRipple("androidx.compose.material3", "material3-ripple", Version.ComposeMaterial),
@@ -39,8 +40,6 @@ enum class Library(group: String, artifact: String, version: Version) {
     DebugComposeUiToolingPreview("androidx.compose.ui", "ui-tooling-preview", Version.Compose),
 
     AccompanistPermission("com.google.accompanist", "accompanist-permissions", Version.Accompanist),
-    AccompanistPager("com.google.accompanist", "accompanist-pager", Version.Accompanist),
-    AccompanistPagerInidcators("com.google.accompanist", "accompanist-pager-indicators", Version.Accompanist),
 
     Decompose("com.arkivanov.decompose", "decompose", Version.Decompose),
     DecomposeExtensions("com.arkivanov.decompose", "extensions-compose-jetpack", Version.Decompose),
@@ -70,6 +69,7 @@ enum class Library(group: String, artifact: String, version: Version) {
         Compose("1.5.0"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
         ComposeFoundation("1.5.0"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
         ComposeMaterial("1.1.1"),
+        ComposeMaterial1("1.5.1"),
         Accompanist("0.31.6-rc") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
         CoilCompose("2.4.0"),
         Decompose("2.1.0-alpha-07"),
@@ -238,6 +238,8 @@ sealed class Project(id: String) {
         object Logcat : Logger("logcat")
         object InternalStore : Logger("internal-store")
     }
+
+    object DebugSettings : Project("debug:settings")
 }
 
 fun DependencyHandler.plugin(plugin: Plugin) = add(ScriptHandler.CLASSPATH_CONFIGURATION, plugin.notation)
@@ -255,6 +257,7 @@ fun DependencyHandler.implementation(vararg firebaseLibrary: FirebaseLibrary) {
 }
 
 fun DependencyHandler.implementation(project: Project) = add("implementation", project(project.name))
+fun DependencyHandler.debugImplementation(project: Project) = add("debugImplementation", project(project.name))
 fun DependencyHandler.api(project: Project) = add("api", project(project.name))
 fun DependencyHandler.api(library: Library) = add("api", library.notation)
 fun DependencyHandler.debugApi(library: Library) = add("debugApi", library.notation)
