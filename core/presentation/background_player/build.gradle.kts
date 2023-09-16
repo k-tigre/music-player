@@ -20,4 +20,5 @@ dependencies {
     implementation(Project.Tools.Platform.Utils)
     implementation(Project.Core.Data.Playback)
     implementation(Project.Core.Entity.Catalog)
+    implementation(Project.Logger.Core)
 }

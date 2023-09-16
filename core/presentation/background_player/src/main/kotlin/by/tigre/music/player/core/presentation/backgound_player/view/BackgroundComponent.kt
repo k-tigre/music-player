@@ -1,4 +1,4 @@
-package by.tigre.music.player.core.presentation.catalog.view
+package by.tigre.music.player.core.presentation.backgound_player.view
 
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
 import by.tigre.music.player.core.entiry.catalog.Song
@@ -19,6 +19,7 @@ interface BackgroundComponent : CoroutineScope {
     fun play()
     fun next()
     fun prev()
+    fun stop()
 
     class Impl(dependency: PlayerBackgroundDependency) : BackgroundComponent {
 
@@ -47,6 +48,10 @@ interface BackgroundComponent : CoroutineScope {
 
         override fun prev() {
             playbackController.playPrev()
+        }
+
+        override fun stop() {
+            playbackController.stop()
         }
     }
 }
