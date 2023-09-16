@@ -12,6 +12,13 @@ enum class Environment(
         useProguard = false,
         appNameSuffix = " Dev"
     ),
+    Qa(
+        gradleName = "qa",
+        suffix = ".dev",
+        debuggable = true,
+        useProguard = true,
+        appNameSuffix = " Qa"
+    ),
     Release(
         gradleName = "release",
         suffix = "",

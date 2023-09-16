@@ -30,6 +30,9 @@ android {
             keyAlias = "debug"
             keyPassword = "debug123"
         }
+        create(Environment.Qa.gradleName) {
+            initWith(getAt(Environment.Debug.gradleName))
+        }
 
         val releaseStorePassword = System.getenv("MUSIC_PLAYER_RELEASE_JKS_STORE_PASSWORD")
         val releaseKeyPassword = System.getenv("MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD")
@@ -48,6 +51,8 @@ android {
     }
 
     buildTypes {
+        create(Environment.Qa.gradleName)
+
         Environment.values().forEach { env ->
             named(env.gradleName) {
                 isDebuggable = env.debuggable
@@ -65,9 +70,9 @@ android {
                     )
                 }
 
-                matchingFallbacks.add(Environment.Debug.gradleName)
+                matchingFallbacks.add(Environment.Release.gradleName)
 
-                if (env == Environment.Debug) {
+                if (env == Environment.Qa) {
                     firebaseAppDistribution {
                         artifactType = "APK"
                         groups = "test-group"

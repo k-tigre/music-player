@@ -7,7 +7,7 @@ on:
 
 jobs:
   build_apk_aab:
-    name: Build debug artifacts
+    name: Build qa artifacts
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
@@ -15,9 +15,9 @@ jobs:
         with: { java-version: 17 }
       - name: Build and verify
         run: |
-          ./gradlew testDebugUnitTest assembleDebug
+          ./gradlew testQaUnitTest assembleQa
       - name: Upload to Firebase
         run: |
-          ./gradlew appDistributionUploadDebug
+          ./gradlew appDistributionUploadQa
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
