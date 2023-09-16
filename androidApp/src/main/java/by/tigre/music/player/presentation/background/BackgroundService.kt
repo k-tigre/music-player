@@ -5,8 +5,8 @@ import android.content.Intent
 import android.os.IBinder
 import by.tigre.music.player.App
 import by.tigre.music.player.MainActivity
-import by.tigre.music.player.core.presentation.catalog.view.BackgroundComponent
-import by.tigre.music.player.core.presentation.catalog.view.BackgroundPlayerView
+import by.tigre.music.player.core.presentation.backgound_player.view.BackgroundComponent
+import by.tigre.music.player.core.presentation.backgound_player.view.BackgroundPlayerView
 import kotlinx.coroutines.cancel
 
 class BackgroundService : Service() {

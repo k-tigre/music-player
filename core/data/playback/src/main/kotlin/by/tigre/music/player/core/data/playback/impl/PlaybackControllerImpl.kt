@@ -169,9 +169,17 @@ internal class PlaybackControllerImpl(
         scope.launch {
             isPlaying
                 .debugLog("PlaybackController", "isPlaying")
-                .collect {
-                if (it) player.resume() else player.pause()
-            }
+                .collect { isPlaying ->
+
+                    val currentItem = currentItem.value
+                    val state = player.state.value
+                    when {
+                        isPlaying.not() -> player.pause()
+                        isPlaying && currentItem != null && state != PlaybackPlayer.State.Idle -> player.resume()
+                        isPlaying && currentItem != null && state == PlaybackPlayer.State.Idle ->
+                            player.setMediaItem(mediaItemWrapperProvider.songToMediaItem(currentItem), 0)
+                    }
+                }
         }
     }
 

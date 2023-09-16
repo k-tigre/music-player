@@ -1,4 +1,4 @@
-package by.tigre.music.player.core.presentation.catalog.view
+package by.tigre.music.player.core.presentation.backgound_player.view
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -8,6 +8,7 @@ import android.app.Service
 import android.content.Intent
 import android.graphics.Bitmap
 import android.support.v4.media.session.MediaSessionCompat
+import by.tigre.music.player.logger.Log
 import by.tigre.music.player.tools.platform.utils.getNotificationManager
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
@@ -125,6 +126,16 @@ class BackgroundPlayerView(
 
         override fun seekToNextMediaItem() {
             component.next()
+        }
+
+        override fun stop() {
+            Log.i("BackgroundPlayerView") { "stop" }
+            component.stop()
+        }
+
+        override fun release() {
+            Log.i("BackgroundPlayerView") { "release" }
+            component.stop()
         }
 
         override fun isCommandAvailable(command: Int): Boolean {
