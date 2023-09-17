@@ -84,7 +84,7 @@ internal class DebugLogsView(private val component: DebugLogsComponent) : Compos
                                 )
 
                                 Text(
-                                    text = "Thread: ${log.thread ?: ""}",
+                                    text = "PID: ${log.pid}, Thread: ${log.thread ?: ""}",
                                     style = MaterialTheme.typography.titleSmall,
                                 )
 
