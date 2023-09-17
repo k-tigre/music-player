@@ -1,17 +1,20 @@
+import kotlin.Int;
+
 CREATE TABLE Logs(
-id INTEGER PRIMARY KEY AUTOINCREMENT ,
+id INTEGER PRIMARY KEY AUTOINCREMENT,
 message TEXT,
 otherFields TEXT,
 thread TEXT,
 tag TEXT,
 stacktrace TEXT,
 level TEXT,
-timestemp INTEGER NOT NULL
+timestemp INTEGER NOT NULL,
+pid INTEGER AS Int NOT NULL DEFAULT 0
 );
 
 insert:
-INSERT INTO Logs(message, otherFields,  thread, tag, stacktrace, level, timestemp)
-VALUES(?, ?, ?,?,?,?,?);
+INSERT INTO Logs(message, otherFields,  thread, tag, pid, stacktrace, level, timestemp)
+VALUES(?, ?, ?,?,?,?,?, ?);
 
 getLastIds:
 SELECT id FROM Logs ORDER BY id DESC LIMIT :limit;

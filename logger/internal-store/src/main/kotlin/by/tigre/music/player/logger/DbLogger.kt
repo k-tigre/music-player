@@ -2,6 +2,7 @@ package by.tigre.music.player.logger
 
 import android.content.Context
 import androidx.sqlite.db.SupportSQLiteDatabase
+import app.cash.sqldelight.adapter.primitive.IntColumnAdapter
 import app.cash.sqldelight.async.coroutines.synchronous
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
@@ -51,7 +52,8 @@ class DbLogger(
                     override fun onOpen(db: SupportSQLiteDatabase) {
                         db.execSQL("PRAGMA foreign_keys=ON;")
                     }
-                })
+                }),
+            LogsAdapter = Logs.Adapter(IntColumnAdapter)
         )
     }
 
@@ -94,7 +96,8 @@ class DbLogger(
                         } catch (_: Throwable) {
                             null
                         } ?: System.currentTimeMillis(),
-                        level = entity.levelText
+                        level = entity.levelText,
+                        pid = android.os.Process.myPid()
                     )
                 }
                 .collect()

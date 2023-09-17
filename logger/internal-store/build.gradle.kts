@@ -11,6 +11,7 @@ dependencies {
     implementation(Project.Tools.Coroutines)
     implementation(Library.SQLDelightAndroid)
     implementation(Library.SQLDelightCoroutines)
+    implementation(Library.SQLDelightApapter)
 }
 
 sqldelight {
