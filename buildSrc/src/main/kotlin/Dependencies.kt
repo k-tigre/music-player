@@ -30,10 +30,8 @@ enum class Library(group: String, artifact: String, version: Version) {
     ComposeFoundation("androidx.compose.foundation", "foundation", Version.ComposeFoundation),
     ComposeMaterial1("androidx.compose.material", "material", Version.ComposeMaterial),
     ComposeMaterial("androidx.compose.material3", "material3", Version.ComposeMaterial),
-    ComposeMaterialIcons("androidx.compose.material3", "material3-icons", Version.ComposeMaterial),
-    ComposeMaterialRipple("androidx.compose.material3", "material3-ripple", Version.ComposeMaterial),
     ComposeMaterialWindowSize("androidx.compose.material3", "material3-window-size-class", Version.ComposeMaterial),
-    ActivityCompose("androidx.activity", "activity-compose", Version.AndroidXActivity),
+    ActivityCompose("androidx.activity", "activity-compose", Version.ActivityCompose),
 
     CoilCompose("io.coil-kt", "coil-compose", Version.CoilCompose),
 
@@ -56,9 +54,9 @@ enum class Library(group: String, artifact: String, version: Version) {
     val notation = "$group:$artifact:${version.value}"
 
     internal enum class Version(val value: String) {
-        AndroidXActivity("1.7.2"),
+        ActivityCompose("1.8.0"),
         AndroidXAppcompat("1.6.1"),
-        AndroidXCore("1.10.1"),
+        AndroidXCore("1.12.0"),
         AndroidXAnnotation("1.4.0"),
         AndroidXSplash("1.0.0"),
         Kotlin("1.9.10"),
@@ -66,13 +64,12 @@ enum class Library(group: String, artifact: String, version: Version) {
         SQLDelight("2.0.0"),
         ExoPlayer("2.19.1"),
         Leakcanary("2.12"),
-        Compose("1.5.0"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
-        ComposeFoundation("1.5.0"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
-        ComposeMaterial("1.1.1"),
-        ComposeMaterial1("1.5.1"),
-        Accompanist("0.31.6-rc") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
+        Compose("1.5.4"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
+        ComposeFoundation("1.5.4"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
+        ComposeMaterial("1.1.2"),
+        Accompanist("0.32.0") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
         CoilCompose("2.4.0"),
-        Decompose("2.1.0-alpha-07"),
+        Decompose("2.1.3"),
 
         DebugComposeCustomView("1.2.0-alpha02"),
         DebugComposeCustomViewPoolingcontainer("1.0.0"),
@@ -89,8 +86,6 @@ enum class Toolkit(
             Library.ComposeUIToolkit,
             Library.ComposeFoundation,
             Library.ComposeMaterial,
-//            Library.ComposeMaterialIcons,
-//            Library.ComposeMaterialRipple,
             Library.ComposeMaterialWindowSize,
             Library.CoilCompose,
             Library.ActivityCompose
@@ -108,8 +103,6 @@ enum class Toolkit(
             Library.ComposeUIToolkit,
             Library.ComposeFoundation,
             Library.ComposeMaterial,
-//            Library.ComposeMaterialIcons,
-//            Library.ComposeMaterialRipple,
             Library.ComposeMaterialWindowSize,
             Library.ActivityCompose,
             Library.Decompose,
@@ -130,7 +123,7 @@ enum class FirebaseLibrary(group: String, artifact: String) {
     val notation = "$group:$artifact"
 
     companion object {
-        val bom = "com.google.firebase:firebase-bom:32.2.3"
+        val bom = "com.google.firebase:firebase-bom:32.5.0"
     }
 }
 
@@ -163,7 +156,7 @@ enum class Plugin(group: String, artifact: String, version: Version) {
     }
 
     private enum class Version(val value: String) {
-        Android("8.1.1"),
+        Android("8.1.2"),
         Kotlin(Library.Version.Kotlin.value),
         Google("4.3.13"),
         Crashlytics("2.9.1"),
