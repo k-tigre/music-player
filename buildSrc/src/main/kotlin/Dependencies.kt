@@ -19,11 +19,6 @@ enum class Library(group: String, artifact: String, version: Version) {
     SQLDelightCoroutines("app.cash.sqldelight", "coroutines-extensions", Version.SQLDelight),
     SQLDelightApapter("app.cash.sqldelight", "primitive-adapters", Version.SQLDelight),
 
-    // ExoPlayer
-    ExoPlayerCore("com.google.android.exoplayer", "exoplayer-core", Version.ExoPlayer),
-    ExoPlayerUi("com.google.android.exoplayer", "exoplayer-ui", Version.ExoPlayer),
-    ExoPlayerMedisSession("com.google.android.exoplayer", "extension-mediasession", Version.ExoPlayer),
-
     MediaPlayer("androidx.media3", "media3-exoplayer", Version.Media3),
     MediaUi("androidx.media3", "media3-ui", Version.Media3),
     MediaCommon("androidx.media3", "media3-common", Version.Media3),
