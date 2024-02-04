@@ -48,17 +48,21 @@ internal class PlaybackControllerImpl(
         combine(
             storage.currentQueue
                 .map {
-                    it.map(PlaybackQueueStorage.QueueItem::songsId)
+                    it.map(PlaybackQueueStorage.QueueItem::songsId).distinct()
                 }
                 .distinctUntilChanged()
-                .map { ids -> catalog.getSongsByIds(ids) },
-            storage.currentQueue.map { it.find { item -> item.state == PlaybackQueueStorage.QueueItem.State.Playing } }
-        ) { songs, playingItem ->
-            songs.map { song ->
-                SongInQueueItem(
-                    song,
-                    isPlaying = song.id == playingItem?.songsId
-                )
+                .map { ids ->
+                    catalog.getSongsByIds(ids).associateBy { it.id }
+                },
+            storage.currentQueue
+        ) { songs, currentQueue ->
+            currentQueue.mapNotNull { item ->
+                songs[item.songsId]?.let {
+                    SongInQueueItem(
+                        it,
+                        isPlaying = item.state == PlaybackQueueStorage.QueueItem.State.Playing
+                    )
+                }
             }
         }.stateIn(scope, SharingStarted.WhileSubscribed(), initialValue = emptyList())
 
