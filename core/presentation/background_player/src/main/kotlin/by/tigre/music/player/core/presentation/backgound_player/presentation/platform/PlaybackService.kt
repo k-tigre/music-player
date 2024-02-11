@@ -28,28 +28,15 @@ abstract class PlaybackService : MediaSessionService() {
     }
 
     override fun onCreate() {
-        Log.w("PlaybackService") { "onCreate" }
+        Log.i("PlaybackService") { "onCreate" }
         super.onCreate()
         view.onCreate()
-        setListener(object : Listener {
-
-            @RequiresApi(Build.VERSION_CODES.S)
-            override fun onForegroundServiceStartNotAllowedException() {
-                super.onForegroundServiceStartNotAllowedException()
-            }
-        })
 
         setMediaNotificationProvider(view.mediaNotificationProvider())
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.w("PlaybackService") { "onStartCommand" }
-        return super.onStartCommand(intent, flags, startId)
-    }
-
     override fun onUpdateNotification(session: MediaSession, startInForegroundRequired: Boolean) {
-        super.onUpdateNotification(session, startInForegroundRequired)
-        Log.w("PlaybackService") { "onUpdateNotification -startInForegroundRequired-$startInForegroundRequired" }
+        super.onUpdateNotification(session, session.player.playWhenReady) // hack for "stop playing in background"
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = view.onGetSession()
@@ -58,7 +45,7 @@ abstract class PlaybackService : MediaSessionService() {
         super.onDestroy()
         component.cancel()
         view.destroy()
-        Log.w("PlaybackService") { "onDestroy" }
+        Log.i("PlaybackService") { "onDestroy" }
     }
 
     abstract fun onProviderMainIntent(): Intent
