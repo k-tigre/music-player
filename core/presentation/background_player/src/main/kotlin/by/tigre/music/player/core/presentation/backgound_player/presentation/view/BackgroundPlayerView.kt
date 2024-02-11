@@ -21,6 +21,7 @@ import androidx.media3.session.SessionResult
 import by.tigre.music.player.core.presentation.backgound_player.presentation.component.BackgroundComponent
 import by.tigre.music.player.logger.Log
 import by.tigre.music.player.tools.platform.utils.getNotificationManager
+import by.tigre.music.playerbackground_player.R
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.CoroutineScope
@@ -43,116 +44,14 @@ class BackgroundPlayerView(
         notificationManager.createNotificationChannel(nc)
     }
 
-    private val mediaNotificationProvider: MediaNotification.Provider = object : DefaultMediaNotificationProvider(service) {
-
-        override fun getMediaButtons(
-            session: MediaSession,
-            playerCommands: Player.Commands,
-            customLayout: ImmutableList<CommandButton>,
-            showPauseButton: Boolean
-        ): ImmutableList<CommandButton> {
-            Log.d("BackgroundPlayerView") { "getMediaButtons playerCommands=$playerCommands" }
-            return super.getMediaButtons(session, playerCommands, customLayout, showPauseButton)
-        }
-
-        override fun addNotificationActions(
-            mediaSession: MediaSession,
-            mediaButtons: ImmutableList<CommandButton>,
-            builder: NotificationCompat.Builder,
-            actionFactory: MediaNotification.ActionFactory
-        ): IntArray {
-            Log.d("BackgroundPlayerView") { "addNotificationActions mediaButtons=$mediaButtons" }
-            return super.addNotificationActions(mediaSession, mediaButtons, builder, actionFactory)
-        }
-    }
+    private val mediaNotificationProvider: MediaNotification.Provider = DefaultMediaNotificationProvider.Builder(service)
+        .setChannelId(NOTIFICATION_CHANEL_ID)
+        .setChannelName(R.string.notification_channel_name)
+        .build()
 
     fun onCreate() {
         val player = InternalPlayerWrapper(component.getPlayer().player)
         mediaSession = MediaSession.Builder(service, player)
-            .setCallback(
-                object : MediaSession.Callback {
-                    override fun onConnect(session: MediaSession, controller: MediaSession.ControllerInfo): MediaSession.ConnectionResult {
-                        Log.d("BackgroundPlayerView") { "mediaSession callback onConnect" }
-                        return super.onConnect(session, controller)
-                    }
-
-                    override fun onPostConnect(session: MediaSession, controller: MediaSession.ControllerInfo) {
-                        Log.d("BackgroundPlayerView") { "mediaSession callback onPostConnect" }
-                        super.onPostConnect(session, controller)
-                    }
-
-                    override fun onDisconnected(session: MediaSession, controller: MediaSession.ControllerInfo) {
-                        Log.d("BackgroundPlayerView") { "mediaSession callback onDisconnected" }
-                        super.onDisconnected(session, controller)
-                    }
-
-                    override fun onPlayerCommandRequest(
-                        session: MediaSession,
-                        controller: MediaSession.ControllerInfo,
-                        playerCommand: Int
-                    ): Int {
-                        Log.d("BackgroundPlayerView") { "mediaSession callback onPlayerCommandRequest" }
-                        return super.onPlayerCommandRequest(session, controller, playerCommand)
-                    }
-
-                    override fun onSetRating(
-                        session: MediaSession,
-                        controller: MediaSession.ControllerInfo,
-                        mediaId: String,
-                        rating: Rating
-                    ): ListenableFuture<SessionResult> {
-                        Log.d("BackgroundPlayerView") { "mediaSession callback onSetRating" }
-                        return super.onSetRating(session, controller, mediaId, rating)
-                    }
-
-                    override fun onSetRating(
-                        session: MediaSession,
-                        controller: MediaSession.ControllerInfo,
-                        rating: Rating
-                    ): ListenableFuture<SessionResult> {
-                        Log.d("BackgroundPlayerView") { "mediaSession callback onSetRating" }
-                        return super.onSetRating(session, controller, rating)
-                    }
-
-                    override fun onCustomCommand(
-                        session: MediaSession,
-                        controller: MediaSession.ControllerInfo,
-                        customCommand: SessionCommand,
-                        args: Bundle
-                    ): ListenableFuture<SessionResult> {
-                        Log.d("BackgroundPlayerView") { "mediaSession callback onCustomCommand" }
-                        return super.onCustomCommand(session, controller, customCommand, args)
-                    }
-
-                    override fun onAddMediaItems(
-                        mediaSession: MediaSession,
-                        controller: MediaSession.ControllerInfo,
-                        mediaItems: MutableList<MediaItem>
-                    ): ListenableFuture<MutableList<MediaItem>> {
-                        Log.d("BackgroundPlayerView") { "mediaSession callback onAddMediaItems" }
-                        return super.onAddMediaItems(mediaSession, controller, mediaItems)
-                    }
-
-                    override fun onSetMediaItems(
-                        mediaSession: MediaSession,
-                        controller: MediaSession.ControllerInfo,
-                        mediaItems: MutableList<MediaItem>,
-                        startIndex: Int,
-                        startPositionMs: Long
-                    ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
-                        Log.d("BackgroundPlayerView") { "mediaSession callback onSetMediaItems" }
-                        return super.onSetMediaItems(mediaSession, controller, mediaItems, startIndex, startPositionMs)
-                    }
-
-                    override fun onPlaybackResumption(
-                        mediaSession: MediaSession,
-                        controller: MediaSession.ControllerInfo
-                    ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
-                        Log.d("BackgroundPlayerView") { "mediaSession callback onPlaybackResumption" }
-                        return super.onPlaybackResumption(mediaSession, controller)
-                    }
-                }
-            )
             .setSessionActivity(
                 PendingIntent.getActivity(
                     service,
