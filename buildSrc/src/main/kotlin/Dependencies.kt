@@ -30,8 +30,8 @@ enum class Library(group: String, artifact: String, version: Version) {
     ComposeUIToolkit("androidx.compose.ui", "ui-tooling", Version.Compose),
     ComposeFoundation("androidx.compose.foundation", "foundation", Version.ComposeFoundation),
     ComposeMaterial1("androidx.compose.material", "material", Version.ComposeMaterial),
-    ComposeMaterial("androidx.compose.material3", "material3", Version.ComposeMaterial),
-    ComposeMaterialWindowSize("androidx.compose.material3", "material3-window-size-class", Version.ComposeMaterial),
+    ComposeMaterial("androidx.compose.material3", "material3", Version.ComposeMaterial3),
+    ComposeMaterialWindowSize("androidx.compose.material3", "material3-window-size-class", Version.ComposeMaterial3),
     ActivityCompose("androidx.activity", "activity-compose", Version.ActivityCompose),
 
     CoilCompose("io.coil-kt", "coil-compose", Version.CoilCompose),
@@ -55,23 +55,23 @@ enum class Library(group: String, artifact: String, version: Version) {
     val notation = "$group:$artifact:${version.value}"
 
     internal enum class Version(val value: String) {
-        ActivityCompose("1.8.0"),
+        ActivityCompose("1.8.2"),
         AndroidXAppcompat("1.6.1"),
         AndroidXCore("1.12.0"),
-        AndroidXAnnotation("1.4.0"),
+        AndroidXAnnotation("1.7.1"),
         AndroidXSplash("1.0.0"),
-        Kotlin("1.9.10"),
-        Coroutines("1.7.3"),
-        SQLDelight("2.0.0"),
-        ExoPlayer("2.19.1"),
-        Media3("1.1.0"),
-        Leakcanary("2.12"),
-        Compose("1.5.4"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
-        ComposeFoundation("1.5.4"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
-        ComposeMaterial("1.1.2"),
-        Accompanist("0.32.0") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
-        CoilCompose("2.4.0"),
-        Decompose("2.1.3"),
+        Kotlin("1.9.22"),
+        Coroutines("1.8.0"),
+        SQLDelight("2.0.1"),
+        Media3("1.2.1"),
+        Leakcanary("2.13"),
+        Compose("1.6.1"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
+        ComposeFoundation("1.6.1"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
+        ComposeMaterial("1.6.1"),
+        ComposeMaterial3("1.2.0"),
+        Accompanist("0.34.0") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
+        CoilCompose("2.5.0"),
+        Decompose("2.2.2"),
 
         DebugComposeCustomView("1.2.0-alpha02"),
         DebugComposeCustomViewPoolingcontainer("1.0.0"),
@@ -125,7 +125,7 @@ enum class FirebaseLibrary(group: String, artifact: String) {
     val notation = "$group:$artifact"
 
     companion object {
-        val bom = "com.google.firebase:firebase-bom:32.5.0"
+        val bom = "com.google.firebase:firebase-bom:32.7.2"
     }
 }
 
@@ -158,21 +158,21 @@ enum class Plugin(group: String, artifact: String, version: Version) {
     }
 
     private enum class Version(val value: String) {
-        Android("8.1.2"),
+        Android("8.2.2"),
         Kotlin(Library.Version.Kotlin.value),
         Google("4.3.13"),
         Crashlytics("2.9.1"),
-        Versions("0.42.0"),
+        Versions("0.51.0"),
         SQLDelight(Library.Version.SQLDelight.value),
         GooglePlayPublisher("3.8.4"),
         FirebasePublisher("4.0.0"),
     }
 }
 
-const val KotlinCompilerExtensionVersion = "1.5.3" /*must be synchronized with kotlin and agp version*/
+const val KotlinCompilerExtensionVersion = "1.5.9" /*must be synchronized with kotlin and agp version*/
 
 enum class Tools(val version: String) {
-    Build("33.0.1"),
+    Build("34.0.0"),
 }
 
 sealed class Project(id: String) {
@@ -186,9 +186,7 @@ sealed class Project(id: String) {
             object Permission : Platform("permission")
         }
 
-        sealed class Domain(id: String) : Core("domain:$id") {
-
-        }
+        sealed class Domain(id: String) : Core("domain:$id")
 
         sealed class Data(id: String) : Core("data:$id") {
             object Playback : Data("playback")

@@ -32,7 +32,7 @@ internal interface DebugLogsComponent : DebugPageComponent {
 
         override val title: String = filter ?: "Logs"
 
-        override val logs = MutableSharedFlow<List<Logs>>()
+        override val logs = MutableSharedFlow<List<Logs>>(replay = 1)
 
         override val loading = MutableStateFlow(true)
 
@@ -40,7 +40,7 @@ internal interface DebugLogsComponent : DebugPageComponent {
             launch(Dispatchers.IO) {
                 refreshSignal
                     .onStart {
-                        delay(1000)
+                        delay(500)
                         emit(Unit)
                     }
                     .onEach { loading.emit(true) }
