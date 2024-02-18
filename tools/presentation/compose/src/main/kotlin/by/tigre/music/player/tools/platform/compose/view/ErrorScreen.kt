@@ -17,7 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import by.tigre.music.player.tools.platform.compose.AppMaterial
+import by.tigre.music.player.tools.platform.compose.AppTheme
 import by.tigre.music.playercompose.R
 
 @Composable
@@ -73,7 +73,7 @@ fun ErrorScreen(
 @Preview(showBackground = true)
 @Composable
 private fun ErrorScreenPreview() {
-    AppMaterial.AppTheme {
+    AppTheme {
         ErrorScreen(
             title = "Что-то пошло очень не так",
             message = "Попробуйте повторить",
@@ -85,7 +85,7 @@ private fun ErrorScreenPreview() {
 @Preview(showBackground = true)
 @Composable
 private fun ErrorScreenPreview2() {
-    AppMaterial.AppTheme {
+    AppTheme {
         ErrorScreen(
             retryAction = {}
         )

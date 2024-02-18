@@ -1,5 +1,6 @@
 package by.tigre.music.player.core.presentation.catalog.view
 
+import android.content.res.Configuration
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -18,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -29,11 +31,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.component.SmallPlayerComponent
+import by.tigre.music.player.tools.platform.compose.AppTheme
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.playerplayer.R
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class SmallPlayerView(
     private val component: SmallPlayerComponent,
@@ -49,11 +54,11 @@ class SmallPlayerView(
                     .offset(y = 0.dp)
             ) {
                 Box(
-                    modifier = modifier
+                    modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 0.dp)
                         .background(
-                            MaterialTheme.colorScheme.tertiaryContainer,
+                            color = MaterialTheme.colorScheme.surfaceContainer,
                             shape = MaterialTheme.shapes.extraLarge.copy(
                                 bottomStart = CornerSize(0),
                                 bottomEnd = CornerSize(0)
@@ -112,7 +117,7 @@ class SmallPlayerView(
 
         Slider(
             modifier = Modifier
-                .offset(y = (-24).dp)
+                .offset(y = (-22).dp)
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .align(Alignment.TopCenter),
@@ -126,6 +131,12 @@ class SmallPlayerView(
                 component.seekTo(fraction = sliderPosition)
                 sliderEnabled = false
             },
+            colors = SliderDefaults.colors(
+                activeTickColor = MaterialTheme.colorScheme.secondary,
+                thumbColor = MaterialTheme.colorScheme.secondary,
+                activeTrackColor = MaterialTheme.colorScheme.secondary,
+                inactiveTrackColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
+            )
         )
     }
 
@@ -162,5 +173,55 @@ class SmallPlayerView(
         ) {
             Icon(contentDescription = null, painter = painterResource(id = R.drawable.baseline_skip_next_24))
         }
+    }
+}
+
+private object PreviewStub {
+    val component = object : SmallPlayerComponent {
+        override val currentSong = MutableStateFlow(
+            Song(
+                id = Song.Id(1),
+                album = "Test Album",
+                artist = "Test Artist",
+                index = "2/10",
+                name = "Song name",
+                path = ""
+            )
+        )
+        override val position = MutableStateFlow(0.5f)
+        override val state = MutableStateFlow(SmallPlayerComponent.State.Paused)
+
+        override fun pause() {
+            state.tryEmit(SmallPlayerComponent.State.Paused)
+        }
+
+        override fun play() {
+            state.tryEmit(SmallPlayerComponent.State.Playing)
+        }
+
+        override fun next() = Unit
+        override fun prev() = Unit
+
+        override fun seekTo(fraction: Float) {
+            position.tryEmit(fraction)
+        }
+
+        override fun showQueue() = Unit
+    }
+}
+
+@Preview
+@Composable
+private fun Preview() {
+    AppTheme {
+        SmallPlayerView(PreviewStub.component).Draw(modifier = Modifier.padding(top = 36.dp))
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewDark() {
+    AppTheme {
+        SmallPlayerView(PreviewStub.component).Draw(modifier = Modifier.padding(top = 36.dp))
     }
 }
