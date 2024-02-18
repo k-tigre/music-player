@@ -128,7 +128,6 @@ class SmallPlayerView(
                 component.seekTo(it)
             },
             onValueChangeFinished = {
-                component.seekTo(fraction = sliderPosition)
                 sliderEnabled = false
             },
             colors = SliderDefaults.colors(
