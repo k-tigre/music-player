@@ -17,7 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import by.tigre.music.player.tools.platform.compose.AppMaterial
+import by.tigre.music.player.tools.platform.compose.AppTheme
 import by.tigre.music.playercompose.R
 
 @Composable
@@ -72,7 +72,7 @@ fun EmptyScreen(
 @Preview(showBackground = true)
 @Composable
 private fun EmptyScreenPreview() {
-    AppMaterial.AppTheme {
+    AppTheme {
         EmptyScreen(
             title = "Ничего не удалось найти",
             message = "Попробуйте повторить",
@@ -84,7 +84,7 @@ private fun EmptyScreenPreview() {
 @Preview(showBackground = true)
 @Composable
 private fun EmptyScreenPreview2() {
-    AppMaterial.AppTheme {
+    AppTheme {
         EmptyScreen(
             reloadAction = {},
             message = "Попробуйте повторить",

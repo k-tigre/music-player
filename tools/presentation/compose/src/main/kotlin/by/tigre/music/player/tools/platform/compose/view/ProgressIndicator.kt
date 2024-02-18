@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import by.tigre.music.player.tools.platform.compose.AppMaterial
+import by.tigre.music.player.tools.platform.compose.AppTheme
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicatorSize.LARGE
 
 @Composable
@@ -43,10 +43,10 @@ fun ProgressIndicator(
 ) {
     Box(modifier, contentAlignment = Alignment.Center) {
         CircularProgressIndicator(
+            progress = { 1f },
             modifier = Modifier.size(size.size),
-            progress = 1f,
             color = backgroundColor,
-            strokeWidth = size.strokeWidth * 2
+            strokeWidth = size.strokeWidth * 2,
         )/*background*/
         CircularProgressIndicator(
             modifier = Modifier.size(size.size - size.strokeWidth),
@@ -64,7 +64,7 @@ enum class ProgressIndicatorSize(val size: Dp, val strokeWidth: Dp) {
 @Composable
 @Preview(backgroundColor = 0xFFFFFF, showBackground = true, widthDp = 100, heightDp = 100)
 private fun ProgressIndicatorPreview() {
-    AppMaterial.AppTheme {
+    AppTheme {
         ProgressIndicator(
             size = LARGE,
             backgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f),
