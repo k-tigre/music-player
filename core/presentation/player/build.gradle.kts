@@ -20,4 +20,5 @@ dependencies {
     implementation(Project.Core.Entity.Catalog)
 
     implementation(Toolkit.UI)
+    implementation(Project.Logger.Core)
 }

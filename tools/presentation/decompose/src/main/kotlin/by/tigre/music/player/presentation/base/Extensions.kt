@@ -1,11 +1,9 @@
 package by.tigre.music.player.presentation.base
 
-import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.childContext
-import com.arkivanov.decompose.router.pages.ChildPages
-import com.arkivanov.decompose.router.pages.Pages
-import com.arkivanov.decompose.router.pages.PagesNavigationSource
-import com.arkivanov.decompose.router.pages.childPages
+import com.arkivanov.decompose.router.slot.ChildSlot
+import com.arkivanov.decompose.router.slot.SlotNavigationSource
+import com.arkivanov.decompose.router.slot.childSlot
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigationSource
 import com.arkivanov.decompose.router.stack.childStack
@@ -37,23 +35,22 @@ fun <C : Parcelable, T : Any> BaseComponentContext.appChildStack(
         )
     }
 
-@OptIn(ExperimentalDecomposeApi::class)
-fun <C : Parcelable, T : Any> BaseComponentContext.appChildPages(
-    source: PagesNavigationSource<C>,
-    initialPages: () -> Pages<C>,
+fun <C : Parcelable, T : Any> BaseComponentContext.appChildSlotI(
+    source: SlotNavigationSource<C>,
+    initialConfiguration: () -> C? = { null },
     configurationClass: KClass<out C>,
-    key: String = "DefaultChildPages",
-    persistent: Boolean = true,
+    key: String = "DefaultChildSlot",
     handleBackButton: Boolean = false,
-    childFactory: (configuration: C, BaseComponentContext) -> T,
-): Value<ChildPages<C, T>> =
-    childPages(
+    persistent: Boolean = true,
+    childFactory: (configuration: C, BaseComponentContext) -> T
+): Value<ChildSlot<C, T>> =
+    childSlot(
         source = source,
+        initialConfiguration = initialConfiguration,
         configurationClass = configurationClass,
-        initialPages = initialPages,
         key = key,
+        handleBackButton = handleBackButton,
         persistent = persistent,
-        handleBackButton = handleBackButton
     ) { configuration, componentContext ->
         childFactory(
             configuration,
@@ -79,21 +76,22 @@ inline fun <reified C : Parcelable, T : Any> BaseComponentContext.appChildStack(
         childFactory = childFactory,
     )
 
-@OptIn(ExperimentalDecomposeApi::class)
-inline fun <reified C : Parcelable, T : Any> BaseComponentContext.appChildPages(
-    source: PagesNavigationSource<C>,
-    noinline initialPages: () -> Pages<C>,
-    persistent: Boolean = true,
+inline fun <reified C : Parcelable, T : Any> BaseComponentContext.appChildSlot(
+    source: SlotNavigationSource<C>,
+    noinline initialStack: () -> C? = { null },
+    key: String = "DefaultChildSlot",
     handleBackButton: Boolean = false,
-    noinline childFactory: (configuration: C, BaseComponentContext) -> T,
-): Value<ChildPages<C, T>> =
-    appChildPages(
+    persistent: Boolean = true,
+    noinline childFactory: (configuration: C, BaseComponentContext) -> T
+): Value<ChildSlot<C, T>> =
+    appChildSlotI(
         source = source,
-        initialPages = initialPages,
+        initialConfiguration = initialStack,
         configurationClass = C::class,
+        key = key,
         handleBackButton = handleBackButton,
         childFactory = childFactory,
-        persistent = persistent,
+        persistent = persistent
     )
 
 fun BaseComponentContext.appChildContext(key: String, lifecycle: Lifecycle? = null): BaseComponentContext =
