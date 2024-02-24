@@ -58,7 +58,7 @@ class SmallPlayerView(
                         .fillMaxWidth()
                         .padding(top = 0.dp)
                         .background(
-                            color = MaterialTheme.colorScheme.surfaceContainer,
+                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
                             shape = MaterialTheme.shapes.extraLarge.copy(
                                 bottomStart = CornerSize(0),
                                 bottomEnd = CornerSize(0)
