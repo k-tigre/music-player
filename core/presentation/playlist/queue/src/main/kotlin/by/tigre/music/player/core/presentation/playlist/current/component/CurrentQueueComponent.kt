@@ -1,7 +1,6 @@
 package by.tigre.music.player.core.presentation.playlist.current.component
 
 import by.tigre.music.player.core.data.playback.PlaybackController
-import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.entiry.playback.SongInQueueItem
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueDependency
 import by.tigre.music.player.core.presentation.playlist.current.navigation.QueueNavigator
@@ -17,7 +16,7 @@ interface CurrentQueueComponent {
     val title: String
 
     fun retry()
-    fun onSongClicked(song: Song)
+    fun onSongClicked(song: SongInQueueItem)
     fun onAddToQueueClicked()
 
     class Impl(
@@ -44,7 +43,7 @@ interface CurrentQueueComponent {
             stateDelegate.reload()
         }
 
-        override fun onSongClicked(song: Song) {
+        override fun onSongClicked(song: SongInQueueItem) {
             playbackController.playSongInQueue(song.id)
         }
 

@@ -99,7 +99,7 @@ class CurrentQueueView(
                     item {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            onClick = { component.onSongClicked(item.song) },
+                            onClick = { component.onSongClicked(item) },
                             colors = CardColors(
                                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                                 contentColor = MaterialTheme.colorScheme.onSurface,

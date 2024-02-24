@@ -35,13 +35,22 @@ internal class PlaybackControllerImpl(
 
     private val isPlaying = MutableStateFlow(false)
     private val action = MutableSharedFlow<Action>(extraBufferCapacity = 1)
-    override val currentItem: StateFlow<Song?> = storage.currentQueue
+    private val currentQueueItem: StateFlow<SongInQueueItem?> = storage.currentQueue
         .map { queue ->
-            queue.firstOrNull { it.state == PlaybackQueueStorage.QueueItem.State.Playing }?.let {
-                catalog.getSongById(id = it.songsId)
-            }
+            queue.firstOrNull { it.state == PlaybackQueueStorage.QueueItem.State.Playing }
+                ?.let { item ->
+                    catalog.getSongById(id = item.songsId)
+                        ?.let { song ->
+                            SongInQueueItem(id = item.id, song = song, isPlaying = true)
+                        }
+                }
+
         }
         .debugLog("PlaybackController", "currentItem")
+        .stateIn(scope, SharingStarted.WhileSubscribed(), initialValue = null)
+
+    override val currentItem: StateFlow<Song?> = currentQueueItem
+        .map { it?.song }
         .stateIn(scope, SharingStarted.WhileSubscribed(), initialValue = null)
 
     override val currentQueue: Flow<List<SongInQueueItem>> =
@@ -59,7 +68,8 @@ internal class PlaybackControllerImpl(
             currentQueue.mapNotNull { item ->
                 songs[item.songsId]?.let {
                     SongInQueueItem(
-                        it,
+                        id = item.id,
+                        song = it,
                         isPlaying = item.state == PlaybackQueueStorage.QueueItem.State.Playing
                     )
                 }
@@ -68,7 +78,8 @@ internal class PlaybackControllerImpl(
 
     init {
         scope.launch {
-            action.debugLog("PlaybackController", "action")
+            action
+                .debugLog("PlaybackController", "action")
                 .withLatestFrom(storage.currentQueue)
                 .collect { (action, queue) ->
                     when (action) {
@@ -136,7 +147,7 @@ internal class PlaybackControllerImpl(
                             var isFind = false
                             storage.playQueue(
                                 queue.map { item ->
-                                    val state = if (isFind.not() && item.songsId == action.songId) {
+                                    val state = if (isFind.not() && item.id == action.queueId) {
                                         isFind = true
                                         PlaybackQueueStorage.QueueItem.State.Playing
                                     } else if (isFind) {
@@ -160,10 +171,10 @@ internal class PlaybackControllerImpl(
         }
 
         scope.launch {
-            currentItem
+            currentQueueItem
                 .collect { item ->
                     if (item != null) {
-                        player.setMediaItem(mediaItemWrapperProvider.songToMediaItem(item), 0)
+                        player.setMediaItem(mediaItemWrapperProvider.songToMediaItem(item.song), 0)
                     } else {
                         player.stop()
                     }
@@ -172,11 +183,9 @@ internal class PlaybackControllerImpl(
 
         scope.launch {
             isPlaying
+                .withLatestFrom(currentItem, player.state)
                 .debugLog("PlaybackController", "isPlaying")
-                .collect { isPlaying ->
-
-                    val currentItem = currentItem.value
-                    val state = player.state.value
+                .collect { (isPlaying, currentItem, state) ->
                     when {
                         isPlaying.not() -> player.pause()
                         isPlaying && currentItem != null && state != PlaybackPlayer.State.Idle -> player.resume()
@@ -213,7 +222,7 @@ internal class PlaybackControllerImpl(
         resume()
     }
 
-    override fun playSongInQueue(id: Song.Id) {
+    override fun playSongInQueue(id: Long) {
         Log.d("PlaybackController") { "playSongInQueue" }
         action.tryEmit(Action.PlaySongInQueue(id))
         resume()
@@ -255,7 +264,7 @@ internal class PlaybackControllerImpl(
         data object PlayPrev : Action
 
         data class PlaySong(val songId: Song.Id) : Action
-        data class PlaySongInQueue(val songId: Song.Id) : Action
+        data class PlaySongInQueue(val queueId: Long) : Action
         data class PlayAlbum(val albumId: Album.Id, val artistId: Artist.Id) : Action
         data class AddAlbumToQueue(val albumId: Album.Id, val artistId: Artist.Id) : Action
         data class AddSongToQueue(val songId: Song.Id) : Action
