@@ -4,19 +4,18 @@ import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
 import by.tigre.music.player.core.presentation.catalog.navigation.PlayerNavigator
 import by.tigre.music.player.presentation.base.BaseComponentContext
 
-interface SmallPlayerComponent : BasePlayerComponent {
+interface PlayerComponent : BasePlayerComponent {
 
-    fun showPlayerView()
+    fun showQueue()
 
     class Impl(
         context: BaseComponentContext,
         dependency: PlayerDependency,
         private val navigator: PlayerNavigator
-    ) : SmallPlayerComponent, BasePlayerComponent by BasePlayerComponentImpl(context, dependency) {
+    ) : PlayerComponent, BasePlayerComponent by BasePlayerComponentImpl(context, dependency) {
 
-        override fun showPlayerView() {
-            navigator.playerView()
+        override fun showQueue() {
+            navigator.showQueue()
         }
-
     }
 }

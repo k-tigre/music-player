@@ -34,6 +34,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import by.tigre.music.player.core.entiry.catalog.Song
+import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent
+import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.SmallPlayerComponent
 import by.tigre.music.player.tools.platform.compose.AppTheme
 import by.tigre.music.player.tools.platform.compose.ComposableView
@@ -86,7 +88,7 @@ class SmallPlayerView(
         Row(
             modifier = modifier
                 .systemBarsPadding()
-                .clickable { component.showQueue() },
+                .clickable { component.showPlayerView() },
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
@@ -110,7 +112,7 @@ class SmallPlayerView(
 
     @Composable
     private fun BoxScope.DrawProgress() {
-        val position = component.position.collectAsState()
+        val position = component.fraction.collectAsState()
 
         var sliderPosition by remember { mutableFloatStateOf(0f) }
         var sliderEnabled by remember { mutableStateOf(false) }
@@ -150,7 +152,7 @@ class SmallPlayerView(
             Icon(contentDescription = null, painter = painterResource(id = R.drawable.baseline_skip_previous_24))
         }
 
-        if (state.value == SmallPlayerComponent.State.Playing) {
+        if (state.value == BasePlayerComponent.State.Playing) {
             IconButton(
                 modifier = Modifier.align(Alignment.CenterVertically),
                 onClick = component::pause
@@ -175,45 +177,54 @@ class SmallPlayerView(
     }
 }
 
-private object PreviewStub {
-    val component = object : SmallPlayerComponent {
-        override val currentSong = MutableStateFlow(
-            Song(
-                id = Song.Id(1),
-                album = "Test Album",
-                artist = "Test Artist",
-                index = "2/10",
-                name = "Song name",
-                path = ""
-            )
-        )
-        override val position = MutableStateFlow(0.5f)
-        override val state = MutableStateFlow(SmallPlayerComponent.State.Paused)
+internal object PreviewStub {
+    val song: Song = Song(
+        id = Song.Id(1),
+        album = "Test Album",
+        artist = "Test Artist",
+        index = "2/10",
+        name = "Song name",
+        path = ""
+    )
+
+    private fun baseComponent(song: Song?) = object : BasePlayerComponent {
+        override val currentSong = MutableStateFlow(song)
+        override val fraction = MutableStateFlow(0.5f)
+        override val position = MutableStateFlow(BasePlayerComponent.Position("10:10", "-10:19"))
+        override val state = MutableStateFlow(BasePlayerComponent.State.Paused)
 
         override fun pause() {
-            state.tryEmit(SmallPlayerComponent.State.Paused)
+            state.tryEmit(BasePlayerComponent.State.Paused)
         }
 
         override fun play() {
-            state.tryEmit(SmallPlayerComponent.State.Playing)
+            state.tryEmit(BasePlayerComponent.State.Playing)
         }
 
         override fun next() = Unit
         override fun prev() = Unit
 
         override fun seekTo(fraction: Float) {
-            position.tryEmit(fraction)
+            this.fraction.tryEmit(fraction)
+        }
+    }
+
+    fun smallPlayerComponent(song: Song? = null): SmallPlayerComponent =
+        object : SmallPlayerComponent, BasePlayerComponent by baseComponent(song) {
+            override fun showPlayerView() = Unit
         }
 
-        override fun showQueue() = Unit
-    }
+    fun playerComponent(song: Song? = null): PlayerComponent =
+        object : PlayerComponent, BasePlayerComponent by baseComponent(song) {
+            override fun showQueue() = Unit
+        }
 }
 
 @Preview
 @Composable
 private fun Preview() {
     AppTheme {
-        SmallPlayerView(PreviewStub.component).Draw(modifier = Modifier.padding(top = 36.dp))
+        SmallPlayerView(PreviewStub.smallPlayerComponent(song = PreviewStub.song)).Draw(modifier = Modifier.padding(top = 36.dp))
     }
 }
 
@@ -221,6 +232,6 @@ private fun Preview() {
 @Composable
 private fun PreviewDark() {
     AppTheme {
-        SmallPlayerView(PreviewStub.component).Draw(modifier = Modifier.padding(top = 36.dp))
+        SmallPlayerView(PreviewStub.smallPlayerComponent(song = PreviewStub.song)).Draw(modifier = Modifier.padding(top = 36.dp))
     }
 }

@@ -26,6 +26,9 @@ import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueV
 import by.tigre.music.player.presentation.root.component.Root
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import com.arkivanov.decompose.extensions.compose.jetpack.stack.Children
+import com.arkivanov.decompose.extensions.compose.jetpack.stack.animation.fade
+import com.arkivanov.decompose.extensions.compose.jetpack.stack.animation.plus
+import com.arkivanov.decompose.extensions.compose.jetpack.stack.animation.scale
 import com.arkivanov.decompose.extensions.compose.jetpack.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.jetpack.subscribeAsState
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -60,6 +63,19 @@ class RootView(
 
     @Composable
     private fun DrawMain() {
+        Children(
+            stack = component.mainComponent,
+            animation = stackAnimation(animator = fade())
+        ) {
+            when (val child = it.instance) {
+                is Root.MainComponentChild.Main -> DrawPages()
+                is Root.MainComponentChild.Player -> playerViewProvider.createPlayerView(child.component).Draw(Modifier.fillMaxSize())
+            }
+        }
+    }
+
+    @Composable
+    private fun DrawPages() {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
@@ -115,13 +131,15 @@ class RootView(
                     .fillMaxSize()
                     .padding(paddings)
             ) {
-                Children(stack = component.pages, animation = stackAnimation()) {
+                Children(
+                    stack = component.pages,
+                    animation = stackAnimation(animator = scale(frontFactor = 0.8f, backFactor = 0.8f) + fade())
+                ) {
                     when (val child = it.instance) {
-                        is Root.PageComponentChild.Catalog -> catalogViewProvider.createRootView(child.component).Draw(Modifier)
-                        is Root.PageComponentChild.Queue -> currentQueueViewProvider.createCurrentQueueView(child.component).Draw(Modifier)
-                    }
+                        is Root.PageComponentChild.Catalog -> catalogViewProvider.createRootView(child.component)
+                        is Root.PageComponentChild.Queue -> currentQueueViewProvider.createCurrentQueueView(child.component)
+                    }.Draw(Modifier)
                 }
-
             }
         }
     }
