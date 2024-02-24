@@ -66,7 +66,7 @@ class RootView(
                 Column {
                     playerViewProvider.createSmallPlayerView(component.playerComponent).Draw(Modifier)
 
-                    NavigationBar {
+                    NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
                         val pages = component.pages.subscribeAsState()
 
                         NavigationBarItem(
