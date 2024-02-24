@@ -27,7 +27,7 @@ fun <A, B : Any, R : Any> Flow<A>.withLatestFrom(other: Flow<B>, transform: susp
     }
 }
 
-fun <A, B, C : Any, R : Any> Flow<A>.withLatestFrom(
+fun <A, B, C : Any?, R : Any?> Flow<A>.withLatestFrom(
     otherB: Flow<B>,
     otherC: Flow<C>,
     transform: suspend (A, B, C) -> R
@@ -53,15 +53,13 @@ fun <A, B, C : Any, R : Any> Flow<A>.withLatestFrom(
         collect { a: A ->
             val b = latestB.get()
             val c = latestC.get()
-            if (b != null && c != null) {
-                emit(transform(a, b, c))
-            }
+            emit(transform(a, b, c))
         }
     }
 }
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun <A : Any, B : Any, C : Any> Flow<A>.withLatestFrom(otherB: Flow<B>, otherC: Flow<C>): Flow<Triple<A, B, C>> =
+inline fun <A, B, C : Any?> Flow<A>.withLatestFrom(otherB: Flow<B>, otherC: Flow<C>): Flow<Triple<A, B, C>> =
     withLatestFrom(otherB, otherC) { a, b, c -> Triple(a, b, c) }
 
 

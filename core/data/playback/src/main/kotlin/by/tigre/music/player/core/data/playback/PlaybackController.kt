@@ -18,7 +18,7 @@ interface PlaybackController {
     fun resume()
     fun stop()
     fun playSong(id: Song.Id)
-    fun playSongInQueue(id: Song.Id)
+    fun playSongInQueue(id: Long)
     fun playAlbum(albumId: Album.Id, artistId: Artist.Id)
     fun addAlbumToPlay(id: Album.Id, artistId: Artist.Id)
     fun addSongToPlay(id: Song.Id)
