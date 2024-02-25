@@ -6,6 +6,7 @@ data class Song(
     val index: String,
     val artist: String,
     val album: String,
+    val albumId: Album.Id,
     val path: String
 ) {
 

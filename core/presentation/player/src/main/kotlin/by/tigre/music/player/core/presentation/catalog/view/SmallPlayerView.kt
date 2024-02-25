@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
@@ -184,7 +185,8 @@ internal object PreviewStub {
         artist = "Test Artist",
         index = "2/10",
         name = "Song name",
-        path = ""
+        path = "",
+        albumId = Album.Id(1)
     )
 
     private fun baseComponent(song: Song?) = object : BasePlayerComponent {

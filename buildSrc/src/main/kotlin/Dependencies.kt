@@ -106,6 +106,7 @@ enum class Toolkit(
             Library.ComposeFoundation,
             Library.ComposeMaterial,
             Library.ComposeMaterialWindowSize,
+            Library.CoilCompose,
             Library.ActivityCompose,
             Library.Decompose,
             Library.DecomposeExtensions

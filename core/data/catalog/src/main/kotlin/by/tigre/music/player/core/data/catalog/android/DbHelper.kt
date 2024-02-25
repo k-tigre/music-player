@@ -62,6 +62,7 @@ interface DbHelper {
             val projection = arrayOf(
                 MediaStore.Audio.Artists.Albums.ALBUM_ID,
                 MediaStore.Audio.Artists.Albums.ALBUM,
+                MediaStore.Audio.Artists.Albums.ALBUM_ART,
                 MediaStore.Audio.Artists.Albums.NUMBER_OF_SONGS_FOR_ARTIST,
                 MediaStore.Audio.Artists.Albums.FIRST_YEAR,
                 MediaStore.Audio.Artists.Albums.LAST_YEAR
@@ -113,8 +114,10 @@ interface DbHelper {
                 MediaStore.Audio.Media.TITLE,
                 MediaStore.Audio.Media.IS_MUSIC,
                 MediaStore.Audio.Media.DATA,
-                MediaStore.Audio.Media.TRACK
-            )
+                MediaStore.Audio.Media.TRACK,
+                MediaStore.Audio.Media.ALBUM_ID,
+
+                )
 
             val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
@@ -136,6 +139,7 @@ interface DbHelper {
                 val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
                 val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
                 val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
+                val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
                 val trackColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK)
                 while (cursor.moveToNext()) {
                     songs.add(
@@ -145,7 +149,8 @@ interface DbHelper {
                             index = cursor.getString(trackColumn) ?: "",
                             album = cursor.getString(albumColumn),
                             artist = cursor.getString(artistColumn),
-                            path = cursor.getString(dataColumn)
+                            path = cursor.getString(dataColumn),
+                            albumId = Album.Id(cursor.getLong(albumIdColumn))
                         )
                     )
                 }
@@ -161,7 +166,8 @@ interface DbHelper {
                 MediaStore.Audio.Media.TITLE,
                 MediaStore.Audio.Media.IS_MUSIC,
                 MediaStore.Audio.Media.DATA,
-                MediaStore.Audio.Media.TRACK
+                MediaStore.Audio.Media.TRACK,
+                MediaStore.Audio.Media.ALBUM_ID,
             )
 
             val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -184,7 +190,8 @@ interface DbHelper {
                         album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)),
                         artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)),
                         path = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)),
-                        index = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK)) ?: ""
+                        index = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK)) ?: "",
+                        albumId = Album.Id(cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)))
                     )
                 } else {
                     null
@@ -204,6 +211,7 @@ interface DbHelper {
                 MediaStore.Audio.Media.IS_MUSIC,
                 MediaStore.Audio.Media.TRACK,
                 MediaStore.Audio.Media.DATA,
+                MediaStore.Audio.Media.ALBUM_ID,
             )
             val songs = mutableListOf<Song>()
 
@@ -226,6 +234,8 @@ interface DbHelper {
                 val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
                 val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
                 val trackColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK)
+                val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+
                 while (cursor.moveToNext()) {
                     songs.add(
                         Song(
@@ -234,7 +244,8 @@ interface DbHelper {
                             index = cursor.getString(trackColumn) ?: "",
                             album = cursor.getString(albumColumn),
                             artist = cursor.getString(artistColumn),
-                            path = cursor.getString(dataColumn)
+                            path = cursor.getString(dataColumn),
+                            albumId = Album.Id(cursor.getLong(albumIdColumn))
                         )
                     )
                 }
@@ -253,6 +264,7 @@ interface DbHelper {
                 MediaStore.Audio.Media.IS_MUSIC,
                 MediaStore.Audio.Media.TRACK,
                 MediaStore.Audio.Media.DATA,
+                MediaStore.Audio.Media.ALBUM_ID,
             )
             val songs = mutableListOf<Song>()
 
@@ -282,6 +294,8 @@ interface DbHelper {
                 val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
                 val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
                 val trackColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK)
+                val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+
                 while (cursor.moveToNext()) {
                     songs.add(
                         Song(
@@ -290,7 +304,8 @@ interface DbHelper {
                             index = cursor.getString(trackColumn) ?: "",
                             album = cursor.getString(albumColumn),
                             artist = cursor.getString(artistColumn),
-                            path = cursor.getString(dataColumn)
+                            path = cursor.getString(dataColumn),
+                            albumId = Album.Id(cursor.getLong(albumIdColumn))
                         )
                     )
                 }
