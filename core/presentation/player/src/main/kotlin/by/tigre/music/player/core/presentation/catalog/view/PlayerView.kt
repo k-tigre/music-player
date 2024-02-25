@@ -1,7 +1,8 @@
 package by.tigre.music.player.core.presentation.catalog.view
 
+import android.content.ContentUris
+import android.provider.MediaStore
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -40,7 +41,9 @@ import by.tigre.music.player.tools.platform.compose.AppTheme
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.view.EmptyScreen
 import by.tigre.music.playerplayer.R
+import coil.compose.AsyncImage
 import by.tigre.music.playercompose.R as CoreR
+
 
 class PlayerView(
     private val component: PlayerComponent,
@@ -78,35 +81,36 @@ class PlayerView(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
         ) {
-            Image(
+            val contentUri = ContentUris.withAppendedId(
+                MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+                song.albumId.value
+            )
+            AsyncImage(
+                model = contentUri, contentDescription = "",
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f),
-                painter = painterResource(id = R.drawable.ic_player_no_cover),
-                contentDescription = "cover"
+                placeholder = painterResource(id = R.drawable.ic_player_no_cover),
+                fallback = painterResource(id = R.drawable.ic_player_no_cover)
             )
 
             Spacer(modifier = Modifier.weight(1f))
 
             Column(
                 Modifier
-                    .padding(horizontal = 14.dp)
                     .fillMaxWidth()
                     .animateContentSize()
             ) {
                 Text(
-//                    modifier = Modifier.padding(horizontal = 4.dp).animateContentSize(),
                     text = song.name,
                     style = MaterialTheme.typography.headlineMedium
                 )
 
                 Text(
-//                    modifier = Modifier.padding(14.dp).animateContentSize(),
                     text = "${song.artist}/${song.album}",
                     style = MaterialTheme.typography.titleLarge
                 )
             }
-
 
             DrawProgress(Modifier.padding(top = 16.dp))
             Spacer(modifier = Modifier.weight(0.5f))
