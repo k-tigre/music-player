@@ -10,9 +10,11 @@ import by.tigre.music.player.tools.coroutines.extensions.throttleFirst
 import by.tigre.music.player.tools.coroutines.extensions.withLatestFrom
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -22,18 +24,20 @@ interface BasePlayerComponent {
     val position: StateFlow<Position>
     val fraction: StateFlow<Float>
     val state: StateFlow<State>
+    val isNormal: StateFlow<Boolean>
 
     fun pause()
     fun play()
     fun next()
     fun prev()
+    fun switchMode(isNormal: Boolean)
     fun seekTo(fraction: Float)
 
     enum class State {
         Playing, Paused
     }
 
-    data class Position(val current: String, val left: String)
+    data class Position(val current: String, val left: String, val total: String)
 
 }
 
@@ -46,8 +50,10 @@ internal class BasePlayerComponentImpl(
     private val seekAction = MutableSharedFlow<Float>(extraBufferCapacity = 1)
     override val currentSong: StateFlow<Song?> = playbackController.currentItem
     override val state = MutableStateFlow(State.Paused)
-    override val position = MutableStateFlow(Position("", ""))
+    override val position = MutableStateFlow(Position("", "", ""))
     override val fraction = MutableStateFlow(0f)
+    override val isNormal: StateFlow<Boolean> = playbackController.orderMode
+        .stateIn(this, started = SharingStarted.WhileSubscribed(), initialValue = true)
 
     init {
         launch {
@@ -72,12 +78,14 @@ internal class BasePlayerComponentImpl(
                     if (it.duration > 0) {
                         Position(
                             current = formatTime(it.position),
-                            left = formatTime(-(it.duration - it.position))
+                            left = formatTime(-(it.duration - it.position)),
+                            total = formatTime(it.duration)
                         )
                     } else {
                         Position(
                             current = formatTime(0),
-                            left = formatTime(0)
+                            left = formatTime(0),
+                            total = formatTime(0),
                         )
                     }
                 }
@@ -114,6 +122,10 @@ internal class BasePlayerComponentImpl(
 
     override fun prev() {
         playbackController.playPrev()
+    }
+
+    override fun switchMode(isNormal: Boolean) {
+        playbackController.setOrderMode(isNormal)
     }
 
     private companion object {

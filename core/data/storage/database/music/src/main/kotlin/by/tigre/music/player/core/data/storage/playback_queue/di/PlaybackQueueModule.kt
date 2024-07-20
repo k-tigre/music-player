@@ -8,6 +8,7 @@ import by.tigre.music.player.core.data.storage.music.DatabaseMusic
 import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
 import by.tigre.music.player.core.data.storage.playback_queue.impl.PlaybackQueueStorageImpl
 import by.tigre.music.player.core.data.storage.playback_queue.impl.QueueStateAdapter
+import by.tigre.music.player.core.data.storage.preferences.di.PreferencesModule
 import by.tigre.music.player.tools.coroutines.CoroutineModule
 import music.Queue
 
@@ -16,7 +17,8 @@ interface PlaybackQueueModule {
 
     class Impl(
         context: Context,
-        coroutineModule: CoroutineModule
+        coroutineModule: CoroutineModule,
+        preferencesModule: PreferencesModule
     ) : PlaybackQueueModule {
         private val database: DatabaseMusic by lazy {
             DatabaseMusic(
@@ -26,7 +28,7 @@ interface PlaybackQueueModule {
                     name = "music.db",
                     callback = object : AndroidSqliteDriver.Callback(DatabaseMusic.Schema.synchronous()) {
                         override fun onOpen(db: SupportSQLiteDatabase) {
-                            db.execSQL("PRAGMA foreign_keys=ON;");
+                            db.execSQL("PRAGMA foreign_keys=ON;")
                         }
                     }),
                 QueueAdapter = Queue.Adapter(QueueStateAdapter)
@@ -36,7 +38,8 @@ interface PlaybackQueueModule {
         override val playbackQueueStorage: PlaybackQueueStorage by lazy {
             PlaybackQueueStorageImpl(
                 database = database,
-                scope = coroutineModule.scope
+                scope = coroutineModule.scope,
+                preferences = preferencesModule.preferences
             )
         }
 
