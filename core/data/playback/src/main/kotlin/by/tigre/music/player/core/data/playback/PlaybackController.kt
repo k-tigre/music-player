@@ -11,6 +11,7 @@ interface PlaybackController {
     val player: PlaybackPlayer
     val currentItem: StateFlow<Song?>
     val currentQueue: Flow<List<SongInQueueItem>>
+    val orderMode: Flow<Boolean>
 
     fun playNext()
     fun playPrev()
@@ -24,4 +25,5 @@ interface PlaybackController {
     fun addSongToPlay(id: Song.Id)
     fun playArtist(id: Artist.Id)
     fun addArtistToPlay(id: Artist.Id)
+    fun setOrderMode(isNormal: Boolean)
 }

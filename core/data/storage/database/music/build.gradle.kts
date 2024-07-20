@@ -12,6 +12,7 @@ dependencies {
     implementation(Library.SQLDelightCoroutines)
     implementation(Project.Core.Entity.Catalog)
     implementation(Project.Core.Entity.Playback)
+    implementation(Project.Core.Data.Storage.Preferences)
     implementation(Project.Tools.Entity)
     implementation(Project.Tools.Coroutines)
 }

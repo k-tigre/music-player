@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -192,6 +193,7 @@ class PlayerView(
         ) {
             val state = component.state.collectAsState()
 
+            Spacer(modifier = Modifier.weight(1f))
             IconButton(
                 modifier = Modifier.align(Alignment.CenterVertically),
                 onClick = component::prev
@@ -235,6 +237,23 @@ class PlayerView(
                     contentDescription = null,
                     painter = painterResource(id = R.drawable.baseline_skip_next_24),
                     modifier = Modifier.size(56.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            val isNormal = component.isNormal.collectAsState().value
+
+            IconButton(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                onClick = { component.switchMode(isNormal.not()) }
+            ) {
+                Icon(
+                    contentDescription = null,
+                    painter = painterResource(id = if (isNormal) R.drawable.arrow_repeat_all_svgrepo_com else R.drawable.random_svgrepo_com),
+                    modifier = Modifier
+                        .size(56.dp)
+                        .padding(4.dp)
                 )
             }
         }

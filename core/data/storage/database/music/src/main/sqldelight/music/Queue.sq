@@ -3,7 +3,8 @@ import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStora
 CREATE TABLE Queue(
 id INTEGER PRIMARY KEY AUTOINCREMENT,
 status INTEGER AS PlaybackQueueStorage.QueueItem.State NOT NULL DEFAULT 0,
-song_id INTEGER NOT NULL
+song_id INTEGER NOT NULL,
+sort_order INTEGER NOT NULL DEFAULT (RANDOM())
 );
 
 insertNew:
@@ -20,12 +21,33 @@ UPDATE Queue SET status = ? WHERE id = ?;
 updateStatusBySongId:
 UPDATE Queue SET status = ? WHERE song_id = ?;
 
+resetStatus:
+UPDATE Queue SET status = 0;
 
-selectAll:
-SELECT * FROM Queue LIMIT :limit;
+updateStatusForAll:
+UPDATE Queue SET status = ?;
+
+updateStatusBeforId:
+UPDATE Queue SET status = ? WHERE song_id <= ?;
+
+selectAllById:
+SELECT id, status, song_id FROM Queue ORDER BY id LIMIT :limit;
+
+selectAllByOrder:
+SELECT id, status, song_id FROM Queue ORDER BY sort_order LIMIT :limit;
+
+selectAllByIdLast:
+SELECT id, status, song_id FROM Queue ORDER BY id DESC LIMIT :limit;
+
+selectAllByOrderLast:
+SELECT id, status, song_id FROM Queue ORDER BY sort_order DESC LIMIT :limit;
+
 
 deleteById:
 DELETE FROM Queue WHERE id = ?;
 
 deleteAll:
 DELETE FROM Queue;
+
+shuffleOrder:
+UPDATE Queue SET sort_order = RANDOM();

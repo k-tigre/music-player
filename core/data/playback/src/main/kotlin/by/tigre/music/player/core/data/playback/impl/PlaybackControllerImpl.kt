@@ -13,18 +13,21 @@ import by.tigre.music.player.logger.Log
 import by.tigre.music.player.logger.extensions.debugLog
 import by.tigre.music.player.tools.coroutines.CoreScope
 import by.tigre.music.player.tools.coroutines.extensions.withLatestFrom
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+@OptIn(FlowPreview::class)
 internal class PlaybackControllerImpl(
     private val storage: PlaybackQueueStorage,
     private val catalog: CatalogSource,
@@ -76,6 +79,8 @@ internal class PlaybackControllerImpl(
             }
         }.stateIn(scope, SharingStarted.WhileSubscribed(), initialValue = emptyList())
 
+    override val orderMode: Flow<Boolean> = storage.orderMode.map { it == PlaybackQueueStorage.OrderMode.Normal }
+
     init {
         scope.launch {
             action
@@ -107,21 +112,17 @@ internal class PlaybackControllerImpl(
                             storage.playSongs(catalog.getSongsByArtist(action.artistId).map(Song::id))
                         }
 
+                        is Action.ChangeOrderMode -> {
+                            storage.setOrderMode(if (action.isNormal) PlaybackQueueStorage.OrderMode.Normal else PlaybackQueueStorage.OrderMode.Random)
+                        }
+
                         Action.PlayNext -> {
                             val next = queue.firstOrNull { it.state == PlaybackQueueStorage.QueueItem.State.Pending }?.id
                             if (next != null) {
                                 val current = queue.firstOrNull { it.state == PlaybackQueueStorage.QueueItem.State.Playing }?.id
                                 storage.updateSongStates(finishedId = current, playingId = next, pendingId = null)
                             } else {
-                                storage.playQueue(queue.mapIndexed { index, item ->
-                                    item.copy(
-                                        state = if (index == 0) {
-                                            PlaybackQueueStorage.QueueItem.State.Playing
-                                        } else {
-                                            PlaybackQueueStorage.QueueItem.State.Pending
-                                        }
-                                    )
-                                })
+                                storage.resetAndPlayFirst()
                             }
                         }
 
@@ -131,15 +132,7 @@ internal class PlaybackControllerImpl(
                                 val current = queue.firstOrNull { it.state == PlaybackQueueStorage.QueueItem.State.Playing }?.id ?: -1
                                 storage.updateSongStates(finishedId = null, playingId = prev, pendingId = current)
                             } else {
-                                storage.playQueue(queue.mapIndexed { index, item ->
-                                    item.copy(
-                                        state = if (index == queue.size - 1) {
-                                            PlaybackQueueStorage.QueueItem.State.Playing
-                                        } else {
-                                            PlaybackQueueStorage.QueueItem.State.Finish
-                                        }
-                                    )
-                                })
+                                storage.resetAndPlayLast()
                             }
                         }
 
@@ -171,6 +164,16 @@ internal class PlaybackControllerImpl(
         }
 
         scope.launch {
+            player.state
+                .debounce(10000)
+                .filter { it != PlaybackPlayer.State.Playing }
+                .withLatestFrom(isPlaying) { _, isPlaying -> isPlaying }
+                .filter { it }
+                .debugLog("PlaybackController", "AAAA!!!! Wrong player state")
+                .collect { isPlaying.emit(false) }
+        }
+
+        scope.launch {
             currentQueueItem
                 .collect { item ->
                     if (item != null) {
@@ -196,6 +199,10 @@ internal class PlaybackControllerImpl(
         }
     }
 
+    override fun setOrderMode(isNormal: Boolean) {
+        action.tryEmit(Action.ChangeOrderMode(isNormal))
+    }
+
     override fun playNext() {
         Log.d("PlaybackController") { "playNext" }
         action.tryEmit(Action.PlayNext)
@@ -207,12 +214,12 @@ internal class PlaybackControllerImpl(
     }
 
     override fun pause() {
-        Log.d("PlaybackController") { "pause" }
+        Log.d("PlaybackController") { "pause -- ${isPlaying.value}" }
         isPlaying.tryEmit(false)
     }
 
     override fun resume() {
-        Log.d("PlaybackController") { "resume" }
+        Log.d("PlaybackController") { "resume -- ${isPlaying.value}" }
         isPlaying.tryEmit(true)
     }
 
@@ -270,5 +277,6 @@ internal class PlaybackControllerImpl(
         data class AddSongToQueue(val songId: Song.Id) : Action
         data class PlayArtist(val artistId: Artist.Id) : Action
         data class AddArtistToQueue(val artistId: Artist.Id) : Action
+        data class ChangeOrderMode(val isNormal: Boolean) : Action
     }
 }

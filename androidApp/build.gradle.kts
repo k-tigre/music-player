@@ -117,7 +117,7 @@ dependencies {
     implementation(Project.Logger.InternalStore)
 
     // debugImplementation because LeakCanary should only run in debug builds.
-    debugImplementation(Library.Leakcanary)
+//    debugImplementation(Library.Leakcanary)
 
     debugImplementation(Project.DebugSettings)
 }

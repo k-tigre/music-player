@@ -4,6 +4,7 @@ import android.content.Context
 import by.tigre.music.player.core.data.catalog.di.CatalogModule
 import by.tigre.music.player.core.data.playback.di.PlaybackModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.PlaybackQueueModule
+import by.tigre.music.player.core.data.storage.preferences.di.PreferencesModule
 import by.tigre.music.player.core.presentation.backgound_player.di.PlayerBackgroundDependency
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
@@ -22,12 +23,10 @@ class ApplicationGraph(
 
     companion object {
         fun create(context: Context): ApplicationGraph {
-//            val preferencesDependency = PreferencesDependency.Impl(context)
-//            val permissionsDependency = PermissionsDependency.Impl(context)
+            val preferencesModule = PreferencesModule.Impl(context)
             val catalogModule = CatalogModule.Impl(context)
-
             val coroutineModule = CoroutineModule.Impl()
-            val playbackQueueModule = PlaybackQueueModule.Impl(context, coroutineModule)
+            val playbackQueueModule = PlaybackQueueModule.Impl(context, coroutineModule, preferencesModule)
             val playbackModule = PlaybackModule.Impl(context, coroutineModule, playbackQueueModule, catalogModule)
 
             return ApplicationGraph(playbackModule, catalogModule)
