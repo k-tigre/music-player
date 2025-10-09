@@ -90,7 +90,9 @@ interface DbHelper {
                 while (cursor.moveToNext()) {
                     val yearStart = cursor.getString(firstYearColumn)
                     val yearEnd = cursor.getString(lastYearColumn)
-                    val years = if (yearStart.isNotBlank() && yearEnd.isNotBlank()) "$yearStart - $yearEnd" else "$yearStart$yearEnd"
+                    val years = if (yearStart.isNullOrBlank().not() && yearEnd.isNullOrBlank()
+                            .not()
+                    ) "$yearStart - $yearEnd" else "$yearStart$yearEnd"
                     albums.add(
                         Album(
                             id = Album.Id(cursor.getLong(idColumn)),
