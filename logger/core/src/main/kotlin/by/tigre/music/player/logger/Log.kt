@@ -52,6 +52,7 @@ object Log {
     inline fun w(tag: String, message: () -> String) = log(Level.WARN, tag, message)
     inline fun w(throwable: Throwable, message: () -> String) = log(Level.WARN, throwable, message)
     inline fun w(throwable: Throwable, tag: String, message: () -> String) = log(Level.WARN, throwable, tag, message)
+    inline fun w(throwable: Throwable, tag: String, message: String) = log(Level.WARN, throwable, tag) { message }
 
     inline fun e(message: () -> String) = log(Level.ERROR, message)
     inline fun e(tag: String, message: () -> String) = log(Level.ERROR, tag, message)

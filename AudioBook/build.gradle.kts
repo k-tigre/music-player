@@ -2,11 +2,10 @@
 
 import com.github.triplet.gradle.androidpublisher.ReleaseStatus
 
-
 plugins {
     id(Plugin.Id.AndroidApplication.value)
     id(Plugin.Id.KotlinAndroid.value)
-    id(Plugin.Id.GoogleServices.value)
+//    id(Plugin.Id.GoogleServices.value)
     id(Plugin.Id.Crashlytics.value)
     id(Plugin.Id.KotlinParcelize.value)
     id(Plugin.Id.GooglePlayPublisher.value)
@@ -15,13 +14,14 @@ plugins {
 
 android {
     defaultConfig {
-        Application.MusicPlayer.also { app ->
-            applicationId = app.id
-            namespace = app.id
+        with(Application.AudioBook) {
+            applicationId = id
+            namespace = id
 
-            versionName = app.version.name
-            versionCode = app.version.code
+            versionName = version.name
+            versionCode = version.code
         }
+
         resourceConfigurations.addAll(listOf("en", "ru"))
     }
 
@@ -36,8 +36,8 @@ android {
             initWith(getAt(Environment.Debug.gradleName))
         }
 
-        val releaseStorePassword = System.getenv("MUSIC_PLAYER_RELEASE_JKS_STORE_PASSWORD")
-        val releaseKeyPassword = System.getenv("MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD")
+        val releaseStorePassword = System.getenv("AUDIO_BOOK_RELEASE_JKS_STORE_PASSWORD")
+        val releaseKeyPassword = System.getenv("AUDIO_BOOK_RELEASE_JKS_KEY_PASSWORD")
 
         if (listOf(releaseStorePassword, releaseKeyPassword).any { it.isNullOrBlank() }) {
             System.err.println("Release JKS credentials are not available")
@@ -117,9 +117,6 @@ dependencies {
     implementation(Project.Logger.Crashlytics)
     implementation(Project.Logger.Logcat)
     implementation(Project.Logger.InternalStore)
-
-    // debugImplementation because LeakCanary should only run in debug builds.
-//    debugImplementation(Library.Leakcanary)
 
     debugImplementation(Project.DebugSettings)
 }

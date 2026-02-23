@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -41,9 +40,9 @@ import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
 import by.tigre.music.player.tools.platform.compose.AppTheme
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.view.EmptyScreen
-import by.tigre.music.playerplayer.R
+import by.tigre.player.R
 import coil.compose.AsyncImage
-import by.tigre.music.playercompose.R as CoreR
+import by.tigre.compose.R as CoreR
 
 
 class PlayerView(

@@ -47,7 +47,7 @@ subprojects {
 
             composeOptions.kotlinCompilerExtensionVersion = KotlinCompilerExtensionVersion
 
-            namespace = "${Application.id}${name.replace(":", ".").replace("-", "_")}"
+            namespace = "by.tigre.${name.replace(":", ".").replace("-", "_")}"
         }
     }
 

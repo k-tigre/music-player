@@ -6,4 +6,5 @@ plugins {
 dependencies {
     implementation(Library.KotlinStd)
     implementation(Library.CoroutinesCore)
+    implementation(Project.Logger.Core)
 }
