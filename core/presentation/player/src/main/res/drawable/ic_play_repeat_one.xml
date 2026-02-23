@@ -1,0 +1,26 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:height="24dp"
+    android:viewportHeight="24"
+    android:viewportWidth="24"
+    android:width="24dp">
+
+    <!--
+        Repeat One: same loop as repeat_all + "1" digit in the center
+    -->
+
+    <!-- Loop arrows -->
+    <path
+        android:fillColor="#212121"
+        android:pathData="M7,7h10v3l4,-4l-4,-4v3H5v6h2V7z
+                          M17,17H7v-3l-4,4l4,4v-3h12v-6h-2v4z"
+        android:strokeColor="#00000000"
+        android:strokeWidth="1" />
+
+    <!-- "1" digit centered at (12, 12) -->
+    <path
+        android:fillColor="#212121"
+        android:pathData="M13,15V9h-1l-2,1v1h1.5v4H13z"
+        android:strokeColor="#00000000"
+        android:strokeWidth="1" />
+
+</vector>
