@@ -21,7 +21,7 @@ jobs:
           MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD: ${{ secrets.MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD }}
           ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: artifacts
           path: |
