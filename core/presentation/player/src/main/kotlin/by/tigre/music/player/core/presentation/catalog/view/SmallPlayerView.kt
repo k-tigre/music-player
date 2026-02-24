@@ -148,6 +148,28 @@ class SmallPlayerView(
         ) {
             val isNormal = component.isNormal.collectAsState().value
             val state = component.state.collectAsState()
+            val position = component.position.collectAsState().value
+
+            Text(
+                modifier = Modifier.padding(horizontal = 4.dp),
+                text = "${position.current}/${position.total}",
+            )
+
+            Spacer(Modifier.weight(1f))
+
+            IconButton(
+                onClick = { component.switchMode(isNormal.not()) }
+            ) {
+                Icon(
+                    contentDescription = null,
+                    painter = painterResource(id = if (isNormal) R.drawable.ic_play_repeat_all else R.drawable.ic_play_shuffle),
+                    modifier = Modifier
+                        .size(56.dp)
+                        .padding(4.dp)
+                )
+            }
+
+            Spacer(Modifier.weight(1f))
 
             IconButton(
                 onClick = component::prev
@@ -174,25 +196,7 @@ class SmallPlayerView(
             ) {
                 Icon(contentDescription = null, painter = painterResource(id = R.drawable.baseline_skip_next_24))
             }
-            Spacer(Modifier.weight(1f))
-            IconButton(
-                onClick = { component.switchMode(isNormal.not()) }
-            ) {
-                Icon(
-                    contentDescription = null,
-                    painter = painterResource(id = if (isNormal) R.drawable.ic_play_repeat_all else R.drawable.ic_play_shuffle),
-                    modifier = Modifier
-                        .size(56.dp)
-                        .padding(4.dp)
-                )
-            }
 
-            Spacer(Modifier.weight(1f))
-            val position = component.position.collectAsState().value
-            Text(
-                modifier = Modifier.padding(horizontal = 4.dp),
-                text = "${position.current}/${position.total}",
-            )
         }
     }
 }
@@ -208,12 +212,12 @@ internal object PreviewStub {
         albumId = Album.Id(1)
     )
 
-    private fun baseComponent(song: Song?) = object : BasePlayerComponent {
+    private fun baseComponent(song: Song?, isNormalMode: Boolean) = object : BasePlayerComponent {
         override val currentSong = MutableStateFlow(song)
         override val fraction = MutableStateFlow(0.5f)
         override val position = MutableStateFlow(BasePlayerComponent.Position("10:10", "-10:19", "10:19"))
         override val state = MutableStateFlow(BasePlayerComponent.State.Paused)
-        override val isNormal: StateFlow<Boolean> = MutableStateFlow(false)
+        override val isNormal: StateFlow<Boolean> = MutableStateFlow(isNormalMode)
 
         override fun pause() {
             state.tryEmit(BasePlayerComponent.State.Paused)
@@ -234,13 +238,13 @@ internal object PreviewStub {
         }
     }
 
-    fun smallPlayerComponent(song: Song? = null): SmallPlayerComponent =
-        object : SmallPlayerComponent, BasePlayerComponent by baseComponent(song) {
+    fun smallPlayerComponent(song: Song? = null, isNormalMode: Boolean = false): SmallPlayerComponent =
+        object : SmallPlayerComponent, BasePlayerComponent by baseComponent(song, isNormalMode) {
             override fun showPlayerView() = Unit
         }
 
-    fun playerComponent(song: Song? = null): PlayerComponent =
-        object : PlayerComponent, BasePlayerComponent by baseComponent(song) {
+    fun playerComponent(song: Song? = null, isNormalMode: Boolean = false): PlayerComponent =
+        object : PlayerComponent, BasePlayerComponent by baseComponent(song, isNormalMode) {
             override fun showQueue() = Unit
         }
 }
@@ -249,7 +253,12 @@ internal object PreviewStub {
 @Composable
 private fun Preview() {
     AppTheme {
-        SmallPlayerView(PreviewStub.smallPlayerComponent(song = PreviewStub.song)).Draw(modifier = Modifier.padding(top = 36.dp))
+        SmallPlayerView(
+            PreviewStub.smallPlayerComponent(
+                song = PreviewStub.song,
+                isNormalMode = false
+            )
+        ).Draw(modifier = Modifier.padding(top = 36.dp))
     }
 }
 
@@ -257,6 +266,11 @@ private fun Preview() {
 @Composable
 private fun PreviewDark() {
     AppTheme {
-        SmallPlayerView(PreviewStub.smallPlayerComponent(song = PreviewStub.song)).Draw(modifier = Modifier.padding(top = 36.dp))
+        SmallPlayerView(
+            PreviewStub.smallPlayerComponent(
+                song = PreviewStub.song,
+                isNormalMode = true
+            )
+        ).Draw(modifier = Modifier.padding(top = 36.dp))
     }
 }
