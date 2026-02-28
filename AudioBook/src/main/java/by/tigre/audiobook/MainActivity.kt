@@ -15,12 +15,8 @@ import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalo
 import by.tigre.audiobook.presentation.background.BackgroundService
 import by.tigre.audiobook.presentation.root.component.Root
 import by.tigre.audiobook.presentation.root.view.RootView
-import by.tigre.music.player.core.presentation.catalog.di.CatalogComponentProvider
-import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.music.player.core.presentation.catalog.di.PlayerComponentProvider
 import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
-import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueComponentProvider
-import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
 import by.tigre.music.player.presentation.base.BaseComponentContextImpl
 import by.tigre.music.player.tools.platform.compose.AppTheme
 import com.arkivanov.decompose.defaultComponentContext
@@ -35,9 +31,7 @@ class MainActivity : AppCompatActivity() {
         val graph = (application as App).graph
         val root = Root.Impl(
             context = BaseComponentContextImpl(defaultComponentContext()),
-            catalogComponentProvider = CatalogComponentProvider.Impl(graph),
             playerComponentProvider = PlayerComponentProvider.Impl(graph),
-            currentQueueComponent = CurrentQueueComponentProvider.Impl(graph),
             audiobookCatalogComponentProvider = AudiobookCatalogComponentProvider.Impl(graph),
         )
 
@@ -46,9 +40,7 @@ class MainActivity : AppCompatActivity() {
                 Surface(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
                     RootView(
                         root,
-                        catalogViewProvider = CatalogViewProvider.Impl(),
                         playerViewProvider = PlayerViewProvider.Impl(),
-                        currentQueueViewProvider = CurrentQueueViewProvider.Impl(),
                         audiobookCatalogViewProvider = AudiobookCatalogViewProvider.Impl()
                     ).Draw(Modifier)
                 }

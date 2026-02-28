@@ -114,7 +114,6 @@ dependencies {
     implementation(Project.Core.Data.Playback)
     implementation(Project.Core.Data.Catalog)
     implementation(Project.Core.Entity.Catalog)
-    implementation(Library.AccompanistPermission)
     implementation(FirebaseLibrary.FirebaseAnalytics, FirebaseLibrary.FirebaseCrashLytics)
 
     implementation(Project.Logger.Core)
