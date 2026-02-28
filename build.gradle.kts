@@ -34,8 +34,8 @@ subprojects {
             }
 
             compileOptions {
-                sourceCompatibility = JavaVersion.VERSION_17
-                targetCompatibility = JavaVersion.VERSION_17
+                sourceCompatibility = JavaVersion.VERSION_21
+                targetCompatibility = JavaVersion.VERSION_21
             }
 
             testOptions {
@@ -52,19 +52,17 @@ subprojects {
 
     plugins.matching { it is JavaPlugin }.whenPluginAdded {
         configure<JavaPluginExtension> {
-            sourceCompatibility = JavaVersion.VERSION_17
-            targetCompatibility = JavaVersion.VERSION_17
+            sourceCompatibility = JavaVersion.VERSION_21
+            targetCompatibility = JavaVersion.VERSION_21
         }
     }
 
-//    tasks.withType<KotlinCompile> {
-//        kotlinOptions {
-//            allWarningsAsErrors = false
-//            jvmTarget = "17"
-//
-//
-//        }
-//    }
+    tasks.withType<KotlinCompile> {
+        kotlinOptions {
+            allWarningsAsErrors = false
+            jvmTarget = "21"
+        }
+    }
 
     apply {
         plugin(Plugin.Id.Versions.value)
@@ -80,14 +78,14 @@ subprojects {
 
         outputDir = File(rootDir, "build/${project.group.toString().replace(".", "/")}/${project.name}").absolutePath
 
-        resolutionStrategy {
-            componentSelection {
-                all {
-                    if (isNonStable(candidate.version) && !isNonStable(currentVersion)) {
-                        reject("Release candidate")
-                    }
-                }
-            }
-        }
+//        resolutionStrategy {
+//            componentSelection {
+//                all {
+//                    if (isNonStable(candidate.version) && !isNonStable(currentVersion)) {
+//                        reject("Release candidate")
+//                    }
+//                }
+//            }
+//        }
     }
 }
