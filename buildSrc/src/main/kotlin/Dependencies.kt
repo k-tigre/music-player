@@ -35,14 +35,14 @@ enum class Library(group: String, artifact: String, version: Version) {
     ComposeMaterialWindowSize("androidx.compose.material3", "material3-window-size-class", Version.ComposeMaterial3),
     ActivityCompose("androidx.activity", "activity-compose", Version.ActivityCompose),
 
-    CoilCompose("io.coil-kt", "coil-compose", Version.CoilCompose),
+    CoilCompose("io.coil-kt.coil3", "coil-compose", Version.CoilCompose),
 
     DebugComposeUiToolingPreview("androidx.compose.ui", "ui-tooling-preview", Version.Compose),
 
     AccompanistPermission("com.google.accompanist", "accompanist-permissions", Version.Accompanist),
 
     Decompose("com.arkivanov.decompose", "decompose", Version.Decompose),
-    DecomposeExtensions("com.arkivanov.decompose", "extensions-compose-jetpack", Version.Decompose),
+    DecomposeExtensions("com.arkivanov.decompose", "extensions-compose", Version.Decompose),
 
     // TODO compose preview not working, check issue: https://issuetracker.google.com/issues/227767363
     DebugComposeCustomView("androidx.customview", "customview", Version.DebugComposeCustomView),
@@ -56,24 +56,24 @@ enum class Library(group: String, artifact: String, version: Version) {
     val notation = "$group:$artifact:${version.value}"
 
     internal enum class Version(val value: String) {
-        ActivityCompose("1.9.0"),
+        ActivityCompose("1.10.0"),
         AndroidXAppcompat("1.7.0"),
-        AndroidXCore("1.13.1"),
-        AndroidXAnnotation("1.8.0"),
-        AndroidXSplash("1.0.0"),
-        AndroidXDocumentFile("1.0.1"),
-        Kotlin("1.9.24"),
-        Coroutines("1.8.1"),
-        SQLDelight("2.0.2"),
-        Media3("1.3.1"),
-        Leakcanary("2.13"),
-        Compose("1.6.8"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
-        ComposeFoundation("1.6.8"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
-        ComposeMaterial("1.6.1"),
-        ComposeMaterial3("1.2.1"),
-        Accompanist("0.34.0") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
-        CoilCompose("2.7.0"),
-        Decompose("2.2.3"),
+        AndroidXCore("1.17.0"),
+        AndroidXAnnotation("1.9.1"),
+        AndroidXSplash("1.2.0"),
+        AndroidXDocumentFile("1.1.0"),
+        Kotlin("2.1.21"),
+        Coroutines("1.10.2"),
+        SQLDelight("2.2.1"),
+        Media3("1.5.0"),
+        Leakcanary("2.14"),
+        Compose("1.8.0"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
+        ComposeFoundation("1.8.0"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
+        ComposeMaterial("1.8.0"),
+        ComposeMaterial3("1.4.0"),
+        Accompanist("0.37.3") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
+        CoilCompose("3.1.0"),
+        Decompose("3.4.0"),
 
         DebugComposeCustomView("1.2.0-alpha02"),
         DebugComposeCustomViewPoolingcontainer("1.0.0"),
@@ -121,20 +121,21 @@ enum class Toolkit(
 }
 
 enum class FirebaseLibrary(group: String, artifact: String) {
-    FirebaseCrashLytics("com.google.firebase", "firebase-crashlytics-ktx"),
-    FirebaseAnalytics("com.google.firebase", "firebase-analytics-ktx")
+    FirebaseCrashLytics("com.google.firebase", "firebase-crashlytics"),
+    FirebaseAnalytics("com.google.firebase", "firebase-analytics")
     ;
 
     val notation = "$group:$artifact"
 
     companion object {
-        val bom = "com.google.firebase:firebase-bom:32.7.2"
+        val bom = "com.google.firebase:firebase-bom:34.0.0"
     }
 }
 
 enum class Plugin(group: String, artifact: String, version: Version) {
     Android("com.android.tools.build", "gradle", Version.Android),
     Kotlin("org.jetbrains.kotlin", "kotlin-gradle-plugin", Version.Kotlin),
+    KotlinCompose("org.jetbrains.kotlin", "compose-compiler-gradle-plugin", Version.Kotlin),
     Google("com.google.gms", "google-services", Version.Google),
     Crashlytics("com.google.firebase", "firebase-crashlytics-gradle", Version.Crashlytics),
     Versions("com.github.ben-manes", "gradle-versions-plugin", Version.Versions),
@@ -149,6 +150,7 @@ enum class Plugin(group: String, artifact: String, version: Version) {
         AndroidApplication("com.android.application"),
         AndroidLibrary("com.android.library"),
         KotlinAndroid("org.jetbrains.kotlin.android"),
+        KotlinCompose("org.jetbrains.kotlin.plugin.compose"),
         KotlinParcelize("kotlin-parcelize"),
         KotlinJvm("org.jetbrains.kotlin.jvm"),
         JavaLibrary("java-library"),
@@ -161,21 +163,24 @@ enum class Plugin(group: String, artifact: String, version: Version) {
     }
 
     private enum class Version(val value: String) {
-        Android("8.3.2"),
+        Android("8.7.3"),
         Kotlin(Library.Version.Kotlin.value),
-        Google("4.3.13"),
-        Crashlytics("2.9.1"),
-        Versions("0.51.0"),
+        Google("4.4.2"),
+        Crashlytics("3.0.6"),
+        Versions("0.52.0"),
         SQLDelight(Library.Version.SQLDelight.value),
-        GooglePlayPublisher("3.8.4"),
-        FirebasePublisher("4.0.0"),
+        GooglePlayPublisher("3.12.1"),
+        FirebasePublisher("5.0.0"),
     }
 }
 
-const val KotlinCompilerExtensionVersion = "1.5.14" /*must be synchronized with kotlin and agp version*/
+/* With Kotlin 2.0+, composeOptions.kotlinCompilerExtensionVersion is no longer used.
+   The Compose compiler is now bundled with Kotlin. Apply org.jetbrains.kotlin.plugin.compose
+   plugin to each module using Compose instead. */
+const val KotlinCompilerExtensionVersion = "2.1.0"
 
 enum class Tools(val version: String) {
-    Build("34.0.0"),
+    Build("35.0.0"),
 }
 
 sealed class Project(id: String) {

@@ -11,6 +11,7 @@ buildscript {
     dependencies {
         plugin(Plugin.Android)
         plugin(Plugin.Kotlin)
+        plugin(Plugin.KotlinCompose)
         plugin(Plugin.Google)
         plugin(Plugin.Crashlytics)
         plugin(Plugin.Versions)
@@ -45,8 +46,6 @@ subprojects {
             buildFeatures.viewBinding = false
             buildFeatures.compose = false
 
-            composeOptions.kotlinCompilerExtensionVersion = KotlinCompilerExtensionVersion
-
             namespace = "by.tigre.${name.replace(":", ".").replace("-", "_")}"
         }
     }
@@ -58,14 +57,14 @@ subprojects {
         }
     }
 
-    tasks.withType<KotlinCompile> {
-        kotlinOptions {
-            allWarningsAsErrors = false
-            jvmTarget = "17"
-
-
-        }
-    }
+//    tasks.withType<KotlinCompile> {
+//        kotlinOptions {
+//            allWarningsAsErrors = false
+//            jvmTarget = "17"
+//
+//
+//        }
+//    }
 
     apply {
         plugin(Plugin.Id.Versions.value)
