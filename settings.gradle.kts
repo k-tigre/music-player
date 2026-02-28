@@ -13,14 +13,18 @@ include(":AudioBook")
 
 include(":core:data:playback")
 include(":core:data:catalog")
+include(":core:data:audiobook")
 include(":core:data:storage:preferences")
 include(":core:data:storage:database:music")
+include(":core:data:storage:database:audiobook")
 include(":core:platform:permission")
 
 include(":core:entity:catalog")
 include(":core:entity:playback")
+include(":core:entity:audiobook")
 
 include(":core:presentation:catalog")
+include(":core:presentation:audiobook_catalog")
 include(":core:presentation:playlist:queue")
 include(":core:presentation:player")
 include(":core:presentation:background_player")

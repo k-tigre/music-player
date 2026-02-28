@@ -1,0 +1,30 @@
+CREATE TABLE Book(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    folder_uri TEXT NOT NULL,
+    folder_source_id INTEGER NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+    FOREIGN KEY (folder_source_id) REFERENCES FolderSource(id) ON DELETE CASCADE
+);
+
+insertBook:
+INSERT INTO Book(title, folder_uri, folder_source_id) VALUES(?, ?, ?);
+
+selectAll:
+SELECT b.id, b.title, b.folder_uri,
+    (SELECT COUNT(*) FROM Chapter c WHERE c.book_id = b.id) AS chapter_count
+FROM Book b
+ORDER BY b.title;
+
+selectByFolderSource:
+SELECT b.id, b.title, b.folder_uri,
+    (SELECT COUNT(*) FROM Chapter c WHERE c.book_id = b.id) AS chapter_count
+FROM Book b
+WHERE b.folder_source_id = ?
+ORDER BY b.title;
+
+deleteByFolderSource:
+DELETE FROM Book WHERE folder_source_id = ?;
+
+lastInsertId:
+SELECT last_insert_rowid();

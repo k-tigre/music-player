@@ -10,6 +10,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogComponentProvider
+import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogViewProvider
 import by.tigre.audiobook.presentation.background.BackgroundService
 import by.tigre.audiobook.presentation.root.component.Root
 import by.tigre.audiobook.presentation.root.view.RootView
@@ -36,6 +38,7 @@ class MainActivity : AppCompatActivity() {
             catalogComponentProvider = CatalogComponentProvider.Impl(graph),
             playerComponentProvider = PlayerComponentProvider.Impl(graph),
             currentQueueComponent = CurrentQueueComponentProvider.Impl(graph),
+            audiobookCatalogComponentProvider = AudiobookCatalogComponentProvider.Impl(graph),
         )
 
         setContent {
@@ -45,7 +48,8 @@ class MainActivity : AppCompatActivity() {
                         root,
                         catalogViewProvider = CatalogViewProvider.Impl(),
                         playerViewProvider = PlayerViewProvider.Impl(),
-                        currentQueueViewProvider = CurrentQueueViewProvider.Impl()
+                        currentQueueViewProvider = CurrentQueueViewProvider.Impl(),
+                        audiobookCatalogViewProvider = AudiobookCatalogViewProvider.Impl()
                     ).Draw(Modifier)
                 }
             }
