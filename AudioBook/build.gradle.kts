@@ -23,7 +23,7 @@ android {
             versionCode = version.code
         }
 
-        resourceConfigurations.addAll(listOf("en", "ru"))
+        androidResources.localeFilters.addAll(listOf("en", "ru"))
     }
 
     signingConfigs {
