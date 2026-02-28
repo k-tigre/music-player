@@ -14,7 +14,7 @@ interface AudiobookCatalogStorage {
     suspend fun removeFolderSource(id: FolderSource.Id)
     suspend fun getFolderSourceByUri(uri: String): FolderSource?
 
-    suspend fun insertBook(title: String, folderUri: String, folderSourceId: FolderSource.Id): Book.Id
+    suspend fun insertBook(title: String, folderUri: String, folderSourceId: FolderSource.Id, subPath: String): Book.Id
     suspend fun insertChapter(bookId: Book.Id, title: String, fileUri: String, duration: Long, sortOrder: Int)
 
     suspend fun getBooks(): List<Book>
