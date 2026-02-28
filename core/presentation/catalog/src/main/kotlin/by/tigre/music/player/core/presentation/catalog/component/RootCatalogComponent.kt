@@ -11,8 +11,7 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.parcelable.Parcelable
-import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 
 interface RootCatalogComponent {
 
@@ -97,15 +96,16 @@ interface RootCatalogComponent {
 
         override val childStack: Value<ChildStack<*, CatalogChild>> = stack
 
-        private sealed interface CatalogConfig : Parcelable {
+        @Serializable
+        private sealed interface CatalogConfig {
 
-            @Parcelize
+            @Serializable
             data object ArtistsList : CatalogConfig
 
-            @Parcelize
+            @Serializable
             class AlbumsList(val artist: Artist) : CatalogConfig
 
-            @Parcelize
+            @Serializable
             class SongsList(val album: Album, val artist: Artist) : CatalogConfig
         }
     }

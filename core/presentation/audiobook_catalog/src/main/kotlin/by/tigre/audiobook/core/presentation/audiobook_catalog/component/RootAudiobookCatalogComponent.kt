@@ -9,8 +9,7 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.bringToFront
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.parcelable.Parcelable
-import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 
 interface RootAudiobookCatalogComponent {
 
@@ -62,11 +61,12 @@ interface RootAudiobookCatalogComponent {
 
         override val childStack: Value<ChildStack<*, AudiobookCatalogChild>> = stack
 
-        private sealed interface Config : Parcelable {
-            @Parcelize
+        @Serializable
+        private sealed interface Config {
+            @Serializable
             data object FolderSelection : Config
 
-            @Parcelize
+            @Serializable
             data object BookList : Config
         }
     }

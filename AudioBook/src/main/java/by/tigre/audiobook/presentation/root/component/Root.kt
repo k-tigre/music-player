@@ -14,10 +14,9 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.parcelable.Parcelable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 
 interface Root {
 
@@ -85,11 +84,12 @@ interface Root {
                 }
             }
 
-        private sealed interface MainConfig : Parcelable {
-            @Parcelize
+        @Serializable
+        private sealed interface MainConfig {
+            @Serializable
             data object Main : MainConfig
 
-            @Parcelize
+            @Serializable
             data object Player : MainConfig
         }
     }

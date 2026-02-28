@@ -8,7 +8,6 @@ plugins {
     id(Plugin.Id.KotlinAndroid.value)
     id(Plugin.Id.GoogleServices.value)
     id(Plugin.Id.Crashlytics.value)
-    id(Plugin.Id.KotlinParcelize.value)
     id(Plugin.Id.GooglePlayPublisher.value)
     id(Plugin.Id.FirebasePublisher.value)
     id(Plugin.Id.KotlinCompose.value)
