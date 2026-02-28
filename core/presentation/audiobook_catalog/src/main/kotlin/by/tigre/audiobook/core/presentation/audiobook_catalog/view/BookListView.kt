@@ -3,6 +3,7 @@ package by.tigre.audiobook.core.presentation.audiobook_catalog.view
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -96,8 +97,8 @@ class BookListView(
 
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    private fun DrawContent(books: List<Book>) {
-        if (books.isEmpty()) {
+    private fun DrawContent(state: BookListComponent.BookListUiState) {
+        if (state.rootBooks.isEmpty() && state.grouped.isEmpty()) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -117,22 +118,17 @@ class BookListView(
                 )
             }
         } else {
-            val rootBooks = books.filter { it.subPath.isEmpty() }
-            val grouped = books
-                .filter { it.subPath.isNotEmpty() }
-                .groupBy { it.subPath }
-                .entries
-                .sortedBy { it.key }
-
             LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
-                items(rootBooks) { book -> BookCard(book) }
+                items(state.rootBooks) { book -> BookCard(book) }
 
-                grouped.forEach { (path, booksInGroup) ->
+                state.grouped.forEach { (path, booksInGroup) ->
                     stickyHeader(key = "header_$path") {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .background(color = MaterialTheme.colorScheme.background)
                                 .padding(top = 12.dp, bottom = 4.dp)
+                                .clickable { component.toggleGroup(path) }
                         ) {
                             Text(
                                 text = path.replace("/", " / "),
@@ -143,7 +139,9 @@ class BookListView(
                             HorizontalDivider()
                         }
                     }
-                    items(booksInGroup) { book -> BookCard(book) }
+                    if (state.expanded.contains(path)) {
+                        items(booksInGroup) { book -> BookCard(book) }
+                    }
                 }
             }
         }
