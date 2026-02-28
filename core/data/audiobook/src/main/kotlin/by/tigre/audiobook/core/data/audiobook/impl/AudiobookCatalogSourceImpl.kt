@@ -38,42 +38,36 @@ class AudiobookCatalogSourceImpl(
     private suspend fun scanFolder(folderSourceId: FolderSource.Id, uri: String) = withContext(Dispatchers.IO) {
         try {
             storage.deleteBooksByFolderSource(folderSourceId)
-
             val treeUri = Uri.parse(uri)
             val rootDoc = DocumentFile.fromTreeUri(context, treeUri) ?: return@withContext
-
-            val children = rootDoc.listFiles()
-            val directories = children.filter { it.isDirectory }
-            val rootAudioFiles = children.filter { it.isFile && isAudioFile(it) }
-
-            if (directories.isNotEmpty()) {
-                for (dir in directories) {
-                    val audioFiles = dir.listFiles().filter { it.isFile && isAudioFile(it) }
-                    if (audioFiles.isNotEmpty()) {
-                        val bookTitle = dir.name ?: "Unknown"
-                        val bookId = storage.insertBook(
-                            title = bookTitle,
-                            folderUri = dir.uri.toString(),
-                            folderSourceId = folderSourceId
-                        )
-                        insertChapters(bookId, audioFiles)
-                    }
-                }
-            }
-
-            if (rootAudioFiles.isNotEmpty() && directories.none { dir ->
-                    dir.listFiles().any { it.isFile && isAudioFile(it) }
-                }) {
-                val bookTitle = rootDoc.name ?: "Unknown"
-                val bookId = storage.insertBook(
-                    title = bookTitle,
-                    folderUri = rootDoc.uri.toString(),
-                    folderSourceId = folderSourceId
-                )
-                insertChapters(bookId, rootAudioFiles)
-            }
+            scanDirectory(folderSourceId, rootDoc, parentPath = "")
         } catch (e: Exception) {
             Log.e(e) { "Error scanning folder: $uri" }
+        }
+    }
+
+    private suspend fun scanDirectory(
+        folderSourceId: FolderSource.Id,
+        dir: DocumentFile,
+        parentPath: String
+    ) {
+        val children = dir.listFiles()
+        val audioFiles = children.filter { it.isFile && isAudioFile(it) }
+        val subdirs = children.filter { it.isDirectory }
+
+        if (audioFiles.isNotEmpty()) {
+            val bookId = storage.insertBook(
+                title = dir.name ?: "Unknown",
+                folderUri = dir.uri.toString(),
+                folderSourceId = folderSourceId,
+                subPath = parentPath
+            )
+            insertChapters(bookId, audioFiles)
+        }
+
+        val currentPath = if (parentPath.isEmpty()) (dir.name ?: "") else "$parentPath/${dir.name ?: ""}"
+        for (subdir in subdirs) {
+            scanDirectory(folderSourceId, subdir, currentPath)
         }
     }
 

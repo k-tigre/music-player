@@ -9,6 +9,7 @@ data class Book(
     val title: String,
     val folderUri: String,
     val chapterCount: Int,
+    val subPath: String,
 ) : Parcelable {
 
     @JvmInline

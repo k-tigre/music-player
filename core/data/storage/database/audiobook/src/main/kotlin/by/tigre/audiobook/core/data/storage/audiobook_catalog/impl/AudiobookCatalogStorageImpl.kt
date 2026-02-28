@@ -17,12 +17,13 @@ class AudiobookCatalogStorageImpl(
     scope: CoroutineScope
 ) : AudiobookCatalogStorage {
 
-    override val books: Flow<List<Book>> = database.bookQueries.selectAll { id, title, folderUri, chapterCount ->
+    override val books: Flow<List<Book>> = database.bookQueries.selectAll { id, title, folderUri, chapterCount, subPath ->
         Book(
             id = Book.Id(id),
             title = title,
             folderUri = folderUri,
-            chapterCount = chapterCount.toInt()
+            chapterCount = chapterCount.toInt(),
+            subPath = subPath
         )
     }.asFlow().mapToList(scope.coroutineContext)
         .shareIn(scope, SharingStarted.WhileSubscribed(), replay = 1)
@@ -62,8 +63,8 @@ class AudiobookCatalogStorageImpl(
         }.executeAsOneOrNull()
     }
 
-    override suspend fun insertBook(title: String, folderUri: String, folderSourceId: FolderSource.Id): Book.Id {
-        database.bookQueries.insertBook(title, folderUri, folderSourceId.value)
+    override suspend fun insertBook(title: String, folderUri: String, folderSourceId: FolderSource.Id, subPath: String): Book.Id {
+        database.bookQueries.insertBook(title, folderUri, folderSourceId.value, subPath)
         val id = database.bookQueries.lastInsertId().executeAsOne()
         return Book.Id(id)
     }
@@ -79,12 +80,13 @@ class AudiobookCatalogStorageImpl(
     }
 
     override suspend fun getBooks(): List<Book> {
-        return database.bookQueries.selectAll { id, title, folderUri, chapterCount ->
+        return database.bookQueries.selectAll { id, title, folderUri, chapterCount, subPath ->
             Book(
                 id = Book.Id(id),
                 title = title,
                 folderUri = folderUri,
-                chapterCount = chapterCount.toInt()
+                chapterCount = chapterCount.toInt(),
+                subPath = subPath
             )
         }.executeAsList()
     }

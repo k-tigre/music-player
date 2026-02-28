@@ -2,6 +2,7 @@ package by.tigre.audiobook.core.presentation.audiobook_catalog.view
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,11 +11,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -91,6 +94,7 @@ class BookListView(
         )
     }
 
+    @OptIn(ExperimentalFoundationApi::class)
     @Composable
     private fun DrawContent(books: List<Book>) {
         if (books.isEmpty()) {
@@ -113,33 +117,58 @@ class BookListView(
                 )
             }
         } else {
-            LazyColumn(
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                books.forEach { book ->
-                    item {
-                        Card(
+            val rootBooks = books.filter { it.subPath.isEmpty() }
+            val grouped = books
+                .filter { it.subPath.isNotEmpty() }
+                .groupBy { it.subPath }
+                .entries
+                .sortedBy { it.key }
+
+            LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
+                items(rootBooks) { book -> BookCard(book) }
+
+                grouped.forEach { (path, booksInGroup) ->
+                    stickyHeader(key = "header_$path") {
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { component.onBookClicked(book) }
+                                .padding(top = 12.dp, bottom = 4.dp)
                         ) {
-                            Column(
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-                            ) {
-                                Text(
-                                    text = book.title,
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                Text(
-                                    text = "Chapters: ${book.chapterCount}",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+                            Text(
+                                text = path.replace("/", " / "),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
+                            )
+                            HorizontalDivider()
                         }
                     }
+                    items(booksInGroup) { book -> BookCard(book) }
                 }
+            }
+        }
+    }
+
+    @Composable
+    private fun BookCard(book: Book) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 3.dp)
+                .clickable { component.onBookClicked(book) }
+        ) {
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                Text(
+                    text = book.title,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = "Chapters: ${book.chapterCount}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
