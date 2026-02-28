@@ -9,6 +9,7 @@ enum class Library(group: String, artifact: String, version: Version) {
     AndroidXCore("androidx.core", "core-ktx", Version.AndroidXCore),
     AndoirdXAnnotation("androidx.annotation", "annotation", Version.AndroidXAnnotation),
     AndroidXSplash("androidx.core", "core-splashscreen", Version.AndroidXSplash),
+    AndroidXDocumentFile("androidx.documentfile", "documentfile", Version.AndroidXDocumentFile),
 
     KotlinStd("org.jetbrains.kotlin", "kotlin-stdlib-jdk8", Version.Kotlin),
 
@@ -60,6 +61,7 @@ enum class Library(group: String, artifact: String, version: Version) {
         AndroidXCore("1.13.1"),
         AndroidXAnnotation("1.8.0"),
         AndroidXSplash("1.0.0"),
+        AndroidXDocumentFile("1.0.1"),
         Kotlin("1.9.24"),
         Coroutines("1.8.1"),
         SQLDelight("2.0.2"),
@@ -192,18 +194,21 @@ sealed class Project(id: String) {
         sealed class Data(id: String) : Core("data:$id") {
             object Playback : Data("playback")
             object Catalog : Data("catalog")
+            object Audiobook : Data("audiobook")
 
             sealed class Storage(id: String) : Data("storage:$id") {
                 object Preferences : Storage("preferences")
 
                 sealed class Database(id: String) : Storage("database:$id") {
                     object Music : Database("music")
+                    object Audiobook : Database("audiobook")
                 }
             }
         }
 
         sealed class Presentation(id: String) : Core("presentation:$id") {
             object Catalog : Presentation("catalog")
+            object AudiobookCatalog : Presentation("audiobook_catalog")
             object Player : Presentation("player")
             object PlaylistCurrentQueue : Presentation("playlist:queue")
             object BackgroundPlayer : Presentation("background_player")
@@ -212,6 +217,7 @@ sealed class Project(id: String) {
         sealed class Entity(id: String) : Core("entity:$id") {
             object Catalog : Entity("catalog")
             object Playback : Entity("playback")
+            object Audiobook : Entity("audiobook")
         }
     }
 

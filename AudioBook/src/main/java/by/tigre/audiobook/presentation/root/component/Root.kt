@@ -1,5 +1,7 @@
 package by.tigre.audiobook.presentation.root.component
 
+import by.tigre.audiobook.core.presentation.audiobook_catalog.component.RootAudiobookCatalogComponent
+import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogComponentProvider
 import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.RootCatalogComponent
 import by.tigre.music.player.core.presentation.catalog.component.SmallPlayerComponent
@@ -36,6 +38,7 @@ interface Root {
     sealed interface PageComponentChild {
         class Queue(val component: CurrentQueueComponent) : PageComponentChild
         class Catalog(val component: RootCatalogComponent) : PageComponentChild
+        class AudiobookCatalog(val component: RootAudiobookCatalogComponent) : PageComponentChild
     }
 
     sealed interface MainComponentChild {
@@ -48,6 +51,7 @@ interface Root {
         catalogComponentProvider: CatalogComponentProvider,
         playerComponentProvider: PlayerComponentProvider,
         currentQueueComponent: CurrentQueueComponentProvider,
+        audiobookCatalogComponentProvider: AudiobookCatalogComponentProvider,
     ) : Root, BaseComponentContext by context {
 
         private val pagesNavigation = StackNavigation<PagesConfig>()
@@ -90,6 +94,10 @@ interface Root {
                             navigator = { selectPage(1) }
                         )
                     )
+
+                    PagesConfig.AudiobookCatalog -> PageComponentChild.AudiobookCatalog(
+                        audiobookCatalogComponentProvider.createRootAudiobookCatalogComponent(componentContext)
+                    )
                 }
             }
 
@@ -116,6 +124,7 @@ interface Root {
             when (index) {
                 0 -> pagesNavigation.bringToFront(PagesConfig.Queue)
                 1 -> pagesNavigation.bringToFront(PagesConfig.Catalog)
+                2 -> pagesNavigation.bringToFront(PagesConfig.AudiobookCatalog)
             }
         }
 
@@ -125,6 +134,9 @@ interface Root {
 
             @Parcelize
             data object Catalog : PagesConfig
+
+            @Parcelize
+            data object AudiobookCatalog : PagesConfig
         }
 
         private sealed interface MainConfig : Parcelable {

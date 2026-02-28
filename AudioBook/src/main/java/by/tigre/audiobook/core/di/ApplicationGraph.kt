@@ -1,6 +1,9 @@
 package by.tigre.audiobook.core.di
 
 import android.content.Context
+import by.tigre.audiobook.core.data.audiobook.di.AudiobookCatalogModule
+import by.tigre.audiobook.core.data.storage.audiobook_catalog.di.AudiobookCatalogStorageModule
+import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogDependency
 import by.tigre.music.player.core.data.catalog.di.CatalogModule
 import by.tigre.music.player.core.data.playback.di.PlaybackModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.PlaybackQueueModule
@@ -13,13 +16,16 @@ import by.tigre.music.player.tools.coroutines.CoroutineModule
 
 class ApplicationGraph(
     playbackModule: PlaybackModule,
-    catalogModule: CatalogModule
+    catalogModule: CatalogModule,
+    audiobookCatalogModule: AudiobookCatalogModule
 ) : CatalogDependency,
     PlayerDependency,
     PlayerBackgroundDependency,
     CurrentQueueDependency,
+    AudiobookCatalogDependency,
     PlaybackModule by playbackModule,
-    CatalogModule by catalogModule {
+    CatalogModule by catalogModule,
+    AudiobookCatalogModule by audiobookCatalogModule {
 
     companion object {
         fun create(context: Context): ApplicationGraph {
@@ -29,7 +35,10 @@ class ApplicationGraph(
             val playbackQueueModule = PlaybackQueueModule.Impl(context, coroutineModule, preferencesModule)
             val playbackModule = PlaybackModule.Impl(context, coroutineModule, playbackQueueModule, catalogModule)
 
-            return ApplicationGraph(playbackModule, catalogModule)
+            val audiobookStorageModule = AudiobookCatalogStorageModule.Impl(context, coroutineModule)
+            val audiobookCatalogModule = AudiobookCatalogModule.Impl(context, audiobookStorageModule)
+
+            return ApplicationGraph(playbackModule, catalogModule, audiobookCatalogModule)
         }
     }
 }

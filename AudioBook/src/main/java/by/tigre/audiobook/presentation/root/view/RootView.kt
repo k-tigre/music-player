@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import by.tigre.audiobook.R
+import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogViewProvider
 import by.tigre.audiobook.presentation.root.component.Root
 import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
@@ -41,7 +42,8 @@ class RootView(
     private val component: Root,
     private val catalogViewProvider: CatalogViewProvider,
     private val playerViewProvider: PlayerViewProvider,
-    private val currentQueueViewProvider: CurrentQueueViewProvider
+    private val currentQueueViewProvider: CurrentQueueViewProvider,
+    private val audiobookCatalogViewProvider: AudiobookCatalogViewProvider
 ) : ComposableView {
 
     @OptIn(ExperimentalPermissionsApi::class)
@@ -123,6 +125,25 @@ class RootView(
                                 )
                             },
                         )
+
+                        NavigationBarItem(
+                            modifier = Modifier.navigationBarsPadding(),
+                            selected = pages.value.active.instance is Root.PageComponentChild.AudiobookCatalog,
+                            onClick = { component.selectPage(2) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.outline_library_music_24),
+                                    contentDescription = "Books"
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = "Books",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            },
+                        )
                     }
                 }
             }
@@ -139,6 +160,7 @@ class RootView(
                     when (val child = it.instance) {
                         is Root.PageComponentChild.Catalog -> catalogViewProvider.createRootView(child.component)
                         is Root.PageComponentChild.Queue -> currentQueueViewProvider.createCurrentQueueView(child.component)
+                        is Root.PageComponentChild.AudiobookCatalog -> audiobookCatalogViewProvider.createRootView(child.component)
                     }.Draw(Modifier)
                 }
             }

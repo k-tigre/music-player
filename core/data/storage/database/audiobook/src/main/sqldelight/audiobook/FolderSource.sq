@@ -1,0 +1,20 @@
+CREATE TABLE FolderSource(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    uri TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL
+);
+
+insertFolder:
+INSERT OR IGNORE INTO FolderSource(uri, name) VALUES(?, ?);
+
+selectAll:
+SELECT id, uri, name FROM FolderSource ORDER BY name;
+
+deleteById:
+DELETE FROM FolderSource WHERE id = ?;
+
+selectByUri:
+SELECT id, uri, name FROM FolderSource WHERE uri = ?;
+
+lastInsertId:
+SELECT last_insert_rowid();
