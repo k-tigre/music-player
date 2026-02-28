@@ -1,4 +1,5 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
@@ -50,6 +51,11 @@ subprojects {
         }
     }
 
+    // Apply serialization plugin to all Kotlin Android modules (bundled in kotlin-gradle-plugin)
+    plugins.withId(Plugin.Id.KotlinAndroid.value) {
+        pluginManager.apply(Plugin.Id.KotlinSerialization.value)
+    }
+
     plugins.matching { it is JavaPlugin }.whenPluginAdded {
         configure<JavaPluginExtension> {
             sourceCompatibility = JavaVersion.VERSION_21
@@ -58,9 +64,9 @@ subprojects {
     }
 
     tasks.withType<KotlinCompile> {
-        kotlinOptions {
+        compilerOptions {
             allWarningsAsErrors = false
-            jvmTarget = "21"
+            jvmTarget = JvmTarget.JVM_21
         }
     }
 

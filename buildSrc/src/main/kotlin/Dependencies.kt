@@ -151,6 +151,7 @@ enum class Plugin(group: String, artifact: String, version: Version) {
         AndroidLibrary("com.android.library"),
         KotlinAndroid("org.jetbrains.kotlin.android"),
         KotlinCompose("org.jetbrains.kotlin.plugin.compose"),
+        KotlinSerialization("org.jetbrains.kotlin.plugin.serialization"),
         KotlinParcelize("kotlin-parcelize"),
         KotlinJvm("org.jetbrains.kotlin.jvm"),
         JavaLibrary("java-library"),

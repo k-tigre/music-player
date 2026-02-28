@@ -17,10 +17,9 @@ import com.arkivanov.decompose.router.stack.bringToFront
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.parcelable.Parcelable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 
 interface Root {
 
@@ -119,23 +118,22 @@ interface Root {
             }
         }
 
-        private sealed interface PagesConfig : Parcelable {
-            @Parcelize
+        @Serializable
+        private sealed interface PagesConfig {
+            @Serializable
             data object Queue : PagesConfig
 
-            @Parcelize
+            @Serializable
             data object Catalog : PagesConfig
         }
 
-        private sealed interface MainConfig : Parcelable {
-            @Parcelize
+        @Serializable
+        private sealed interface MainConfig {
+            @Serializable
             data object Main : MainConfig
 
-            @Parcelize
+            @Serializable
             data object Player : MainConfig
         }
-
-        @Parcelize
-        private object Player : Parcelable
     }
 }
