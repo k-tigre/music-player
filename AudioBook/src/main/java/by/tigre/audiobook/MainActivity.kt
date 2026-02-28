@@ -15,10 +15,10 @@ import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalo
 import by.tigre.audiobook.presentation.background.BackgroundService
 import by.tigre.audiobook.presentation.root.component.Root
 import by.tigre.audiobook.presentation.root.view.RootView
+import by.tigre.audiobook.theme.AppTheme
 import by.tigre.music.player.core.presentation.catalog.di.PlayerComponentProvider
 import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
 import by.tigre.music.player.presentation.base.BaseComponentContextImpl
-import by.tigre.music.player.tools.platform.compose.AppTheme
 import com.arkivanov.decompose.defaultComponentContext
 import com.google.common.util.concurrent.ListenableFuture
 

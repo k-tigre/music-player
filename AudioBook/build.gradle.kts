@@ -121,6 +121,7 @@ dependencies {
     implementation(Project.Logger.Crashlytics)
     implementation(Project.Logger.Logcat)
     implementation(Project.Logger.InternalStore)
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.10.3")
 
     debugImplementation(Project.DebugSettings)
 }
