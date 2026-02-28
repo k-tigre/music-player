@@ -163,7 +163,7 @@ enum class Plugin(group: String, artifact: String, version: Version) {
     }
 
     private enum class Version(val value: String) {
-        Android("8.7.3"),
+        Android("8.13.2"),
         Kotlin(Library.Version.Kotlin.value),
         Google("4.4.2"),
         Crashlytics("3.0.6"),
