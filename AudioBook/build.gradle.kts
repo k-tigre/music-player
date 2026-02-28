@@ -10,6 +10,7 @@ plugins {
     id(Plugin.Id.KotlinParcelize.value)
     id(Plugin.Id.GooglePlayPublisher.value)
     id(Plugin.Id.FirebasePublisher.value)
+    id(Plugin.Id.KotlinCompose.value)
 }
 
 android {
