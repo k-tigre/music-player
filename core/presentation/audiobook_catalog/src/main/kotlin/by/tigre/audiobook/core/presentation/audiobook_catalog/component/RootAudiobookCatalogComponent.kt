@@ -44,7 +44,7 @@ interface RootAudiobookCatalogComponent {
 
         private val stack = appChildStack(
             source = navigation,
-            initialStack = { listOf(Config.FolderSelection) },
+            initialStack = { listOf(Config.BookList) },
             childFactory = ::child,
             handleBackButton = true
         )
