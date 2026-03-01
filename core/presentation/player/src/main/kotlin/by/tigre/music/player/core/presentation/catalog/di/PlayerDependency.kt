@@ -1,8 +1,7 @@
 package by.tigre.music.player.core.presentation.catalog.di
 
-import android.content.Context
-import by.tigre.music.player.core.data.playback.PlaybackController
+import by.tigre.music.player.core.presentation.catalog.component.BasePlaybackController
 
 interface PlayerDependency {
-    val playbackController: PlaybackController
+    val basePlaybackController: BasePlaybackController
 }
