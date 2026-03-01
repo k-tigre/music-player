@@ -9,9 +9,9 @@ import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalo
 import by.tigre.audiobook.presentation.root.component.Root
 import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
 import by.tigre.music.player.tools.platform.compose.ComposableView
-import com.arkivanov.decompose.extensions.compose.jetpack.stack.Children
-import com.arkivanov.decompose.extensions.compose.jetpack.stack.animation.fade
-import com.arkivanov.decompose.extensions.compose.jetpack.stack.animation.stackAnimation
+import com.arkivanov.decompose.extensions.compose.stack.Children
+import com.arkivanov.decompose.extensions.compose.stack.animation.fade
+import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 
 class RootView(
     private val component: Root,
@@ -46,7 +46,9 @@ class RootView(
             }
         ) { paddings ->
             audiobookCatalogViewProvider.createRootView(component.audiobookCatalogComponent)
-                .Draw(Modifier.fillMaxSize().padding(paddings))
+                .Draw(Modifier
+                    .fillMaxSize()
+                    .padding(paddings))
         }
     }
 }

@@ -8,10 +8,10 @@ import by.tigre.audiobook.core.presentation.audiobook_catalog.component.RootAudi
 import by.tigre.audiobook.core.presentation.audiobook_catalog.component.RootAudiobookCatalogComponent.AudiobookCatalogChild
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogViewProvider
 import by.tigre.music.player.tools.platform.compose.ComposableView
-import com.arkivanov.decompose.extensions.compose.jetpack.stack.Children
-import com.arkivanov.decompose.extensions.compose.jetpack.stack.animation.fade
-import com.arkivanov.decompose.extensions.compose.jetpack.stack.animation.stackAnimation
-import com.arkivanov.decompose.extensions.compose.jetpack.subscribeAsState
+import com.arkivanov.decompose.extensions.compose.stack.Children
+import com.arkivanov.decompose.extensions.compose.stack.animation.fade
+import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
+import com.arkivanov.decompose.extensions.compose.subscribeAsState
 
 class RootAudiobookCatalogView(
     private val component: RootAudiobookCatalogComponent,

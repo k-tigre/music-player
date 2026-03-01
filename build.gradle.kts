@@ -13,6 +13,7 @@ buildscript {
         plugin(Plugin.Android)
         plugin(Plugin.Kotlin)
         plugin(Plugin.KotlinCompose)
+        plugin(Plugin.KotlinSerialization)
         plugin(Plugin.Google)
         plugin(Plugin.Crashlytics)
         plugin(Plugin.Versions)
