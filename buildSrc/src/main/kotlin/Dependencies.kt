@@ -209,6 +209,7 @@ sealed class Project(id: String) {
             object Playback : Data("playback")
             object Catalog : Data("catalog")
             object Audiobook : Data("audiobook")
+            object AudiobookPlayback : Data("audiobook_playback")
 
             sealed class Storage(id: String) : Data("storage:$id") {
                 object Preferences : Storage("preferences")

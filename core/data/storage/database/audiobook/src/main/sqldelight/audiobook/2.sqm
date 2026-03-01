@@ -1,0 +1,5 @@
+CREATE TABLE AudiobookPlaybackPosition (
+    book_id    INTEGER NOT NULL PRIMARY KEY,
+    chapter_id INTEGER NOT NULL,
+    position_ms INTEGER NOT NULL DEFAULT 0
+);
