@@ -18,7 +18,7 @@ jobs:
         with: { java-version: 21 }
       - name: Build Music release APK & AAB
         run: |
-          ./gradlew testReleaseUnitTest :PlayerApp:assembleRelease :PlayerApp:bundleRelease :PlayerApp:publishReleaseBundle
+          ./gradlew testReleaseUnitTest :apps:PlayerApp:assembleRelease :apps:PlayerApp:bundleRelease :apps:PlayerApp:publishReleaseBundle
         env:
           MUSIC_PLAYER_RELEASE_JKS_STORE_PASSWORD: ${{ secrets.MUSIC_PLAYER_RELEASE_JKS_STORE_PASSWORD }}
           MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD: ${{ secrets.MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD }}
@@ -28,8 +28,8 @@ jobs:
         with:
           name: music-artifacts
           path: |
-            androidApp/build/outputs/apk/release/PlayerApp-release.apk
-            androidApp/build/outputs/bundle/release/PlayerApp-release.aab
+            apps/PlayerApp/build/outputs/apk/release/PlayerApp-release.apk
+            apps/PlayerApp/build/outputs/bundle/release/PlayerApp-release.aab
 
   # Book release job
   build_book_apk_aab:
@@ -42,7 +42,7 @@ jobs:
         with: { java-version: 21 }
       - name: Build Book release APK & AAB
         run: |
-          ./gradlew testReleaseUnitTest :AudioBook:assembleRelease :AudioBook:bundleRelease :AudioBook:publishReleaseBundle
+          ./gradlew testReleaseUnitTest :apps:AudioBook:assembleRelease :apps:AudioBook:bundleRelease :apps:AudioBook:publishReleaseBundle
         env:
           AUDIO_BOOK_RELEASE_JKS_STORE_PASSWORD: ${{ secrets.AUDIO_BOOK_RELEASE_JKS_STORE_PASSWORD }}
           AUDIO_BOOK_RELEASE_JKS_KEY_PASSWORD: ${{ secrets.AUDIO_BOOK_RELEASE_JKS_KEY_PASSWORD }}
@@ -52,5 +52,5 @@ jobs:
         with:
           name: book-artifacts
           path: |
-            AudioBook/build/outputs/apk/release/AudioBook-release.apk
-            AudioBook/build/outputs/bundle/release/AudioBook-release.aab
+            apps/AudioBook/build/outputs/apk/release/AudioBook-release.apk
+            apps/AudioBook/build/outputs/bundle/release/AudioBook-release.aab
