@@ -7,10 +7,13 @@ import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import by.tigre.audiobook.core.data.storage.audiobook.DatabaseAudiobook
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.AudiobookCatalogStorage
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.impl.AudiobookCatalogStorageImpl
+import by.tigre.audiobook.core.data.storage.audiobook_playback.AudiobookPlaybackStorage
+import by.tigre.audiobook.core.data.storage.audiobook_playback.impl.AudiobookPlaybackStorageImpl
 import by.tigre.music.player.tools.coroutines.CoroutineModule
 
 interface AudiobookCatalogStorageModule {
     val audiobookCatalogStorage: AudiobookCatalogStorage
+    val audiobookPlaybackStorage: AudiobookPlaybackStorage
 
     class Impl(
         context: Context,
@@ -36,6 +39,10 @@ interface AudiobookCatalogStorageModule {
                 database = database,
                 scope = coroutineModule.scope
             )
+        }
+
+        override val audiobookPlaybackStorage: AudiobookPlaybackStorage by lazy {
+            AudiobookPlaybackStorageImpl(database = database)
         }
     }
 }

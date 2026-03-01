@@ -2,6 +2,8 @@ package by.tigre.audiobook.core.di
 
 import android.content.Context
 import by.tigre.audiobook.core.data.audiobook.di.AudiobookCatalogModule
+import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
+import by.tigre.audiobook.core.data.audiobook_playback.di.AudiobookPlaybackModule
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.di.AudiobookCatalogStorageModule
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogDependency
 import by.tigre.music.player.core.data.catalog.di.CatalogModule
@@ -17,7 +19,8 @@ import by.tigre.music.player.tools.coroutines.CoroutineModule
 class ApplicationGraph(
     playbackModule: PlaybackModule,
     catalogModule: CatalogModule,
-    audiobookCatalogModule: AudiobookCatalogModule
+    audiobookCatalogModule: AudiobookCatalogModule,
+    audiobookPlaybackModule: AudiobookPlaybackModule
 ) : CatalogDependency,
     PlayerDependency,
     PlayerBackgroundDependency,
@@ -25,7 +28,8 @@ class ApplicationGraph(
     AudiobookCatalogDependency,
     PlaybackModule by playbackModule,
     CatalogModule by catalogModule,
-    AudiobookCatalogModule by audiobookCatalogModule {
+    AudiobookCatalogModule by audiobookCatalogModule,
+    AudiobookPlaybackModule by audiobookPlaybackModule {
 
     companion object {
         fun create(context: Context): ApplicationGraph {
@@ -37,8 +41,14 @@ class ApplicationGraph(
 
             val audiobookStorageModule = AudiobookCatalogStorageModule.Impl(context, coroutineModule)
             val audiobookCatalogModule = AudiobookCatalogModule.Impl(context, audiobookStorageModule)
+            val audiobookPlaybackModule = AudiobookPlaybackModule.Impl(
+                audiobookCatalogStorageModule = audiobookStorageModule,
+                audiobookCatalogModule = audiobookCatalogModule,
+                playbackModule = playbackModule,
+                coroutineModule = coroutineModule
+            )
 
-            return ApplicationGraph(playbackModule, catalogModule, audiobookCatalogModule)
+            return ApplicationGraph(playbackModule, catalogModule, audiobookCatalogModule, audiobookPlaybackModule)
         }
     }
 }
