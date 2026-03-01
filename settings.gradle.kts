@@ -11,7 +11,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "MusicPlayer"
-include(":androidApp")
+include(":PlayerApp")
 include(":AudioBook")
 
 include(":core:data:playback")

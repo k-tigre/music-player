@@ -18,7 +18,7 @@ jobs:
         with: { java-version: 21 }
       - name: Build Music release APK & AAB
         run: |
-          ./gradlew testReleaseUnitTest assembleRelease bundleRelease publishReleaseBundle
+          ./gradlew testReleaseUnitTest :PlayerApp:assembleRelease :PlayerApp:bundleRelease :PlayerApp:publishReleaseBundle
         env:
           MUSIC_PLAYER_RELEASE_JKS_STORE_PASSWORD: ${{ secrets.MUSIC_PLAYER_RELEASE_JKS_STORE_PASSWORD }}
           MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD: ${{ secrets.MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD }}
@@ -28,8 +28,8 @@ jobs:
         with:
           name: music-artifacts
           path: |
-            androidApp/build/outputs/apk/release/androidApp-release.apk
-            androidApp/build/outputs/bundle/release/androidApp-release.aab
+            androidApp/build/outputs/apk/release/PlayerApp-release.apk
+            androidApp/build/outputs/bundle/release/PlayerApp-release.aab
 
   # Book release job
   build_book_apk_aab:
