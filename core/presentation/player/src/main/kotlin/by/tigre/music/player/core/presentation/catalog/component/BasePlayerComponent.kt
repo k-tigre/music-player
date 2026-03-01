@@ -1,5 +1,7 @@
 package by.tigre.music.player.core.presentation.catalog.component
 
+import android.content.ContentUris
+import android.provider.MediaStore
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
 import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent.Position
@@ -20,7 +22,7 @@ import kotlin.math.abs
 
 interface BasePlayerComponent {
 
-    val currentSong: StateFlow<Song?>
+    val currentItem: StateFlow<PlayerItem?>
     val position: StateFlow<Position>
     val fraction: StateFlow<Float>
     val state: StateFlow<State>
@@ -48,7 +50,20 @@ internal class BasePlayerComponentImpl(
     private val playbackController = dependency.playbackController
 
     private val seekAction = MutableSharedFlow<Float>(extraBufferCapacity = 1)
-    override val currentSong: StateFlow<Song?> = playbackController.currentItem
+    override val currentItem: StateFlow<PlayerItem?> = playbackController.currentItem
+        .map { song ->
+            song?.let {
+                PlayerItem(
+                    title = it.name,
+                    subtitle = "${it.artist}/${it.album}",
+                    coverUri = ContentUris.withAppendedId(
+                        MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+                        it.albumId.value
+                    )
+                )
+            }
+        }
+        .stateIn(this, SharingStarted.WhileSubscribed(), initialValue = null)
     override val state = MutableStateFlow(State.Paused)
     override val position = MutableStateFlow(Position("", "", ""))
     override val fraction = MutableStateFlow(0f)

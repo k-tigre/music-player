@@ -34,10 +34,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import by.tigre.music.player.core.entiry.catalog.Album
-import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
+import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
 import by.tigre.music.player.core.presentation.catalog.component.SmallPlayerComponent
 import by.tigre.music.player.tools.platform.compose.AppTheme
 import by.tigre.music.player.tools.platform.compose.ComposableView
@@ -51,7 +50,7 @@ class SmallPlayerView(
 
     @Composable
     override fun Draw(modifier: Modifier) {
-        val current = component.currentSong.collectAsState().value
+        val current = component.currentItem.collectAsState().value
         if (current != null) {
             Box(
                 modifier = modifier
@@ -77,7 +76,7 @@ class SmallPlayerView(
                         DrawItem(
                             modifier = Modifier
                                 .animateContentSize(tween(250)),
-                            song = current
+                            item = current
                         )
                         DrawActions()
                     }
@@ -89,7 +88,7 @@ class SmallPlayerView(
     }
 
     @Composable
-    private fun DrawItem(modifier: Modifier, song: Song) {
+    private fun DrawItem(modifier: Modifier, item: PlayerItem) {
         Column(
             modifier = modifier
                 .systemBarsPadding()
@@ -98,12 +97,12 @@ class SmallPlayerView(
         ) {
             Text(
                 modifier = Modifier.padding(top = 16.dp),
-                text = song.name,
+                text = item.title,
             )
 
             Text(
                 modifier = Modifier.padding(top = 2.dp, bottom = 4.dp),
-                text = "${song.artist}/${song.album}",
+                text = item.subtitle,
                 style = MaterialTheme.typography.bodySmall
             )
         }
@@ -202,18 +201,13 @@ class SmallPlayerView(
 }
 
 internal object PreviewStub {
-    val song: Song = Song(
-        id = Song.Id(1),
-        album = "Test Album",
-        artist = "Test Artist",
-        index = "2/10",
-        name = "Song name",
-        path = "",
-        albumId = Album.Id(1)
+    val playerItem: PlayerItem = PlayerItem(
+        title = "Song name",
+        subtitle = "Test Artist/Test Album"
     )
 
-    private fun baseComponent(song: Song?, isNormalMode: Boolean) = object : BasePlayerComponent {
-        override val currentSong = MutableStateFlow(song)
+    private fun baseComponent(item: PlayerItem?, isNormalMode: Boolean) = object : BasePlayerComponent {
+        override val currentItem = MutableStateFlow(item)
         override val fraction = MutableStateFlow(0.5f)
         override val position = MutableStateFlow(BasePlayerComponent.Position("10:10", "-10:19", "10:19"))
         override val state = MutableStateFlow(BasePlayerComponent.State.Paused)
@@ -238,13 +232,13 @@ internal object PreviewStub {
         }
     }
 
-    fun smallPlayerComponent(song: Song? = null, isNormalMode: Boolean = false): SmallPlayerComponent =
-        object : SmallPlayerComponent, BasePlayerComponent by baseComponent(song, isNormalMode) {
+    fun smallPlayerComponent(item: PlayerItem? = null, isNormalMode: Boolean = false): SmallPlayerComponent =
+        object : SmallPlayerComponent, BasePlayerComponent by baseComponent(item, isNormalMode) {
             override fun showPlayerView() = Unit
         }
 
-    fun playerComponent(song: Song? = null, isNormalMode: Boolean = false): PlayerComponent =
-        object : PlayerComponent, BasePlayerComponent by baseComponent(song, isNormalMode) {
+    fun playerComponent(item: PlayerItem? = null, isNormalMode: Boolean = false): PlayerComponent =
+        object : PlayerComponent, BasePlayerComponent by baseComponent(item, isNormalMode) {
             override fun navigateBack() = Unit
         }
 }
@@ -255,7 +249,7 @@ private fun Preview() {
     AppTheme {
         SmallPlayerView(
             PreviewStub.smallPlayerComponent(
-                song = PreviewStub.song,
+                item = PreviewStub.playerItem,
                 isNormalMode = false
             )
         ).Draw(modifier = Modifier.padding(top = 36.dp))
@@ -268,7 +262,7 @@ private fun PreviewDark() {
     AppTheme {
         SmallPlayerView(
             PreviewStub.smallPlayerComponent(
-                song = PreviewStub.song,
+                item = PreviewStub.playerItem,
                 isNormalMode = true
             )
         ).Draw(modifier = Modifier.padding(top = 36.dp))
