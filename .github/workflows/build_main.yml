@@ -18,12 +18,12 @@ jobs:
           ./gradlew testQaUnitTest assembleQa
       - name: Upload to Music Firebase
         run: |
-          ./gradlew :PlayerApp:appDistributionUploadQa
+          ./gradlew :apps:PlayerApp:appDistributionUploadQa
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       - name: Upload to Book Firebase
         run: |
-          ./gradlew :AudioBook:appDistributionUploadQa
+          ./gradlew :apps:AudioBook:appDistributionUploadQa
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
