@@ -64,7 +64,7 @@ android {
                 signingConfig = signingConfigs.findByName(env.gradleName)
 
                 applicationIdSuffix = env.suffix
-                manifestPlaceholders["appName"] = "${Application.AudioBook.name}${env.appNameSuffix}"
+                manifestPlaceholders["appName"] = "${Application.MusicPlayer.name}${env.appNameSuffix}"
                 if (env.useProguard) {
                     proguardFiles(
                         "rules.proguard",
