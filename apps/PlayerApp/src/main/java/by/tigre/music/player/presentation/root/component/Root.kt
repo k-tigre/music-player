@@ -53,7 +53,7 @@ interface Root {
         private val mainNavigation = StackNavigation<MainConfig>()
 
         private val playerNavigator = object : PlayerNavigator {
-            override fun showQueue() {
+            override fun navigateBack() {
                 mainNavigation.pop()
             }
 

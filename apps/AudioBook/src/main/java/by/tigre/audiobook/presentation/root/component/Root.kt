@@ -41,7 +41,7 @@ interface Root {
         private val mainNavigation = StackNavigation<MainConfig>()
 
         private val playerNavigator = object : PlayerNavigator {
-            override fun showQueue() {
+            override fun navigateBack() {
                 mainNavigation.pop()
             }
 
@@ -68,7 +68,7 @@ interface Root {
         override val mainComponent: Value<ChildStack<*, MainComponentChild>> =
             appChildStack(
                 source = mainNavigation,
-                initialStack = { listOf(MainConfig.Main) },
+                initialStack = { listOf(MainConfig.Main, MainConfig.Player) },
                 key = "main",
                 handleBackButton = true
             ) { config, componentContext ->
