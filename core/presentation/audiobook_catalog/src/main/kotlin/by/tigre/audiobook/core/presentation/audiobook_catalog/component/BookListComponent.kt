@@ -1,6 +1,7 @@
 package by.tigre.audiobook.core.presentation.audiobook_catalog.component
 
 import by.tigre.audiobook.core.data.audiobook.AudiobookCatalogSource
+import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
 import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogDependency
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.AudiobookCatalogNavigator
@@ -35,6 +36,7 @@ interface BookListComponent {
     ) : BookListComponent, BaseComponentContext by context {
 
         private val catalogSource: AudiobookCatalogSource = dependency.audiobookCatalogSource
+        private val playbackController: AudiobookPlaybackController = dependency.audiobookPlaybackController
 
         private val expandedState = MutableStateFlow(emptySet<String>())
 
@@ -54,7 +56,7 @@ interface BookListComponent {
             .stateIn(this, SharingStarted.WhileSubscribed(), ScreenContentState.Loading)
 
         override fun onBookClicked(book: Book) {
-            // TODO: navigate to book detail / start playback
+            playbackController.playBook(book)
         }
 
         override fun onManageFolders() {

@@ -103,6 +103,7 @@ dependencies {
     implementation(Project.Core.Presentation.Catalog)
     implementation(Project.Core.Presentation.AudiobookCatalog)
     implementation(Project.Core.Data.Audiobook)
+    implementation(Project.Core.Data.AudiobookPlayback)
     implementation(Project.Core.Data.Storage.Database.Audiobook)
     implementation(Project.Core.Entity.Audiobook)
     implementation(Project.Core.Presentation.Player)

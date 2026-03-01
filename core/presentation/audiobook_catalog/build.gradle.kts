@@ -18,6 +18,7 @@ dependencies {
     implementation(Library.KotlinStd)
     implementation(Project.Tools.Coroutines)
     implementation(Project.Core.Data.Audiobook)
+    implementation(Project.Core.Data.AudiobookPlayback)
     implementation(Project.Core.Entity.Audiobook)
     implementation(Toolkit.UI)
 }
