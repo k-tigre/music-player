@@ -12,6 +12,7 @@ enum class Library(group: String, artifact: String, version: Version) {
     AndroidXDocumentFile("androidx.documentfile", "documentfile", Version.AndroidXDocumentFile),
 
     KotlinStd("org.jetbrains.kotlin", "kotlin-stdlib-jdk8", Version.Kotlin),
+    KotlinxSerialization("org.jetbrains.kotlinx", "kotlinx-serialization-core", Version.KotlinSerialization),
 
     CoroutinesCore("org.jetbrains.kotlinx", "kotlinx-coroutines-core", Version.Coroutines),
     CoroutinesAndroid("org.jetbrains.kotlinx", "kotlinx-coroutines-android", Version.Coroutines),
@@ -33,6 +34,8 @@ enum class Library(group: String, artifact: String, version: Version) {
     ComposeMaterial1("androidx.compose.material", "material", Version.ComposeMaterial),
     ComposeMaterial("androidx.compose.material3", "material3", Version.ComposeMaterial3),
     ComposeMaterialWindowSize("androidx.compose.material3", "material3-window-size-class", Version.ComposeMaterial3),
+    ComposeMaterialIconsExtended("androidx.compose.material", "material-icons-extended", Version.ComposeMaterialIcons),
+    ComposeMaterialIconsCore("androidx.compose.material", "material-icons-core", Version.ComposeMaterialIcons),
     ActivityCompose("androidx.activity", "activity-compose", Version.ActivityCompose),
 
     CoilCompose("io.coil-kt.coil3", "coil-compose", Version.CoilCompose),
@@ -63,6 +66,7 @@ enum class Library(group: String, artifact: String, version: Version) {
         AndroidXSplash("1.2.0"),
         AndroidXDocumentFile("1.1.0"),
         Kotlin("2.1.21"),
+        KotlinSerialization("1.10.0"),
         Coroutines("1.10.2"),
         SQLDelight("2.2.1"),
         Media3("1.5.0"),
@@ -70,6 +74,7 @@ enum class Library(group: String, artifact: String, version: Version) {
         Compose("1.8.0"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
         ComposeFoundation("1.8.0"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
         ComposeMaterial("1.8.0"),
+        ComposeMaterialIcons("1.7.8"),
         ComposeMaterial3("1.4.0"),
         Accompanist("0.37.3") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
         CoilCompose("3.1.0"),
@@ -107,6 +112,8 @@ enum class Toolkit(
             Library.ComposeUIToolkit,
             Library.ComposeFoundation,
             Library.ComposeMaterial,
+            Library.ComposeMaterialIconsCore,
+            Library.ComposeMaterialIconsExtended,
             Library.ComposeMaterialWindowSize,
             Library.CoilCompose,
             Library.ActivityCompose,
@@ -136,6 +143,7 @@ enum class Plugin(group: String, artifact: String, version: Version) {
     Android("com.android.tools.build", "gradle", Version.Android),
     Kotlin("org.jetbrains.kotlin", "kotlin-gradle-plugin", Version.Kotlin),
     KotlinCompose("org.jetbrains.kotlin", "compose-compiler-gradle-plugin", Version.Kotlin),
+    KotlinSerialization("org.jetbrains.kotlin", "kotlin-serialization", Version.Kotlin),
     Google("com.google.gms", "google-services", Version.Google),
     Crashlytics("com.google.firebase", "firebase-crashlytics-gradle", Version.Crashlytics),
     Versions("com.github.ben-manes", "gradle-versions-plugin", Version.Versions),

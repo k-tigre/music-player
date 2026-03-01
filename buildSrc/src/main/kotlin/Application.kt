@@ -1,5 +1,5 @@
 object Application {
-    const val SDK_COMPILE = 35
+    const val SDK_COMPILE = 36
     const val SDK_MINIMUM = 26
     const val SDK_TARGET = 34
 

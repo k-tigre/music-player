@@ -41,7 +41,7 @@ import by.tigre.music.player.tools.platform.compose.AppTheme
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.view.EmptyScreen
 import by.tigre.player.R
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import by.tigre.compose.R as CoreR
 
 
