@@ -271,7 +271,7 @@ internal object PreviewStub {
 
     fun playerComponent(song: Song? = null, isNormalMode: Boolean = false): PlayerComponent =
         object : PlayerComponent, BasePlayerComponent by baseComponent(song, isNormalMode) {
-            override fun showQueue() = Unit
+            override fun navigateBack() = Unit
         }
 }
 

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -47,29 +48,57 @@ import by.tigre.compose.R as CoreR
 
 class PlayerView(
     private val component: PlayerComponent,
+    private val topBarContent: (@Composable () -> Unit)? = null,
 ) : ComposableView {
 
     @Composable
     override fun Draw(modifier: Modifier) {
-        Box(
-            modifier = modifier
-                .fillMaxSize()
-                .systemBarsPadding(),
-            contentAlignment = Alignment.Center
-        ) {
-            val current = component.currentSong.collectAsState().value
-            if (current != null) {
-                DrawItem(
-                    modifier = modifier.fillMaxSize(),
-                    song = current
-                )
-            } else {
-                EmptyScreen(
-                    reloadAction = component::showQueue,
-                    title = "No songs in current playlist",
-                    message = "Select some track for playing",
-                    actionTitle = "Select from catalog"
-                )
+        Column(modifier = modifier.fillMaxSize()) {
+            topBarContent?.invoke()
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(
+                        if (topBarContent == null) Modifier.systemBarsPadding()
+                        else Modifier.navigationBarsPadding()
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                val current = component.currentSong.collectAsState().value
+                if (current != null) {
+                    DrawItem(
+                        modifier = Modifier.fillMaxSize(),
+                        song = current
+                    )
+                } else {
+                    EmptyScreen(
+                        reloadAction = component::navigateBack,
+                        title = "No songs in current playlist",
+                        message = "Select some track for playing",
+                        actionTitle = "Select from catalog"
+                    )
+                }
+                if (topBarContent == null) {
+                    IconButton(
+                        modifier = Modifier.align(Alignment.TopStart),
+                        onClick = component::navigateBack
+                    ) {
+                        Icon(
+                            contentDescription = null,
+                            painter = painterResource(id = CoreR.drawable.baseline_arrow_back_24)
+                        )
+                    }
+
+                    IconButton(
+                        modifier = Modifier.align(Alignment.TopEnd),
+                        onClick = component::navigateBack
+                    ) {
+                        Icon(
+                            contentDescription = null,
+                            painter = painterResource(id = CoreR.drawable.baseline_more_vert_24)
+                        )
+                    }
+                }
             }
         }
     }
@@ -116,26 +145,6 @@ class PlayerView(
             Spacer(modifier = Modifier.weight(0.5f))
             DrawActions(Modifier)
             Spacer(modifier = Modifier.weight(1f))
-        }
-
-        IconButton(
-            modifier = Modifier.align(Alignment.TopStart),
-            onClick = component::showQueue
-        ) {
-            Icon(
-                contentDescription = null,
-                painter = painterResource(id = CoreR.drawable.baseline_arrow_back_24)
-            )
-        }
-
-        IconButton(
-            modifier = Modifier.align(Alignment.TopEnd),
-            onClick = component::showQueue
-        ) {
-            Icon(
-                contentDescription = null,
-                painter = painterResource(id = CoreR.drawable.baseline_more_vert_24)
-            )
         }
     }
 
