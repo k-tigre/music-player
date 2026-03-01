@@ -1,9 +1,6 @@
 package by.tigre.music.player.core.presentation.catalog.component
 
-import android.content.ContentUris
-import android.provider.MediaStore
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
-import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent.Position
 import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent.State
 import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
@@ -47,32 +44,20 @@ internal class BasePlayerComponentImpl(
     context: BaseComponentContext,
     dependency: PlayerDependency,
 ) : BasePlayerComponent, BaseComponentContext by context {
-    private val playbackController = dependency.playbackController
+    private val basePlaybackController = dependency.basePlaybackController
 
     private val seekAction = MutableSharedFlow<Float>(extraBufferCapacity = 1)
-    override val currentItem: StateFlow<PlayerItem?> = playbackController.currentItem
-        .map { song ->
-            song?.let {
-                PlayerItem(
-                    title = it.name,
-                    subtitle = "${it.artist}/${it.album}",
-                    coverUri = ContentUris.withAppendedId(
-                        MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-                        it.albumId.value
-                    )
-                )
-            }
-        }
+    override val currentItem: StateFlow<PlayerItem?> = basePlaybackController.currentItem
         .stateIn(this, SharingStarted.WhileSubscribed(), initialValue = null)
     override val state = MutableStateFlow(State.Paused)
     override val position = MutableStateFlow(Position("", "", ""))
     override val fraction = MutableStateFlow(0f)
-    override val isNormal: StateFlow<Boolean> = playbackController.orderMode
+    override val isNormal: StateFlow<Boolean> = basePlaybackController.orderMode
         .stateIn(this, started = SharingStarted.WhileSubscribed(), initialValue = true)
 
     init {
         launch {
-            playbackController.player.state.map {
+            basePlaybackController.player.state.map {
                 if (it == PlaybackPlayer.State.Playing) State.Playing else State.Paused
             }
                 .distinctUntilChanged()
@@ -80,7 +65,7 @@ internal class BasePlayerComponentImpl(
         }
 
         launch {
-            playbackController.player.progress
+            basePlaybackController.player.progress
                 .map {
                     if (it.duration > 0) it.position.toFloat() / it.duration else 0f
                 }
@@ -88,7 +73,7 @@ internal class BasePlayerComponentImpl(
         }
 
         launch {
-            playbackController.player.progress
+            basePlaybackController.player.progress
                 .map {
                     if (it.duration > 0) {
                         Position(
@@ -110,11 +95,11 @@ internal class BasePlayerComponentImpl(
         launch {
             seekAction
                 .throttleFirst(100)
-                .withLatestFrom(playbackController.player.progress) { fraction, progress ->
+                .withLatestFrom(basePlaybackController.player.progress) { fraction, progress ->
                     (fraction * progress.duration).toLong()
                 }
                 .collect {
-                    playbackController.player.seekTo(it)
+                    basePlaybackController.player.seekTo(it)
                 }
         }
     }
@@ -124,23 +109,23 @@ internal class BasePlayerComponentImpl(
     }
 
     override fun pause() {
-        playbackController.pause()
+        basePlaybackController.pause()
     }
 
     override fun play() {
-        playbackController.resume()
+        basePlaybackController.resume()
     }
 
     override fun next() {
-        playbackController.playNext()
+        basePlaybackController.playNext()
     }
 
     override fun prev() {
-        playbackController.playPrev()
+        basePlaybackController.playPrev()
     }
 
     override fun switchMode(isNormal: Boolean) {
-        playbackController.setOrderMode(isNormal)
+        basePlaybackController.setOrderMode(isNormal)
     }
 
     private companion object {
