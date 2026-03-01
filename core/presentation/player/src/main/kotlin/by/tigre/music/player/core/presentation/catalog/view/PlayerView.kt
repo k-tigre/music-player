@@ -1,7 +1,5 @@
 package by.tigre.music.player.core.presentation.catalog.view
 
-import android.content.ContentUris
-import android.provider.MediaStore
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,9 +33,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
+import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
 import by.tigre.music.player.tools.platform.compose.AppTheme
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.view.EmptyScreen
@@ -64,11 +62,11 @@ class PlayerView(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                val current = component.currentSong.collectAsState().value
+                val current = component.currentItem.collectAsState().value
                 if (current != null) {
                     DrawItem(
                         modifier = Modifier.fillMaxSize(),
-                        song = current
+                        item = current
                     )
                 } else {
                     EmptyScreen(
@@ -104,18 +102,14 @@ class PlayerView(
     }
 
     @Composable
-    private fun BoxScope.DrawItem(modifier: Modifier, song: Song) {
+    private fun BoxScope.DrawItem(modifier: Modifier, item: PlayerItem) {
         Column(
             modifier = modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
         ) {
-            val contentUri = ContentUris.withAppendedId(
-                MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-                song.albumId.value
-            )
             AsyncImage(
-                model = contentUri, contentDescription = "",
+                model = item.coverUri, contentDescription = "",
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f),
@@ -131,12 +125,12 @@ class PlayerView(
                     .animateContentSize()
             ) {
                 Text(
-                    text = song.name,
+                    text = item.title,
                     style = MaterialTheme.typography.headlineMedium
                 )
 
                 Text(
-                    text = "${song.artist}/${song.album}",
+                    text = item.subtitle,
                     style = MaterialTheme.typography.titleLarge
                 )
             }
@@ -273,7 +267,7 @@ class PlayerView(
 @Composable
 private fun Preview() {
     AppTheme {
-        PlayerView(PreviewStub.playerComponent(PreviewStub.song)).Draw(modifier = Modifier.padding(top = 36.dp))
+        PlayerView(PreviewStub.playerComponent(PreviewStub.playerItem)).Draw(modifier = Modifier.padding(top = 36.dp))
     }
 }
 
@@ -281,6 +275,6 @@ private fun Preview() {
 @Composable
 private fun PreviewEmptyDark() {
     AppTheme {
-        PlayerView(PreviewStub.playerComponent(song = null)).Draw(modifier = Modifier.padding(top = 36.dp))
+        PlayerView(PreviewStub.playerComponent(item = null)).Draw(modifier = Modifier.padding(top = 36.dp))
     }
 }
