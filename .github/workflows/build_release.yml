@@ -3,27 +3,54 @@ name: Release
 on:
   push:
     tags:
-      - 'v.[0-9]+.[0-9]+.[0-9]+'
+      - 'v.m.[0-9]+.[0-9]+.[0-9]+'
+      - 'v.b.[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
-  build_apk_aab:
-    name: Build release artifacts
+  # Music release job
+  build_music_apk_aab:
+    name: Build Music APK & AAB
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v.m.')
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v1
-        with: { java-version: 17 }
-      - name: Build release APK and AAB after test
+        with: { java-version: 21 }
+      - name: Build Music release APK & AAB
         run: |
           ./gradlew testReleaseUnitTest assembleRelease bundleRelease publishReleaseBundle
         env:
           MUSIC_PLAYER_RELEASE_JKS_STORE_PASSWORD: ${{ secrets.MUSIC_PLAYER_RELEASE_JKS_STORE_PASSWORD }}
           MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD: ${{ secrets.MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD }}
           ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
-      - name: Upload APK
+      - name: Upload Music artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: artifacts
+          name: music-artifacts
           path: |
             androidApp/build/outputs/apk/release/androidApp-release.apk
             androidApp/build/outputs/bundle/release/androidApp-release.aab
+
+  # Book release job
+  build_book_apk_aab:
+    name: Build Book APK & AAB
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v.b.')
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v1
+        with: { java-version: 21 }
+      - name: Build Book release APK & AAB
+        run: |
+          ./gradlew testReleaseUnitTest :AudioBook:assembleRelease :AudioBook:bundleRelease :AudioBook:publishReleaseBundle
+        env:
+          AUDIO_BOOK_RELEASE_JKS_STORE_PASSWORD: ${{ secrets.AUDIO_BOOK_RELEASE_JKS_STORE_PASSWORD }}
+          AUDIO_BOOK_RELEASE_JKS_KEY_PASSWORD: ${{ secrets.AUDIO_BOOK_RELEASE_JKS_KEY_PASSWORD }}
+          ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
+      - name: Upload Book artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: book-artifacts
+          path: |
+            AudioBook/build/outputs/apk/release/AudioBook-release.apk
+            AudioBook/build/outputs/bundle/release/AudioBook-release.aab
