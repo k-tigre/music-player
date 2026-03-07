@@ -7,15 +7,18 @@ import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.Audiobo
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.presentation.base.ScreenContentStateDelegate
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 interface FolderSelectionComponent {
 
     val screenState: StateFlow<ScreenContentState<List<FolderSource>>>
+    val isScanning: StateFlow<Boolean>
 
     fun onFolderSelected(uri: String, name: String)
     fun onRemoveFolder(id: FolderSource.Id)
+    fun onRescanFolders()
     fun onNavigateToBooks()
     fun retry()
 
@@ -36,16 +39,33 @@ interface FolderSelectionComponent {
         )
 
         override val screenState: StateFlow<ScreenContentState<List<FolderSource>>> = stateDelegate.screenState
+        override val isScanning = MutableStateFlow(false)
 
         override fun onFolderSelected(uri: String, name: String) {
             launch {
-                catalogSource.addFolderAndScan(uri, name)
+                isScanning.value = true
+                try {
+                    catalogSource.addFolderAndScan(uri, name)
+                } finally {
+                    isScanning.value = false
+                }
             }
         }
 
         override fun onRemoveFolder(id: FolderSource.Id) {
             launch {
                 catalogSource.removeFolder(id)
+            }
+        }
+
+        override fun onRescanFolders() {
+            launch {
+                isScanning.value = true
+                try {
+                    catalogSource.rescanAllFolders()
+                } finally {
+                    isScanning.value = false
+                }
             }
         }
 

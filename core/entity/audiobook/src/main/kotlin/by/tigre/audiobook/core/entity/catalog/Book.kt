@@ -10,7 +10,14 @@ data class Book(
     val folderUri: String,
     val chapterCount: Int,
     val subPath: String,
+    val totalDurationMs: Long = 0,
+    val listenedDurationMs: Long = 0,
+    val isCompleted: Boolean = false,
 ) : Parcelable {
+
+    val progressFraction: Float by lazy {
+        if (totalDurationMs > 0) (listenedDurationMs.toFloat() / totalDurationMs).coerceIn(0f, 1f) else 0f
+    }
 
     @JvmInline
     @Parcelize

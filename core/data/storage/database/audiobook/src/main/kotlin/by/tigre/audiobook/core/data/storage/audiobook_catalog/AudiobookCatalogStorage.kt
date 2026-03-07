@@ -14,11 +14,23 @@ interface AudiobookCatalogStorage {
     suspend fun removeFolderSource(id: FolderSource.Id)
     suspend fun getFolderSourceByUri(uri: String): FolderSource?
 
-    suspend fun insertBook(title: String, folderUri: String, folderSourceId: FolderSource.Id, subPath: String): Book.Id
-    suspend fun insertChapter(bookId: Book.Id, title: String, fileUri: String, duration: Long, sortOrder: Int)
+    suspend fun syncBooksForFolder(folderSourceId: FolderSource.Id, scannedBooks: List<ScannedBook>)
 
     suspend fun getBooks(): List<Book>
     suspend fun getChaptersByBook(bookId: Book.Id): List<Chapter>
 
-    suspend fun deleteBooksByFolderSource(folderSourceId: FolderSource.Id)
+    data class ScannedBook(
+        val title: String,
+        val folderUri: String,
+        val subPath: String,
+        val totalDurationMs: Long,
+        val chapters: List<ScannedChapter>
+    )
+
+    data class ScannedChapter(
+        val title: String,
+        val fileUri: String,
+        val duration: Long,
+        val sortOrder: Int
+    )
 }

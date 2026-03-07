@@ -5,16 +5,39 @@ CREATE TABLE Book(
     folder_source_id INTEGER NOT NULL,
     sub_path TEXT NOT NULL DEFAULT '',
     created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+    total_duration_ms INTEGER NOT NULL DEFAULT 0,
+    listened_duration_ms INTEGER NOT NULL DEFAULT 0,
+    is_completed INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (folder_source_id) REFERENCES FolderSource(id) ON DELETE CASCADE
 );
 
 insertBook:
-INSERT INTO Book(title, folder_uri, folder_source_id, sub_path) VALUES(?, ?, ?, ?);
+INSERT INTO Book(title, folder_uri, folder_source_id, sub_path, total_duration_ms) VALUES(?, ?, ?, ?, ?);
+
+selectByFolderUriAndTitle:
+SELECT id, title, folder_uri, sub_path, total_duration_ms, listened_duration_ms, is_completed
+FROM Book
+WHERE folder_uri = ? AND title = ?;
+
+updateBookMetadata:
+UPDATE Book SET sub_path = ?, total_duration_ms = ?
+WHERE id = ?;
+
+selectBooksByFolderSourceId:
+SELECT id, folder_uri, title
+FROM Book
+WHERE folder_source_id = ?;
+
+deleteById:
+DELETE FROM Book WHERE id = ?;
 
 selectAll:
 SELECT b.id, b.title, b.folder_uri,
     (SELECT COUNT(*) FROM Chapter c WHERE c.book_id = b.id) AS chapter_count,
-    b.sub_path
+    b.sub_path,
+    b.total_duration_ms,
+    b.listened_duration_ms,
+    b.is_completed
 FROM Book b
 ORDER BY b.sub_path, b.title;
 
@@ -31,3 +54,7 @@ DELETE FROM Book WHERE folder_source_id = ?;
 
 lastInsertId:
 SELECT last_insert_rowid();
+
+upsertProgress:
+UPDATE Book SET listened_duration_ms = ?, is_completed = ?
+WHERE id = ?;

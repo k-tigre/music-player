@@ -52,7 +52,7 @@ interface BookListComponent {
                         .map { it.key to it.value }
                     rootBooks to grouped
                 }, expandedState
-        ) { (rootBooks, grouped), expands -> ScreenContentState.Content(BookListUiState(rootBooks, grouped, expandedState.value)) }
+        ) { (rootBooks, grouped), _ -> ScreenContentState.Content(BookListUiState(rootBooks, grouped, expandedState.value)) }
             .stateIn(this, SharingStarted.WhileSubscribed(), ScreenContentState.Loading)
 
         override fun onBookClicked(book: Book) {
