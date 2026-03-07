@@ -16,3 +16,6 @@ SELECT id, book_id, title, file_uri, duration, sort_order
 FROM Chapter
 WHERE book_id = ?
 ORDER BY sort_order;
+
+deleteByBook:
+DELETE FROM Chapter WHERE book_id = ?;

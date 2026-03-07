@@ -10,15 +10,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -66,6 +71,26 @@ class FolderSelectionView(
             }
         }
 
+        val isScanning by component.isScanning.collectAsState()
+
+        if (isScanning) {
+            AlertDialog(
+                onDismissRequest = {},
+                confirmButton = {},
+                title = { Text("Scanning folders") },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Please wait...")
+                    }
+                }
+            )
+        }
+
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(
@@ -77,6 +102,12 @@ class FolderSelectionView(
                         )
                     },
                     actions = {
+                        IconButton(onClick = component::onRescanFolders, enabled = !isScanning) {
+                            Icon(
+                                imageVector = Icons.Filled.Refresh,
+                                contentDescription = "Rescan folders"
+                            )
+                        }
                         TextButton(onClick = component::onNavigateToBooks) {
                             Text("Books")
                         }

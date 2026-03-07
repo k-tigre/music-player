@@ -25,4 +25,16 @@ internal class AudiobookPlaybackStorageImpl(
             )
         }.executeAsOneOrNull()
     }
+
+    override suspend fun saveBookProgress(
+        bookId: Book.Id,
+        listenedDurationMs: Long,
+        isCompleted: Boolean
+    ) {
+        database.bookQueries.upsertProgress(
+            listened_duration_ms = listenedDurationMs,
+            is_completed = if (isCompleted) 1L else 0L,
+            id = bookId.value
+        )
+    }
 }

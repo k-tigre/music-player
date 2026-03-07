@@ -3,6 +3,7 @@ package by.tigre.audiobook.core.data.audiobook_playback.impl
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import by.tigre.audiobook.core.data.audiobook.AudiobookCatalogSource
+import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackConfig
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
 import by.tigre.audiobook.core.data.storage.audiobook_playback.AudiobookPlaybackStorage
 import by.tigre.audiobook.core.entity.catalog.Book
@@ -47,7 +48,7 @@ internal class AudiobookPlaybackControllerImpl(
             isPlaying
                 .flatMapLatest { isPlaying ->
                     if (isPlaying) {
-                        tickerFlow(5.seconds)
+                        tickerFlow(30.seconds)
                     } else {
                         emptyFlow()
                     }
@@ -96,6 +97,7 @@ internal class AudiobookPlaybackControllerImpl(
                 Log.d(TAG) { "Book finished" }
                 currentBook.value?.let { book ->
                     storage.savePosition(book.id, chapterList.first().id, 0L)
+                    saveBookProgressCompleted(book, chapterList)
                 }
                 isPlaying.value = false
                 player.stop()
@@ -170,6 +172,30 @@ internal class AudiobookPlaybackControllerImpl(
             storage.savePosition(book.id, chapter.id, progress.position)
             Log.d(TAG) { "Saved position: book=${book.title}, chapter=${chapter.title}, pos=${progress.position}" }
         }
+        saveBookProgress(book, chapter, progress.position)
+    }
+
+    private suspend fun saveBookProgress(book: Book, currentChapter: Chapter, currentPositionMs: Long) {
+        val chapterList = chapters.value
+        if (chapterList.isEmpty()) return
+
+        val currentIndex = chapterList.indexOfFirst { it.id == currentChapter.id }
+        if (currentIndex < 0) return
+
+        val listenedDurationMs = chapterList.take(currentIndex).sumOf { it.duration } + currentPositionMs
+
+        val isLastChapter = currentIndex == chapterList.size - 1
+        val remainingInChapter = (currentChapter.duration - currentPositionMs).coerceAtLeast(0)
+        val isCompleted = isLastChapter && remainingInChapter < AudiobookPlaybackConfig.BOOK_COMPLETION_THRESHOLD_MS
+
+        storage.saveBookProgress(book.id, listenedDurationMs, isCompleted)
+        Log.d(TAG) { "Saved book progress: book=${book.title}, listened=$listenedDurationMs, completed=$isCompleted" }
+    }
+
+    private suspend fun saveBookProgressCompleted(book: Book, chapterList: List<Chapter>) {
+        val totalDurationMs = chapterList.sumOf { it.duration }
+        storage.saveBookProgress(book.id, totalDurationMs, isCompleted = true)
+        Log.d(TAG) { "Marked book as completed: ${book.title}" }
     }
 
     private companion object {

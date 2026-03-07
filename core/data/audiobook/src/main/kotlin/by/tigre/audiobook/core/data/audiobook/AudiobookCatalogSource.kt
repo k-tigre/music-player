@@ -11,6 +11,7 @@ interface AudiobookCatalogSource {
 
     suspend fun addFolderAndScan(uri: String, name: String)
     suspend fun removeFolder(id: FolderSource.Id)
+    suspend fun rescanAllFolders()
     suspend fun getBooks(): List<Book>
     suspend fun getChapters(bookId: Book.Id): List<Chapter>
 }
