@@ -58,7 +58,7 @@ interface BookListComponent {
             .stateIn(this, SharingStarted.WhileSubscribed(), ScreenContentState.Loading)
 
         override fun onBookClicked(book: Book) {
-            playbackController.playBook(book)
+            playbackController.loadBook(book)
             onBookSelectedListener.onBookSelected()
         }
 

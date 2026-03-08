@@ -12,3 +12,14 @@ getPosition:
 SELECT chapter_id, position_ms
 FROM AudiobookPlaybackPosition
 WHERE book_id = ?;
+
+CREATE TABLE IF NOT EXISTS AudiobookLastPlayed (
+    id INTEGER NOT NULL PRIMARY KEY DEFAULT 1,
+    book_id INTEGER NOT NULL
+);
+
+upsertLastPlayed:
+INSERT OR REPLACE INTO AudiobookLastPlayed(id, book_id) VALUES(1, ?);
+
+getLastPlayed:
+SELECT book_id FROM AudiobookLastPlayed WHERE id = 1;

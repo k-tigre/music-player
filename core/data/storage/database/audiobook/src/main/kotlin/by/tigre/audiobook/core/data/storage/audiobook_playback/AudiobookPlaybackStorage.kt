@@ -11,5 +11,8 @@ interface AudiobookPlaybackStorage {
 
     suspend fun saveBookProgress(bookId: Book.Id, listenedDurationMs: Long, isCompleted: Boolean)
 
+    suspend fun saveLastPlayedBook(bookId: Book.Id)
+    suspend fun getLastPlayedBookId(): Book.Id?
+
     data class PlaybackPosition(val chapterId: Chapter.Id, val positionMs: Long)
 }

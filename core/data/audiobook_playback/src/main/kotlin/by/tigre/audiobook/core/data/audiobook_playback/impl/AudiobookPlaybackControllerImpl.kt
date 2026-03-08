@@ -56,32 +56,54 @@ internal class AudiobookPlaybackControllerImpl(
                     saveCurrentPosition()
                 }
         }
+
+        scope.launch {
+            restoreLastPlayedBook()
+        }
+    }
+
+    override fun loadBook(book: Book) {
+        Log.d(TAG) { "loadBook: ${book.title}" }
+        scope.launch { loadBookInternal(book, autoPlay = false) }
     }
 
     override fun playBook(book: Book) {
         Log.d(TAG) { "playBook: ${book.title}" }
-        scope.launch {
-            val chapterList = catalog.getChapters(book.id)
-            if (chapterList.isEmpty()) {
-                Log.w(TAG) { "No chapters for book: ${book.title}" }
-                return@launch
-            }
+        scope.launch { loadBookInternal(book, autoPlay = true) }
+    }
 
-            chapters.value = chapterList
-            currentBook.value = book
+    private suspend fun loadBookInternal(book: Book, autoPlay: Boolean) {
+        val chapterList = catalog.getChapters(book.id)
+        if (chapterList.isEmpty()) {
+            Log.w(TAG) { "No chapters for book: ${book.title}" }
+            return
+        }
 
-            val savedPosition = storage.getPosition(book.id)
-            val startChapter = if (savedPosition != null) {
-                chapterList.firstOrNull { it.id == savedPosition.chapterId } ?: chapterList.first()
-            } else {
-                chapterList.first()
-            }
-            val startPosition = if (savedPosition?.chapterId == startChapter.id) savedPosition.positionMs else 0L
+        chapters.value = chapterList
+        currentBook.value = book
 
-            setChapter(startChapter, startPosition)
+        val savedPosition = storage.getPosition(book.id)
+        val startChapter = if (savedPosition != null) {
+            chapterList.firstOrNull { it.id == savedPosition.chapterId } ?: chapterList.first()
+        } else {
+            chapterList.first()
+        }
+        val startPosition = if (savedPosition?.chapterId == startChapter.id) savedPosition.positionMs else 0L
+
+        setChapter(startChapter, startPosition)
+        storage.saveLastPlayedBook(book.id)
+
+        if (autoPlay) {
             isPlaying.value = true
             player.resume()
         }
+    }
+
+    private suspend fun restoreLastPlayedBook() {
+        val bookId = storage.getLastPlayedBookId() ?: return
+        val book = catalog.getBook(bookId) ?: return
+        Log.d(TAG) { "Restoring last played book: ${book.title}" }
+        loadBookInternal(book, autoPlay = false)
     }
 
     override fun playNextChapter() {
@@ -148,6 +170,7 @@ internal class AudiobookPlaybackControllerImpl(
     private suspend fun setChapter(chapter: Chapter, positionMs: Long) {
         currentChapter.value = chapter
         withContext(Dispatchers.Main) {
+            player.player.playWhenReady = false
             player.player.setMediaItem(
                 MediaItem.Builder()
                     .setUri(chapter.fileUri)

@@ -37,4 +37,14 @@ internal class AudiobookPlaybackStorageImpl(
             id = bookId.value
         )
     }
+
+    override suspend fun saveLastPlayedBook(bookId: Book.Id) {
+        database.audiobookPlaybackQueries.upsertLastPlayed(book_id = bookId.value)
+    }
+
+    override suspend fun getLastPlayedBookId(): Book.Id? {
+        return database.audiobookPlaybackQueries.getLastPlayed()
+            .executeAsOneOrNull()
+            ?.let { Book.Id(it) }
+    }
 }

@@ -58,3 +58,13 @@ SELECT last_insert_rowid();
 upsertProgress:
 UPDATE Book SET listened_duration_ms = ?, is_completed = ?
 WHERE id = ?;
+
+selectById:
+SELECT b.id, b.title, b.folder_uri,
+    (SELECT COUNT(*) FROM Chapter c WHERE c.book_id = b.id) AS chapter_count,
+    b.sub_path,
+    b.total_duration_ms,
+    b.listened_duration_ms,
+    b.is_completed
+FROM Book b
+WHERE b.id = ?;

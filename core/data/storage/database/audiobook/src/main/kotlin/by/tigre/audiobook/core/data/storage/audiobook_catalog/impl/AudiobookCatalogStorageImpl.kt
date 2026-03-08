@@ -122,6 +122,21 @@ class AudiobookCatalogStorageImpl(
         }
     }
 
+    override suspend fun getBook(bookId: Book.Id): Book? {
+        return database.bookQueries.selectById(bookId.value) { id, title, folderUri, chapterCount, subPath, totalDurationMs, listenedDurationMs, isCompleted ->
+            Book(
+                id = Book.Id(id),
+                title = title,
+                folderUri = folderUri,
+                chapterCount = chapterCount.toInt(),
+                subPath = subPath,
+                totalDurationMs = totalDurationMs,
+                listenedDurationMs = listenedDurationMs,
+                isCompleted = isCompleted != 0L
+            )
+        }.executeAsOneOrNull()
+    }
+
     override suspend fun getBooks(): List<Book> {
         return database.bookQueries.selectAll { id, title, folderUri, chapterCount, subPath, _, _, _ ->
             Book(

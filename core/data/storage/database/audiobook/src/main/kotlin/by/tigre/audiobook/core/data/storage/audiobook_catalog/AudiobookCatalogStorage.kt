@@ -17,6 +17,7 @@ interface AudiobookCatalogStorage {
     suspend fun syncBooksForFolder(folderSourceId: FolderSource.Id, scannedBooks: List<ScannedBook>)
 
     suspend fun getBooks(): List<Book>
+    suspend fun getBook(bookId: Book.Id): Book?
     suspend fun getChaptersByBook(bookId: Book.Id): List<Chapter>
 
     data class ScannedBook(
