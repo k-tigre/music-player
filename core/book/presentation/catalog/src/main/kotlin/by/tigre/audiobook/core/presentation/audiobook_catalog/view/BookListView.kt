@@ -1,6 +1,7 @@
 package by.tigre.audiobook.core.presentation.audiobook_catalog.view
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -156,6 +157,7 @@ class BookListView(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 3.dp)
+                .animateContentSize()
                 .clickable { component.onBookClicked(book) }
         ) {
             Column(
