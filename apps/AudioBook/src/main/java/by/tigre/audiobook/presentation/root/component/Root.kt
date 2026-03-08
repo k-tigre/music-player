@@ -2,6 +2,7 @@ package by.tigre.audiobook.presentation.root.component
 
 import by.tigre.audiobook.core.presentation.audiobook_catalog.component.RootAudiobookCatalogComponent
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogComponentProvider
+import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.OnBookSelectedListener
 import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.SmallPlayerComponent
 import by.tigre.music.player.core.presentation.catalog.di.PlayerComponentProvider
@@ -12,7 +13,7 @@ import by.tigre.music.player.presentation.base.appChildStack
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
-import com.arkivanov.decompose.router.stack.push
+import com.arkivanov.decompose.router.stack.pushToFront
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -26,6 +27,8 @@ interface Root {
     val onStartServiceEvent: Flow<Unit>
 
     val mainComponent: Value<ChildStack<*, MainComponentChild>>
+
+    fun onShowCatalog()
 
     sealed interface MainComponentChild {
         data object Main : MainComponentChild
@@ -41,12 +44,12 @@ interface Root {
         private val mainNavigation = StackNavigation<MainConfig>()
 
         private val playerNavigator = object : PlayerNavigator {
-            override fun navigateBack() {
+            override fun showQueue() {
                 mainNavigation.pop()
             }
 
             override fun playerView() {
-                mainNavigation.push(MainConfig.Player)
+                mainNavigation.pushToFront(MainConfig.Player)
             }
         }
 
@@ -59,7 +62,12 @@ interface Root {
 
         override val audiobookCatalogComponent: RootAudiobookCatalogComponent by lazy {
             audiobookCatalogComponentProvider.createRootAudiobookCatalogComponent(
-                appChildContext("audiobook_catalog")
+                context = appChildContext("audiobook_catalog"),
+                onBookSelectedListener = object : OnBookSelectedListener {
+                    override fun onBookSelected() {
+                        playerNavigator.playerView()
+                    }
+                }
             )
         }
 
@@ -68,7 +76,7 @@ interface Root {
         override val mainComponent: Value<ChildStack<*, MainComponentChild>> =
             appChildStack(
                 source = mainNavigation,
-                initialStack = { listOf(MainConfig.Main, MainConfig.Player) },
+                initialStack = { listOf(MainConfig.Player) },
                 key = "main",
                 handleBackButton = true
             ) { config, componentContext ->
@@ -83,6 +91,10 @@ interface Root {
                     )
                 }
             }
+
+        override fun onShowCatalog() {
+            mainNavigation.pushToFront(MainConfig.Main)
+        }
 
         @Serializable
         private sealed interface MainConfig {

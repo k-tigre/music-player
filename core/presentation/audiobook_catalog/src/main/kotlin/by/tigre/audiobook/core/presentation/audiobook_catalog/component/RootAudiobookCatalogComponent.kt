@@ -2,6 +2,7 @@ package by.tigre.audiobook.core.presentation.audiobook_catalog.component
 
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogComponentProvider
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.AudiobookCatalogNavigator
+import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.OnBookSelectedListener
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.appChildStack
 import com.arkivanov.decompose.router.stack.ChildStack
@@ -22,7 +23,8 @@ interface RootAudiobookCatalogComponent {
 
     class Impl(
         context: BaseComponentContext,
-        private val componentProvider: AudiobookCatalogComponentProvider
+        private val componentProvider: AudiobookCatalogComponentProvider,
+        private val onBookSelectedListener: OnBookSelectedListener
     ) : RootAudiobookCatalogComponent, BaseComponentContext by context {
 
         private val navigation = StackNavigation<Config>()
@@ -55,7 +57,7 @@ interface RootAudiobookCatalogComponent {
                 )
 
                 is Config.BookList -> AudiobookCatalogChild.BookList(
-                    componentProvider.createBookListComponent(context, navigator)
+                    componentProvider.createBookListComponent(context, navigator, onBookSelectedListener)
                 )
             }
 

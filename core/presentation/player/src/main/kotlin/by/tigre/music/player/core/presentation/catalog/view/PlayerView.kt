@@ -46,6 +46,7 @@ import by.tigre.compose.R as CoreR
 
 class PlayerView(
     private val component: PlayerComponent,
+    private val config: Config,
     private val topBarContent: (@Composable () -> Unit)? = null,
 ) : ComposableView {
 
@@ -70,16 +71,16 @@ class PlayerView(
                     )
                 } else {
                     EmptyScreen(
-                        reloadAction = component::navigateBack,
-                        title = "No songs in current playlist",
-                        message = "Select some track for playing",
-                        actionTitle = "Select from catalog"
+                        reloadAction = config.emptyScreenAction,
+                        title = config.emptyScreenTitle,
+                        message = config.emptyScreenMessage,
+                        actionTitle = config.emptyScreenActionTitle
                     )
                 }
                 if (topBarContent == null) {
                     IconButton(
                         modifier = Modifier.align(Alignment.TopStart),
-                        onClick = component::navigateBack
+                        onClick = component::showQueue
                     ) {
                         Icon(
                             contentDescription = null,
@@ -89,7 +90,7 @@ class PlayerView(
 
                     IconButton(
                         modifier = Modifier.align(Alignment.TopEnd),
-                        onClick = component::navigateBack
+                        onClick = component::showQueue
                     ) {
                         Icon(
                             contentDescription = null,
@@ -113,8 +114,8 @@ class PlayerView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f),
-                placeholder = painterResource(id = R.drawable.ic_player_no_cover),
-                fallback = painterResource(id = R.drawable.ic_player_no_cover)
+                placeholder = painterResource(id = config.coverFallbackIcon),
+                fallback = painterResource(id = config.coverFallbackIcon)
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -260,6 +261,14 @@ class PlayerView(
             }
         }
     }
+
+    data class Config(
+        val emptyScreenAction: () -> Unit,
+        val emptyScreenTitle: String,
+        val emptyScreenMessage: String,
+        val emptyScreenActionTitle: String,
+        val coverFallbackIcon: Int
+    )
 }
 
 
@@ -267,7 +276,18 @@ class PlayerView(
 @Composable
 private fun Preview() {
     AppTheme {
-        PlayerView(PreviewStub.playerComponent(PreviewStub.playerItem)).Draw(modifier = Modifier.padding(top = 36.dp))
+        PlayerView(
+            component = PreviewStub.playerComponent(PreviewStub.playerItem),
+            config = PlayerView.Config(
+                emptyScreenAction = {},
+                emptyScreenTitle = "No songs in current playlist",
+                emptyScreenMessage = "Select some track for playing",
+                emptyScreenActionTitle = "Select from catalog",
+                coverFallbackIcon = R.drawable.ic_player_no_cover
+            )
+        ).Draw(
+            modifier = Modifier.padding(top = 36.dp)
+        )
     }
 }
 
@@ -275,6 +295,15 @@ private fun Preview() {
 @Composable
 private fun PreviewEmptyDark() {
     AppTheme {
-        PlayerView(PreviewStub.playerComponent(item = null)).Draw(modifier = Modifier.padding(top = 36.dp))
+        PlayerView(
+            component = PreviewStub.playerComponent(item = null),
+            config = PlayerView.Config(
+                emptyScreenAction = {},
+                emptyScreenTitle = "No songs in current playlist",
+                emptyScreenMessage = "Select some track for playing",
+                emptyScreenActionTitle = "Select from catalog",
+                coverFallbackIcon = R.drawable.ic_player_no_cover
+            )
+        ).Draw(modifier = Modifier.padding(top = 36.dp))
     }
 }
