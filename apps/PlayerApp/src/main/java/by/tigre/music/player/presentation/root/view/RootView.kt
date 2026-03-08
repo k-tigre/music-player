@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import by.tigre.music.player.R
 import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
+import by.tigre.music.player.core.presentation.catalog.view.PlayerView
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
 import by.tigre.music.player.presentation.root.component.Root
 import by.tigre.music.player.tools.platform.compose.ComposableView
@@ -69,7 +70,16 @@ class RootView(
         ) {
             when (val child = it.instance) {
                 is Root.MainComponentChild.Main -> DrawPages()
-                is Root.MainComponentChild.Player -> playerViewProvider.createPlayerView(child.component).Draw(Modifier.fillMaxSize())
+                is Root.MainComponentChild.Player -> playerViewProvider.createPlayerView(
+                    component = child.component,
+                    config = PlayerView.Config(
+                        emptyScreenAction = {},
+                        emptyScreenTitle = "No songs in current playlist",
+                        emptyScreenMessage = "Select some track for playing",
+                        emptyScreenActionTitle = "Select from catalog",
+                        coverFallbackIcon = by.tigre.player.R.drawable.ic_player_no_cover
+                    )
+                ).Draw(Modifier.fillMaxSize())
             }
         }
     }

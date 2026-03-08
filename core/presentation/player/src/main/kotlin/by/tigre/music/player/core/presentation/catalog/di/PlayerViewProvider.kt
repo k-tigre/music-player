@@ -9,10 +9,18 @@ import by.tigre.music.player.tools.platform.compose.ComposableView
 
 interface PlayerViewProvider {
     fun createSmallPlayerView(component: SmallPlayerComponent): ComposableView
-    fun createPlayerView(component: PlayerComponent, topBarContent: (@Composable () -> Unit)? = null): ComposableView
+    fun createPlayerView(
+        component: PlayerComponent,
+        config: PlayerView.Config,
+        topBarContent: (@Composable () -> Unit)? = null
+    ): ComposableView
 
     class Impl : PlayerViewProvider {
         override fun createSmallPlayerView(component: SmallPlayerComponent): SmallPlayerView = SmallPlayerView(component)
-        override fun createPlayerView(component: PlayerComponent, topBarContent: (@Composable () -> Unit)?): PlayerView = PlayerView(component, topBarContent)
+        override fun createPlayerView(
+            component: PlayerComponent,
+            config: PlayerView.Config,
+            topBarContent: (@Composable () -> Unit)?
+        ): PlayerView = PlayerView(component, config, topBarContent)
     }
 }

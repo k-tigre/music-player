@@ -5,6 +5,7 @@ import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackControll
 import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogDependency
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.AudiobookCatalogNavigator
+import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.OnBookSelectedListener
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.ScreenContentState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,7 +33,8 @@ interface BookListComponent {
     class Impl(
         context: BaseComponentContext,
         dependency: AudiobookCatalogDependency,
-        private val navigator: AudiobookCatalogNavigator
+        private val navigator: AudiobookCatalogNavigator,
+        private val onBookSelectedListener: OnBookSelectedListener
     ) : BookListComponent, BaseComponentContext by context {
 
         private val catalogSource: AudiobookCatalogSource = dependency.audiobookCatalogSource
@@ -57,6 +59,7 @@ interface BookListComponent {
 
         override fun onBookClicked(book: Book) {
             playbackController.playBook(book)
+            onBookSelectedListener.onBookSelected()
         }
 
         override fun onManageFolders() {

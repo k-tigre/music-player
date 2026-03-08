@@ -6,7 +6,7 @@ import by.tigre.music.player.presentation.base.BaseComponentContext
 
 interface PlayerComponent : BasePlayerComponent {
 
-    fun navigateBack()
+    fun showQueue()
 
     class Impl(
         context: BaseComponentContext,
@@ -14,8 +14,8 @@ interface PlayerComponent : BasePlayerComponent {
         private val navigator: PlayerNavigator
     ) : PlayerComponent, BasePlayerComponent by BasePlayerComponentImpl(context, dependency) {
 
-        override fun navigateBack() {
-            navigator.navigateBack()
+        override fun showQueue() {
+            navigator.showQueue()
         }
     }
 }

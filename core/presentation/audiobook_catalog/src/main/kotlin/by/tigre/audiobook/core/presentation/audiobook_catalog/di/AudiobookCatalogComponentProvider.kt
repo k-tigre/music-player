@@ -4,11 +4,15 @@ import by.tigre.audiobook.core.presentation.audiobook_catalog.component.BookList
 import by.tigre.audiobook.core.presentation.audiobook_catalog.component.FolderSelectionComponent
 import by.tigre.audiobook.core.presentation.audiobook_catalog.component.RootAudiobookCatalogComponent
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.AudiobookCatalogNavigator
+import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.OnBookSelectedListener
 import by.tigre.music.player.presentation.base.BaseComponentContext
 
 interface AudiobookCatalogComponentProvider {
 
-    fun createRootAudiobookCatalogComponent(context: BaseComponentContext): RootAudiobookCatalogComponent
+    fun createRootAudiobookCatalogComponent(
+        context: BaseComponentContext,
+        onBookSelectedListener: OnBookSelectedListener
+    ): RootAudiobookCatalogComponent
 
     fun createFolderSelectionComponent(
         context: BaseComponentContext,
@@ -17,7 +21,8 @@ interface AudiobookCatalogComponentProvider {
 
     fun createBookListComponent(
         context: BaseComponentContext,
-        navigator: AudiobookCatalogNavigator
+        navigator: AudiobookCatalogNavigator,
+        onBookSelectedListener: OnBookSelectedListener
     ): BookListComponent
 
     class Impl(
@@ -25,8 +30,9 @@ interface AudiobookCatalogComponentProvider {
     ) : AudiobookCatalogComponentProvider {
 
         override fun createRootAudiobookCatalogComponent(
-            context: BaseComponentContext
-        ): RootAudiobookCatalogComponent = RootAudiobookCatalogComponent.Impl(context, this)
+            context: BaseComponentContext,
+            onBookSelectedListener: OnBookSelectedListener
+        ): RootAudiobookCatalogComponent = RootAudiobookCatalogComponent.Impl(context, this, onBookSelectedListener)
 
         override fun createFolderSelectionComponent(
             context: BaseComponentContext,
@@ -35,7 +41,8 @@ interface AudiobookCatalogComponentProvider {
 
         override fun createBookListComponent(
             context: BaseComponentContext,
-            navigator: AudiobookCatalogNavigator
-        ): BookListComponent = BookListComponent.Impl(context, dependency, navigator)
+            navigator: AudiobookCatalogNavigator,
+            onBookSelectedListener: OnBookSelectedListener
+        ): BookListComponent = BookListComponent.Impl(context, dependency, navigator, onBookSelectedListener)
     }
 }
