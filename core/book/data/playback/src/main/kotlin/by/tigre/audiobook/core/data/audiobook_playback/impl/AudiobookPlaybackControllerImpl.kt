@@ -48,7 +48,7 @@ internal class AudiobookPlaybackControllerImpl(
             isPlaying
                 .flatMapLatest { isPlaying ->
                     if (isPlaying) {
-                        tickerFlow(30.seconds)
+                        tickerFlow(15.seconds, 1.seconds)
                     } else {
                         emptyFlow()
                     }
@@ -69,7 +69,10 @@ internal class AudiobookPlaybackControllerImpl(
 
     override fun playBook(book: Book) {
         Log.d(TAG) { "playBook: ${book.title}" }
-        scope.launch { loadBookInternal(book, autoPlay = true) }
+        scope.launch {
+            loadBookInternal(book, autoPlay = true)
+            saveCurrentPosition()
+        }
     }
 
     private suspend fun loadBookInternal(book: Book, autoPlay: Boolean) {
@@ -109,6 +112,7 @@ internal class AudiobookPlaybackControllerImpl(
     override fun playNextChapter() {
         Log.d(TAG) { "playNextChapter" }
         scope.launch {
+            saveCurrentPosition()
             val chapterList = chapters.value
             val current = currentChapter.value ?: return@launch
             val nextIndex = chapterList.indexOfFirst { it.id == current.id } + 1
@@ -130,6 +134,7 @@ internal class AudiobookPlaybackControllerImpl(
     override fun playPrevChapter() {
         Log.d(TAG) { "playPrevChapter" }
         scope.launch {
+            saveCurrentPosition()
             val chapterList = chapters.value
             val current = currentChapter.value ?: return@launch
             val prevIndex = chapterList.indexOfFirst { it.id == current.id } - 1
@@ -155,7 +160,10 @@ internal class AudiobookPlaybackControllerImpl(
     override fun resume() {
         Log.d(TAG) { "resume" }
         isPlaying.value = true
-        scope.launch { player.resume() }
+        scope.launch {
+            saveCurrentPosition()
+            player.resume()
+        }
     }
 
     override fun stop() {
