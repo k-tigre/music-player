@@ -4,6 +4,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.provider.MediaStore
 import by.tigre.music.player.core.data.catalog.di.CatalogModule
+import by.tigre.music.player.core.data.playback.di.BasePlaybackModule
 import by.tigre.music.player.core.data.playback.di.PlaybackModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.PlaybackQueueModule
 import by.tigre.music.player.core.data.storage.preferences.di.PreferencesModule
@@ -47,6 +48,7 @@ class ApplicationGraph(
             override fun playPrev() = controller.playPrev()
             override fun pause() = controller.pause()
             override fun resume() = controller.resume()
+            override fun stop() = controller.stop()
             override fun setOrderMode(isNormal: Boolean) = controller.setOrderMode(isNormal)
         }
     }
@@ -57,7 +59,9 @@ class ApplicationGraph(
             val catalogModule = CatalogModule.Impl(context)
             val coroutineModule = CoroutineModule.Impl()
             val playbackQueueModule = PlaybackQueueModule.Impl(context, coroutineModule, preferencesModule)
-            val playbackModule = PlaybackModule.Impl(context, coroutineModule, playbackQueueModule, catalogModule)
+            val basePlaybackModule = BasePlaybackModule.Impl(context, coroutineModule)
+            val playbackModule =
+                PlaybackModule.Impl(coroutineModule, playbackQueueModule, catalogModule, basePlaybackModule)
 
             return ApplicationGraph(playbackModule, catalogModule)
         }

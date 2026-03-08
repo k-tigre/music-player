@@ -26,25 +26,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Build Variants
 
-| Variant | Debuggable | Minify | App ID Suffix |
-|---------|-----------|--------|---------------|
-| **debug** | ✓ | ✗ | `.dev` |
-| **qa** | ✓ | ✓ | `.dev` |
-| **release** | ✗ | ✓ | _(none)_ |
+| Variant     | Debuggable | Minify | App ID Suffix |
+|-------------|------------|--------|---------------|
+| **debug**   | ✓          | ✗      | `.dev`        |
+| **qa**      | ✓          | ✓      | `.dev`        |
+| **release** | ✗          | ✓      | _(none)_      |
 
 ### Environment Variables (Release Signing)
 
 **Music Player:**
+
 - `MUSIC_PLAYER_RELEASE_JKS_STORE_PASSWORD`
 - `MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD`
 
 **AudioBook:**
+
 - `AUDIO_BOOK_RELEASE_JKS_STORE_PASSWORD`
 - `AUDIO_BOOK_RELEASE_JKS_KEY_PASSWORD`
 
 ## Project Architecture
 
-Two Android apps built with Kotlin and Jetpack Compose, sharing a common set of modules. Uses a modular multi-project architecture with manual dependency injection and Decompose for navigation.
+Two Android apps built with Kotlin and Jetpack Compose, sharing a common set of modules. Uses a modular multi-project
+architecture with manual dependency injection and Decompose for navigation.
 
 - Compile SDK: 34 | Target SDK: 33 | Min SDK: 26 | Java: 17
 - K2 compiler is enabled (`kotlin.experimental.tryK2=true` in `gradle.properties`)
@@ -52,32 +55,33 @@ Two Android apps built with Kotlin and Jetpack Compose, sharing a common set of 
 ### App Modules
 
 - **androidApp** - Music Player app (v0.14.1)
-- **AudioBook** - AudioBook app (v0.1.0, `poc/book` branch) — currently a copy of the Music Player sharing all core modules; intended template for audiobook-specific features
+- **AudioBook** - AudioBook app (v0.1.0, `poc/book` branch) — currently a copy of the Music Player sharing all core
+  modules; intended template for audiobook-specific features
 
 ### Shared Module Structure
 
 - **core:data**
-  - `playback` - Media3 ExoPlayer wrapper and playback control
-  - `catalog` - Music catalog data source using Android MediaStore
-  - `storage:preferences` - SharedPreferences wrapper
-  - `storage:database:music` - SQLDelight database for playback queue persistence
+    - `playback` - Media3 ExoPlayer wrapper and playback control
+    - `catalog` - Music catalog data source using Android MediaStore
+    - `storage:preferences` - SharedPreferences wrapper
+    - `storage:database:music` - SQLDelight database for playback queue persistence
 - **core:entity**
-  - `catalog` - Song, Artist, Album entities
-  - `playback` - SongInQueueItem entities
-  - `queue` - Queue domain model
+    - `catalog` - Song, Artist, Album entities
+    - `playback` - SongInQueueItem entities
+    - `queue` - Queue domain model
 - **core:presentation**
-  - `catalog` - Catalog browsing (Artists → Albums → Songs)
-  - `player` - Full player and mini player views
-  - `playlist:queue` - Current queue management UI
-  - `background_player` - Background playback service with Media3 MediaSession
+    - `catalog` - Catalog browsing (Artists → Albums → Songs)
+    - `player` - Full player and mini player views
+    - `playlist:queue` - Current queue management UI
+    - `background_player` - Background playback service with Media3 MediaSession
 - **core:platform**
-  - `permission` - Runtime permissions handling
+    - `permission` - Runtime permissions handling
 - **tools**
-  - `coroutines` - Coroutine scope and extensions
-  - `entity` - Optional type wrapper
-  - `presentation:compose` - Compose UI utilities (Theme, Colors, Views)
-  - `presentation:decompose` - Decompose navigation base classes
-  - `platform:utils` - Platform-specific utilities
+    - `coroutines` - Coroutine scope and extensions
+    - `entity` - Optional type wrapper
+    - `presentation:compose` - Compose UI utilities (Theme, Colors, Views)
+    - `presentation:decompose` - Decompose navigation base classes
+    - `platform:utils` - Platform-specific utilities
 - **logger** - Multi-backend logging (Logcat, Crashlytics, Internal DB)
 - **debug:settings** - Debug-only UI for viewing internal logs
 
@@ -103,7 +107,9 @@ Navigation uses Arkivanov Decompose for state-preserving navigation:
 
 #### BaseComponentContext
 
-All components extend `BaseComponentContext` which combines `ComponentContext` (Decompose lifecycle/state saving) with a `CoroutineScope`. See `tools/presentation/decompose/src/main/kotlin/by/tigre/music/player/presentation/base/BaseComponentContext.kt`.
+All components extend `BaseComponentContext` which combines `ComponentContext` (Decompose lifecycle/state saving) with a
+`CoroutineScope`. See
+`tools/presentation/decompose/src/main/kotlin/by/tigre/music/player/presentation/base/BaseComponentContext.kt`.
 
 #### View/Component Separation
 

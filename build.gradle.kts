@@ -24,33 +24,34 @@ buildscript {
 }
 
 subprojects {
-    plugins.matching { it is com.android.build.gradle.AppPlugin || it is com.android.build.gradle.LibraryPlugin }.whenPluginAdded {
-        configure<com.android.build.gradle.BaseExtension> {
+    plugins.matching { it is com.android.build.gradle.AppPlugin || it is com.android.build.gradle.LibraryPlugin }
+        .whenPluginAdded {
+            configure<com.android.build.gradle.BaseExtension> {
 
-            buildToolsVersion(Tools.Build.version)
-            compileSdkVersion(Application.SDK_COMPILE)
+                buildToolsVersion(Tools.Build.version)
+                compileSdkVersion(Application.SDK_COMPILE)
 
-            defaultConfig {
-                minSdk = Application.SDK_MINIMUM
-                targetSdk = Application.SDK_TARGET
+                defaultConfig {
+                    minSdk = Application.SDK_MINIMUM
+                    targetSdk = Application.SDK_TARGET
+                }
+
+                compileOptions {
+                    sourceCompatibility = JavaVersion.VERSION_21
+                    targetCompatibility = JavaVersion.VERSION_21
+                }
+
+                testOptions {
+                    unitTests.isReturnDefaultValues = true
+                }
+
+                buildFeatures.buildConfig = false
+                buildFeatures.viewBinding = false
+                buildFeatures.compose = false
+
+                namespace = "by.tigre.${name.replace(":", ".").replace("-", "_")}"
             }
-
-            compileOptions {
-                sourceCompatibility = JavaVersion.VERSION_21
-                targetCompatibility = JavaVersion.VERSION_21
-            }
-
-            testOptions {
-                unitTests.isReturnDefaultValues = true
-            }
-
-            buildFeatures.buildConfig = false
-            buildFeatures.viewBinding = false
-            buildFeatures.compose = false
-
-            namespace = "by.tigre.${name.replace(":", ".").replace("-", "_")}"
         }
-    }
 
     // Apply serialization plugin to all Kotlin Android modules (bundled in kotlin-gradle-plugin)
     plugins.withId(Plugin.Id.KotlinAndroid.value) {
