@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 
 interface PermissionsHelper {
@@ -18,6 +17,7 @@ interface PermissionsHelper {
                 Manifest.permission.READ_EXTERNAL_STORAGE
             }
         ),
+
         @SuppressLint("InlinedApi")
         Notification(Manifest.permission.POST_NOTIFICATIONS)
     }

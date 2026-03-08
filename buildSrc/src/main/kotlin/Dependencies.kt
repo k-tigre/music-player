@@ -197,6 +197,59 @@ sealed class Project(id: String) {
 
     sealed class Core(id: String) : Project("core:$id") {
 
+        sealed class Base(id: String) : Core("base:$id") {
+            sealed class Data(id: String) : Base("data:$id") {
+                object Playback : Data("playback")
+            }
+
+            sealed class Presentation(id: String) : Base("presentation:$id") {
+                object Player : Presentation("player")
+                object BackgroundPlayer : Presentation("background_player")
+            }
+        }
+
+        sealed class Music(id: String) : Core("music:$id") {
+            sealed class Entity(id: String) : Music("entity:$id") {
+                object Catalog : Entity("catalog")
+                object Playback : Entity("playback")
+            }
+
+            sealed class Data(id: String) : Music("data:$id") {
+                object Playback : Data("playback")
+                object Catalog : Data("catalog")
+                sealed class Storage(id: String) : Data("storage:$id") {
+                    sealed class Database(id: String) : Storage("database") {
+                        companion object : Database("")
+                    }
+                }
+            }
+
+            sealed class Presentation(id: String) : Music("presentation:$id") {
+                object Catalog : Presentation("catalog")
+                object PlaylistCurrentQueue : Presentation("playlist:queue")
+            }
+        }
+
+        sealed class Book(id: String) : Core("book:$id") {
+            sealed class Entity(id: String) : Book("entity:$id") {
+                object Catalog : Entity("catalog")
+            }
+
+            sealed class Data(id: String) : Book("data:$id") {
+                object Playback : Data("playback")
+                object Catalog : Data("catalog")
+                sealed class Storage(id: String) : Data("storage:$id") {
+                    sealed class Database(id: String) : Storage("database") {
+                        companion object : Database("")
+                    }
+                }
+            }
+
+            sealed class Presentation(id: String) : Book("presentation:$id") {
+                object Catalog : Presentation("catalog")
+            }
+        }
+
         sealed class Platform(id: String) : Core("platform:$id") {
             object Resources : Platform("resources")
             object Formatter : Platform("formatter")
@@ -206,34 +259,11 @@ sealed class Project(id: String) {
         sealed class Domain(id: String) : Core("domain:$id")
 
         sealed class Data(id: String) : Core("data:$id") {
-            object Playback : Data("playback")
-            object Catalog : Data("catalog")
-            object Audiobook : Data("audiobook")
-            object AudiobookPlayback : Data("audiobook_playback")
-
             sealed class Storage(id: String) : Data("storage:$id") {
                 object Preferences : Storage("preferences")
-
-                sealed class Database(id: String) : Storage("database:$id") {
-                    object Music : Database("music")
-                    object Audiobook : Database("audiobook")
-                }
             }
         }
 
-        sealed class Presentation(id: String) : Core("presentation:$id") {
-            object Catalog : Presentation("catalog")
-            object AudiobookCatalog : Presentation("audiobook_catalog")
-            object Player : Presentation("player")
-            object PlaylistCurrentQueue : Presentation("playlist:queue")
-            object BackgroundPlayer : Presentation("background_player")
-        }
-
-        sealed class Entity(id: String) : Core("entity:$id") {
-            object Catalog : Entity("catalog")
-            object Playback : Entity("playback")
-            object Audiobook : Entity("audiobook")
-        }
     }
 
     sealed class Tools(id: String) : Project("tools:$id") {

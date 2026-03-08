@@ -54,7 +54,8 @@ internal class DebugLogsView(private val component: DebugLogsComponent) : Compos
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(items = logs.value,
+                items(
+                    items = logs.value,
                     key = { it.id },
                     itemContent = { log: Logs ->
                         Card {

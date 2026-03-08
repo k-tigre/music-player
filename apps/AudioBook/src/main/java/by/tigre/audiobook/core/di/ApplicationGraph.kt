@@ -7,6 +7,7 @@ import by.tigre.audiobook.core.data.audiobook_playback.di.AudiobookPlaybackModul
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.di.AudiobookCatalogStorageModule
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogDependency
 import by.tigre.music.player.core.data.catalog.di.CatalogModule
+import by.tigre.music.player.core.data.playback.di.BasePlaybackModule
 import by.tigre.music.player.core.data.playback.di.PlaybackModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.PlaybackQueueModule
 import by.tigre.music.player.core.data.storage.preferences.di.PreferencesModule
@@ -52,6 +53,7 @@ class ApplicationGraph(
             override fun playPrev() = controller.playPrevChapter()
             override fun pause() = controller.pause()
             override fun resume() = controller.resume()
+            override fun stop() = controller.stop()
             override fun setOrderMode(isNormal: Boolean) = Unit
         }
     }
@@ -62,14 +64,16 @@ class ApplicationGraph(
             val catalogModule = CatalogModule.Impl(context)
             val coroutineModule = CoroutineModule.Impl()
             val playbackQueueModule = PlaybackQueueModule.Impl(context, coroutineModule, preferencesModule)
-            val playbackModule = PlaybackModule.Impl(context, coroutineModule, playbackQueueModule, catalogModule)
+            val basePlaybackModule = BasePlaybackModule.Impl(context, coroutineModule)
+            val playbackModule =
+                PlaybackModule.Impl(coroutineModule, playbackQueueModule, catalogModule, basePlaybackModule)
 
             val audiobookStorageModule = AudiobookCatalogStorageModule.Impl(context, coroutineModule)
             val audiobookCatalogModule = AudiobookCatalogModule.Impl(context, audiobookStorageModule)
             val audiobookPlaybackModule = AudiobookPlaybackModule.Impl(
                 audiobookCatalogStorageModule = audiobookStorageModule,
                 audiobookCatalogModule = audiobookCatalogModule,
-                playbackModule = playbackModule,
+                basePlaybackModule = basePlaybackModule,
                 coroutineModule = coroutineModule
             )
 
