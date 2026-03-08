@@ -1,13 +1,17 @@
 package by.tigre.audiobook.presentation.root.view
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocalLibrary
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,12 +60,19 @@ class RootView(
                                 .fillMaxWidth()
                                 .statusBarsPadding()
                                 .padding(horizontal = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.End
                         ) {
-                            Text(
-                                text = "Library",
-                                style = MaterialTheme.typography.titleMedium
-                            )
+                            IconButton(
+                                modifier = Modifier.align(Alignment.CenterVertically),
+                                onClick = component::onShowCatalog
+                            ) {
+                                Icon(
+                                    contentDescription = null,
+                                    imageVector = Icons.Default.LocalLibrary,
+                                    modifier = Modifier.size(56.dp)
+                                )
+                            }
                         }
                     }
                 ).Draw(Modifier.fillMaxSize())
