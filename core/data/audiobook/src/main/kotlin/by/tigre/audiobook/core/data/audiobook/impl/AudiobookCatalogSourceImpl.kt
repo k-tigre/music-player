@@ -43,6 +43,8 @@ class AudiobookCatalogSourceImpl(
 
     override suspend fun getBooks(): List<Book> = storage.getBooks()
 
+    override suspend fun getBook(bookId: Book.Id): Book? = storage.getBook(bookId)
+
     override suspend fun getChapters(bookId: Book.Id): List<Chapter> = storage.getChaptersByBook(bookId)
 
     private suspend fun scanFolder(folderSourceId: FolderSource.Id, uri: String) = withContext(Dispatchers.IO) {

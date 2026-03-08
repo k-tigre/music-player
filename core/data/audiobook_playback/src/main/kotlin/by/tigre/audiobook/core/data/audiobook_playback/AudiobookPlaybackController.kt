@@ -11,6 +11,7 @@ interface AudiobookPlaybackController {
     val currentBook: StateFlow<Book?>
     val currentChapter: StateFlow<Chapter?>
 
+    fun loadBook(book: Book)
     fun playBook(book: Book)
     fun playNextChapter()
     fun playPrevChapter()
