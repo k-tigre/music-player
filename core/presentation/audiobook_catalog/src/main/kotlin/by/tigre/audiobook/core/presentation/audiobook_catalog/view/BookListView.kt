@@ -1,7 +1,6 @@
 package by.tigre.audiobook.core.presentation.audiobook_catalog.view
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -73,13 +72,13 @@ class BookListView(
             content = { paddingValues ->
                 val screenState by component.screenState.collectAsState()
 
-                Crossfade(
+                AnimatedContent(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
                     targetState = screenState,
-                    animationSpec = tween(500),
-                    label = "state"
+                    label = "state",
+                    contentKey = { state -> state::class.java },
                 ) { state ->
                     when (state) {
                         is ScreenContentState.Loading -> {
@@ -123,7 +122,7 @@ class BookListView(
             }
         } else {
             LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
-                items(state.rootBooks) { book -> BookCard(book) }
+                items(items = state.rootBooks, key = { book -> book.id }) { book -> BookCard(book) }
 
                 state.grouped.forEach { (path, booksInGroup) ->
                     stickyHeader(key = "header_$path") {
