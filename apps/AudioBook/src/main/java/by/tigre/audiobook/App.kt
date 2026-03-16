@@ -5,6 +5,7 @@ import by.tigre.audiobook.core.di.ApplicationGraph
 import by.tigre.music.player.logger.CrashlyticsLogger
 import by.tigre.music.player.logger.DbLogger
 import by.tigre.music.player.logger.Log
+import by.tigre.music.player.logger.LogDatabaseDriverFactory
 import by.tigre.music.player.logger.LogcatLogger
 
 class App : Application() {
@@ -14,7 +15,12 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         if (BuildConfig.DEBUG) {
-            Log.init(Log.Level.VERBOSE, LogcatLogger(), CrashlyticsLogger(), DbLogger(this))
+            Log.init(
+                Log.Level.VERBOSE,
+                LogcatLogger(),
+                CrashlyticsLogger(),
+                DbLogger(LogDatabaseDriverFactory.create(this), android.os.Process.myPid())
+            )
         } else {
             Log.init(Log.Level.DEBUG, CrashlyticsLogger())
         }

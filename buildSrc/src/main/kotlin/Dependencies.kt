@@ -16,8 +16,10 @@ enum class Library(group: String, artifact: String, version: Version) {
 
     CoroutinesCore("org.jetbrains.kotlinx", "kotlinx-coroutines-core", Version.Coroutines),
     CoroutinesAndroid("org.jetbrains.kotlinx", "kotlinx-coroutines-android", Version.Coroutines),
+    CoroutinesSwing("org.jetbrains.kotlinx", "kotlinx-coroutines-swing", Version.Coroutines),
 
     SQLDelightAndroid("app.cash.sqldelight", "android-driver", Version.SQLDelight),
+    SQLDelightJvm("app.cash.sqldelight", "sqlite-driver", Version.SQLDelight),
     SQLDelightCoroutines("app.cash.sqldelight", "coroutines-extensions", Version.SQLDelight),
     SQLDelightApapter("app.cash.sqldelight", "primitive-adapters", Version.SQLDelight),
 
@@ -39,6 +41,7 @@ enum class Library(group: String, artifact: String, version: Version) {
     ActivityCompose("androidx.activity", "activity-compose", Version.ActivityCompose),
 
     CoilCompose("io.coil-kt.coil3", "coil-compose", Version.CoilCompose),
+    JAudioTagger("net.jthink", "jaudiotagger", Version.JAudioTagger),
 
     DebugComposeUiToolingPreview("androidx.compose.ui", "ui-tooling-preview", Version.Compose),
 
@@ -78,6 +81,7 @@ enum class Library(group: String, artifact: String, version: Version) {
         ComposeMaterial3("1.4.0"),
         Accompanist("0.37.3") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
         CoilCompose("3.1.0"),
+        JAudioTagger("3.0.1"),
         Decompose("3.4.0"),
 
         DebugComposeCustomView("1.2.0-alpha02"),
@@ -144,6 +148,8 @@ enum class Plugin(group: String, artifact: String, version: Version) {
     Kotlin("org.jetbrains.kotlin", "kotlin-gradle-plugin", Version.Kotlin),
     KotlinCompose("org.jetbrains.kotlin", "compose-compiler-gradle-plugin", Version.Kotlin),
     KotlinSerialization("org.jetbrains.kotlin", "kotlin-serialization", Version.Kotlin),
+    ComposeMultiplatform("org.jetbrains.compose", "compose-gradle-plugin", Version.ComposeMultiplatform),
+    KotlinMultiplatform("org.jetbrains.kotlin", "kotlin-gradle-plugin", Version.Kotlin),
     Google("com.google.gms", "google-services", Version.Google),
     Crashlytics("com.google.firebase", "firebase-crashlytics-gradle", Version.Crashlytics),
     Versions("com.github.ben-manes", "gradle-versions-plugin", Version.Versions),
@@ -162,6 +168,8 @@ enum class Plugin(group: String, artifact: String, version: Version) {
         KotlinSerialization("org.jetbrains.kotlin.plugin.serialization"),
         KotlinParcelize("kotlin-parcelize"),
         KotlinJvm("org.jetbrains.kotlin.jvm"),
+        KotlinMultiplatform("org.jetbrains.kotlin.multiplatform"),
+        ComposeMultiplatform("org.jetbrains.compose"),
         JavaLibrary("java-library"),
         GoogleServices("com.google.gms.google-services"),
         Crashlytics("com.google.firebase.crashlytics"),
@@ -174,6 +182,7 @@ enum class Plugin(group: String, artifact: String, version: Version) {
     private enum class Version(val value: String) {
         Android("8.13.2"),
         Kotlin(Library.Version.Kotlin.value),
+        ComposeMultiplatform("1.8.1"),
         Google("4.4.2"),
         Crashlytics("3.0.6"),
         Versions("0.52.0"),
@@ -285,6 +294,7 @@ sealed class Project(id: String) {
         object Crashlytics : Logger("crashlytics")
         object Logcat : Logger("logcat")
         object InternalStore : Logger("internal-store")
+        object Console : Logger("console")
     }
 
     object DebugSettings : Project("debug:settings")

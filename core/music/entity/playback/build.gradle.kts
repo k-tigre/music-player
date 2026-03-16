@@ -1,9 +1,22 @@
 plugins {
+    id(Plugin.Id.KotlinMultiplatform.value)
     id(Plugin.Id.AndroidLibrary.value)
-    id(Plugin.Id.KotlinAndroid.value)
+    id(Plugin.Id.KotlinSerialization.value)
 }
 
-dependencies {
-    implementation(Library.KotlinStd)
-    implementation(Project.Core.Music.Entity.Catalog)
+kotlin {
+    androidTarget()
+    jvm("desktop")
+    jvmToolchain(21)
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(Library.KotlinStd.notation)
+            implementation(project(Project.Core.Music.Entity.Catalog.name))
+        }
+    }
+}
+
+android {
+    namespace = "by.tigre.music.player.core.music.entity.playback"
 }

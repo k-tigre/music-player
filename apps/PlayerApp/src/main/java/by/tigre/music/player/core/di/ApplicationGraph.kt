@@ -3,11 +3,12 @@ package by.tigre.music.player.core.di
 import android.content.ContentUris
 import android.content.Context
 import android.provider.MediaStore
+import by.tigre.music.player.core.data.catalog.di.AndroidCatalogModule
 import by.tigre.music.player.core.data.catalog.di.CatalogModule
-import by.tigre.music.player.core.data.playback.di.BasePlaybackModule
+import by.tigre.music.player.core.data.playback.di.AndroidBasePlaybackModule
 import by.tigre.music.player.core.data.playback.di.PlaybackModule
-import by.tigre.music.player.core.data.storage.playback_queue.di.PlaybackQueueModule
-import by.tigre.music.player.core.data.storage.preferences.di.PreferencesModule
+import by.tigre.music.player.core.data.storage.playback_queue.di.AndroidPlaybackQueueModule
+import by.tigre.music.player.core.data.storage.preferences.di.AndroidPreferencesModule
 import by.tigre.music.player.core.presentation.backgound_player.di.PlayerBackgroundDependency
 import by.tigre.music.player.core.presentation.catalog.component.BasePlaybackController
 import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
@@ -55,11 +56,11 @@ class ApplicationGraph(
 
     companion object {
         fun create(context: Context): ApplicationGraph {
-            val preferencesModule = PreferencesModule.Impl(context)
-            val catalogModule = CatalogModule.Impl(context)
+            val preferencesModule = AndroidPreferencesModule(context)
+            val catalogModule = AndroidCatalogModule(context)
             val coroutineModule = CoroutineModule.Impl()
-            val playbackQueueModule = PlaybackQueueModule.Impl(context, coroutineModule, preferencesModule)
-            val basePlaybackModule = BasePlaybackModule.Impl(context, coroutineModule)
+            val playbackQueueModule = AndroidPlaybackQueueModule(context, coroutineModule, preferencesModule)
+            val basePlaybackModule = AndroidBasePlaybackModule(context, coroutineModule)
             val playbackModule =
                 PlaybackModule.Impl(coroutineModule, playbackQueueModule, catalogModule, basePlaybackModule)
 

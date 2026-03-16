@@ -77,7 +77,6 @@ class RootView(
                         emptyScreenTitle = "No songs in current playlist",
                         emptyScreenMessage = "Select some track for playing",
                         emptyScreenActionTitle = "Select from catalog",
-                        coverFallbackIcon = by.tigre.player.R.drawable.ic_player_no_cover
                     )
                 ).Draw(Modifier.fillMaxSize())
             }

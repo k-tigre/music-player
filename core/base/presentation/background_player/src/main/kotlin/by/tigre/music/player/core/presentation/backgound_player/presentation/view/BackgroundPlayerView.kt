@@ -7,6 +7,7 @@ import android.app.Service
 import android.content.Intent
 import androidx.annotation.OptIn
 import androidx.media3.common.Player
+import by.tigre.music.player.core.data.playback.AndroidPlaybackPlayer
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaNotification
@@ -42,7 +43,7 @@ class BackgroundPlayerView(
             .build()
 
     fun onCreate() {
-        val player = InternalPlayerWrapper(component.getPlayer().player)
+        val player = InternalPlayerWrapper((component.getPlayer() as AndroidPlaybackPlayer).player)
         mediaSession = MediaSession.Builder(service, player)
             .setSessionActivity(
                 PendingIntent.getActivity(

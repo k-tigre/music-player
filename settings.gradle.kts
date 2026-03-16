@@ -13,6 +13,7 @@ dependencyResolutionManagement {
 rootProject.name = "MusicPlayer"
 include(":apps:PlayerApp")
 include(":apps:AudioBook")
+include(":apps:PlayerDesktop")
 
 include(":core:base:data:playback")
 include(":core:music:data:playback")
@@ -44,4 +45,5 @@ include(":logger:core")
 include(":logger:logcat")
 include(":logger:crashlytics")
 include(":logger:internal-store")
+include(":logger:console")
 include(":debug:settings")

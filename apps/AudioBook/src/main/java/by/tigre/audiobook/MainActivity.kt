@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogComponentProvider
-import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogViewProvider
+import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AndroidAudiobookCatalogViewProvider
 import by.tigre.audiobook.presentation.background.BackgroundService
 import by.tigre.audiobook.presentation.root.component.Root
 import by.tigre.audiobook.presentation.root.view.RootView
@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity() {
                     RootView(
                         root,
                         playerViewProvider = PlayerViewProvider.Impl(),
-                        audiobookCatalogViewProvider = AudiobookCatalogViewProvider.Impl()
+                        audiobookCatalogViewProvider = AndroidAudiobookCatalogViewProvider()
                     ).Draw(Modifier)
                 }
             }

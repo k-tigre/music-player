@@ -14,6 +14,7 @@ buildscript {
         plugin(Plugin.Kotlin)
         plugin(Plugin.KotlinCompose)
         plugin(Plugin.KotlinSerialization)
+        plugin(Plugin.ComposeMultiplatform)
         plugin(Plugin.Google)
         plugin(Plugin.Crashlytics)
         plugin(Plugin.Versions)
@@ -65,10 +66,20 @@ subprojects {
         }
     }
 
-    tasks.withType<KotlinCompile> {
-        compilerOptions {
-            allWarningsAsErrors = false
-            jvmTarget = JvmTarget.JVM_21
+    plugins.withId(Plugin.Id.KotlinAndroid.value) {
+        tasks.withType<KotlinCompile> {
+            compilerOptions {
+                allWarningsAsErrors = false
+                jvmTarget = JvmTarget.JVM_21
+            }
+        }
+    }
+    plugins.withId(Plugin.Id.KotlinJvm.value) {
+        tasks.withType<KotlinCompile> {
+            compilerOptions {
+                allWarningsAsErrors = false
+                jvmTarget = JvmTarget.JVM_21
+            }
         }
     }
 
