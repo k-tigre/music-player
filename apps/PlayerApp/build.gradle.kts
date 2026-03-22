@@ -17,7 +17,8 @@ android {
     defaultConfig {
         Application.MusicPlayer.also { app ->
             applicationId = app.id
-            namespace = app.id
+            // Must match Kotlin package so manifest-relative names (.App, .MainActivity) resolve correctly.
+            namespace = "by.tigre.music.player"
 
             versionName = app.version.name
             versionCode = app.version.code
