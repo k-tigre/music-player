@@ -16,6 +16,12 @@ interface AudiobookCatalogStorage {
 
     suspend fun syncBooksForFolder(folderSourceId: FolderSource.Id, scannedBooks: List<ScannedBook>)
 
+    suspend fun getExistingBookIdForScan(
+        folderSourceId: FolderSource.Id,
+        folderUri: String,
+        title: String,
+    ): Book.Id?
+
     suspend fun getBooks(): List<Book>
     suspend fun getBook(bookId: Book.Id): Book?
     suspend fun getChaptersByBook(bookId: Book.Id): List<Chapter>
@@ -32,6 +38,8 @@ interface AudiobookCatalogStorage {
         val title: String,
         val fileUri: String,
         val duration: Long,
-        val sortOrder: Int
+        val sortOrder: Int,
+        val sourceSize: Long?,
+        val sourceLastModified: Long?,
     )
 }

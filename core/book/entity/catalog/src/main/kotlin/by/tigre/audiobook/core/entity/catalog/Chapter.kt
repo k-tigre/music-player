@@ -7,6 +7,8 @@ data class Chapter(
     val fileUri: String,
     val duration: Long,
     val sortOrder: Int,
+    val sourceSize: Long? = null,
+    val sourceLastModified: Long? = null,
 ) {
 
     @JvmInline

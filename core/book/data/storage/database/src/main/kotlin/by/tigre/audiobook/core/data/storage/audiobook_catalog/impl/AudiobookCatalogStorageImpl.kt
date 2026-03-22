@@ -2,9 +2,11 @@ package by.tigre.audiobook.core.data.storage.audiobook_catalog.impl
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
+import audiobook.Chapter as ChapterRow
 import by.tigre.audiobook.core.data.storage.audiobook.DatabaseAudiobook
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.AudiobookCatalogStorage
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.AudiobookCatalogStorage.ScannedBook
+import by.tigre.audiobook.core.data.storage.audiobook_catalog.AudiobookCatalogStorage.ScannedChapter
 import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.entity.catalog.Chapter
 import by.tigre.audiobook.core.entity.catalog.FolderSource
@@ -77,7 +79,6 @@ class AudiobookCatalogStorageImpl(
             val scannedByKey = scannedBooks.associateBy { it.folderUri to it.title }
             val existingByKey = existingBooks.associateBy { it.folder_uri to it.title }
 
-            // Delete books that no longer exist in the scanned folder
             for (existing in existingBooks) {
                 val key = existing.folder_uri to existing.title
                 if (key !in scannedByKey) {
@@ -85,7 +86,6 @@ class AudiobookCatalogStorageImpl(
                 }
             }
 
-            // Insert or update books
             for (scanned in scannedBooks) {
                 val key = scanned.folderUri to scanned.title
                 val existing = existingByKey[key]
@@ -98,7 +98,6 @@ class AudiobookCatalogStorageImpl(
                         total_duration_ms = scanned.totalDurationMs,
                         id = bookId
                     )
-                    database.chapterQueries.deleteByBook(bookId)
                 } else {
                     database.bookQueries.insertBook(
                         scanned.title,
@@ -110,17 +109,56 @@ class AudiobookCatalogStorageImpl(
                     bookId = database.bookQueries.lastInsertId().executeAsOne()
                 }
 
+                val existingChapters = database.chapterQueries.selectByBook(bookId).executeAsList()
+                val existingByUri = existingChapters.associateBy { it.file_uri }
+                val scannedUris = scanned.chapters.map { it.fileUri }.toSet()
+
+                for (row in existingChapters) {
+                    if (row.file_uri !in scannedUris) {
+                        database.chapterQueries.deleteChapterById(row.id)
+                    }
+                }
+
                 for (chapter in scanned.chapters) {
-                    database.chapterQueries.insertChapter(
-                        bookId,
-                        chapter.title,
-                        chapter.fileUri,
-                        chapter.duration,
-                        chapter.sortOrder.toLong()
-                    )
+                    val row = existingByUri[chapter.fileUri]
+                    if (row == null) {
+                        database.chapterQueries.insertChapter(
+                            book_id = bookId,
+                            title = chapter.title,
+                            file_uri = chapter.fileUri,
+                            duration = chapter.duration,
+                            sort_order = chapter.sortOrder.toLong(),
+                            source_size = chapter.sourceSize,
+                            source_last_modified = chapter.sourceLastModified,
+                        )
+                    } else if (!chapterRowMatches(row, chapter)) {
+                        database.chapterQueries.updateChapterById(
+                            title = chapter.title,
+                            duration = chapter.duration,
+                            sort_order = chapter.sortOrder.toLong(),
+                            source_size = chapter.sourceSize,
+                            source_last_modified = chapter.sourceLastModified,
+                            id = row.id,
+                        )
+                    }
                 }
             }
         }
+    }
+
+    override suspend fun getExistingBookIdForScan(
+        folderSourceId: FolderSource.Id,
+        folderUri: String,
+        title: String,
+    ): Book.Id? {
+        return database.bookQueries
+            .selectIdByFolderSourceFolderUriTitle(
+                folder_source_id = folderSourceId.value,
+                folder_uri = folderUri,
+                title = title,
+            )
+            .executeAsOneOrNull()
+            ?.let { Book.Id(it) }
     }
 
     override suspend fun getBook(bookId: Book.Id): Book? {
@@ -151,15 +189,27 @@ class AudiobookCatalogStorageImpl(
     }
 
     override suspend fun getChaptersByBook(bookId: Book.Id): List<Chapter> {
-        return database.chapterQueries.selectByBook(bookId.value) { id, bookIdVal, title, fileUri, duration, sortOrder ->
+        return database.chapterQueries.selectByBook(bookId.value) { id, bookIdVal, title, fileUri, duration, sortOrder, sourceSize, sourceLastModified ->
             Chapter(
                 id = Chapter.Id(id),
                 bookId = Book.Id(bookIdVal),
                 title = title,
                 fileUri = fileUri,
                 duration = duration,
-                sortOrder = sortOrder.toInt()
+                sortOrder = sortOrder.toInt(),
+                sourceSize = sourceSize,
+                sourceLastModified = sourceLastModified,
             )
         }.executeAsList()
+    }
+
+    private companion object {
+        fun chapterRowMatches(row: ChapterRow, scanned: ScannedChapter): Boolean {
+            return row.title == scanned.title &&
+                row.duration == scanned.duration &&
+                row.sort_order == scanned.sortOrder.toLong() &&
+                row.source_size == scanned.sourceSize &&
+                row.source_last_modified == scanned.sourceLastModified
+        }
     }
 }

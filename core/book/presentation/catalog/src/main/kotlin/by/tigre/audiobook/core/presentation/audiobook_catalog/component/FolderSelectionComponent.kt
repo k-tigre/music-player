@@ -1,20 +1,20 @@
 package by.tigre.audiobook.core.presentation.audiobook_catalog.component
 
 import by.tigre.audiobook.core.data.audiobook.AudiobookCatalogSource
+import by.tigre.audiobook.core.data.audiobook.CatalogScanUi
 import by.tigre.audiobook.core.entity.catalog.FolderSource
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogDependency
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.AudiobookCatalogNavigator
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.presentation.base.ScreenContentStateDelegate
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 interface FolderSelectionComponent {
 
     val screenState: StateFlow<ScreenContentState<List<FolderSource>>>
-    val isScanning: StateFlow<Boolean>
+    val catalogScanUi: StateFlow<CatalogScanUi>
 
     fun onFolderSelected(uri: String, name: String)
     fun onRemoveFolder(id: FolderSource.Id)
@@ -39,16 +39,11 @@ interface FolderSelectionComponent {
         )
 
         override val screenState: StateFlow<ScreenContentState<List<FolderSource>>> = stateDelegate.screenState
-        override val isScanning = MutableStateFlow(false)
+        override val catalogScanUi: StateFlow<CatalogScanUi> = catalogSource.catalogScanUi
 
         override fun onFolderSelected(uri: String, name: String) {
             launch {
-                isScanning.value = true
-                try {
-                    catalogSource.addFolderAndScan(uri, name)
-                } finally {
-                    isScanning.value = false
-                }
+                catalogSource.addFolderAndScan(uri, name)
             }
         }
 
@@ -60,12 +55,7 @@ interface FolderSelectionComponent {
 
         override fun onRescanFolders() {
             launch {
-                isScanning.value = true
-                try {
-                    catalogSource.rescanAllFolders()
-                } finally {
-                    isScanning.value = false
-                }
+                catalogSource.rescanAllFolders()
             }
         }
 

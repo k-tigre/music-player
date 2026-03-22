@@ -28,6 +28,12 @@ SELECT id, folder_uri, title
 FROM Book
 WHERE folder_source_id = ?;
 
+selectIdByFolderSourceFolderUriTitle:
+SELECT id
+FROM Book
+WHERE folder_source_id = ? AND folder_uri = ? AND title = ?
+LIMIT 1;
+
 deleteById:
 DELETE FROM Book WHERE id = ?;
 

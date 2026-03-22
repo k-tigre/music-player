@@ -5,17 +5,28 @@ CREATE TABLE Chapter(
     file_uri TEXT NOT NULL,
     duration INTEGER NOT NULL DEFAULT 0,
     sort_order INTEGER NOT NULL DEFAULT 0,
+    source_size INTEGER,
+    source_last_modified INTEGER,
     FOREIGN KEY (book_id) REFERENCES Book(id) ON DELETE CASCADE
 );
 
 insertChapter:
-INSERT INTO Chapter(book_id, title, file_uri, duration, sort_order) VALUES(?, ?, ?, ?, ?);
+INSERT INTO Chapter(book_id, title, file_uri, duration, sort_order, source_size, source_last_modified)
+VALUES(?, ?, ?, ?, ?, ?, ?);
+
+updateChapterById:
+UPDATE Chapter
+SET title = ?, duration = ?, sort_order = ?, source_size = ?, source_last_modified = ?
+WHERE id = ?;
 
 selectByBook:
-SELECT id, book_id, title, file_uri, duration, sort_order
+SELECT id, book_id, title, file_uri, duration, sort_order, source_size, source_last_modified
 FROM Chapter
 WHERE book_id = ?
 ORDER BY sort_order;
 
 deleteByBook:
 DELETE FROM Chapter WHERE book_id = ?;
+
+deleteChapterById:
+DELETE FROM Chapter WHERE id = ?;
