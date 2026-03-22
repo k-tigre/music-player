@@ -8,19 +8,20 @@ CREATE TABLE Book(
     total_duration_ms INTEGER NOT NULL DEFAULT 0,
     listened_duration_ms INTEGER NOT NULL DEFAULT 0,
     is_completed INTEGER NOT NULL DEFAULT 0,
+    cover_uri TEXT,
     FOREIGN KEY (folder_source_id) REFERENCES FolderSource(id) ON DELETE CASCADE
 );
 
 insertBook:
-INSERT INTO Book(title, folder_uri, folder_source_id, sub_path, total_duration_ms) VALUES(?, ?, ?, ?, ?);
+INSERT INTO Book(title, folder_uri, folder_source_id, sub_path, total_duration_ms, cover_uri) VALUES(?, ?, ?, ?, ?, ?);
 
 selectByFolderUriAndTitle:
-SELECT id, title, folder_uri, sub_path, total_duration_ms, listened_duration_ms, is_completed
+SELECT id, title, folder_uri, sub_path, total_duration_ms, listened_duration_ms, is_completed, cover_uri
 FROM Book
 WHERE folder_uri = ? AND title = ?;
 
 updateBookMetadata:
-UPDATE Book SET sub_path = ?, total_duration_ms = ?
+UPDATE Book SET sub_path = ?, total_duration_ms = ?, cover_uri = ?
 WHERE id = ?;
 
 selectBooksByFolderSourceId:
@@ -43,14 +44,16 @@ SELECT b.id, b.title, b.folder_uri,
     b.sub_path,
     b.total_duration_ms,
     b.listened_duration_ms,
-    b.is_completed
+    b.is_completed,
+    b.cover_uri
 FROM Book b
 ORDER BY b.sub_path, b.title;
 
 selectByFolderSource:
 SELECT b.id, b.title, b.folder_uri,
     (SELECT COUNT(*) FROM Chapter c WHERE c.book_id = b.id) AS chapter_count,
-    b.sub_path
+    b.sub_path,
+    b.cover_uri
 FROM Book b
 WHERE b.folder_source_id = ?
 ORDER BY b.sub_path, b.title;
@@ -71,6 +74,7 @@ SELECT b.id, b.title, b.folder_uri,
     b.sub_path,
     b.total_duration_ms,
     b.listened_duration_ms,
-    b.is_completed
+    b.is_completed,
+    b.cover_uri
 FROM Book b
 WHERE b.id = ?;

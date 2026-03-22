@@ -13,6 +13,8 @@ data class Book(
     val totalDurationMs: Long = 0,
     val listenedDurationMs: Long = 0,
     val isCompleted: Boolean = false,
+    /** Content [android.net.Uri] string from SAF, if a cover was found when scanning. */
+    val coverUri: String? = null,
 ) : Parcelable {
 
     val progressFraction: Float by lazy {

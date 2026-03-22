@@ -1,6 +1,7 @@
 package by.tigre.audiobook.core.di
 
 import android.content.Context
+import android.net.Uri
 import by.tigre.audiobook.core.data.audiobook.di.AudiobookCatalogModule
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
 import by.tigre.audiobook.core.data.audiobook_playback.di.AudiobookPlaybackModule
@@ -45,7 +46,11 @@ class ApplicationGraph(
                 controller.currentChapter
             ) { book, chapter ->
                 if (book != null && chapter != null) {
-                    PlayerItem(title = chapter.title, subtitle = book.title)
+                    PlayerItem(
+                        title = chapter.title,
+                        subtitle = book.title,
+                        coverUri = book.coverUri?.let(Uri::parse),
+                    )
                 } else null
             }
             override val orderMode = flowOf(true)

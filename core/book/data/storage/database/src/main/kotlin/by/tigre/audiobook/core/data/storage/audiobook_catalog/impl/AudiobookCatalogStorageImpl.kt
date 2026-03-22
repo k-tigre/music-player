@@ -21,7 +21,7 @@ class AudiobookCatalogStorageImpl(
 ) : AudiobookCatalogStorage {
 
     override val books: Flow<List<Book>> =
-        database.bookQueries.selectAll { id, title, folderUri, chapterCount, subPath, totalDurationMs, listenedDurationMs, isCompleted ->
+        database.bookQueries.selectAll { id, title, folderUri, chapterCount, subPath, totalDurationMs, listenedDurationMs, isCompleted, coverUri ->
             Book(
                 id = Book.Id(id),
                 title = title,
@@ -30,7 +30,8 @@ class AudiobookCatalogStorageImpl(
                 subPath = subPath,
                 totalDurationMs = totalDurationMs,
                 listenedDurationMs = listenedDurationMs,
-                isCompleted = isCompleted != 0L
+                isCompleted = isCompleted != 0L,
+                coverUri = coverUri,
             )
         }.asFlow().mapToList(scope.coroutineContext)
             .shareIn(scope, SharingStarted.WhileSubscribed(), replay = 1)
@@ -96,6 +97,7 @@ class AudiobookCatalogStorageImpl(
                     database.bookQueries.updateBookMetadata(
                         sub_path = scanned.subPath,
                         total_duration_ms = scanned.totalDurationMs,
+                        cover_uri = scanned.coverUri,
                         id = bookId
                     )
                 } else {
@@ -104,7 +106,8 @@ class AudiobookCatalogStorageImpl(
                         scanned.folderUri,
                         folderSourceId.value,
                         scanned.subPath,
-                        scanned.totalDurationMs
+                        scanned.totalDurationMs,
+                        cover_uri = scanned.coverUri,
                     )
                     bookId = database.bookQueries.lastInsertId().executeAsOne()
                 }
@@ -169,7 +172,7 @@ class AudiobookCatalogStorageImpl(
     }
 
     override suspend fun getBook(bookId: Book.Id): Book? {
-        return database.bookQueries.selectById(bookId.value) { id, title, folderUri, chapterCount, subPath, totalDurationMs, listenedDurationMs, isCompleted ->
+        return database.bookQueries.selectById(bookId.value) { id, title, folderUri, chapterCount, subPath, totalDurationMs, listenedDurationMs, isCompleted, coverUri ->
             Book(
                 id = Book.Id(id),
                 title = title,
@@ -178,19 +181,21 @@ class AudiobookCatalogStorageImpl(
                 subPath = subPath,
                 totalDurationMs = totalDurationMs,
                 listenedDurationMs = listenedDurationMs,
-                isCompleted = isCompleted != 0L
+                isCompleted = isCompleted != 0L,
+                coverUri = coverUri,
             )
         }.executeAsOneOrNull()
     }
 
     override suspend fun getBooks(): List<Book> {
-        return database.bookQueries.selectAll { id, title, folderUri, chapterCount, subPath, _, _, _ ->
+        return database.bookQueries.selectAll { id, title, folderUri, chapterCount, subPath, _, _, _, coverUri ->
             Book(
                 id = Book.Id(id),
                 title = title,
                 folderUri = folderUri,
                 chapterCount = chapterCount.toInt(),
-                subPath = subPath
+                subPath = subPath,
+                coverUri = coverUri,
             )
         }.executeAsList()
     }

@@ -237,12 +237,14 @@ class AudiobookCatalogSourceImpl(
             }
             val chapters = buildChapters(book.audioFiles, existingByUri, onFileProcessed)
             val totalDuration = chapters.sumOf { it.duration }
+            val coverUri = resolveCoverUri(book.bookDir, book.title)
             result.add(
                 ScannedBook(
                     title = book.title,
                     folderUri = book.folderUri,
                     subPath = book.subPath,
                     totalDurationMs = totalDuration,
+                    coverUri = coverUri,
                     chapters = chapters,
                 )
             )
@@ -314,6 +316,7 @@ class AudiobookCatalogSourceImpl(
                     folderUri = dir.uri.toString(),
                     subPath = parentPath,
                     audioFiles = audioFiles,
+                    bookDir = dir,
                 )
             )
             fileCount += audioFiles.size
@@ -356,11 +359,99 @@ class AudiobookCatalogSourceImpl(
         return AUDIO_EXTENSIONS.any { name.endsWith(it) }
     }
 
+    private fun isImageFile(file: DocumentFile): Boolean {
+        val mimeType = file.type
+        if (mimeType != null && mimeType.startsWith("image/")) return true
+        val name = file.name?.lowercase() ?: return false
+        return IMAGE_EXTENSIONS.any { name.endsWith(it) }
+    }
+
+    private fun listImageFiles(dir: DocumentFile): List<DocumentFile> {
+        @Suppress("UNCHECKED_CAST")
+        val raw = dir.listFiles() as Array<out DocumentFile>? ?: return emptyList()
+        return raw.filter { it.isFile && isImageFile(it) }.sortedBy { it.name ?: "" }
+    }
+
+    /**
+     * Picks a cover from the book folder (same dir as chapters): common filenames first,
+     * then name closest to the book title, otherwise the first image by name.
+     * If the folder has no images, uses the parent folder (series-wide cover).
+     */
+    private fun resolveCoverUri(bookDir: DocumentFile, bookTitle: String): String? {
+        val local = listImageFiles(bookDir)
+        val pick = if (local.isNotEmpty()) {
+            pickBestCoverImage(local, bookTitle)
+        } else {
+            val parent = bookDir.parentFile ?: return null
+            pickBestCoverImage(listImageFiles(parent), bookTitle)
+        }
+        return pick?.uri?.toString()
+    }
+
+    private fun pickBestCoverImage(files: List<DocumentFile>, bookTitle: String): DocumentFile? {
+        if (files.isEmpty()) return null
+        val nTitle = normalizeForMatch(bookTitle)
+        var bestFile = files.first()
+        var bestScore = Int.MIN_VALUE
+        for (file in files) {
+            val stem = normalizeForMatch(file.name?.substringBeforeLast('.') ?: "")
+            val score = scoreCoverStem(stem, nTitle)
+            if (score > bestScore) {
+                bestScore = score
+                bestFile = file
+            }
+        }
+        return if (bestScore >= FUZZY_COVER_MIN_SCORE) bestFile else files.first()
+    }
+
+    private fun scoreCoverStem(stem: String, nTitle: String): Int {
+        if (stem.isEmpty()) return 0
+        if (stem in COMMON_COVER_STEMS) return 900
+        if (nTitle.isNotEmpty() && stem == nTitle) return 800
+        if (nTitle.length >= 3 && (stem.contains(nTitle) || nTitle.contains(stem))) {
+            return 500 + minOf(stem.length, nTitle.length)
+        }
+        val maxLen = maxOf(stem.length, nTitle.length)
+        if (maxLen == 0 || nTitle.isEmpty()) return 0
+        val dist = levenshtein(stem, nTitle)
+        return ((maxLen - dist).coerceAtLeast(0) * 350) / maxLen
+    }
+
+    private fun normalizeForMatch(s: String): String = buildString(s.length) {
+        for (c in s.lowercase()) {
+            when {
+                c.isLetterOrDigit() -> append(c)
+            }
+        }
+    }
+
+    private fun levenshtein(a: String, b: String): Int {
+        if (a == b) return 0
+        if (a.isEmpty()) return b.length
+        if (b.isEmpty()) return a.length
+        val prev = IntArray(b.length + 1) { it }
+        val cur = IntArray(b.length + 1)
+        for (i in a.indices) {
+            cur[0] = i + 1
+            for (j in b.indices) {
+                val cost = if (a[i] == b[j]) 0 else 1
+                cur[j + 1] = minOf(
+                    cur[j] + 1,
+                    prev[j + 1] + 1,
+                    prev[j] + cost,
+                )
+            }
+            prev.indices.forEach { prev[it] = cur[it] }
+        }
+        return prev[b.length]
+    }
+
     private data class PendingBook(
         val title: String,
         val folderUri: String,
         val subPath: String,
         val audioFiles: List<DocumentFile>,
+        val bookDir: DocumentFile,
     )
 
     private data class FolderScanWork(
@@ -373,5 +464,13 @@ class AudiobookCatalogSourceImpl(
     private companion object {
         const val TAG = "AudiobookCatalogSource"
         val AUDIO_EXTENSIONS = listOf(".mp3", ".m4a", ".m4b", ".ogg", ".opus", ".flac")
+        val IMAGE_EXTENSIONS = listOf(".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".heic", ".heif")
+        val COMMON_COVER_STEMS = setOf(
+            "cover", "folder", "front", "album", "poster", "art", "book",
+            "обложка", "coverart",
+        )
+
+        /** Below this, treat as "no good title match" and use first image in lexicographic order. */
+        const val FUZZY_COVER_MIN_SCORE = 180
     }
 }

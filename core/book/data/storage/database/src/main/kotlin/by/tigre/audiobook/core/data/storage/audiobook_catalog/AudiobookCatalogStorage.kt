@@ -33,6 +33,7 @@ interface AudiobookCatalogStorage {
         val folderUri: String,
         val subPath: String,
         val totalDurationMs: Long,
+        val coverUri: String?,
         val chapters: List<ScannedChapter>
     )
 
