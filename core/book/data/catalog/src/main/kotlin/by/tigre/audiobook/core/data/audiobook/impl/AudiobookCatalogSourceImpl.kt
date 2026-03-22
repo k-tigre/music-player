@@ -43,7 +43,14 @@ class AudiobookCatalogSourceImpl(
                 return@withContext
             }
             val pending = mutableListOf<PendingBook>()
-            val total = collectBooks(root, parentPath = "", out = pending)
+            val total = when (val collected = collectBooks(root, parentPath = "", out = pending)) {
+                is CollectResult.Ok -> collected.fileCount
+                CollectResult.ListingFailed -> {
+                    Log.e(TAG) { "Cannot list folder contents (permission?): $uri" }
+                    endScan("Cannot read folder. Open it again via + or re-add the folder.")
+                    return@withContext
+                }
+            }
             _catalogScanUi.value = _catalogScanUi.value.copy(
                 total = total,
                 processed = 0,
@@ -88,8 +95,14 @@ class AudiobookCatalogSourceImpl(
                     continue
                 }
                 val pending = mutableListOf<PendingBook>()
-                val fileCount = collectBooks(root, parentPath = "", out = pending)
-                works.add(FolderScanWork(folder.id, pending, fileCount))
+                when (val collected = collectBooks(root, parentPath = "", out = pending)) {
+                    is CollectResult.Ok ->
+                        works.add(FolderScanWork(folder.id, pending, collected.fileCount))
+                    CollectResult.ListingFailed -> {
+                        Log.e(TAG) { "listFiles failed for rescan: ${folder.uri} (${folder.name})" }
+                        failedNames.add(folder.name)
+                    }
+                }
             }
 
             if (works.isEmpty()) {
@@ -219,8 +232,24 @@ class AudiobookCatalogSourceImpl(
         return storedSize != file.length() || storedMod != file.lastModified()
     }
 
-    private fun collectBooks(dir: DocumentFile, parentPath: String, out: MutableList<PendingBook>): Int {
-        val children = (dir.listFiles() ?: emptyArray()).filterNotNull()
+    /**
+     * [CollectResult.ListingFailed]: [DocumentFile.listFiles] returned null — do not treat as an empty library
+     * (that would sync an empty list and delete all books). Usually lost SAF access.
+     */
+    private sealed class CollectResult {
+        data class Ok(val fileCount: Int) : CollectResult()
+        data object ListingFailed : CollectResult()
+    }
+
+    private fun collectBooks(dir: DocumentFile, parentPath: String, out: MutableList<PendingBook>): CollectResult {
+        val frameStart = out.size
+        @Suppress("UNCHECKED_CAST") // Java API may return null; stubs are non-null
+        val raw = dir.listFiles() as Array<out DocumentFile>?
+        if (raw == null) {
+            Log.w(TAG) { "listFiles() returned null at ${dir.uri}" }
+            return CollectResult.ListingFailed
+        }
+        val children = raw.asList()
         val audioFiles = children.filter { it.isFile && isAudioFile(it) }
         val subdirs = children.filter { it.isDirectory }
 
@@ -239,9 +268,17 @@ class AudiobookCatalogSourceImpl(
 
         val currentPath = if (parentPath.isEmpty()) (dir.name ?: "") else "$parentPath/${dir.name ?: ""}"
         for (subdir in subdirs) {
-            fileCount += collectBooks(subdir, currentPath, out)
+            when (val sub = collectBooks(subdir, currentPath, out)) {
+                CollectResult.ListingFailed -> {
+                    while (out.size > frameStart) {
+                        out.removeAt(out.size - 1)
+                    }
+                    return CollectResult.ListingFailed
+                }
+                is CollectResult.Ok -> fileCount += sub.fileCount
+            }
         }
-        return fileCount
+        return CollectResult.Ok(fileCount)
     }
 
     private fun getAudioDuration(uri: Uri): Long {
