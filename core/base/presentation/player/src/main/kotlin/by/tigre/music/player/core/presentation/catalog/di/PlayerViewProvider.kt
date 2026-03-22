@@ -8,7 +8,10 @@ import by.tigre.music.player.core.presentation.catalog.view.SmallPlayerView
 import by.tigre.music.player.tools.platform.compose.ComposableView
 
 interface PlayerViewProvider {
-    fun createSmallPlayerView(component: SmallPlayerComponent): ComposableView
+    fun createSmallPlayerView(
+        component: SmallPlayerComponent,
+        showOrderModeButton: Boolean = true,
+    ): ComposableView
     fun createPlayerView(
         component: PlayerComponent,
         config: PlayerView.Config,
@@ -16,8 +19,11 @@ interface PlayerViewProvider {
     ): ComposableView
 
     class Impl : PlayerViewProvider {
-        override fun createSmallPlayerView(component: SmallPlayerComponent): SmallPlayerView =
-            SmallPlayerView(component)
+        override fun createSmallPlayerView(
+            component: SmallPlayerComponent,
+            showOrderModeButton: Boolean,
+        ): SmallPlayerView =
+            SmallPlayerView(component, showOrderModeButton)
 
         override fun createPlayerView(
             component: PlayerComponent,

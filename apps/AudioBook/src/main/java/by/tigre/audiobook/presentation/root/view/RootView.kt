@@ -52,7 +52,8 @@ class RootView(
                         emptyScreenTitle = "No book selected",
                         emptyScreenMessage = "Select a book to listen to",
                         emptyScreenActionTitle = "Select from catalog",
-                        coverFallbackIcon = R.drawable.ic_launcher_foreground
+                        coverFallbackIcon = R.drawable.ic_launcher_foreground,
+                        showOrderModeButton = false,
                     ),
                     topBarContent = {
                         Row(
@@ -85,7 +86,10 @@ class RootView(
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
-                playerViewProvider.createSmallPlayerView(component.playerComponent).Draw(Modifier)
+                playerViewProvider.createSmallPlayerView(
+                    component = component.playerComponent,
+                    showOrderModeButton = false,
+                ).Draw(Modifier)
             }
         ) { paddings ->
             audiobookCatalogViewProvider.createRootView(component.audiobookCatalogComponent)

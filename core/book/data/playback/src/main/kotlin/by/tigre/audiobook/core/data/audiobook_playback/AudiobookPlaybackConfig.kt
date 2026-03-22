@@ -13,4 +13,7 @@ internal object AudiobookPlaybackConfig {
 
     /** When pause was tracked but duration is unavailable (e.g. future: restore after process death without timestamp). */
     const val RESUME_REWIND_WHEN_PAUSE_UNKNOWN_MS = 10_000L
+
+    /** "Previous" control: seek to chapter start when playback is past this position; else go to previous chapter. */
+    const val PREV_BUTTON_CHAPTER_RESTART_THRESHOLD_MS = 5_000L
 }

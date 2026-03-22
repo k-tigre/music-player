@@ -245,19 +245,21 @@ class PlayerView(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            val isNormal = component.isNormal.collectAsState().value
+            if (config.showOrderModeButton) {
+                val isNormal = component.isNormal.collectAsState().value
 
-            IconButton(
-                modifier = Modifier.align(Alignment.CenterVertically),
-                onClick = { component.switchMode(isNormal.not()) }
-            ) {
-                Icon(
-                    contentDescription = null,
-                    painter = painterResource(id = if (isNormal) R.drawable.ic_play_repeat_all else R.drawable.ic_play_shuffle),
-                    modifier = Modifier
-                        .size(56.dp)
-                        .padding(4.dp)
-                )
+                IconButton(
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    onClick = { component.switchMode(isNormal.not()) }
+                ) {
+                    Icon(
+                        contentDescription = null,
+                        painter = painterResource(id = if (isNormal) R.drawable.ic_play_repeat_all else R.drawable.ic_play_shuffle),
+                        modifier = Modifier
+                            .size(56.dp)
+                            .padding(4.dp)
+                    )
+                }
             }
         }
     }
@@ -267,7 +269,8 @@ class PlayerView(
         val emptyScreenTitle: String,
         val emptyScreenMessage: String,
         val emptyScreenActionTitle: String,
-        val coverFallbackIcon: Int
+        val coverFallbackIcon: Int,
+        val showOrderModeButton: Boolean = true,
     )
 }
 

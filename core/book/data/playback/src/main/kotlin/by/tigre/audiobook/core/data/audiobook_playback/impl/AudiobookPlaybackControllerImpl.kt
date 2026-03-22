@@ -142,7 +142,7 @@ internal class AudiobookPlaybackControllerImpl(
             val nextIndex = chapterList.indexOfFirst { it.id == current.id } + 1
             if (nextIndex < chapterList.size) {
                 setChapter(chapterList[nextIndex], 0L)
-                player.resume()
+                resumePlaybackIfDesired()
             } else {
                 Log.d(TAG) { "Book finished" }
                 currentBook.value?.let { book ->
@@ -158,20 +158,30 @@ internal class AudiobookPlaybackControllerImpl(
     override fun playPrevChapter() {
         Log.d(TAG) { "playPrevChapter" }
         scope.launch {
-            clearPauseRewindState()
-            loadCanonicalListenedMs = null
-            saveCurrentPosition()
-            val chapterList = chapters.value
-            val current = currentChapter.value ?: return@launch
-            val prevIndex = chapterList.indexOfFirst { it.id == current.id } - 1
-            if (prevIndex >= 0) {
-                setChapter(chapterList[prevIndex], 0L)
-                player.resume()
+            val progress = player.progress.first()
+            if (progress.position > AudiobookPlaybackConfig.PREV_BUTTON_CHAPTER_RESTART_THRESHOLD_MS) {
+                clearPauseRewindState()
+                player.seekTo(0L)
+                saveCurrentPosition()
             } else {
-                setChapter(chapterList.first(), 0L)
-                player.resume()
+                skipToPreviousChapter()
             }
         }
+    }
+
+    private suspend fun skipToPreviousChapter() {
+        clearPauseRewindState()
+        loadCanonicalListenedMs = null
+        saveCurrentPosition()
+        val chapterList = chapters.value
+        val current = currentChapter.value ?: return
+        val prevIndex = chapterList.indexOfFirst { it.id == current.id } - 1
+        if (prevIndex >= 0) {
+            setChapter(chapterList[prevIndex], 0L)
+        } else {
+            setChapter(chapterList.first(), 0L)
+        }
+        resumePlaybackIfDesired()
     }
 
     override fun pause() {
@@ -214,6 +224,12 @@ internal class AudiobookPlaybackControllerImpl(
             saveCurrentPosition()
             isPlaying.value = false
             player.stop()
+        }
+    }
+
+    private suspend fun resumePlaybackIfDesired() {
+        if (isPlaying.value) {
+            player.resume()
         }
     }
 

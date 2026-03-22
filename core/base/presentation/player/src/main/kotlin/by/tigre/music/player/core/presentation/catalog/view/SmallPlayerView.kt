@@ -51,6 +51,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 class SmallPlayerView(
     private val component: SmallPlayerComponent,
+    private val showOrderModeButton: Boolean = true,
 ) : ComposableView {
 
     @Composable
@@ -171,7 +172,6 @@ class SmallPlayerView(
             modifier = Modifier.padding(bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val isNormal = component.isNormal.collectAsState().value
             val state = component.state.collectAsState()
             val position = component.position.collectAsState().value
 
@@ -182,19 +182,22 @@ class SmallPlayerView(
 
             Spacer(Modifier.weight(1f))
 
-            IconButton(
-                onClick = { component.switchMode(isNormal.not()) }
-            ) {
-                Icon(
-                    contentDescription = null,
-                    painter = painterResource(id = if (isNormal) R.drawable.ic_play_repeat_all else R.drawable.ic_play_shuffle),
-                    modifier = Modifier
-                        .size(56.dp)
-                        .padding(4.dp)
-                )
-            }
+            if (showOrderModeButton) {
+                val isNormal = component.isNormal.collectAsState().value
+                IconButton(
+                    onClick = { component.switchMode(isNormal.not()) }
+                ) {
+                    Icon(
+                        contentDescription = null,
+                        painter = painterResource(id = if (isNormal) R.drawable.ic_play_repeat_all else R.drawable.ic_play_shuffle),
+                        modifier = Modifier
+                            .size(56.dp)
+                            .padding(4.dp)
+                    )
+                }
 
-            Spacer(Modifier.weight(1f))
+                Spacer(Modifier.weight(1f))
+            }
 
             IconButton(
                 onClick = component::prev
