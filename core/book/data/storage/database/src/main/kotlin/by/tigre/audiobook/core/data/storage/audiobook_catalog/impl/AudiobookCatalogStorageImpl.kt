@@ -2,7 +2,6 @@ package by.tigre.audiobook.core.data.storage.audiobook_catalog.impl
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
-import audiobook.Chapter as ChapterRow
 import by.tigre.audiobook.core.data.storage.audiobook.DatabaseAudiobook
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.AudiobookCatalogStorage
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.AudiobookCatalogStorage.ScannedBook
@@ -14,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.shareIn
+import audiobook.Chapter as ChapterRow
 
 class AudiobookCatalogStorageImpl(
     private val database: DatabaseAudiobook,
@@ -144,6 +144,13 @@ class AudiobookCatalogStorageImpl(
                 }
             }
         }
+    }
+
+    override suspend fun countBooksByFolderSource(folderSourceId: FolderSource.Id): Int {
+        return database.bookQueries
+            .selectBooksByFolderSourceId(folderSourceId.value)
+            .executeAsList()
+            .size
     }
 
     override suspend fun getExistingBookIdForScan(

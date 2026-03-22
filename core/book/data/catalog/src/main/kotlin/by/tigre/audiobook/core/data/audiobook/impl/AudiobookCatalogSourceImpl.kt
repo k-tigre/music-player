@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import by.tigre.audiobook.core.data.audiobook.AudiobookCatalogSource
 import by.tigre.audiobook.core.data.audiobook.CatalogScanUi
+import by.tigre.audiobook.core.data.audiobook.FolderSourceAccessHealth
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.AudiobookCatalogStorage
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.AudiobookCatalogStorage.ScannedBook
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.AudiobookCatalogStorage.ScannedChapter
@@ -61,6 +62,12 @@ class AudiobookCatalogSourceImpl(
                 processed++
                 _catalogScanUi.value = _catalogScanUi.value.copy(processed = processed)
             }
+            val hadBooks = storage.countBooksByFolderSource(folderSourceId) > 0
+            if (scanned.isEmpty() && hadBooks) {
+                Log.w(TAG) { "addFolderAndScan: 0 books found but DB already has books for source $folderSourceId — skip sync" }
+                endScan("No files seen (access issue?). Your catalog was not changed. Re-pick the folder if needed.")
+                return@withContext
+            }
             storage.syncBooksForFolder(folderSourceId, scanned)
             Log.d(TAG) { "Scan complete for folder $uri: ${scanned.size} books, $total files" }
             endScan("Updated ${scanned.size} books · $total files")
@@ -97,7 +104,7 @@ class AudiobookCatalogSourceImpl(
                 val pending = mutableListOf<PendingBook>()
                 when (val collected = collectBooks(root, parentPath = "", out = pending)) {
                     is CollectResult.Ok ->
-                        works.add(FolderScanWork(folder.id, pending, collected.fileCount))
+                        works.add(FolderScanWork(folder.id, folder.name, pending, collected.fileCount))
                     CollectResult.ListingFailed -> {
                         Log.e(TAG) { "listFiles failed for rescan: ${folder.uri} (${folder.name})" }
                         failedNames.add(folder.name)
@@ -129,17 +136,41 @@ class AudiobookCatalogSourceImpl(
                     processed++
                     _catalogScanUi.value = _catalogScanUi.value.copy(processed = processed)
                 }
+                val hadBooks = storage.countBooksByFolderSource(work.folderSourceId) > 0
+                if (scanned.isEmpty() && hadBooks) {
+                    Log.w(TAG) {
+                        "rescan: 0 books for ${work.folderName} (source ${work.folderSourceId}) but DB has entries — skip sync"
+                    }
+                    failedNames.add(work.folderName)
+                    continue
+                }
                 booksCount += scanned.size
                 storage.syncBooksForFolder(work.folderSourceId, scanned)
             }
 
-            val suffix = if (failedNames.isNotEmpty()) {
-                " (${failedNames.size} folder(s) inaccessible)"
-            } else {
-                ""
+            val problemFolders = failedNames.distinct()
+            val suffix = when {
+                problemFolders.isEmpty() -> ""
+                problemFolders.size <= 2 ->
+                    " — skipped or failed: ${problemFolders.joinToString()}"
+
+                else ->
+                    " — skipped or failed: ${problemFolders.size} folders"
             }
             Log.d(TAG) { "rescanAllFolders done: $booksCount books, $totalFiles files$suffix" }
-            endScan("Indexed $booksCount books · $totalFiles files$suffix")
+            val summary = when {
+                booksCount == 0 && totalFiles == 0 && problemFolders.isNotEmpty() ->
+                    "No files were read (storage access). Catalog left unchanged. Re-add or re-pick: ${
+                        problemFolders.take(2).joinToString()
+                    }"
+
+                booksCount == 0 && totalFiles == 0 ->
+                    "Nothing indexed. Check folder access or file types."
+
+                else ->
+                    "Indexed $booksCount books · $totalFiles files$suffix"
+            }
+            endScan(summary)
         } catch (e: Exception) {
             Log.e(e) { "Error in rescanAllFolders" }
             endScan(e.message ?: "Scan failed")
@@ -151,6 +182,28 @@ class AudiobookCatalogSourceImpl(
     override suspend fun getBook(bookId: Book.Id): Book? = storage.getBook(bookId)
 
     override suspend fun getChapters(bookId: Book.Id): List<Chapter> = storage.getChaptersByBook(bookId)
+
+    override suspend fun getFolderSourcesList(): List<FolderSource> = storage.getFolderSources()
+
+    override suspend fun diagnoseFolderAccess(folder: FolderSource): FolderSourceAccessHealth =
+        withContext(Dispatchers.IO) {
+            val root = DocumentFile.fromTreeUri(context, Uri.parse(folder.uri))
+                ?: return@withContext FolderSourceAccessHealth.TreeUriUnavailable
+
+            @Suppress("UNCHECKED_CAST")
+            val raw = root.listFiles() as Array<out DocumentFile>?
+                ?: return@withContext FolderSourceAccessHealth.CannotListContents
+
+            if (raw.isEmpty()) {
+                val hadBooks = storage.countBooksByFolderSource(folder.id) > 0
+                return@withContext if (hadBooks) {
+                    FolderSourceAccessHealth.ListedButEmptyWithIndexedBooks
+                } else {
+                    FolderSourceAccessHealth.Ok
+                }
+            }
+            FolderSourceAccessHealth.Ok
+        }
 
     private fun beginScan() {
         _catalogScanUi.value = CatalogScanUi(
@@ -312,6 +365,7 @@ class AudiobookCatalogSourceImpl(
 
     private data class FolderScanWork(
         val folderSourceId: FolderSource.Id,
+        val folderName: String,
         val pending: List<PendingBook>,
         val fileCount: Int,
     )

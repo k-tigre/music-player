@@ -3,7 +3,6 @@ package by.tigre.audiobook.core.presentation.audiobook_catalog.view
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
@@ -41,6 +40,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +48,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.documentfile.provider.DocumentFile
+import by.tigre.audiobook.core.data.audiobook.FolderSourceAccessHealth
 import by.tigre.audiobook.core.entity.catalog.FolderSource
 import by.tigre.audiobook.core.presentation.audiobook_catalog.component.FolderSelectionComponent
 import by.tigre.music.player.presentation.base.ScreenContentState
@@ -55,6 +56,7 @@ import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicator
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicatorSize
+import kotlinx.coroutines.launch
 
 class FolderSelectionView(
     private val component: FolderSelectionComponent
@@ -64,12 +66,24 @@ class FolderSelectionView(
     @Composable
     override fun Draw(modifier: Modifier) {
         val context = LocalContext.current
-        val launcher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.OpenDocumentTree()
+        val snackbarHostState = remember { SnackbarHostState() }
+        val scope = rememberCoroutineScope()
+
+        val treeLauncher = rememberLauncherForActivityResult(
+            contract = OpenAudiobookFolderContract()
         ) { uri: Uri? ->
             uri?.let {
                 val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                context.contentResolver.takePersistableUriPermission(it, flags)
+                try {
+                    context.contentResolver.takePersistableUriPermission(it, flags)
+                } catch (_: SecurityException) {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            "Could not keep access to this folder. Update the app or try another storage (e.g. internal storage)."
+                        )
+                    }
+                    return@rememberLauncherForActivityResult
+                }
 
                 val docFile = DocumentFile.fromTreeUri(context, it)
                 val name = docFile?.name ?: "Unknown"
@@ -79,11 +93,13 @@ class FolderSelectionView(
         }
 
         val scanUi by component.catalogScanUi.collectAsState()
-        val snackbarHostState = remember { SnackbarHostState() }
         var wasScanActive by remember { mutableStateOf(false) }
         LaunchedEffect(scanUi.active, scanUi.completedSummary) {
-            if (wasScanActive && !scanUi.active && scanUi.completedSummary.isNotEmpty()) {
-                snackbarHostState.showSnackbar(scanUi.completedSummary)
+            if (wasScanActive && !scanUi.active) {
+                if (scanUi.completedSummary.isNotEmpty()) {
+                    snackbarHostState.showSnackbar(scanUi.completedSummary)
+                }
+                component.refreshFolderAccessHealth()
             }
             wasScanActive = scanUi.active
         }
@@ -140,7 +156,7 @@ class FolderSelectionView(
                 )
             },
             floatingActionButton = {
-                FloatingActionButton(onClick = { launcher.launch(null) }) {
+                FloatingActionButton(onClick = { treeLauncher.launch(null) }) {
                     Icon(
                         imageVector = Icons.Filled.Add,
                         contentDescription = "Add folder"
@@ -149,6 +165,7 @@ class FolderSelectionView(
             },
             content = { paddingValues ->
                 val screenState by component.screenState.collectAsState()
+                val folderHealth by component.folderAccessHealth.collectAsState()
 
                 Crossfade(
                     modifier = Modifier
@@ -168,7 +185,7 @@ class FolderSelectionView(
                         }
 
                         is ScreenContentState.Content -> {
-                            DrawContent(state.value)
+                            DrawContent(state.value, folderHealth)
                         }
                     }
                 }
@@ -177,7 +194,10 @@ class FolderSelectionView(
     }
 
     @Composable
-    private fun DrawContent(folders: List<FolderSource>) {
+    private fun DrawContent(
+        folders: List<FolderSource>,
+        health: Map<FolderSource.Id, FolderSourceAccessHealth>,
+    ) {
         if (folders.isEmpty()) {
             Column(
                 modifier = Modifier
@@ -198,10 +218,24 @@ class FolderSelectionView(
                 )
             }
         } else {
+            val anyIssue = folders.any { folder ->
+                health[folder.id] != null && health[folder.id] != FolderSourceAccessHealth.Ok
+            }
             LazyColumn(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
+                if (anyIssue) {
+                    item {
+                        Text(
+                            text = "If access broke: tap + and choose the same folder again. " +
+                                    "You do not need to remove the folder first — books and playback progress stay.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+                }
                 folders.forEach { folder ->
                     item {
                         Card(
@@ -218,6 +252,14 @@ class FolderSelectionView(
                                         text = folder.name,
                                         style = MaterialTheme.typography.titleMedium
                                     )
+                                    accessHealthHint(health[folder.id])?.let { hint ->
+                                        Text(
+                                            text = hint,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
+                                    }
                                 }
 
                                 IconButton(onClick = { component.onRemoveFolder(folder.id) }) {
@@ -231,6 +273,20 @@ class FolderSelectionView(
                     }
                 }
             }
+        }
+    }
+
+    private fun accessHealthHint(health: FolderSourceAccessHealth?): String? {
+        return when (health) {
+            null, FolderSourceAccessHealth.Ok -> null
+            FolderSourceAccessHealth.TreeUriUnavailable ->
+                "No access to this folder (Android revoked URI permission). Re-pick via + — same path keeps your progress."
+
+            FolderSourceAccessHealth.CannotListContents ->
+                "Folder cannot be listed (storage provider). Re-pick via + with the same folder — no need to remove it."
+
+            FolderSourceAccessHealth.ListedButEmptyWithIndexedBooks ->
+                "Folder looks empty but you still have books here — likely access issue. Re-pick via + with the same path."
         }
     }
 }

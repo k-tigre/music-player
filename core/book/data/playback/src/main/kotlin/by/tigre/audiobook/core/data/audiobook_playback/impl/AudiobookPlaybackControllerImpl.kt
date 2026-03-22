@@ -21,7 +21,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class AudiobookPlaybackControllerImpl(
@@ -36,6 +39,21 @@ internal class AudiobookPlaybackControllerImpl(
 
     private val chapters = MutableStateFlow<List<Chapter>>(emptyList())
     private val isPlaying = MutableStateFlow(false)
+
+    /** Monotonic mark when [pause] was invoked; used to rewind on [resume]. */
+    private var pauseStartedAt: TimeMark? = null
+
+    /** True after [pause] until [resume] or [clearPauseRewindState]; avoids rewinding on first [resume] without pause. */
+    private var shouldRewindOnResume: Boolean = false
+
+    /**
+     * Listened time (ms) in the book at the stored position when the book was loaded; playback may start rewound from here
+     * without persisting until [mayPersistBelowCanonical] or until caught up.
+     */
+    private var loadCanonicalListenedMs: Long? = null
+
+    /** After user paused while playing, allow saving a position earlier than [loadCanonicalListenedMs] (e.g. resume rewind). */
+    private var mayPersistBelowCanonical: Boolean = false
 
     init {
         scope.launch {
@@ -76,6 +94,7 @@ internal class AudiobookPlaybackControllerImpl(
     }
 
     private suspend fun loadBookInternal(book: Book, autoPlay: Boolean) {
+        clearPauseRewindState()
         val chapterList = catalog.getChapters(book.id)
         if (chapterList.isEmpty()) {
             Log.w(TAG) { "No chapters for book: ${book.title}" }
@@ -94,6 +113,9 @@ internal class AudiobookPlaybackControllerImpl(
         val startPosition = if (savedPosition?.chapterId == startChapter.id) savedPosition.positionMs else 0L
 
         setChapter(startChapter, startPosition)
+        loadCanonicalListenedMs = listenedMsForChapterPosition(chapterList, startChapter, startPosition)
+        mayPersistBelowCanonical = false
+        rewindAcrossChapters(AudiobookPlaybackConfig.RESUME_REWIND_MAX_MS)
         storage.saveLastPlayedBook(book.id)
 
         if (autoPlay) {
@@ -112,6 +134,8 @@ internal class AudiobookPlaybackControllerImpl(
     override fun playNextChapter() {
         Log.d(TAG) { "playNextChapter" }
         scope.launch {
+            clearPauseRewindState()
+            loadCanonicalListenedMs = null
             saveCurrentPosition()
             val chapterList = chapters.value
             val current = currentChapter.value ?: return@launch
@@ -134,6 +158,8 @@ internal class AudiobookPlaybackControllerImpl(
     override fun playPrevChapter() {
         Log.d(TAG) { "playPrevChapter" }
         scope.launch {
+            clearPauseRewindState()
+            loadCanonicalListenedMs = null
             saveCurrentPosition()
             val chapterList = chapters.value
             val current = currentChapter.value ?: return@launch
@@ -150,7 +176,13 @@ internal class AudiobookPlaybackControllerImpl(
 
     override fun pause() {
         Log.d(TAG) { "pause" }
+        val wasPlaying = isPlaying.value
+        shouldRewindOnResume = true
+        pauseStartedAt = TimeSource.Monotonic.markNow()
         scope.launch {
+            if (wasPlaying) {
+                mayPersistBelowCanonical = true
+            }
             saveCurrentPosition()
             isPlaying.value = false
             player.pause()
@@ -160,7 +192,15 @@ internal class AudiobookPlaybackControllerImpl(
     override fun resume() {
         Log.d(TAG) { "resume" }
         isPlaying.value = true
+        val wantsRewind = shouldRewindOnResume
+        shouldRewindOnResume = false
+        val pauseMark = pauseStartedAt
+        pauseStartedAt = null
         scope.launch {
+            val rewindMs = rewindMsAfterPause(wantsRewind, pauseMark)
+            if (rewindMs > 0L) {
+                rewindAcrossChapters(rewindMs)
+            }
             saveCurrentPosition()
             player.resume()
         }
@@ -168,6 +208,8 @@ internal class AudiobookPlaybackControllerImpl(
 
     override fun stop() {
         Log.d(TAG) { "stop" }
+        clearPauseRewindState()
+        loadCanonicalListenedMs = null
         scope.launch {
             saveCurrentPosition()
             isPlaying.value = false
@@ -199,6 +241,14 @@ internal class AudiobookPlaybackControllerImpl(
         val book = currentBook.value ?: return
         val chapter = currentChapter.value ?: return
         val progress = player.progress.first()
+        val chapterList = chapters.value
+        val canonical = loadCanonicalListenedMs
+        if (canonical != null && !mayPersistBelowCanonical) {
+            val currentListened = listenedMsForChapterPosition(chapterList, chapter, progress.position)
+            if (currentListened < canonical) {
+                return
+            }
+        }
         if (progress.position > 0) {
             storage.savePosition(book.id, chapter.id, progress.position)
             Log.d(TAG) { "Saved position: book=${book.title}, chapter=${chapter.title}, pos=${progress.position}" }
@@ -221,6 +271,78 @@ internal class AudiobookPlaybackControllerImpl(
 
         storage.saveBookProgress(book.id, listenedDurationMs, isCompleted)
         Log.d(TAG) { "Saved book progress: book=${book.title}, listened=$listenedDurationMs, completed=$isCompleted" }
+    }
+
+    private fun clearPauseRewindState() {
+        pauseStartedAt = null
+        shouldRewindOnResume = false
+    }
+
+    private fun listenedMsForChapterPosition(
+        chapterList: List<Chapter>,
+        chapter: Chapter,
+        positionMs: Long,
+    ): Long {
+        val idx = chapterList.indexOfFirst { it.id == chapter.id }
+        if (idx < 0) return 0L
+        return chapterList.take(idx).sumOf { it.duration } + positionMs.coerceAtLeast(0L)
+    }
+
+    private fun rewindMsAfterPause(wantsRewind: Boolean, pauseMark: TimeMark?): Long {
+        if (!wantsRewind) return 0L
+        if (pauseMark != null) {
+            return rewindMsForPauseDuration(pauseMark.elapsedNow())
+        }
+        return AudiobookPlaybackConfig.RESUME_REWIND_WHEN_PAUSE_UNKNOWN_MS
+    }
+
+    private fun rewindMsForPauseDuration(pausedFor: Duration): Long {
+        val minMs = AudiobookPlaybackConfig.RESUME_REWIND_MIN_MS
+        val maxMs = AudiobookPlaybackConfig.RESUME_REWIND_MAX_MS
+        val rampMs = AudiobookPlaybackConfig.RESUME_REWIND_RAMP_MS.toDouble().coerceAtLeast(1.0)
+        val elapsedMs = pausedFor.inWholeMilliseconds
+        val fraction = (elapsedMs / rampMs).coerceIn(0.0, 1.0)
+        return (minMs + (maxMs - minMs) * fraction).toLong()
+    }
+
+    /**
+     * Moves playback back by [rewindMs] within the current chapter; overflow goes to the previous chapter(s)
+     * from the end of each file, same as rewinding from the chapter boundary.
+     */
+    private suspend fun rewindAcrossChapters(rewindMs: Long) {
+        val chapterList = chapters.value
+        val current = currentChapter.value ?: return
+        var chapterIndex = chapterList.indexOfFirst { it.id == current.id }
+        if (chapterIndex < 0) return
+
+        val positionMs = player.progress.first().position.coerceAtLeast(0L)
+        var remaining = rewindMs
+
+        if (positionMs >= remaining) {
+            player.seekTo(positionMs - remaining)
+            return
+        }
+
+        remaining -= positionMs
+        chapterIndex--
+
+        while (chapterIndex >= 0 && remaining > 0) {
+            val chapter = chapterList[chapterIndex]
+            val durationMs = chapter.duration.coerceAtLeast(0L)
+            if (durationMs == 0L) {
+                chapterIndex--
+                continue
+            }
+            if (remaining <= durationMs) {
+                val targetPos = (durationMs - remaining).coerceAtLeast(0L)
+                setChapter(chapter, targetPos)
+                return
+            }
+            remaining -= durationMs
+            chapterIndex--
+        }
+
+        setChapter(chapterList.first(), 0L)
     }
 
     private suspend fun saveBookProgressCompleted(book: Book, chapterList: List<Chapter>) {

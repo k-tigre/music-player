@@ -16,6 +16,8 @@ interface AudiobookCatalogStorage {
 
     suspend fun syncBooksForFolder(folderSourceId: FolderSource.Id, scannedBooks: List<ScannedBook>)
 
+    suspend fun countBooksByFolderSource(folderSourceId: FolderSource.Id): Int
+
     suspend fun getExistingBookIdForScan(
         folderSourceId: FolderSource.Id,
         folderUri: String,

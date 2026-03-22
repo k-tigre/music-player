@@ -6,6 +6,7 @@ import by.tigre.music.player.logger.CrashlyticsLogger
 import by.tigre.music.player.logger.DbLogger
 import by.tigre.music.player.logger.Log
 import by.tigre.music.player.logger.LogcatLogger
+import by.tigre.musicplayer.BuildConfig
 
 class App : Application() {
     lateinit var graph: ApplicationGraph
