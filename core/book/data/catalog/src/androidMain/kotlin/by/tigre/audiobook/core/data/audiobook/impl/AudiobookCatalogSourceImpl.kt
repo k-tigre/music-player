@@ -191,7 +191,7 @@ class AudiobookCatalogSourceImpl(
                 ?: return@withContext FolderSourceAccessHealth.TreeUriUnavailable
 
             @Suppress("UNCHECKED_CAST")
-            val raw = root.listFiles() as Array<out DocumentFile>?
+            val raw = root.listFiles() as? Array<out DocumentFile>?
                 ?: return@withContext FolderSourceAccessHealth.CannotListContents
 
             if (raw.isEmpty()) {

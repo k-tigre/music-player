@@ -19,13 +19,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import by.tigre.music.player.R
 import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
 import by.tigre.music.player.core.presentation.catalog.view.PlayerView
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
 import by.tigre.music.player.presentation.root.component.Root
 import by.tigre.music.player.tools.platform.compose.ComposableView
-import by.tigre.music.player.R
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.plus
@@ -77,6 +77,7 @@ class RootView(
                         emptyScreenTitle = "No songs in current playlist",
                         emptyScreenMessage = "Select some track for playing",
                         emptyScreenActionTitle = "Select from catalog",
+                        coverFallbackIcon = R.drawable.ic_launcher_foreground
                     )
                 ).Draw(Modifier.fillMaxSize())
             }
