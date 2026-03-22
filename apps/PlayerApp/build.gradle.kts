@@ -55,7 +55,7 @@ android {
     buildTypes {
         create(Environment.Qa.gradleName)
 
-        Environment.values().forEach { env ->
+        Environment.entries.forEach { env ->
             named(env.gradleName) {
                 isDebuggable = env.debuggable
                 isMinifyEnabled = env.useProguard
