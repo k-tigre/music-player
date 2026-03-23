@@ -8,11 +8,11 @@ internal object AudiobookPlaybackConfig {
 
     /** Rewind after resume when pause duration is known (linear ramp up to [RESUME_REWIND_RAMP_MS]). */
     const val RESUME_REWIND_MIN_MS = 2_000L
-    const val RESUME_REWIND_MAX_MS = 10_000L
-    const val RESUME_REWIND_RAMP_MS = 600_000L // 10 minutes — at this (or longer) pause, use max rewind
+    const val RESUME_REWIND_MAX_MS = 5_000L
+    const val RESUME_REWIND_RAMP_MS = 300_000L // 5 minutes — at this (or longer) pause, use max rewind
 
     /** When pause was tracked but duration is unavailable (e.g. future: restore after process death without timestamp). */
-    const val RESUME_REWIND_WHEN_PAUSE_UNKNOWN_MS = 10_000L
+    const val RESUME_REWIND_WHEN_PAUSE_UNKNOWN_MS = 5_000L
 
     /** "Previous" control: seek to chapter start when playback is past this position; else go to previous chapter. */
     const val PREV_BUTTON_CHAPTER_RESTART_THRESHOLD_MS = 5_000L
