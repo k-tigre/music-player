@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeMark
@@ -45,8 +44,8 @@ internal class AudiobookPlaybackControllerImpl(
     private var shouldRewindOnResume: Boolean = false
 
     /**
-     * Listened time (ms) in the book at the stored position when the book was loaded; playback may start rewound from here
-     * without persisting until [mayPersistBelowCanonical] or until caught up.
+     * Listened time (ms) in the book at a reference position (e.g. after chapter change); blocks persisting an earlier
+     * position until [mayPersistBelowCanonical] or until caught up.
      */
     private var loadCanonicalListenedMs: Long? = null
 
@@ -92,7 +91,6 @@ internal class AudiobookPlaybackControllerImpl(
     }
 
     private suspend fun loadBookInternal(book: Book, autoPlay: Boolean) {
-        clearPauseRewindState()
         val chapterList = catalog.getChapters(book.id)
         if (chapterList.isEmpty()) {
             Log.w(TAG) { "No chapters for book: ${book.title}" }
@@ -111,13 +109,13 @@ internal class AudiobookPlaybackControllerImpl(
         val startPosition = if (savedPosition?.chapterId == startChapter.id) savedPosition.positionMs else 0L
 
         setChapter(startChapter, startPosition)
-        loadCanonicalListenedMs = listenedMsForChapterPosition(chapterList, startChapter, startPosition)
+        loadCanonicalListenedMs = null
         mayPersistBelowCanonical = false
-        rewindAcrossChapters(AudiobookPlaybackConfig.RESUME_REWIND_MAX_MS)
         storage.saveLastPlayedBook(book.id)
 
         if (autoPlay) {
             isPlaying.value = true
+            applyRewindBeforePlaybackResume()
             player.resume()
         }
     }
@@ -200,16 +198,8 @@ internal class AudiobookPlaybackControllerImpl(
     override fun resume() {
         Log.d(TAG) { "resume" }
         isPlaying.value = true
-        val wantsRewind = shouldRewindOnResume
-        shouldRewindOnResume = false
-        val pauseMark = pauseStartedAt
-        pauseStartedAt = null
         scope.launch {
-            val rewindMs = rewindMsAfterPause(wantsRewind, pauseMark)
-            if (rewindMs > 0L) {
-                rewindAcrossChapters(rewindMs)
-            }
-            saveCurrentPosition()
+            applyRewindBeforePlaybackResume()
             player.resume()
         }
     }
@@ -282,6 +272,18 @@ internal class AudiobookPlaybackControllerImpl(
     private fun clearPauseRewindState() {
         pauseStartedAt = null
         shouldRewindOnResume = false
+    }
+
+    private suspend fun applyRewindBeforePlaybackResume() {
+        val wantsRewind = shouldRewindOnResume
+        shouldRewindOnResume = false
+        val pauseMark = pauseStartedAt
+        pauseStartedAt = null
+        val rewindMs = rewindMsAfterPause(wantsRewind, pauseMark)
+        if (rewindMs > 0L) {
+            rewindAcrossChapters(rewindMs)
+        }
+        saveCurrentPosition()
     }
 
     private fun listenedMsForChapterPosition(
