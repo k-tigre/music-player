@@ -3,7 +3,7 @@ package by.tigre.music.player.core.data.playback.impl
 import by.tigre.music.player.core.data.playback.MediaItemWrapper
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
 import by.tigre.music.player.logger.Log
-import kotlinx.coroutines.CancellationException
+import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -15,15 +15,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
-import kotlinx.coroutines.withContext
 import org.jaudiotagger.audio.AudioFileIO
 import java.io.File
-import java.io.InputStream
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioInputStream
 import javax.sound.sampled.AudioSystem
-import javax.sound.sampled.DataLine
-import javax.sound.sampled.SourceDataLine
+import javax.sound.sampled.Clip
+import javax.sound.sampled.UnsupportedAudioFileException
 
 class DesktopPlaybackPlayerImpl : PlaybackPlayer {
 
@@ -33,18 +31,27 @@ class DesktopPlaybackPlayerImpl : PlaybackPlayer {
     private val _progress = MutableStateFlow(PlaybackPlayer.Progress(0, 0))
     override val progress: Flow<PlaybackPlayer.Progress> = _progress
 
-    // Mirrors ExoPlayer's playWhenReady: true means audio should be playing (not paused/stopped)
     @Volatile private var playWhenReady = false
 
-    @Volatile private var currentLine: SourceDataLine? = null
+    @Volatile private var currentClip: Clip? = null
     @Volatile private var currentUri: String? = null
     @Volatile private var currentPosition: Long = 0
     @Volatile private var currentDurationMs: Long = 0
-    @Volatile private var playbackJob: Job? = null
+    @Volatile private var progressJob: Job? = null
+
+    /** While mutating clip (seek stop/set/start), [!Clip.isRunning] must not be treated as track finished. */
+    @Volatile
+    private var suppressTrackEndedUntilMs: Long = 0L
+
+    /** After a user seek, do not emit [PlaybackPlayer.State.Ended] (slider at EOF is not "track finished"). */
+    @Volatile
+    private var suppressEndedAfterUserSeekUntilMs: Long = 0L
 
     override suspend fun stop() {
         playWhenReady = false
-        cancelPlayback()
+        suppressEndedAfterUserSeekUntilMs = 0L
+        stopProgressJob()
+        closeClip()
         currentUri = null
         state.emit(PlaybackPlayer.State.Idle)
         _progress.emit(PlaybackPlayer.Progress(0, 0))
@@ -52,188 +59,311 @@ class DesktopPlaybackPlayerImpl : PlaybackPlayer {
 
     override suspend fun pause() {
         playWhenReady = false
-        currentLine?.stop()
+        runInterruptible(Dispatchers.IO) {
+            try {
+                currentClip?.stop()
+            } catch (_: Exception) {
+            }
+        }
         state.emit(PlaybackPlayer.State.Paused)
     }
 
     override suspend fun resume() {
         if (currentUri == null) return
         playWhenReady = true
-        if (currentLine != null) {
-            // Line exists but was stopped by pause() — just restart it
-            currentLine?.start()
-            state.emit(PlaybackPlayer.State.Playing)
-        } else {
-            // No active line: start fresh (first play or after setMediaItem in paused state)
-            startPlayback(currentUri!!, currentPosition)
+        val clip = currentClip ?: run {
+            openClipForUri(currentUri!!, currentPosition)
+            currentClip
+        } ?: return
+        val rewindFromEof =
+            state.value != PlaybackPlayer.State.Ended && clip.isAtOrPastEffectiveEnd()
+        runInterruptible(Dispatchers.IO) {
+            if (rewindFromEof) {
+                seekClipUs(clip, 0L)
+            }
+            clip.start()
         }
+        state.emit(PlaybackPlayer.State.Playing)
+        startProgressJob()
     }
 
     override suspend fun seekTo(position: Long) {
         val uri = currentUri ?: return
-        currentPosition = position
-        if (playWhenReady) {
-            startPlayback(uri, position)
+        suppressEndedAfterUserSeekUntilMs = System.currentTimeMillis() + 2_500L
+        currentPosition = position.coerceAtLeast(0L)
+        val clip = currentClip
+        if (clip != null) {
+            runInterruptible(Dispatchers.IO) {
+                seekClipUs(clip, msToUs(currentPosition))
+            }
+            if (playWhenReady) {
+                state.emit(PlaybackPlayer.State.Playing)
+                startProgressJob()
+            }
+            emitProgressSnapshot(clip)
         } else {
-            // Paused: cancel current stream and remember new position
-            cancelPlayback()
-            _progress.emit(PlaybackPlayer.Progress(position, currentDurationMs))
+            _progress.emit(
+                PlaybackPlayer.Progress(currentPosition, currentDurationMs),
+            )
+            if (playWhenReady) {
+                openClipForUri(uri, currentPosition)
+                currentClip?.let { c ->
+                    runInterruptible(Dispatchers.IO) { c.start() }
+                    state.emit(PlaybackPlayer.State.Playing)
+                    startProgressJob()
+                    emitProgressSnapshot(c)
+                }
+            }
         }
     }
 
     override suspend fun setMediaItem(item: MediaItemWrapper, position: Long) {
+        suppressEndedAfterUserSeekUntilMs = 0L
+        stopProgressJob()
+        closeClip()
         currentUri = item.uri
-        currentPosition = position
-        if (playWhenReady) {
-            // Song changed while playing — start new track immediately
-            startPlayback(item.uri, position)
-        } else {
-            // Not playing yet (like ExoPlayer prepare()) — just mark as ready to play
-            cancelPlayback()
-            state.emit(PlaybackPlayer.State.Paused)
-            _progress.emit(PlaybackPlayer.Progress(position, 0))
+        currentPosition = position.coerceAtLeast(0L)
+        val file = File(item.uri)
+        if (!file.exists()) {
+            Log.w("DesktopPlayer") { "File not found: ${item.uri}" }
+            state.emit(PlaybackPlayer.State.Ended)
+            return
+        }
+        val tagDurationMs = readTagDurationMs(file)
+        try {
+            val clip = runInterruptible(Dispatchers.IO) {
+                AudioSystem.getClip().also { c ->
+                    openPcmStreamForClip(file).use { ais -> c.open(ais) }
+                }
+            }
+            currentClip = clip
+            val lenUs = clip.microsecondLength
+            currentDurationMs = when {
+                lenUs > 0L -> lenUs / 1000L
+                tagDurationMs > 0L -> tagDurationMs
+                else -> 0L
+            }
+            runInterruptible(Dispatchers.IO) {
+                seekClipUs(clip, msToUs(currentPosition))
+            }
+            if (playWhenReady) {
+                runInterruptible(Dispatchers.IO) { clip.start() }
+                state.emit(PlaybackPlayer.State.Playing)
+                startProgressJob()
+            } else {
+                state.emit(PlaybackPlayer.State.Paused)
+            }
+            emitProgressSnapshot(clip)
+        } catch (e: Exception) {
+            Log.e("DesktopPlayer") { "Could not open clip: ${e.message}" }
+            currentClip = null
+            state.emit(PlaybackPlayer.State.Ended)
         }
     }
 
-    private suspend fun cancelPlayback() {
-        val line = currentLine
-        currentLine = null
-        // Flush to unblock any pending write() so the coroutine can be cancelled
-        try { line?.flush() } catch (_: Exception) { }
-        val job = playbackJob
-        playbackJob = null
+    private suspend fun stopProgressJob() {
+        val job = progressJob
+        progressJob = null
         job?.cancelAndJoin()
-        try { line?.stop() } catch (_: Exception) { }
-        try { line?.close() } catch (_: Exception) { }
     }
 
-    /** Returns how many PCM bytes were actually read (never uses [InputStream.skip] — broken for MP3 PCM decode). */
-    private fun discardPcmBytes(stream: InputStream, bytes: Long, buffer: ByteArray): Long {
-        var remaining = bytes
-        while (remaining > 0) {
-            val toRead = minOf(remaining, buffer.size.toLong()).toInt()
-            val read = stream.read(buffer, 0, toRead)
-            if (read <= 0) break
-            remaining -= read
-        }
-        return bytes - remaining
-    }
-
-    private suspend fun startPlayback(uri: String, startPositionMs: Long) {
-        cancelPlayback()
-        state.emit(PlaybackPlayer.State.Playing)
-        playbackJob = playbackScope.launch {
-            try {
-                playFile(uri, startPositionMs)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Log.e("DesktopPlayer") { "Playback error: ${e.message}" }
-                state.emit(PlaybackPlayer.State.Ended)
+    private suspend fun closeClip() {
+        val clip = currentClip
+        currentClip = null
+        if (clip != null) {
+            runInterruptible(Dispatchers.IO) {
+                try {
+                    clip.stop()
+                } catch (_: Exception) {
+                }
+                try {
+                    clip.close()
+                } catch (_: Exception) {
+                }
             }
         }
     }
 
-    private suspend fun playFile(uri: String, startPositionMs: Long) = withContext(Dispatchers.IO) {
+    private fun readTagDurationMs(file: File): Long =
+        try {
+            AudioFileIO.read(file).audioHeader.trackLength * 1000L
+        } catch (_: Exception) {
+            0L
+        }
+
+    /**
+     * [Clip.open] requires a fully specified [AudioFormat]; the JDK MP3 provider often leaves
+     * frame size at NOT_SPECIFIED. MP3SPI ([MpegAudioFileReader]) plus PCM decode fixes that.
+     */
+    private fun openPcmStreamForClip(file: File): AudioInputStream {
+        val raw = openRawAudioInputStream(file)
+        val rawFormat = raw.format
+        val channels = rawFormat.channels.takeIf { it > 0 } ?: 2
+        val sampleRate = rawFormat.sampleRate.takeIf { it > 0f } ?: 44100f
+        val pcmFormat = AudioFormat(
+            AudioFormat.Encoding.PCM_SIGNED,
+            sampleRate,
+            16,
+            channels,
+            channels * 2,
+            sampleRate,
+            false,
+        )
+        val useRaw = rawFormat.encoding == AudioFormat.Encoding.PCM_SIGNED &&
+            rawFormat.sampleSizeInBits == 16 &&
+            rawFormat.frameSize > 0
+        return if (useRaw) raw else AudioSystem.getAudioInputStream(pcmFormat, raw)
+    }
+
+    private fun openRawAudioInputStream(file: File): AudioInputStream {
+        val isMp3 = file.extension.equals("mp3", ignoreCase = true)
+        return if (isMp3) {
+            try {
+                MpegAudioFileReader().getAudioInputStream(file)
+            } catch (_: UnsupportedAudioFileException) {
+                AudioSystem.getAudioInputStream(file)
+            }
+        } else {
+            AudioSystem.getAudioInputStream(file)
+        }
+    }
+
+    private suspend fun openClipForUri(uri: String, startMs: Long) {
         val file = File(uri)
         if (!file.exists()) {
             Log.w("DesktopPlayer") { "File not found: $uri" }
-            state.emit(PlaybackPlayer.State.Ended)
-            return@withContext
+            return
         }
-
-        val durationMs = try {
-            AudioFileIO.read(file).audioHeader.trackLength * 1000L
-        } catch (e: Exception) {
-            Log.w("DesktopPlayer") { "Could not read duration: ${e.message}" }
-            0L
-        }
-        currentDurationMs = durationMs
-
-        val rawStream = runInterruptible { AudioSystem.getAudioInputStream(file) }
-        val rawFormat = rawStream.format
-
-        val pcmFormat = AudioFormat(
-            AudioFormat.Encoding.PCM_SIGNED,
-            rawFormat.sampleRate,
-            16,
-            rawFormat.channels,
-            rawFormat.channels * 2,
-            rawFormat.sampleRate,
-            false
-        )
-
-        val decodedStream = if (rawFormat.encoding == AudioFormat.Encoding.PCM_SIGNED
-            && rawFormat.sampleSizeInBits == 16
-        ) {
-            rawStream
-        } else {
-            runInterruptible { AudioSystem.getAudioInputStream(pcmFormat, rawStream) }
-        }
-
-        val frameSize = pcmFormat.frameSize
-        if (frameSize <= 0 || pcmFormat.sampleRate <= 0f) {
-            Log.w("DesktopPlayer") { "Unsupported PCM layout (frameSize=$frameSize, sampleRate=${pcmFormat.sampleRate})" }
-            state.emit(PlaybackPlayer.State.Ended)
-            return@withContext
-        }
-        val sampleRate = pcmFormat.sampleRate.toLong()
-        val bytesPerSecond = sampleRate * frameSize
-
-        val buffer = ByteArray(4096)
-
-        // Whole-frame seek in decoded PCM. Do not use InputStream.skip() here: for MP3 (and similar)
-        // JDK streams often skip compressed file bytes, not PCM output — you jump far ahead and hit EOF.
-        val requestedSkipFrames = (startPositionMs.coerceAtLeast(0L) * sampleRate) / 1000L
-        val maxFromDuration =
-            if (durationMs > 0L) (durationMs * sampleRate) / 1000L else Long.MAX_VALUE
-        val streamFrames = (decodedStream as? AudioInputStream)?.frameLength ?: -1L
-        val maxFromStream = if (streamFrames > 0L) streamFrames else Long.MAX_VALUE
-        val skipFrames = minOf(requestedSkipFrames, maxFromDuration, maxFromStream)
-        val skipBytesTotal = skipFrames * frameSize
-        val skippedBytes = runInterruptible {
-            discardPcmBytes(decodedStream, skipBytesTotal, buffer)
-        }
-        val actualSkipFrames = skippedBytes / frameSize
-
-        val info = DataLine.Info(SourceDataLine::class.java, pcmFormat)
-        val line = runInterruptible { AudioSystem.getLine(info) } as SourceDataLine
-        runInterruptible {
-            line.open(pcmFormat, 8192)
-            line.start()
-        }
-        currentLine = line
-
-        // Matches PCM actually discarded (read-based skip may stop early at EOF).
-        var positionMs = actualSkipFrames * 1000L / sampleRate
-        _progress.emit(PlaybackPlayer.Progress(positionMs, durationMs))
-
+        val tagDurationMs = readTagDurationMs(file)
         try {
-            while (isActive) {
-                if (!playWhenReady) {
-                    // Paused — wait without reading, line was stopped externally by pause()
-                    delay(50)
-                    continue
+            val clip = runInterruptible(Dispatchers.IO) {
+                AudioSystem.getClip().also { c ->
+                    openPcmStreamForClip(file).use { ais -> c.open(ais) }
                 }
-
-                val bytesRead = runInterruptible { decodedStream.read(buffer) }
-                if (bytesRead == -1) break
-
-                runInterruptible { line.write(buffer, 0, bytesRead) }
-                positionMs += bytesRead * 1000L / bytesPerSecond
-                currentPosition = positionMs
-                _progress.emit(PlaybackPlayer.Progress(positionMs.coerceAtMost(durationMs), durationMs))
             }
-
-            if (isActive && playWhenReady) {
-                runInterruptible { line.drain() }
-                state.emit(PlaybackPlayer.State.Ended)
+            currentClip = clip
+            val lenUs = clip.microsecondLength
+            currentDurationMs = when {
+                lenUs > 0L -> lenUs / 1000L
+                tagDurationMs > 0L -> tagDurationMs
+                else -> 0L
             }
-        } finally {
-            currentLine = null
-            try { line.stop() } catch (_: Exception) { }
-            try { line.close() } catch (_: Exception) { }
-            try { decodedStream.close() } catch (_: Exception) { }
+            runInterruptible(Dispatchers.IO) {
+                seekClipUs(clip, msToUs(startMs.coerceAtLeast(0L)))
+            }
+            currentPosition = startMs
+        } catch (e: Exception) {
+            Log.e("DesktopPlayer") { "Could not open clip: ${e.message}" }
+            currentClip = null
+        }
+    }
+
+    private fun msToUs(ms: Long): Long = ms.coerceAtLeast(0L) * 1000L
+
+    private fun suppressTrackEndedFor(ms: Long) {
+        suppressTrackEndedUntilMs = System.currentTimeMillis() + ms
+    }
+
+    /** After MP3→PCM decode, [Clip.getMicrosecondLength] is often invalid; fall back to tag duration. */
+    private fun effectiveMicrosecondLength(clip: Clip): Long {
+        val fromClip = clip.microsecondLength
+        return when {
+            fromClip > 0L -> fromClip
+            currentDurationMs > 0L -> currentDurationMs * 1000L
+            else -> 0L
+        }
+    }
+
+    private fun Clip.isAtOrPastEffectiveEnd(): Boolean {
+        val eff = effectiveMicrosecondLength(this)
+        if (eff <= 0L) return false
+        return microsecondPosition + 300_000L >= eff
+    }
+
+    /**
+     * Clip may require [Clip.stop] before [Clip.setMicrosecondPosition] while the line is active.
+     * After a scrub to EOF the line is stopped ([isRunning] false) but [playWhenReady] stays true — we still
+     * must [Clip.start] so dragging the slider back resumes audio without an extra play tap.
+     */
+    private fun seekClipUs(clip: Clip, positionUs: Long) {
+        suppressTrackEndedFor(600L)
+        val wasRunning = clip.isRunning
+        if (wasRunning) {
+            try {
+                clip.stop()
+            } catch (_: Exception) {
+            }
+        }
+        val lenFromClip = clip.microsecondLength
+        val effLen = effectiveMicrosecondLength(clip)
+        val target = when {
+            lenFromClip > 0L -> positionUs.coerceIn(0L, (lenFromClip - 1L).coerceAtLeast(0L))
+            effLen > 0L -> positionUs.coerceIn(0L, (effLen - 1L).coerceAtLeast(0L))
+            else -> positionUs.coerceAtLeast(0L)
+        }
+        clip.microsecondPosition = target
+        currentPosition = target / 1000L
+        if (playWhenReady) {
+            try {
+                clip.start()
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    private suspend fun emitProgressSnapshot(clip: Clip) {
+        val (posMs, durMs) = runInterruptible(Dispatchers.IO) {
+            val lenUs = clip.microsecondLength
+            val durMs = when {
+                lenUs > 0L -> lenUs / 1000L
+                currentDurationMs > 0L -> currentDurationMs
+                else -> 0L
+            }
+            val posMs = clip.microsecondPosition / 1000L
+            Pair(posMs, durMs)
+        }
+        currentPosition = posMs
+        _progress.emit(
+            PlaybackPlayer.Progress(
+                posMs.coerceAtMost(durMs.coerceAtLeast(1L)),
+                durMs,
+            ),
+        )
+    }
+
+    private fun startProgressJob() {
+        progressJob?.cancel()
+        progressJob = playbackScope.launch {
+            while (isActive) {
+                val clip = currentClip ?: break
+                val ended = runInterruptible(Dispatchers.IO) {
+                    val lenUsFromClip = clip.microsecondLength
+                    val effLenUs = effectiveMicrosecondLength(clip)
+                    val posUs = clip.microsecondPosition
+                    val durMs = when {
+                        lenUsFromClip > 0L -> lenUsFromClip / 1000L
+                        currentDurationMs > 0L -> currentDurationMs
+                        else -> 0L
+                    }
+                    val posMs = posUs / 1000L
+                    currentPosition = posMs
+                    _progress.value = PlaybackPlayer.Progress(
+                        posMs.coerceAtMost(durMs.coerceAtLeast(1L)),
+                        durMs,
+                    )
+                    if (!playWhenReady || clip.isRunning) return@runInterruptible false
+                    if (System.currentTimeMillis() < suppressTrackEndedUntilMs) return@runInterruptible false
+                    if (System.currentTimeMillis() < suppressEndedAfterUserSeekUntilMs) return@runInterruptible false
+                    if (effLenUs <= 0L) return@runInterruptible false
+                    val endSlackUs = minOf(2_000_000L, effLenUs / 8).coerceAtLeast(150_000L)
+                    posUs + endSlackUs >= effLenUs
+                }
+                if (ended) {
+                    state.emit(PlaybackPlayer.State.Ended)
+                    break
+                }
+                delay(100)
+            }
         }
     }
 }
