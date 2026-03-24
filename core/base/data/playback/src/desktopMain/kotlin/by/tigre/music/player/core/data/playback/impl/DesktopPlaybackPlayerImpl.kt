@@ -18,7 +18,9 @@ import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import org.jaudiotagger.audio.AudioFileIO
 import java.io.File
+import java.io.InputStream
 import javax.sound.sampled.AudioFormat
+import javax.sound.sampled.AudioInputStream
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.DataLine
 import javax.sound.sampled.SourceDataLine
@@ -105,6 +107,18 @@ class DesktopPlaybackPlayerImpl : PlaybackPlayer {
         try { line?.close() } catch (_: Exception) { }
     }
 
+    /** Returns how many PCM bytes were actually read (never uses [InputStream.skip] — broken for MP3 PCM decode). */
+    private fun discardPcmBytes(stream: InputStream, bytes: Long, buffer: ByteArray): Long {
+        var remaining = bytes
+        while (remaining > 0) {
+            val toRead = minOf(remaining, buffer.size.toLong()).toInt()
+            val read = stream.read(buffer, 0, toRead)
+            if (read <= 0) break
+            remaining -= read
+        }
+        return bytes - remaining
+    }
+
     private suspend fun startPlayback(uri: String, startPositionMs: Long) {
         cancelPlayback()
         state.emit(PlaybackPlayer.State.Playing)
@@ -157,11 +171,30 @@ class DesktopPlaybackPlayerImpl : PlaybackPlayer {
             runInterruptible { AudioSystem.getAudioInputStream(pcmFormat, rawStream) }
         }
 
-        val bytesPerMs = pcmFormat.sampleRate * pcmFormat.frameSize / 1000f
-
-        if (startPositionMs > 0) {
-            runInterruptible { decodedStream.skip((startPositionMs * bytesPerMs).toLong()) }
+        val frameSize = pcmFormat.frameSize
+        if (frameSize <= 0 || pcmFormat.sampleRate <= 0f) {
+            Log.w("DesktopPlayer") { "Unsupported PCM layout (frameSize=$frameSize, sampleRate=${pcmFormat.sampleRate})" }
+            state.emit(PlaybackPlayer.State.Ended)
+            return@withContext
         }
+        val sampleRate = pcmFormat.sampleRate.toLong()
+        val bytesPerSecond = sampleRate * frameSize
+
+        val buffer = ByteArray(4096)
+
+        // Whole-frame seek in decoded PCM. Do not use InputStream.skip() here: for MP3 (and similar)
+        // JDK streams often skip compressed file bytes, not PCM output — you jump far ahead and hit EOF.
+        val requestedSkipFrames = (startPositionMs.coerceAtLeast(0L) * sampleRate) / 1000L
+        val maxFromDuration =
+            if (durationMs > 0L) (durationMs * sampleRate) / 1000L else Long.MAX_VALUE
+        val streamFrames = (decodedStream as? AudioInputStream)?.frameLength ?: -1L
+        val maxFromStream = if (streamFrames > 0L) streamFrames else Long.MAX_VALUE
+        val skipFrames = minOf(requestedSkipFrames, maxFromDuration, maxFromStream)
+        val skipBytesTotal = skipFrames * frameSize
+        val skippedBytes = runInterruptible {
+            discardPcmBytes(decodedStream, skipBytesTotal, buffer)
+        }
+        val actualSkipFrames = skippedBytes / frameSize
 
         val info = DataLine.Info(SourceDataLine::class.java, pcmFormat)
         val line = runInterruptible { AudioSystem.getLine(info) } as SourceDataLine
@@ -171,10 +204,10 @@ class DesktopPlaybackPlayerImpl : PlaybackPlayer {
         }
         currentLine = line
 
-        var positionMs = startPositionMs
+        // Matches PCM actually discarded (read-based skip may stop early at EOF).
+        var positionMs = actualSkipFrames * 1000L / sampleRate
         _progress.emit(PlaybackPlayer.Progress(positionMs, durationMs))
 
-        val buffer = ByteArray(4096)
         try {
             while (isActive) {
                 if (!playWhenReady) {
@@ -187,7 +220,7 @@ class DesktopPlaybackPlayerImpl : PlaybackPlayer {
                 if (bytesRead == -1) break
 
                 runInterruptible { line.write(buffer, 0, bytesRead) }
-                positionMs += (bytesRead / bytesPerMs).toLong()
+                positionMs += bytesRead * 1000L / bytesPerSecond
                 currentPosition = positionMs
                 _progress.emit(PlaybackPlayer.Progress(positionMs.coerceAtMost(durationMs), durationMs))
             }
