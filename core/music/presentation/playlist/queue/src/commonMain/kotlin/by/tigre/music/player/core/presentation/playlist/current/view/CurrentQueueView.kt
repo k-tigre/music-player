@@ -113,7 +113,7 @@ class CurrentQueueView(
                         ) {
                             Text(
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                text = "(${index + 1}) - ${item.song.name}"
+                                text = formatQueueRowTitle(queuePositionOneBased = index + 1, item = item)
                             )
 
                             Text(
@@ -127,4 +127,10 @@ class CurrentQueueView(
             }
         }
     }
+}
+
+private fun formatQueueRowTitle(queuePositionOneBased: Int, item: SongInQueueItem): String {
+    val trackInAlbum = item.song.index.trim()
+    val albumTrackPart = if (trackInAlbum.isNotEmpty()) "($trackInAlbum) - " else ""
+    return "$queuePositionOneBased. - $albumTrackPart${item.song.name}"
 }
