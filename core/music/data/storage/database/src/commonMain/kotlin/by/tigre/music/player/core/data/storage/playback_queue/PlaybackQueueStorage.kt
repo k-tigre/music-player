@@ -8,14 +8,12 @@ interface PlaybackQueueStorage {
     val orderMode: Flow<OrderMode>
 
     suspend fun playSongs(items: List<Song.Id>)
-    suspend fun playQueue(queue: List<QueueItem>)
     suspend fun addSongs(items: List<Song.Id>)
-    suspend fun updateSongStates(finishedId: Long?, playingId: Long, pendingId: Long?)
-    suspend fun resetStatusesInQueue()
-    suspend fun resetAndPlayFirst()
-    suspend fun resetAndPlayLast()
-
     suspend fun setOrderMode(mode: OrderMode)
+
+    suspend fun playNext()
+    suspend fun playPrev()
+    suspend fun playSongInQueue(queueId: Long)
 
     data class QueueItem(val id: Long, val songsId: Song.Id, val state: State) {
         enum class State {

@@ -84,8 +84,7 @@ internal class PlaybackControllerImpl(
         scope.launch {
             action
                 .debugLog("PlaybackController", "action")
-                .withLatestFrom(storage.currentQueue)
-                .collect { (action, queue) ->
+                .collect { action ->
                     when (action) {
                         is Action.PlaySong -> {
                             storage.playSongs(listOf(action.songId))
@@ -115,46 +114,11 @@ internal class PlaybackControllerImpl(
                             storage.setOrderMode(if (action.isNormal) PlaybackQueueStorage.OrderMode.Normal else PlaybackQueueStorage.OrderMode.Random)
                         }
 
-                        Action.PlayNext -> {
-                            val next =
-                                queue.firstOrNull { it.state == PlaybackQueueStorage.QueueItem.State.Pending }?.id
-                            if (next != null) {
-                                val current =
-                                    queue.firstOrNull { it.state == PlaybackQueueStorage.QueueItem.State.Playing }?.id
-                                storage.updateSongStates(finishedId = current, playingId = next, pendingId = null)
-                            } else {
-                                storage.resetAndPlayFirst()
-                            }
-                        }
+                        Action.PlayNext -> storage.playNext()
 
-                        Action.PlayPrev -> {
-                            val prev = queue.lastOrNull { it.state == PlaybackQueueStorage.QueueItem.State.Finish }?.id
-                            if (prev != null) {
-                                val current =
-                                    queue.firstOrNull { it.state == PlaybackQueueStorage.QueueItem.State.Playing }?.id
-                                        ?: -1
-                                storage.updateSongStates(finishedId = null, playingId = prev, pendingId = current)
-                            } else {
-                                storage.resetAndPlayLast()
-                            }
-                        }
+                        Action.PlayPrev -> storage.playPrev()
 
-                        is Action.PlaySongInQueue -> {
-                            var isFind = false
-                            storage.playQueue(
-                                queue.map { item ->
-                                    val state = if (isFind.not() && item.id == action.queueId) {
-                                        isFind = true
-                                        PlaybackQueueStorage.QueueItem.State.Playing
-                                    } else if (isFind) {
-                                        PlaybackQueueStorage.QueueItem.State.Pending
-                                    } else {
-                                        PlaybackQueueStorage.QueueItem.State.Finish
-                                    }
-                                    item.copy(state = state)
-                                }
-                            )
-                        }
+                        is Action.PlaySongInQueue -> storage.playSongInQueue(action.queueId)
                     }
                 }
         }
