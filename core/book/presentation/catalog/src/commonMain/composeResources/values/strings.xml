@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audiobooks_title">Audiobooks</string>
+    <string name="cd_manage_folders">Manage folders</string>
+    <string name="audiobooks_empty_title">No audiobooks found.</string>
+    <string name="audiobooks_empty_hint">Add a folder with audiobooks first.</string>
+    <string name="book_chapters_count">Chapters: %1$d</string>
+    <string name="book_completed">Completed</string>
+    <string name="book_progress_listened">%1$d%% listened</string>
+
+    <string name="folder_selection_title">Audiobook Folders</string>
+    <string name="nav_books">Books</string>
+    <string name="cd_rescan_folders">Rescan folders</string>
+    <string name="cd_add_folder">Add folder</string>
+    <string name="cd_remove_folder">Remove folder</string>
+    <string name="folders_empty_title">No folders added yet.</string>
+    <string name="folders_empty_hint">Tap + to select a folder with audiobooks.</string>
+    <string name="folders_access_broke_hint">If access broke: tap + and choose the same folder again. You do not need to remove the folder first — books and playback progress stay.</string>
+    <string name="scanning_folders_title">Scanning folders</string>
+    <string name="scan_files_progress">%1$d / %2$d files</string>
+    <string name="folder_persist_permission_error">Could not keep access to this folder. Update the app or try another storage (e.g. internal storage).</string>
+    <string name="folder_unknown_name">Unknown</string>
+    <string name="folder_health_tree_uri_unavailable">No access to this folder (Android revoked URI permission). Re-pick via + — same path keeps your progress.</string>
+    <string name="folder_health_cannot_list">Folder cannot be listed (storage provider). Re-pick via + with the same folder — no need to remove it.</string>
+    <string name="folder_health_empty_but_indexed">Folder looks empty but you still have books here — likely access issue. Re-pick via + with the same path.</string>
+</resources>

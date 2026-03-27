@@ -30,6 +30,9 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import `by`.tigre.music.player.tools.platform.compose.resources.Res
+import `by`.tigre.music.player.tools.platform.compose.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CardWithPopup(
@@ -67,7 +70,7 @@ fun CardWithPopup(
                     onClick = { popupControl = true }) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
-                        contentDescription = "more"
+                        contentDescription = stringResource(Res.string.cd_more_options)
                     )
                 }
             }

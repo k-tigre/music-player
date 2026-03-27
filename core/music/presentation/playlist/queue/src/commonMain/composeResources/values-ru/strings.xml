@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_current_queue_title">Текущая очередь</string>
+    <string name="queue_empty_title">В очереди нет треков</string>
+    <string name="queue_empty_message">Выберите трек для воспроизведения</string>
+    <string name="queue_empty_action">Выбрать в каталоге</string>
+    <string name="queue_track_meta">%1$s / %2$s</string>
+</resources>

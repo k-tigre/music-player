@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.StateFlow
 interface CurrentQueueComponent {
 
     val screenState: StateFlow<ScreenContentState<List<SongInQueueItem>>>
-    val title: String
 
     fun retry()
     fun onSongClicked(song: SongInQueueItem)
@@ -24,8 +23,6 @@ interface CurrentQueueComponent {
         dependency: CurrentQueueDependency,
         private val navigator: QueueNavigator
     ) : CurrentQueueComponent, BaseComponentContext by context {
-
-        override val title: String = "Current Queue"
 
         private val playbackController: PlaybackController = dependency.playbackController
 

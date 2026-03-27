@@ -47,7 +47,10 @@ import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicator
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicatorSize
+import `by`.tigre.audiobook.core.presentation.catalog.resources.Res
+import `by`.tigre.audiobook.core.presentation.catalog.resources.*
 import coil3.compose.AsyncImage
+import org.jetbrains.compose.resources.stringResource
 
 class BookListView(
     private val component: BookListComponent
@@ -61,7 +64,7 @@ class BookListView(
                 CenterAlignedTopAppBar(
                     title = {
                         Text(
-                            text = "Audiobooks",
+                            text = stringResource(Res.string.audiobooks_title),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -70,7 +73,7 @@ class BookListView(
                         IconButton(onClick = component::onManageFolders) {
                             Icon(
                                 imageVector = Icons.Filled.Settings,
-                                contentDescription = "Manage folders"
+                                contentDescription = stringResource(Res.string.cd_manage_folders)
                             )
                         }
                     }
@@ -117,12 +120,12 @@ class BookListView(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "No audiobooks found.",
+                    text = stringResource(Res.string.audiobooks_empty_title),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 Text(
-                    text = "Add a folder with audiobooks first.",
+                    text = stringResource(Res.string.audiobooks_empty_hint),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -193,19 +196,19 @@ class BookListView(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Chapters: ${book.chapterCount}",
+                        text = stringResource(Res.string.book_chapters_count, book.chapterCount),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     if (book.isCompleted) {
                         Text(
-                            text = "Completed",
+                            text = stringResource(Res.string.book_completed),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
                     } else if (book.progressFraction > 0f) {
                         Text(
-                            text = "${(book.progressFraction * 100).toInt()}% listened",
+                            text = stringResource(Res.string.book_progress_listened, (book.progressFraction * 100).toInt()),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

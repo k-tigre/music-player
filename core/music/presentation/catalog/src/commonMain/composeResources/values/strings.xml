@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_artists_title">Artists</string>
+    <string name="screen_albums_of">Albums of</string>
+    <string name="screen_songs_of">Songs of</string>
+    <string name="cd_back">Back</string>
+    <string name="cd_reload">Reload</string>
+    <string name="action_play">Play</string>
+    <string name="action_add_to_queue">Add to Queue</string>
+    <string name="catalog_album_years">Years: %1$s</string>
+    <string name="catalog_album_songs_count">Songs: %1$d</string>
+    <string name="catalog_artist_albums_count">Albums: %1$d</string>
+    <string name="catalog_artist_songs_count">Songs: %1$d</string>
+    <string name="catalog_track_meta">%1$s / %2$s</string>
+    <string name="catalog_empty_artists_message">No songs found. Try put some mp3 media files on your device storage, for example into folder &quot;Music&quot;</string>
+</resources>

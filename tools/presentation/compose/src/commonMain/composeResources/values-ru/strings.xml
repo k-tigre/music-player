@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cd_error">Ошибка</string>
+    <string name="cd_more_options">Дополнительные действия</string>
+    <string name="retry_action">Повторить</string>
+    <string name="reload_action">Обновить</string>
+    <string name="screen_state_error_title">Что-то пошло не так</string>
+    <string name="screen_state_empty_title">Нечего показать</string>
+
+    <string name="nav_playlist">Очередь</string>
+    <string name="nav_library">Библиотека</string>
+    <string name="cd_nav_playlist">Очередь</string>
+    <string name="cd_nav_library">Библиотека</string>
+
+    <string name="player_queue_empty_title">В очереди нет треков</string>
+    <string name="player_queue_empty_message">Выберите трек для воспроизведения</string>
+    <string name="player_queue_empty_action">Выбрать в каталоге</string>
+
+    <string name="desktop_select_music_folder">Выберите папку с музыкой</string>
+    <string name="cd_add_music_folder">Добавить папку с музыкой</string>
+</resources>

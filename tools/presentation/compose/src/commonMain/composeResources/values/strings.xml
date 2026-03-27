@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="button_tap_to_retry">Tap to retry</string>
-    <string name="button_got_it">Got It</string>
-    <string name="button_continue">Continue</string>
-
-    <string name="permission_audio_rationale">Access to audio files is required for this app. Please grant the permission.</string>
-    <string name="permission_request">Grant permission</string>
+    <string name="cd_error">Error</string>
+    <string name="cd_more_options">More options</string>
+    <string name="retry_action">Retry</string>
+    <string name="reload_action">Reload</string>
+    <string name="screen_state_error_title">Something went wrong</string>
+    <string name="screen_state_empty_title">Nothing to show</string>
 
     <string name="nav_playlist">Playlist</string>
     <string name="nav_library">Library</string>
     <string name="cd_nav_playlist">Playlist</string>
     <string name="cd_nav_library">Library</string>
+
     <string name="player_queue_empty_title">No songs in current playlist</string>
     <string name="player_queue_empty_message">Select some track for playing</string>
     <string name="player_queue_empty_action">Select from catalog</string>
+
+    <string name="desktop_select_music_folder">Select music folder</string>
+    <string name="cd_add_music_folder">Add music folder</string>
 </resources>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_current_queue_title">Current Queue</string>
+    <string name="queue_empty_title">No songs in current playlist</string>
+    <string name="queue_empty_message">Select some track for playing</string>
+    <string name="queue_empty_action">Select from catalog</string>
+    <string name="queue_track_meta">%1$s / %2$s</string>
+</resources>

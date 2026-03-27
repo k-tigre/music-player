@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <string name="retry_action">Retry</string>
-    <string name="reload_action">Reload</string>
-    <string name="screen_state_error_something_went_wrong_title">Something went wrong</string>
-    <string name="screen_state_empty_title">Nothing to show</string>
-
-</resources>

@@ -35,8 +35,11 @@ import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
 import by.tigre.music.player.tools.platform.compose.view.PopupAction
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicator
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicatorSize
+import `by`.tigre.music.player.core.presentation.catalog.resources.Res
+import `by`.tigre.music.player.core.presentation.catalog.resources.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import org.jetbrains.compose.resources.stringResource
 
 class AlbumListView(
     private val component: AlbumListComponent,
@@ -51,7 +54,7 @@ class AlbumListView(
                     title = {
                         Column(Modifier.padding(horizontal = 48.dp)) {
                             Text(
-                                text = "Albums of",
+                                text = stringResource(Res.string.screen_albums_of),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.align(alignment = Alignment.CenterHorizontally)
@@ -69,7 +72,7 @@ class AlbumListView(
                         IconButton(onClick = component::onBackClicked) {
                             Icon(
                                 imageVector = Icons.Filled.ArrowBack,
-                                contentDescription = "Back"
+                                contentDescription = stringResource(Res.string.cd_back)
                             )
                         }
                     },
@@ -77,7 +80,7 @@ class AlbumListView(
                         IconButton(onClick = component::retry) {
                             Icon(
                                 imageVector = Icons.Filled.Refresh,
-                                contentDescription = "Reload"
+                                contentDescription = stringResource(Res.string.cd_reload)
                             )
                         }
                     }
@@ -126,12 +129,12 @@ class AlbumListView(
                         title = album.name,
                         onCardClicked = { component.onAlbumClicked(album) },
                         popupActions = listOf(
-                            PopupAction("Play") { component.onPlayAlbumClicked(album) },
-                            PopupAction("Add to Queue") { component.onAddToPlayAlbumClicked(album) },
+                            PopupAction(stringResource(Res.string.action_play)) { component.onPlayAlbumClicked(album) },
+                            PopupAction(stringResource(Res.string.action_add_to_queue)) { component.onAddToPlayAlbumClicked(album) },
                         ),
                         descriptions = listOf(
-                            "Years: ${album.years}",
-                            "Songs: ${album.songCount}"
+                            stringResource(Res.string.catalog_album_years, album.years),
+                            stringResource(Res.string.catalog_album_songs_count, album.songCount)
                         )
                     )
                 }

@@ -32,7 +32,11 @@ class BackgroundPlayerView(
     private var mediaSession: MediaSession? = null
 
     init {
-        val nc = NotificationChannel(NOTIFICATION_CHANEL_ID, "playback", NotificationManager.IMPORTANCE_LOW)
+        val nc = NotificationChannel(
+            NOTIFICATION_CHANEL_ID,
+            service.getString(R.string.notification_channel_name),
+            NotificationManager.IMPORTANCE_LOW
+        )
         notificationManager.createNotificationChannel(nc)
     }
 

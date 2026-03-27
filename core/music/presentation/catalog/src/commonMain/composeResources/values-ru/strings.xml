@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_artists_title">Исполнители</string>
+    <string name="screen_albums_of">Альбомы</string>
+    <string name="screen_songs_of">Треки</string>
+    <string name="cd_back">Назад</string>
+    <string name="cd_reload">Обновить</string>
+    <string name="action_play">Играть</string>
+    <string name="action_add_to_queue">В очередь</string>
+    <string name="catalog_album_years">Годы: %1$s</string>
+    <string name="catalog_album_songs_count">Треков: %1$d</string>
+    <string name="catalog_artist_albums_count">Альбомов: %1$d</string>
+    <string name="catalog_artist_songs_count">Треков: %1$d</string>
+    <string name="catalog_track_meta">%1$s / %2$s</string>
+    <string name="catalog_empty_artists_message">Треки не найдены. Добавьте mp3 в память устройства, например в папку «Музыка»</string>
+</resources>

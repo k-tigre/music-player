@@ -31,6 +31,9 @@ import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
 import by.tigre.music.player.tools.platform.compose.view.PopupAction
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicator
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicatorSize
+import `by`.tigre.music.player.core.presentation.catalog.resources.Res
+import `by`.tigre.music.player.core.presentation.catalog.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 class ArtistListView(
     private val component: ArtistListComponent,
@@ -44,7 +47,7 @@ class ArtistListView(
                 CenterAlignedTopAppBar(
                     title = {
                         Text(
-                            text = "Artists",
+                            text = stringResource(Res.string.screen_artists_title),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -53,7 +56,7 @@ class ArtistListView(
                         IconButton(onClick = component::retry) {
                             Icon(
                                 imageVector = Icons.Filled.Refresh,
-                                contentDescription = "Reload"
+                                contentDescription = stringResource(Res.string.cd_reload)
                             )
                         }
                     }
@@ -96,7 +99,7 @@ class ArtistListView(
             EmptyScreen(
                 modifier = Modifier.padding(48.dp),
                 reloadAction = component::retry,
-                message = "No songs found. Try put some mp3 media files on your device storage, for example into folder \"Music\""
+                message = stringResource(Res.string.catalog_empty_artists_message)
             )
         } else {
             LazyColumn(
@@ -110,12 +113,12 @@ class ArtistListView(
                             title = artist.name,
                             onCardClicked = { component.onArtistClicked(artist) },
                             popupActions = listOf(
-                                PopupAction("Play") { component.onPlayArtistClicked(artist) },
-                                PopupAction("Add to Queue") { component.onAddToPlayArtistClicked(artist) },
+                                PopupAction(stringResource(Res.string.action_play)) { component.onPlayArtistClicked(artist) },
+                                PopupAction(stringResource(Res.string.action_add_to_queue)) { component.onAddToPlayArtistClicked(artist) },
                             ),
                             descriptions = listOf(
-                                "Albums: ${artist.albumCount}",
-                                "Songs: ${artist.songCount}"
+                                stringResource(Res.string.catalog_artist_albums_count, artist.albumCount),
+                                stringResource(Res.string.catalog_artist_songs_count, artist.songCount)
                             )
                         )
                     }

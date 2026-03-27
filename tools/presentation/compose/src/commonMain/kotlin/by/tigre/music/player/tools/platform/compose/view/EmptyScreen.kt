@@ -16,15 +16,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import `by`.tigre.music.player.tools.platform.compose.resources.Res
+import `by`.tigre.music.player.tools.platform.compose.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun EmptyScreen(
     modifier: Modifier = Modifier,
-    title: String = "Nothing to show",
+    title: String? = null,
     message: String,
-    actionTitle: String = "Reload",
+    actionTitle: String? = null,
     reloadAction: () -> Unit
 ) {
+    val resolvedTitle = title ?: stringResource(Res.string.screen_state_empty_title)
+    val resolvedActionTitle = actionTitle ?: stringResource(Res.string.reload_action)
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -33,12 +38,12 @@ fun EmptyScreen(
 
         Icon(
             imageVector = Icons.Outlined.ErrorOutline,
-            contentDescription = "error",
+            contentDescription = stringResource(Res.string.cd_error),
             modifier = Modifier.size(64.dp),
         )
 
         Text(
-            text = title,
+            text = resolvedTitle,
             modifier = Modifier.padding(16.dp),
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center
@@ -58,7 +63,7 @@ fun EmptyScreen(
             onClick = reloadAction,
         ) {
             Text(
-                text = actionTitle,
+                text = resolvedActionTitle,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center
             )

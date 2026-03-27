@@ -16,14 +16,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import `by`.tigre.music.player.tools.platform.compose.resources.Res
+import `by`.tigre.music.player.tools.platform.compose.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ErrorScreen(
     modifier: Modifier = Modifier,
-    title: String = "Something went wrong",
+    title: String? = null,
     message: String? = null,
     retryAction: () -> Unit
 ) {
+    val resolvedTitle = title ?: stringResource(Res.string.screen_state_error_title)
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -32,12 +36,12 @@ fun ErrorScreen(
 
         Icon(
             imageVector = Icons.Outlined.ErrorOutline,
-            contentDescription = "error",
+            contentDescription = stringResource(Res.string.cd_error),
             modifier = Modifier.size(64.dp),
         )
 
         Text(
-            text = title,
+            text = resolvedTitle,
             modifier = Modifier.padding(16.dp),
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center
@@ -59,7 +63,7 @@ fun ErrorScreen(
             onClick = retryAction,
         ) {
             Text(
-                text = "Retry",
+                text = stringResource(Res.string.retry_action),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center
             )

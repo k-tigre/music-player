@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import by.tigre.music.player.R
 import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
@@ -74,9 +75,9 @@ class RootView(
                     component = child.component,
                     config = PlayerView.Config(
                         emptyScreenAction = {},
-                        emptyScreenTitle = "No songs in current playlist",
-                        emptyScreenMessage = "Select some track for playing",
-                        emptyScreenActionTitle = "Select from catalog",
+                        emptyScreenTitle = stringResource(R.string.player_queue_empty_title),
+                        emptyScreenMessage = stringResource(R.string.player_queue_empty_message),
+                        emptyScreenActionTitle = stringResource(R.string.player_queue_empty_action),
                         coverFallbackIcon = R.drawable.ic_launcher_foreground
                     )
                 ).Draw(Modifier.fillMaxSize())
@@ -102,12 +103,12 @@ class RootView(
                             icon = {
                                 Icon(
                                     painter = painterResource(R.drawable.baseline_format_list_numbered_24),
-                                    contentDescription = "Playlist"
+                                    contentDescription = stringResource(R.string.cd_nav_playlist)
                                 )
                             },
                             label = {
                                 Text(
-                                    text = "Playlist",
+                                    text = stringResource(R.string.nav_playlist),
                                     style = MaterialTheme.typography.titleSmall,
                                     modifier = Modifier.padding(top = 4.dp)
                                 )
@@ -121,12 +122,12 @@ class RootView(
                             icon = {
                                 Icon(
                                     painter = painterResource(R.drawable.outline_library_music_24),
-                                    contentDescription = "Library"
+                                    contentDescription = stringResource(R.string.cd_nav_library)
                                 )
                             },
                             label = {
                                 Text(
-                                    text = "Library",
+                                    text = stringResource(R.string.nav_library),
                                     style = MaterialTheme.typography.titleSmall,
                                     modifier = Modifier.padding(top = 4.dp)
                                 )
@@ -166,11 +167,11 @@ class RootView(
         ) {
             Text(
                 modifier = Modifier.padding(bottom = 24.dp),
-                text = "The access file is important for this app. Please grant the permission."
+                text = stringResource(R.string.permission_audio_rationale)
             )
 
             Button(onClick = { permissionState.launchPermissionRequest() }) {
-                Text("Request permission")
+                Text(stringResource(R.string.permission_request))
             }
         }
     }

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="button_tap_to_retry">Нажмите, чтобы повторить</string>
+    <string name="button_got_it">Понятно</string>
+    <string name="button_continue">Продолжить</string>
+
+    <string name="permission_audio_rationale">Для работы приложения нужен доступ к аудиофайлам. Пожалуйста, выдайте разрешение.</string>
+    <string name="permission_request">Выдать разрешение</string>
+
+    <string name="nav_playlist">Очередь</string>
+    <string name="nav_library">Библиотека</string>
+    <string name="cd_nav_playlist">Очередь</string>
+    <string name="cd_nav_library">Библиотека</string>
+    <string name="player_queue_empty_title">В очереди нет треков</string>
+    <string name="player_queue_empty_message">Выберите трек для воспроизведения</string>
+    <string name="player_queue_empty_action">Выбрать в каталоге</string>
+</resources>

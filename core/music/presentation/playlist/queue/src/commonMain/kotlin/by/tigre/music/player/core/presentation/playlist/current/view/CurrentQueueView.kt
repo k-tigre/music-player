@@ -30,6 +30,9 @@ import by.tigre.music.player.tools.platform.compose.view.EmptyScreen
 import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicator
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicatorSize
+import `by`.tigre.music.player.core.presentation.queue.resources.Res
+import `by`.tigre.music.player.core.presentation.queue.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 class CurrentQueueView(
     private val component: CurrentQueueComponent,
@@ -45,7 +48,7 @@ class CurrentQueueView(
                     title = {
                         Column(Modifier.padding(horizontal = 48.dp)) {
                             Text(
-                                text = component.title,
+                                text = stringResource(Res.string.screen_current_queue_title),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -86,9 +89,9 @@ class CurrentQueueView(
         if (songs.isEmpty()) {
             EmptyScreen(
                 reloadAction = component::onAddToQueueClicked,
-                title = "No songs in current playlist",
-                message = "Select some track for playing",
-                actionTitle = "Select from catalog"
+                title = stringResource(Res.string.queue_empty_title),
+                message = stringResource(Res.string.queue_empty_message),
+                actionTitle = stringResource(Res.string.queue_empty_action)
             )
         } else {
             LazyColumn(
@@ -118,7 +121,7 @@ class CurrentQueueView(
 
                             Text(
                                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 2.dp),
-                                text = "${item.song.artist}/${item.song.album}",
+                                text = stringResource(Res.string.queue_track_meta, item.song.artist, item.song.album),
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }

@@ -33,6 +33,9 @@ import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
 import by.tigre.music.player.tools.platform.compose.view.PopupAction
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicator
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicatorSize
+import `by`.tigre.music.player.core.presentation.catalog.resources.Res
+import `by`.tigre.music.player.core.presentation.catalog.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 class SongsListView(
     private val component: SongsListComponent,
@@ -47,7 +50,7 @@ class SongsListView(
                     title = {
                         Column(Modifier.padding(horizontal = 48.dp)) {
                             Text(
-                                text = "Songs of",
+                                text = stringResource(Res.string.screen_songs_of),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -63,7 +66,7 @@ class SongsListView(
                         IconButton(onClick = component::onBackClicked) {
                             Icon(
                                 imageVector = Icons.Filled.ArrowBack,
-                                contentDescription = "Back"
+                                contentDescription = stringResource(Res.string.cd_back)
                             )
                         }
                     },
@@ -71,7 +74,7 @@ class SongsListView(
                         IconButton(onClick = component::retry) {
                             Icon(
                                 imageVector = Icons.Filled.Refresh,
-                                contentDescription = "Reload"
+                                contentDescription = stringResource(Res.string.cd_reload)
                             )
                         }
                     }
@@ -120,11 +123,11 @@ class SongsListView(
                         title = "${song.index} - ${song.name}",
                         onCardClicked = { },
                         popupActions = listOf(
-                            PopupAction("Play") { component.onPlaySongClicked(song) },
-                            PopupAction("Add to Queue") { component.onAddSongClicked(song) },
+                            PopupAction(stringResource(Res.string.action_play)) { component.onPlaySongClicked(song) },
+                            PopupAction(stringResource(Res.string.action_add_to_queue)) { component.onAddSongClicked(song) },
                         ),
                         descriptions = listOf(
-                            "${song.artist}/${song.album}"
+                            stringResource(Res.string.catalog_track_meta, song.artist, song.album)
                         )
                     )
                 }

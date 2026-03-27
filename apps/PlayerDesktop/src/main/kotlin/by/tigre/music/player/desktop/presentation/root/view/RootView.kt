@@ -21,6 +21,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import `by`.tigre.music.player.tools.platform.compose.resources.Res
+import `by`.tigre.music.player.tools.platform.compose.resources.*
+import org.jetbrains.compose.resources.stringResource
 import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
 import by.tigre.music.player.core.presentation.catalog.view.PlayerView
@@ -59,9 +62,9 @@ class RootView(
                     component = child.component,
                     config = PlayerView.Config(
                         emptyScreenAction = {},
-                        emptyScreenTitle = "No songs in current playlist",
-                        emptyScreenMessage = "Select some track for playing",
-                        emptyScreenActionTitle = "Select from catalog",
+                        emptyScreenTitle = stringResource(Res.string.player_queue_empty_title),
+                        emptyScreenMessage = stringResource(Res.string.player_queue_empty_message),
+                        emptyScreenActionTitle = stringResource(Res.string.player_queue_empty_action),
                         coverFallbackIcon = -1 // TODO
                     )
                 ).Draw(Modifier.fillMaxSize())
@@ -74,6 +77,7 @@ class RootView(
         val pages = component.pages.subscribeAsState()
         val isCatalogActive = pages.value.active.instance is Root.PageComponentChild.Catalog
         val isScanning by component.isScanning.collectAsState()
+        val selectMusicFolderTitle = stringResource(Res.string.desktop_select_music_folder)
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -86,7 +90,7 @@ class RootView(
                             onClick = {
                                 val chooser = JFileChooser()
                                 chooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-                                chooser.dialogTitle = "Select Music Folder"
+                                chooser.dialogTitle = selectMusicFolderTitle
                                 if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
                                     component.addCatalogFolder(chooser.selectedFile)
                                 }
@@ -94,7 +98,7 @@ class RootView(
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.CreateNewFolder,
-                                contentDescription = "Add music folder"
+                                contentDescription = stringResource(Res.string.cd_add_music_folder)
                             )
                         }
                     }
@@ -111,12 +115,12 @@ class RootView(
                             icon = {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Outlined.QueueMusic,
-                                    contentDescription = "Playlist"
+                                    contentDescription = stringResource(Res.string.cd_nav_playlist)
                                 )
                             },
                             label = {
                                 Text(
-                                    text = "Playlist",
+                                    text = stringResource(Res.string.nav_playlist),
                                     style = MaterialTheme.typography.titleSmall,
                                     modifier = Modifier.padding(top = 4.dp)
                                 )
@@ -129,12 +133,12 @@ class RootView(
                             icon = {
                                 Icon(
                                     imageVector = Icons.Outlined.LibraryMusic,
-                                    contentDescription = "Library"
+                                    contentDescription = stringResource(Res.string.cd_nav_library)
                                 )
                             },
                             label = {
                                 Text(
-                                    text = "Library",
+                                    text = stringResource(Res.string.nav_library),
                                     style = MaterialTheme.typography.titleSmall,
                                     modifier = Modifier.padding(top = 4.dp)
                                 )

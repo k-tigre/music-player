@@ -56,7 +56,10 @@ import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicator
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicatorSize
+import `by`.tigre.audiobook.core.presentation.catalog.resources.Res
+import `by`.tigre.audiobook.core.presentation.catalog.resources.*
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 
 class FolderSelectionView(
     private val component: FolderSelectionComponent
@@ -68,6 +71,8 @@ class FolderSelectionView(
         val context = LocalContext.current
         val snackbarHostState = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
+        val folderPersistErrorMessage = stringResource(Res.string.folder_persist_permission_error)
+        val unknownFolderName = stringResource(Res.string.folder_unknown_name)
 
         val treeLauncher = rememberLauncherForActivityResult(
             contract = OpenAudiobookFolderContract()
@@ -78,15 +83,13 @@ class FolderSelectionView(
                     context.contentResolver.takePersistableUriPermission(it, flags)
                 } catch (_: SecurityException) {
                     scope.launch {
-                        snackbarHostState.showSnackbar(
-                            "Could not keep access to this folder. Update the app or try another storage (e.g. internal storage)."
-                        )
+                        snackbarHostState.showSnackbar(folderPersistErrorMessage)
                     }
                     return@rememberLauncherForActivityResult
                 }
 
                 val docFile = DocumentFile.fromTreeUri(context, it)
-                val name = docFile?.name ?: "Unknown"
+                val name = docFile?.name ?: unknownFolderName
 
                 component.onFolderSelected(it.toString(), name)
             }
@@ -108,7 +111,7 @@ class FolderSelectionView(
             AlertDialog(
                 onDismissRequest = {},
                 confirmButton = {},
-                title = { Text("Scanning folders") },
+                title = { Text(stringResource(Res.string.scanning_folders_title)) },
                 text = {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
@@ -120,7 +123,7 @@ class FolderSelectionView(
                                 modifier = Modifier.fillMaxWidth(),
                             )
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text("${scanUi.processed} / ${scanUi.total} files")
+                            Text(stringResource(Res.string.scan_files_progress, scanUi.processed, scanUi.total))
                         } else {
                             CircularProgressIndicator()
                         }
@@ -137,7 +140,7 @@ class FolderSelectionView(
                 CenterAlignedTopAppBar(
                     title = {
                         Text(
-                            text = "Audiobook Folders",
+                            text = stringResource(Res.string.folder_selection_title),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -146,11 +149,11 @@ class FolderSelectionView(
                         IconButton(onClick = component::onRescanFolders, enabled = !scanUi.active) {
                             Icon(
                                 imageVector = Icons.Filled.Refresh,
-                                contentDescription = "Rescan folders"
+                                contentDescription = stringResource(Res.string.cd_rescan_folders)
                             )
                         }
                         TextButton(onClick = component::onNavigateToBooks) {
-                            Text("Books")
+                            Text(stringResource(Res.string.nav_books))
                         }
                     }
                 )
@@ -159,7 +162,7 @@ class FolderSelectionView(
                 FloatingActionButton(onClick = { treeLauncher.launch(null) }) {
                     Icon(
                         imageVector = Icons.Filled.Add,
-                        contentDescription = "Add folder"
+                        contentDescription = stringResource(Res.string.cd_add_folder)
                     )
                 }
             },
@@ -207,12 +210,12 @@ class FolderSelectionView(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "No folders added yet.",
+                    text = stringResource(Res.string.folders_empty_title),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 Text(
-                    text = "Tap + to select a folder with audiobooks.",
+                    text = stringResource(Res.string.folders_empty_hint),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -228,8 +231,7 @@ class FolderSelectionView(
                 if (anyIssue) {
                     item {
                         Text(
-                            text = "If access broke: tap + and choose the same folder again. " +
-                                    "You do not need to remove the folder first — books and playback progress stay.",
+                            text = stringResource(Res.string.folders_access_broke_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(bottom = 8.dp)
@@ -252,7 +254,7 @@ class FolderSelectionView(
                                         text = folder.name,
                                         style = MaterialTheme.typography.titleMedium
                                     )
-                                    accessHealthHint(health[folder.id])?.let { hint ->
+                                    accessHealthHintText(health[folder.id])?.let { hint ->
                                         Text(
                                             text = hint,
                                             style = MaterialTheme.typography.bodySmall,
@@ -265,7 +267,7 @@ class FolderSelectionView(
                                 IconButton(onClick = { component.onRemoveFolder(folder.id) }) {
                                     Icon(
                                         imageVector = Icons.Filled.Delete,
-                                        contentDescription = "Remove folder"
+                                        contentDescription = stringResource(Res.string.cd_remove_folder)
                                     )
                                 }
                             }
@@ -276,17 +278,18 @@ class FolderSelectionView(
         }
     }
 
-    private fun accessHealthHint(health: FolderSourceAccessHealth?): String? {
+    @Composable
+    private fun accessHealthHintText(health: FolderSourceAccessHealth?): String? {
         return when (health) {
             null, FolderSourceAccessHealth.Ok -> null
             FolderSourceAccessHealth.TreeUriUnavailable ->
-                "No access to this folder (Android revoked URI permission). Re-pick via + — same path keeps your progress."
+                stringResource(Res.string.folder_health_tree_uri_unavailable)
 
             FolderSourceAccessHealth.CannotListContents ->
-                "Folder cannot be listed (storage provider). Re-pick via + with the same folder — no need to remove it."
+                stringResource(Res.string.folder_health_cannot_list)
 
             FolderSourceAccessHealth.ListedButEmptyWithIndexedBooks ->
-                "Folder looks empty but you still have books here — likely access issue. Re-pick via + with the same path."
+                stringResource(Res.string.folder_health_empty_but_indexed)
         }
     }
 }

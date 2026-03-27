@@ -13,6 +13,7 @@ dependencies {
     implementation(compose.material3)
     implementation(compose.materialIconsExtended)
     implementation(compose.ui)
+    implementation(compose.components.resources)
 
     implementation(Library.KotlinStd.notation)
     implementation(Library.CoroutinesCore.notation)
