@@ -17,10 +17,4 @@
 
     <string name="player_equalizer_menu">Эквалайзер</string>
     <string name="player_queue_menu">Очередь</string>
-    <string name="equalizer_title">Эквалайзер</string>
-    <string name="equalizer_factory_presets_table">Заводские пресеты (дБ по полосам)</string>
-    <string name="equalizer_preset_picker">Пресеты</string>
-    <string name="equalizer_bands">Усиление по полосам</string>
-    <string name="equalizer_custom">Пользовательский</string>
-    <string name="equalizer_unavailable">Эквалайзер недоступен на этом устройстве.</string>
 </resources>

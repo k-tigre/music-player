@@ -1,11 +1,18 @@
 package by.tigre.music.player.core.data.playback.impl.dsp
 
+import by.tigre.music.player.core.data.playback.impl.dsp.DesktopEqualizerPresets.bandCentersHz
+import by.tigre.music.player.core.data.playback.impl.dsp.DesktopEqualizerPresets.gainsDb
+import kotlin.math.ln
+
 internal object DesktopEqualizerPresets {
 
     const val GAIN_DB_MIN = -12f
     const val GAIN_DB_MAX = 12f
 
-    val bandCentersHz = floatArrayOf(62f, 250f, 1000f, 4000f, 10000f)
+    /** Ten-band graphic EQ center frequencies (Hz). */
+    val bandCentersHz = floatArrayOf(
+        32f, 64f, 125f, 250f, 500f, 1000f, 2000f, 4000f, 8000f, 16000f,
+    )
 
     val names: List<String> = listOf(
         "Normal",
@@ -20,7 +27,10 @@ internal object DesktopEqualizerPresets {
         "Rock",
     )
 
-    private val gainsDb: Array<FloatArray> = arrayOf(
+    /** Legacy five-band anchors used to derive [gainsDb] for [bandCentersHz]. */
+    private val legacyCentersHz = floatArrayOf(62f, 250f, 1000f, 4000f, 10000f)
+
+    private val gainsDbLegacy: Array<FloatArray> = arrayOf(
         floatArrayOf(0f, 0f, 0f, 0f, 0f),
         floatArrayOf(3f, 0f, -2f, -2f, 2f),
         floatArrayOf(4f, 2f, -1f, 0f, 3f),
@@ -33,10 +43,34 @@ internal object DesktopEqualizerPresets {
         floatArrayOf(3f, 1f, -2f, -1f, 3f),
     )
 
+    private val gainsDb: Array<FloatArray> =
+        gainsDbLegacy.map { expandLegacyFiveBandToTen(it) }.toTypedArray()
+
     fun gainsForPreset(index: Int): FloatArray {
         val i = index.coerceIn(0, gainsDb.lastIndex)
         return gainsDb[i].copyOf()
     }
 
     fun allBuiltInBandGainsDb(): List<List<Float>> = gainsDb.map { row -> row.map { it } }
+
+    private fun expandLegacyFiveBandToTen(legacyGains: FloatArray): FloatArray {
+        require(legacyGains.size == legacyCentersHz.size)
+        return FloatArray(bandCentersHz.size) { i ->
+            interpolateDb(bandCentersHz[i].toDouble(), legacyCentersHz, legacyGains)
+        }
+    }
+
+    private fun interpolateDb(hz: Double, oldC: FloatArray, oldG: FloatArray): Float {
+        val log = ln(hz)
+        val logs = oldC.map { ln(it.toDouble()) }
+        if (log <= logs[0]) return oldG[0]
+        if (log >= logs.last()) return oldG.last()
+        for (i in 0 until logs.lastIndex) {
+            if (log <= logs[i + 1]) {
+                val t = ((log - logs[i]) / (logs[i + 1] - logs[i])).toFloat()
+                return oldG[i] + t * (oldG[i + 1] - oldG[i])
+            }
+        }
+        return oldG.last()
+    }
 }

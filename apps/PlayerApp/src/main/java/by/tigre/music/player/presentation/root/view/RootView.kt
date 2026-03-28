@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import by.tigre.music.player.R
 import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
-import by.tigre.music.player.core.presentation.catalog.view.EqualizerView
 import by.tigre.music.player.core.presentation.catalog.view.PlayerView
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
 import by.tigre.music.player.presentation.root.component.Root
@@ -85,17 +84,8 @@ class RootView(
                     )
                 ).Draw(Modifier.fillMaxSize())
 
-                is Root.MainComponentChild.Equalizer -> playerViewProvider.createEqualizerView(
-                    component = child.component,
-                    config = EqualizerView.Config(
-                        title = stringResource(R.string.equalizer_title),
-                        factoryPresetsTableTitle = stringResource(R.string.equalizer_factory_presets_table),
-                        presetPickerTitle = stringResource(R.string.equalizer_preset_picker),
-                        bandsSectionTitle = stringResource(R.string.equalizer_bands),
-                        customPresetLabel = stringResource(R.string.equalizer_custom),
-                        unavailableMessage = stringResource(R.string.equalizer_unavailable),
-                    )
-                ).Draw(Modifier.fillMaxSize())
+                is Root.MainComponentChild.Equalizer ->
+                    playerViewProvider.createEqualizerView(child.component).Draw(Modifier.fillMaxSize())
             }
         }
     }

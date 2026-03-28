@@ -35,34 +35,39 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import by.tigre.music.player.core.presentation.catalog.component.EqualizerComponent
 import by.tigre.music.player.tools.platform.compose.ComposableView
+import by.tigre.music.player.tools.platform.compose.resources.Res
+import by.tigre.music.player.tools.platform.compose.resources.equalizer_bands
+import by.tigre.music.player.tools.platform.compose.resources.equalizer_custom
+import by.tigre.music.player.tools.platform.compose.resources.equalizer_factory_presets_table
+import by.tigre.music.player.tools.platform.compose.resources.equalizer_preset_picker
+import by.tigre.music.player.tools.platform.compose.resources.equalizer_title
+import by.tigre.music.player.tools.platform.compose.resources.equalizer_unavailable
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
 class EqualizerView(
     private val component: EqualizerComponent,
-    private val config: Config,
 ) : ComposableView {
-
-    data class Config(
-        val title: String,
-        val factoryPresetsTableTitle: String,
-        val presetPickerTitle: String,
-        val bandsSectionTitle: String,
-        val customPresetLabel: String,
-        val unavailableMessage: String,
-    )
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Draw(modifier: Modifier) {
         val available by component.playbackEqualizer.isAvailable.collectAsState()
+        val title = stringResource(Res.string.equalizer_title)
+        val factoryPresetsTableTitle = stringResource(Res.string.equalizer_factory_presets_table)
+        val presetPickerTitle = stringResource(Res.string.equalizer_preset_picker)
+        val bandsSectionTitle = stringResource(Res.string.equalizer_bands)
+        val customPresetLabel = stringResource(Res.string.equalizer_custom)
+        val unavailableMessage = stringResource(Res.string.equalizer_unavailable)
+
         Scaffold(
             modifier = modifier
                 .fillMaxSize()
                 .navigationBarsPadding(),
             topBar = {
                 TopAppBar(
-                    title = { Text(config.title) },
+                    title = { Text(title) },
                     navigationIcon = {
                         IconButton(onClick = component::close) {
                             Icon(
@@ -76,7 +81,7 @@ class EqualizerView(
         ) { padding ->
             if (!available) {
                 Text(
-                    text = config.unavailableMessage,
+                    text = unavailableMessage,
                     modifier = Modifier
                         .padding(padding)
                         .padding(24.dp),
@@ -103,7 +108,7 @@ class EqualizerView(
             ) {
                 if (table.isNotEmpty() && centers.isNotEmpty()) {
                     Text(
-                        text = config.factoryPresetsTableTitle,
+                        text = factoryPresetsTableTitle,
                         style = MaterialTheme.typography.titleMedium,
                     )
                     PresetGainsTable(
@@ -114,7 +119,7 @@ class EqualizerView(
                 }
 
                 Text(
-                    text = config.presetPickerTitle,
+                    text = presetPickerTitle,
                     style = MaterialTheme.typography.titleMedium,
                 )
 
@@ -126,8 +131,8 @@ class EqualizerView(
                 ) {
                     presetNames.forEachIndexed { index, name ->
                         val label =
-                            if (index == customIdx && config.customPresetLabel.isNotEmpty()) {
-                                config.customPresetLabel
+                            if (index == customIdx && customPresetLabel.isNotEmpty()) {
+                                customPresetLabel
                             } else {
                                 name
                             }
@@ -146,7 +151,7 @@ class EqualizerView(
                 }
 
                 Text(
-                    text = config.bandsSectionTitle,
+                    text = bandsSectionTitle,
                     style = MaterialTheme.typography.titleMedium,
                 )
 
@@ -186,6 +191,7 @@ class EqualizerView(
         rows: List<List<Float>>,
     ) {
         val scroll = rememberScrollState()
+        val colWidth = 44.dp
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)),
         ) {
@@ -199,7 +205,7 @@ class EqualizerView(
                     bandLabels.forEach { label ->
                         Text(
                             text = label,
-                            modifier = Modifier.width(40.dp),
+                            modifier = Modifier.width(colWidth),
                             style = MaterialTheme.typography.labelSmall,
                             maxLines = 1,
                         )
@@ -221,7 +227,7 @@ class EqualizerView(
                         gains.forEach { db ->
                             Text(
                                 text = formatDbCompact(db),
-                                modifier = Modifier.width(40.dp),
+                                modifier = Modifier.width(colWidth),
                                 style = MaterialTheme.typography.labelSmall,
                             )
                         }
