@@ -42,6 +42,13 @@ dependencies {
     implementation(project(Project.Core.Music.Presentation.PlaylistCurrentQueue.name))
 }
 
+compose {
+    resources {
+        publicResClass = true
+        packageOfResClass = "by.tigre.music.player.desktop.resources"
+    }
+}
+
 compose.desktop {
     application {
         mainClass = "by.tigre.music.player.desktop.MainKt"
