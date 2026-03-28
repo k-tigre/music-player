@@ -15,6 +15,7 @@ kotlin {
             implementation(Library.CoroutinesCore.notation)
             implementation(project(Project.Tools.Coroutines.name))
             implementation(project(Project.Logger.Core.name))
+            implementation(project(Project.Core.Data.Storage.Preferences.name))
         }
         androidMain.dependencies {
             implementation(Library.MediaCommon.notation)

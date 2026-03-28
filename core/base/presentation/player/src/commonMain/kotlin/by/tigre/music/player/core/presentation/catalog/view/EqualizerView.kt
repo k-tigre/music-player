@@ -1,29 +1,35 @@
 package by.tigre.music.player.core.presentation.catalog.view
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -31,20 +37,22 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import by.tigre.music.player.core.presentation.catalog.component.EqualizerComponent
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.resources.Res
-import by.tigre.music.player.tools.platform.compose.resources.equalizer_bands
 import by.tigre.music.player.tools.platform.compose.resources.equalizer_custom
-import by.tigre.music.player.tools.platform.compose.resources.equalizer_factory_presets_table
 import by.tigre.music.player.tools.platform.compose.resources.equalizer_preset_picker
 import by.tigre.music.player.tools.platform.compose.resources.equalizer_title
 import by.tigre.music.player.tools.platform.compose.resources.equalizer_unavailable
-import org.jetbrains.compose.resources.stringResource
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import org.jetbrains.compose.resources.stringResource
 
 class EqualizerView(
     private val component: EqualizerComponent,
@@ -55,9 +63,7 @@ class EqualizerView(
     override fun Draw(modifier: Modifier) {
         val available by component.playbackEqualizer.isAvailable.collectAsState()
         val title = stringResource(Res.string.equalizer_title)
-        val factoryPresetsTableTitle = stringResource(Res.string.equalizer_factory_presets_table)
         val presetPickerTitle = stringResource(Res.string.equalizer_preset_picker)
-        val bandsSectionTitle = stringResource(Res.string.equalizer_bands)
         val customPresetLabel = stringResource(Res.string.equalizer_custom)
         val unavailableMessage = stringResource(Res.string.equalizer_unavailable)
 
@@ -94,7 +100,6 @@ class EqualizerView(
             val selected by component.playbackEqualizer.selectedPresetIndex.collectAsState()
             val centers by component.playbackEqualizer.bandCenterHz.collectAsState()
             val gains by component.playbackEqualizer.bandGainDb.collectAsState()
-            val table by component.playbackEqualizer.builtInPresetBandGainsDb.collectAsState()
             val customIdx by component.playbackEqualizer.customPresetIndex.collectAsState()
             val gainRange by component.playbackEqualizer.bandGainRangeDb.collectAsState()
 
@@ -102,22 +107,9 @@ class EqualizerView(
                 modifier = Modifier
                     .padding(padding)
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                if (table.isNotEmpty() && centers.isNotEmpty()) {
-                    Text(
-                        text = factoryPresetsTableTitle,
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    PresetGainsTable(
-                        presetNames = presetNames,
-                        bandLabels = centers.map(::formatBandHz),
-                        rows = table,
-                    )
-                }
-
                 Text(
                     text = presetPickerTitle,
                     style = MaterialTheme.typography.titleMedium,
@@ -150,33 +142,24 @@ class EqualizerView(
                     }
                 }
 
-                Text(
-                    text = bandsSectionTitle,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-
-                centers.forEachIndexed { index, hz ->
-                    val g = gains.getOrNull(index) ?: 0f
-                    Column(Modifier.fillMaxWidth()) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = formatBandHz(hz) + " Hz",
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                            Text(
-                                text = formatDb(g),
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                        }
-                        Slider(
-                            value = g.coerceIn(gainRange.first, gainRange.second),
-                            onValueChange = { component.playbackEqualizer.setBandGainDb(index, it) },
-                            valueRange = gainRange.first..gainRange.second,
-                            modifier = Modifier.fillMaxWidth(),
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.Bottom,
+                ) {
+                    centers.forEachIndexed { index, hz ->
+                        val g = gains.getOrNull(index) ?: 0f
+                        EqBandFaderColumn(
+                            hzLabel = formatBandHz(hz),
+                            gainDb = g.coerceIn(gainRange.first, gainRange.second),
+                            gainRange = gainRange.first..gainRange.second,
+                            onGainChange = { component.playbackEqualizer.setBandGainDb(index, it) },
+                            modifier = Modifier
+                                .width(48.dp)
+                                .fillMaxHeight(),
                         )
                     }
                 }
@@ -185,54 +168,133 @@ class EqualizerView(
     }
 
     @Composable
-    private fun PresetGainsTable(
-        presetNames: List<String>,
-        bandLabels: List<String>,
-        rows: List<List<Float>>,
+    private fun EqBandFaderColumn(
+        hzLabel: String,
+        gainDb: Float,
+        gainRange: ClosedFloatingPointRange<Float>,
+        onGainChange: (Float) -> Unit,
+        modifier: Modifier = Modifier,
     ) {
-        val scroll = rememberScrollState()
-        val colWidth = 44.dp
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)),
+        Column(
+            modifier = modifier,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Column(
+            Text(
+                text = formatDb(gainDb),
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+            )
+            VerticalGainFader(
+                value = gainDb,
+                onValueChange = onGainChange,
+                valueRange = gainRange,
                 modifier = Modifier
-                    .padding(12.dp)
-                    .horizontalScroll(scroll),
-            ) {
-                Row(Modifier.padding(bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Spacer(Modifier.width(96.dp))
-                    bandLabels.forEach { label ->
-                        Text(
-                            text = label,
-                            modifier = Modifier.width(colWidth),
-                            style = MaterialTheme.typography.labelSmall,
-                            maxLines = 1,
-                        )
-                    }
-                }
-                rows.forEachIndexed { rowIndex, gains ->
-                    if (rowIndex >= presetNames.lastIndex) return@forEachIndexed
-                    Row(
-                        modifier = Modifier.height(28.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = presetNames[rowIndex],
-                            modifier = Modifier.width(96.dp),
-                            style = MaterialTheme.typography.labelMedium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        gains.forEach { db ->
-                            Text(
-                                text = formatDbCompact(db),
-                                modifier = Modifier.width(colWidth),
-                                style = MaterialTheme.typography.labelSmall,
-                            )
+                    .weight(1f)
+                    .width(40.dp),
+            )
+            Text(
+                text = hzLabel,
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+            )
+        }
+    }
+
+    @Composable
+    private fun VerticalGainFader(
+        value: Float,
+        onValueChange: (Float) -> Unit,
+        valueRange: ClosedFloatingPointRange<Float>,
+        modifier: Modifier = Modifier,
+    ) {
+        val trackColor = MaterialTheme.colorScheme.surfaceVariant
+        val activeFillColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
+        val thumbColor = MaterialTheme.colorScheme.primary
+        val zeroLineColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+        val density = LocalDensity.current
+        val minV = valueRange.start
+        val maxV = valueRange.endInclusive
+
+        BoxWithConstraints(
+            modifier = modifier
+                .clip(RoundedCornerShape(6.dp))
+                .background(trackColor),
+        ) {
+            val hPx = with(density) { maxHeight.toPx() }.coerceAtLeast(1f)
+
+            fun valueFromY(y: Float, heightPx: Float): Float {
+                val h = heightPx.coerceAtLeast(1f)
+                val t = (y / h).coerceIn(0f, 1f)
+                return maxV - t * (maxV - minV)
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(minV, maxV) {
+                        detectTapGestures { offset ->
+                            onValueChange(valueFromY(offset.y, size.height.toFloat()))
                         }
                     }
+                    .pointerInput(minV, maxV) {
+                        detectVerticalDragGestures { change, _ ->
+                            onValueChange(valueFromY(change.position.y, size.height.toFloat()))
+                        }
+                    },
+            ) {
+                val clamped = value.coerceIn(minV, maxV)
+                val thumbFraction = (maxV - clamped) / (maxV - minV)
+                val thumbCenterY = thumbFraction * hPx
+                val zeroInRange = 0f in minV..maxV
+
+                if (zeroInRange) {
+                    val y0 = (maxV - 0f) / (maxV - minV) * hPx
+                    val barTopPx = minOf(y0, thumbCenterY)
+                    val barHeightPx = maxOf(abs(thumbCenterY - y0), with(density) { 3.dp.toPx() })
+                    Box(
+                        Modifier
+                            .fillMaxWidth(0.42f)
+                            .align(Alignment.TopCenter)
+                            .offset(y = with(density) { barTopPx.toDp() })
+                            .height(with(density) { barHeightPx.toDp() })
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(activeFillColor),
+                    )
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(2.dp)
+                            .align(Alignment.TopCenter)
+                            .offset(y = with(density) { (y0 - 1.dp.toPx()).toDp() })
+                            .background(zeroLineColor),
+                    )
+                } else {
+                    Box(
+                        Modifier
+                            .fillMaxWidth(0.42f)
+                            .align(Alignment.TopCenter)
+                            .fillMaxHeight(thumbFraction.coerceIn(0.03f, 1f))
+                            .background(activeFillColor),
+                    )
                 }
+
+                val thumbDp = 20.dp
+                val thumbRadiusPx = with(density) { (thumbDp / 2).toPx() }
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .offset(
+                            y = with(density) {
+                                (thumbCenterY - thumbRadiusPx).toDp().coerceAtLeast(0.dp)
+                            },
+                        )
+                        .size(thumbDp)
+                        .clip(CircleShape)
+                        .background(thumbColor),
+                )
             }
         }
     }
@@ -247,10 +309,6 @@ class EqualizerView(
         }
 
     private fun formatDb(db: Float): String =
-        if (db >= 0f) "+%.1f dB".format(db).replace(",", ".")
-        else "%.1f dB".format(db).replace(",", ".")
-
-    private fun formatDbCompact(db: Float): String =
-        if (db >= 0f) "+%.0f".format(db).replace(",", ".")
-        else "%.0f".format(db).replace(",", ".")
+        if (db >= 0f) "+%.1f".format(db).replace(",", ".")
+        else "%.1f".format(db).replace(",", ".")
 }

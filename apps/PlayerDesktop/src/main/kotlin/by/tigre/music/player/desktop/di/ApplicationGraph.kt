@@ -58,7 +58,7 @@ class DesktopApplicationGraph(
             val desktopCatalogModule = DesktopCatalogModule(dbDir)
             val coroutineModule = CoroutineModule.Impl()
             val playbackQueueModule = DesktopPlaybackQueueModule(dbDir, coroutineModule, preferencesModule)
-            val basePlaybackModule = DesktopBasePlaybackModule()
+            val basePlaybackModule = DesktopBasePlaybackModule(preferencesModule.preferences)
             val playbackModule =
                 PlaybackModule.Impl(coroutineModule, playbackQueueModule, desktopCatalogModule, basePlaybackModule)
 

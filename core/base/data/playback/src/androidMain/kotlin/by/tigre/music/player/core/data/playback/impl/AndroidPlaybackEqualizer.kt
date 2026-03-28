@@ -6,6 +6,8 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import by.tigre.music.player.core.data.playback.AndroidPlaybackPlayer
 import by.tigre.music.player.core.data.playback.PlaybackEqualizer
+import by.tigre.music.player.core.data.playback.prefs.EqualizerPreferences
+import by.tigre.music.player.core.data.playback.prefs.alignGainsToBandCount
 import by.tigre.music.player.logger.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 internal class AndroidPlaybackEqualizer(
     private val androidPlaybackPlayer: AndroidPlaybackPlayer,
+    private val equalizerPrefs: EqualizerPreferences,
 ) : PlaybackEqualizer {
 
     private val _available = MutableStateFlow(false)
@@ -100,15 +103,15 @@ internal class AndroidPlaybackEqualizer(
 
             _available.value = true
             val customUiIdx = n
-            val idx = _selected.value.coerceIn(0, customUiIdx)
-            _selected.value = idx
-            if (idx < n) {
-                eq.usePreset(idx.toShort())
+            val savedIndex = equalizerPrefs.loadSelectedPresetIndex(0).coerceIn(0, customUiIdx)
+            _selected.value = savedIndex
+
+            if (savedIndex < n) {
+                eq.usePreset(savedIndex.toShort())
             } else {
-                eq.usePreset(0.toShort())
-                val flat = 0.toShort()
+                val aligned = alignGainsToBandCount(equalizerPrefs.loadCustomBandGainsDb(), bandCount)
                 for (b in 0 until bandCount) {
-                    eq.setBandLevel(b.toShort(), flat)
+                    eq.setBandLevel(b.toShort(), dbToMb(aligned[b], minMb, maxMb))
                 }
             }
             customBandLevelsMb = ShortArray(bandCount) { b -> eq.getBandLevel(b.toShort()) }
@@ -135,6 +138,9 @@ internal class AndroidPlaybackEqualizer(
             }
     }
 
+    private fun dbToMb(gainDb: Float, minMb: Int, maxMb: Int): Short =
+        (gainDb * 100f).toInt().coerceIn(minMb, maxMb).toShort()
+
     private fun releaseEqualizer() {
         equalizer?.release()
         equalizer = null
@@ -155,12 +161,20 @@ internal class AndroidPlaybackEqualizer(
                 val bc = eq.numberOfBands.toInt()
                 readBandsToState(eq, bc)
                 customBandLevelsMb = ShortArray(bc) { b -> eq.getBandLevel(b.toShort()) }
+                equalizerPrefs.saveSelectedPresetIndex(index)
             } else if (index == customIdx) {
                 val bc = eq.numberOfBands.toInt()
+                val range = eq.bandLevelRange
+                val minMb = range[0].toInt()
+                val maxMb = range[1].toInt()
+                val aligned = alignGainsToBandCount(equalizerPrefs.loadCustomBandGainsDb(), bc)
                 for (b in 0 until bc) {
-                    eq.setBandLevel(b.toShort(), customBandLevelsMb[b])
+                    eq.setBandLevel(b.toShort(), dbToMb(aligned[b], minMb, maxMb))
                 }
+                customBandLevelsMb = ShortArray(bc) { b -> eq.getBandLevel(b.toShort()) }
                 readBandsToState(eq, bc)
+                equalizerPrefs.saveSelectedPresetIndex(customIdx)
+                equalizerPrefs.saveCustomBandGainsDb(_bandGainDb.value)
             }
         } catch (e: Exception) {
             Log.w("PlaybackEqualizer") { "selectPreset failed: ${e.message}" }
@@ -177,7 +191,7 @@ internal class AndroidPlaybackEqualizer(
         val range = eq.bandLevelRange
         val minMb = range[0].toInt()
         val maxMb = range[1].toInt()
-        val mb = (gainDb * 100f).toInt().coerceIn(minMb, maxMb).toShort()
+        val mb = dbToMb(gainDb, minMb, maxMb)
 
         try {
             eq.setBandLevel(bandIndex.toShort(), mb)
@@ -186,6 +200,8 @@ internal class AndroidPlaybackEqualizer(
             }
             _selected.value = customIdx
             readBandsToState(eq, bc)
+            equalizerPrefs.saveSelectedPresetIndex(customIdx)
+            equalizerPrefs.saveCustomBandGainsDb(_bandGainDb.value)
         } catch (e: Exception) {
             Log.w("PlaybackEqualizer") { "setBandLevel failed: ${e.message}" }
         }

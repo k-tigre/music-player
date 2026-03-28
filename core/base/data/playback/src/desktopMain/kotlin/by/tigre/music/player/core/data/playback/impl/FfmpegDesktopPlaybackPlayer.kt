@@ -5,6 +5,8 @@ import by.tigre.music.player.core.data.playback.PlaybackEqualizer
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
 import by.tigre.music.player.core.data.playback.impl.dsp.DesktopEqualizerPresets
 import by.tigre.music.player.core.data.playback.impl.dsp.Pcm16EqualizerProcessor
+import by.tigre.music.player.core.data.playback.prefs.EqualizerPreferences
+import by.tigre.music.player.core.data.playback.prefs.alignGainsToBandCount
 import by.tigre.music.player.logger.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,7 +38,9 @@ import kotlin.math.min
  * Desktop playback via FFmpeg (JavaCV / Bytedeco). PCM S16 → [Pcm16EqualizerProcessor] → [SourceDataLine].
  * See [FFMPEG_DESKTOP_PLAYBACK_PLAN.md] in this module.
  */
-internal class FfmpegDesktopPlaybackPlayer private constructor() : PlaybackPlayer, PlaybackEqualizer {
+internal class FfmpegDesktopPlaybackPlayer private constructor(
+    private val equalizerPrefs: EqualizerPreferences,
+) : PlaybackPlayer, PlaybackEqualizer {
 
     private val playbackScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -77,7 +81,7 @@ internal class FfmpegDesktopPlaybackPlayer private constructor() : PlaybackPlaye
     private val builtInPresetCount = DesktopEqualizerPresets.names.size
     private val customPresetIdx get() = builtInPresetCount
 
-    private var currentEqGains: FloatArray = DesktopEqualizerPresets.gainsForPreset(0)
+    private var currentEqGains: FloatArray = floatArrayOf()
 
     private val _presetNames = MutableStateFlow(DesktopEqualizerPresets.names + "Custom")
     override val presetNames = _presetNames.asStateFlow()
@@ -91,7 +95,7 @@ internal class FfmpegDesktopPlaybackPlayer private constructor() : PlaybackPlaye
     private val _bandCenterHz = MutableStateFlow(DesktopEqualizerPresets.bandCentersHz.toList())
     override val bandCenterHz = _bandCenterHz.asStateFlow()
 
-    private val _bandGainDb = MutableStateFlow(currentEqGains.toList())
+    private val _bandGainDb = MutableStateFlow<List<Float>>(emptyList())
     override val bandGainDb = _bandGainDb.asStateFlow()
 
     private val _builtInPresetBandGainsDb =
@@ -104,6 +108,24 @@ internal class FfmpegDesktopPlaybackPlayer private constructor() : PlaybackPlaye
     private val _bandGainRangeDb =
         MutableStateFlow(DesktopEqualizerPresets.GAIN_DB_MIN to DesktopEqualizerPresets.GAIN_DB_MAX)
     override val bandGainRangeDb = _bandGainRangeDb.asStateFlow()
+
+    init {
+        restoreEqualizerFromPreferences()
+    }
+
+    private fun restoreEqualizerFromPreferences() {
+        val bandN = DesktopEqualizerPresets.bandCentersHz.size
+        val savedIdx = equalizerPrefs.loadSelectedPresetIndex(0).coerceIn(0, customPresetIdx)
+        if (savedIdx < builtInPresetCount) {
+            currentEqGains = DesktopEqualizerPresets.gainsForPreset(savedIdx)
+            _selectedPreset.value = savedIdx
+        } else {
+            currentEqGains =
+                alignGainsToBandCount(equalizerPrefs.loadCustomBandGainsDb(), bandN).toFloatArray()
+            _selectedPreset.value = customPresetIdx
+        }
+        _bandGainDb.value = currentEqGains.toList()
+    }
 
     override val state = MutableStateFlow(PlaybackPlayer.State.Idle)
     private val _progress = MutableStateFlow(PlaybackPlayer.Progress(0, 0))
@@ -201,13 +223,18 @@ internal class FfmpegDesktopPlaybackPlayer private constructor() : PlaybackPlaye
     override fun selectPreset(index: Int) {
         if (index !in 0..customPresetIdx) return
         _selectedPreset.value = index
+        equalizerPrefs.saveSelectedPresetIndex(index)
         synchronized(grabberLock) {
-            val eq = pcmEqualizer ?: return@synchronized
+            val eq = pcmEqualizer
             if (index < builtInPresetCount) {
                 currentEqGains = DesktopEqualizerPresets.gainsForPreset(index)
-                eq.setPreset(index)
+                eq?.setPreset(index)
             } else {
-                eq.setGains(currentEqGains.copyOf())
+                val bandN = DesktopEqualizerPresets.bandCentersHz.size
+                currentEqGains =
+                    alignGainsToBandCount(equalizerPrefs.loadCustomBandGainsDb(), bandN).toFloatArray()
+                eq?.setGains(currentEqGains.copyOf())
+                equalizerPrefs.saveCustomBandGainsDb(currentEqGains.toList())
             }
         }
         _bandGainDb.value = currentEqGains.toList()
@@ -218,6 +245,8 @@ internal class FfmpegDesktopPlaybackPlayer private constructor() : PlaybackPlaye
         currentEqGains[bandIndex] =
             gainDb.coerceIn(DesktopEqualizerPresets.GAIN_DB_MIN, DesktopEqualizerPresets.GAIN_DB_MAX)
         _selectedPreset.value = customPresetIdx
+        equalizerPrefs.saveSelectedPresetIndex(customPresetIdx)
+        equalizerPrefs.saveCustomBandGainsDb(currentEqGains.toList())
         synchronized(grabberLock) {
             pcmEqualizer?.setGains(currentEqGains.copyOf())
         }
@@ -464,10 +493,10 @@ internal class FfmpegDesktopPlaybackPlayer private constructor() : PlaybackPlaye
 
     companion object {
 
-        fun tryCreate(): FfmpegDesktopPlaybackPlayer? =
+        fun tryCreate(equalizerPrefs: EqualizerPreferences): FfmpegDesktopPlaybackPlayer? =
             runCatching {
                 Loader.load(org.bytedeco.ffmpeg.global.avutil::class.java)
-                FfmpegDesktopPlaybackPlayer().also { it.registerShutdownHook() }
+                FfmpegDesktopPlaybackPlayer(equalizerPrefs).also { it.registerShutdownHook() }
             }.getOrElse { e ->
                 Log.w("FfmpegDesktopPlayer") {
                     "FFmpeg (JavaCV) not available — ${e.message}"
