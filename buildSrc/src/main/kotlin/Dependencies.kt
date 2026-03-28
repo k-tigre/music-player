@@ -50,6 +50,8 @@ enum class Library(group: String, artifact: String, version: Version) {
     Decompose("com.arkivanov.decompose", "decompose", Version.Decompose),
     DecomposeExtensions("com.arkivanov.decompose", "extensions-compose", Version.Decompose),
 
+    Jnativehook("com.github.kwhat", "jnativehook", Version.Jnativehook),
+
     // TODO compose preview not working, check issue: https://issuetracker.google.com/issues/227767363
     DebugComposeCustomView("androidx.customview", "customview", Version.DebugComposeCustomView),
     DebugComposeCustomViewPoolingcontainer(
@@ -83,6 +85,7 @@ enum class Library(group: String, artifact: String, version: Version) {
         CoilCompose("3.1.0"),
         JAudioTagger("3.0.1"),
         Decompose("3.4.0"),
+        Jnativehook("2.2.2"),
 
         DebugComposeCustomView("1.2.0-alpha02"),
         DebugComposeCustomViewPoolingcontainer("1.0.0"),

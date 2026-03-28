@@ -3,6 +3,7 @@ package by.tigre.music.player.desktop
 import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -43,6 +44,13 @@ fun main() {
     }
 
     application {
+        DisposableEffect(graph) {
+            val disposeMediaKeys = DesktopMediaKeys.install(graph.basePlaybackController)
+            onDispose {
+                disposeMediaKeys()
+            }
+        }
+
         Window(
             onCloseRequest = ::exitApplication,
             title = "Music Player"

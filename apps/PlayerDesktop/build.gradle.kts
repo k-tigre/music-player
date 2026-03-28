@@ -18,6 +18,7 @@ dependencies {
     implementation(Library.KotlinStd.notation)
     implementation(Library.CoroutinesCore.notation)
     implementation(Library.CoroutinesSwing.notation)
+    implementation(Library.Jnativehook)
     implementation(Library.Decompose.notation)
     implementation(Library.DecomposeExtensions.notation)
     implementation(Library.CoilCompose.notation)
