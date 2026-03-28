@@ -1,6 +1,7 @@
 package by.tigre.music.player.desktop
 
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -19,6 +20,8 @@ import by.tigre.music.player.core.presentation.catalog.di.PlayerComponentProvide
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueComponentProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
 import by.tigre.music.player.desktop.di.DesktopApplicationGraph
+import by.tigre.music.player.desktop.notification.DesktopNotificationManager
+import by.tigre.music.player.desktop.notification.NotificationOverlayWindow
 import by.tigre.music.player.desktop.presentation.root.component.Root
 import by.tigre.music.player.desktop.presentation.root.view.RootView
 import by.tigre.music.player.logger.ConsoleLogger
@@ -49,6 +52,9 @@ fun main() {
 
     // Set dock / taskbar icon (macOS + Linux + Windows)
     val appIconImage = createAppIcon(512)
+    val notificationManager = DesktopNotificationManager(graph.basePlaybackController, appIconImage)
+    notificationManager.start()
+
     try {
         val taskbar = java.awt.Taskbar.getTaskbar()
         if (taskbar.isSupported(java.awt.Taskbar.Feature.ICON_IMAGE)) {
@@ -78,7 +84,22 @@ fun main() {
     )
 
     application {
+        val onExit = { notificationManager.stop(); exitApplication() }
         val iconPainter = remember { BitmapPainter(appIconImage.toComposeImageBitmap()) }
+
+        val overlayVisible by notificationManager.overlayVisible.collectAsState()
+        val overlayKey by notificationManager.overlayKey.collectAsState()
+        val overlayItem by notificationManager.currentItem.collectAsState()
+
+        if (overlayVisible) {
+            NotificationOverlayWindow(
+                controller = graph.basePlaybackController,
+                notificationItem = overlayItem,
+                iconPainter = iconPainter,
+                showId = overlayKey,
+                onDismiss = notificationManager::dismissOverlay,
+            )
+        }
 
         // ── Persisted state ───────────────────────────────────────────────
         var libraryVisible by remember { mutableStateOf(AppPrefs.libraryVisible) }
@@ -139,7 +160,7 @@ fun main() {
 
         // ── Main player window ────────────────────────────────────────────
         Window(
-            onCloseRequest = ::exitApplication,
+            onCloseRequest = onExit,
             title = "Music Player",
             icon = iconPainter,
             state = playerState,
@@ -172,7 +193,7 @@ fun main() {
                 },
                 libraryVisible = libraryVisible,
                 onToggleLibrary = { libraryVisible = !libraryVisible },
-                onClose = ::exitApplication,
+                onClose = onExit,
             )
         }
 
