@@ -8,18 +8,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.LocalLibrary
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import by.tigre.audiobook.R
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogViewProvider
 import by.tigre.audiobook.presentation.root.component.Root
 import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
+import by.tigre.music.player.core.presentation.catalog.view.EqualizerView
 import by.tigre.music.player.core.presentation.catalog.view.PlayerView
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -54,8 +59,11 @@ class RootView(
                         emptyScreenActionTitle = "Select from catalog",
                         coverFallbackIcon = R.drawable.ic_launcher_foreground,
                         showOrderModeButton = false,
+                        equalizerMenuLabel = stringResource(R.string.player_equalizer_menu),
+                        queueMenuLabel = stringResource(R.string.player_queue_menu),
                     ),
                     topBarContent = {
+                        val eqAvailable by child.component.playbackEqualizer.isAvailable.collectAsState()
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -64,6 +72,18 @@ class RootView(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.End
                         ) {
+                            if (eqAvailable) {
+                                IconButton(
+                                    modifier = Modifier.align(Alignment.CenterVertically),
+                                    onClick = { child.component.showEqualizer() }
+                                ) {
+                                    Icon(
+                                        contentDescription = stringResource(R.string.player_equalizer_menu),
+                                        imageVector = Icons.Default.GraphicEq,
+                                        modifier = Modifier.size(56.dp)
+                                    )
+                                }
+                            }
                             IconButton(
                                 modifier = Modifier.align(Alignment.CenterVertically),
                                 onClick = component::onShowCatalog
@@ -76,6 +96,18 @@ class RootView(
                             }
                         }
                     }
+                ).Draw(Modifier.fillMaxSize())
+
+                is Root.MainComponentChild.Equalizer -> playerViewProvider.createEqualizerView(
+                    component = child.component,
+                    config = EqualizerView.Config(
+                        title = stringResource(R.string.equalizer_title),
+                        factoryPresetsTableTitle = stringResource(R.string.equalizer_factory_presets_table),
+                        presetPickerTitle = stringResource(R.string.equalizer_preset_picker),
+                        bandsSectionTitle = stringResource(R.string.equalizer_bands),
+                        customPresetLabel = stringResource(R.string.equalizer_custom),
+                        unavailableMessage = stringResource(R.string.equalizer_unavailable),
+                    )
                 ).Draw(Modifier.fillMaxSize())
             }
         }

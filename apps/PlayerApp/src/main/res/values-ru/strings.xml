@@ -14,4 +14,13 @@
     <string name="player_queue_empty_title">В очереди нет треков</string>
     <string name="player_queue_empty_message">Выберите трек для воспроизведения</string>
     <string name="player_queue_empty_action">Выбрать в каталоге</string>
+
+    <string name="player_equalizer_menu">Эквалайзер</string>
+    <string name="player_queue_menu">Очередь</string>
+    <string name="equalizer_title">Эквалайзер</string>
+    <string name="equalizer_factory_presets_table">Заводские пресеты (дБ по полосам)</string>
+    <string name="equalizer_preset_picker">Пресеты</string>
+    <string name="equalizer_bands">Усиление по полосам</string>
+    <string name="equalizer_custom">Пользовательский</string>
+    <string name="equalizer_unavailable">Эквалайзер недоступен на этом устройстве.</string>
 </resources>

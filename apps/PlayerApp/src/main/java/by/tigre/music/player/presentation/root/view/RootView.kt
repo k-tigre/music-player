@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import by.tigre.music.player.R
 import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
+import by.tigre.music.player.core.presentation.catalog.view.EqualizerView
 import by.tigre.music.player.core.presentation.catalog.view.PlayerView
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
 import by.tigre.music.player.presentation.root.component.Root
@@ -78,7 +79,21 @@ class RootView(
                         emptyScreenTitle = stringResource(R.string.player_queue_empty_title),
                         emptyScreenMessage = stringResource(R.string.player_queue_empty_message),
                         emptyScreenActionTitle = stringResource(R.string.player_queue_empty_action),
-                        coverFallbackIcon = R.drawable.ic_launcher_foreground
+                        coverFallbackIcon = R.drawable.ic_launcher_foreground,
+                        equalizerMenuLabel = stringResource(R.string.player_equalizer_menu),
+                        queueMenuLabel = stringResource(R.string.player_queue_menu),
+                    )
+                ).Draw(Modifier.fillMaxSize())
+
+                is Root.MainComponentChild.Equalizer -> playerViewProvider.createEqualizerView(
+                    component = child.component,
+                    config = EqualizerView.Config(
+                        title = stringResource(R.string.equalizer_title),
+                        factoryPresetsTableTitle = stringResource(R.string.equalizer_factory_presets_table),
+                        presetPickerTitle = stringResource(R.string.equalizer_preset_picker),
+                        bandsSectionTitle = stringResource(R.string.equalizer_bands),
+                        customPresetLabel = stringResource(R.string.equalizer_custom),
+                        unavailableMessage = stringResource(R.string.equalizer_unavailable),
                     )
                 ).Draw(Modifier.fillMaxSize())
             }

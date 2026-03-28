@@ -95,7 +95,6 @@ class PlayerView(
                     var menuExpanded by remember { mutableStateOf(false) }
                     val eqAvailable = component.playbackEqualizer.isAvailable.collectAsState()
                     val presetNames = component.playbackEqualizer.presetNames.collectAsState()
-                    val selectedPreset = component.playbackEqualizer.selectedPresetIndex.collectAsState()
 
                     Box(modifier = Modifier.align(Alignment.TopEnd)) {
                         IconButton(onClick = { menuExpanded = true }) {
@@ -109,24 +108,22 @@ class PlayerView(
                             onDismissRequest = { menuExpanded = false }
                         ) {
                             if (eqAvailable.value && presetNames.value.isNotEmpty()) {
-                                presetNames.value.forEachIndexed { idx, name ->
-                                    DropdownMenuItem(
-                                        text = {
-                                            Text(
-                                                text = if (idx == selectedPreset.value) "✓ $name" else name,
-                                                style = MaterialTheme.typography.bodyLarge
-                                            )
-                                        },
-                                        onClick = {
-                                            component.playbackEqualizer.selectPreset(idx)
-                                            menuExpanded = false
-                                        }
-                                    )
-                                }
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            text = config.equalizerMenuLabel,
+                                            style = MaterialTheme.typography.bodyLarge
+                                        )
+                                    },
+                                    onClick = {
+                                        menuExpanded = false
+                                        component.showEqualizer()
+                                    }
+                                )
                                 HorizontalDivider()
                             }
                             DropdownMenuItem(
-                                text = { Text("Queue") },
+                                text = { Text(config.queueMenuLabel) },
                                 onClick = {
                                     menuExpanded = false
                                     component.showQueue()
@@ -290,5 +287,7 @@ class PlayerView(
         val emptyScreenActionTitle: String,
         val coverFallbackIcon: Int,
         val showOrderModeButton: Boolean = true,
+        val equalizerMenuLabel: String = "Equalizer",
+        val queueMenuLabel: String = "Queue",
     )
 }

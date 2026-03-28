@@ -40,6 +40,14 @@ internal class Pcm16EqualizerProcessor(
         }
     }
 
+    fun setGains(gainsDb: FloatArray) {
+        val centers = DesktopEqualizerPresets.bandCentersHz
+        if (gainsDb.size != centers.size) return
+        synchronized(lock) {
+            filtersPerChannel = buildFilters(gainsDb.copyOf(), centers)
+        }
+    }
+
     fun processInterleavedPcmS16(b: ByteArray, off: Int, len: Int, bigEndian: Boolean) {
         if (len <= 0) return
         synchronized(lock) {

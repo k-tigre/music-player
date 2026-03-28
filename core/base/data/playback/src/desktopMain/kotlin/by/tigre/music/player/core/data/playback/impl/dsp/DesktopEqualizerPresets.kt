@@ -2,6 +2,9 @@ package by.tigre.music.player.core.data.playback.impl.dsp
 
 internal object DesktopEqualizerPresets {
 
+    const val GAIN_DB_MIN = -12f
+    const val GAIN_DB_MAX = 12f
+
     val bandCentersHz = floatArrayOf(62f, 250f, 1000f, 4000f, 10000f)
 
     val names: List<String> = listOf(
@@ -34,4 +37,6 @@ internal object DesktopEqualizerPresets {
         val i = index.coerceIn(0, gainsDb.lastIndex)
         return gainsDb[i].copyOf()
     }
+
+    fun allBuiltInBandGainsDb(): List<List<Float>> = gainsDb.map { row -> row.map { it } }
 }

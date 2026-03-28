@@ -21,21 +21,38 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import `by`.tigre.music.player.tools.platform.compose.resources.Res
-import `by`.tigre.music.player.tools.platform.compose.resources.*
-import org.jetbrains.compose.resources.stringResource
 import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
+import by.tigre.music.player.core.presentation.catalog.view.EqualizerView
 import by.tigre.music.player.core.presentation.catalog.view.PlayerView
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
 import by.tigre.music.player.desktop.presentation.root.component.Root
 import by.tigre.music.player.tools.platform.compose.ComposableView
+import by.tigre.music.player.tools.platform.compose.resources.Res
+import by.tigre.music.player.tools.platform.compose.resources.cd_add_music_folder
+import by.tigre.music.player.tools.platform.compose.resources.cd_nav_library
+import by.tigre.music.player.tools.platform.compose.resources.cd_nav_playlist
+import by.tigre.music.player.tools.platform.compose.resources.desktop_select_music_folder
+import by.tigre.music.player.tools.platform.compose.resources.equalizer_bands
+import by.tigre.music.player.tools.platform.compose.resources.equalizer_custom
+import by.tigre.music.player.tools.platform.compose.resources.equalizer_factory_presets_table
+import by.tigre.music.player.tools.platform.compose.resources.equalizer_preset_picker
+import by.tigre.music.player.tools.platform.compose.resources.equalizer_title
+import by.tigre.music.player.tools.platform.compose.resources.equalizer_unavailable
+import by.tigre.music.player.tools.platform.compose.resources.nav_library
+import by.tigre.music.player.tools.platform.compose.resources.nav_playlist
+import by.tigre.music.player.tools.platform.compose.resources.player_equalizer_menu
+import by.tigre.music.player.tools.platform.compose.resources.player_queue_empty_action
+import by.tigre.music.player.tools.platform.compose.resources.player_queue_empty_message
+import by.tigre.music.player.tools.platform.compose.resources.player_queue_empty_title
+import by.tigre.music.player.tools.platform.compose.resources.player_queue_menu
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.plus
 import com.arkivanov.decompose.extensions.compose.stack.animation.scale
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import org.jetbrains.compose.resources.stringResource
 import javax.swing.JFileChooser
 
 class RootView(
@@ -65,7 +82,21 @@ class RootView(
                         emptyScreenTitle = stringResource(Res.string.player_queue_empty_title),
                         emptyScreenMessage = stringResource(Res.string.player_queue_empty_message),
                         emptyScreenActionTitle = stringResource(Res.string.player_queue_empty_action),
-                        coverFallbackIcon = -1 // TODO
+                        coverFallbackIcon = -1, // TODO
+                        equalizerMenuLabel = stringResource(Res.string.player_equalizer_menu),
+                        queueMenuLabel = stringResource(Res.string.player_queue_menu),
+                    )
+                ).Draw(Modifier.fillMaxSize())
+
+                is Root.MainComponentChild.Equalizer -> playerViewProvider.createEqualizerView(
+                    component = child.component,
+                    config = EqualizerView.Config(
+                        title = stringResource(Res.string.equalizer_title),
+                        factoryPresetsTableTitle = stringResource(Res.string.equalizer_factory_presets_table),
+                        presetPickerTitle = stringResource(Res.string.equalizer_preset_picker),
+                        bandsSectionTitle = stringResource(Res.string.equalizer_bands),
+                        customPresetLabel = stringResource(Res.string.equalizer_custom),
+                        unavailableMessage = stringResource(Res.string.equalizer_unavailable),
                     )
                 ).Draw(Modifier.fillMaxSize())
             }

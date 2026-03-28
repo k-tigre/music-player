@@ -3,6 +3,7 @@ package by.tigre.audiobook.presentation.root.component
 import by.tigre.audiobook.core.presentation.audiobook_catalog.component.RootAudiobookCatalogComponent
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogComponentProvider
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.OnBookSelectedListener
+import by.tigre.music.player.core.presentation.catalog.component.EqualizerComponent
 import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.SmallPlayerComponent
 import by.tigre.music.player.core.presentation.catalog.di.PlayerComponentProvider
@@ -13,6 +14,7 @@ import by.tigre.music.player.presentation.base.appChildStack
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
+import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.pushToFront
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.Flow
@@ -33,6 +35,7 @@ interface Root {
     sealed interface MainComponentChild {
         data object Main : MainComponentChild
         class Player(val component: PlayerComponent) : MainComponentChild
+        class Equalizer(val component: EqualizerComponent) : MainComponentChild
     }
 
     class Impl(
@@ -50,6 +53,14 @@ interface Root {
 
             override fun playerView() {
                 mainNavigation.pushToFront(MainConfig.Player)
+            }
+
+            override fun showEqualizer() {
+                mainNavigation.push(MainConfig.Equalizer)
+            }
+
+            override fun closeEqualizer() {
+                mainNavigation.pop()
             }
         }
 
@@ -89,6 +100,12 @@ interface Root {
                             navigator = playerNavigator
                         )
                     )
+
+                    MainConfig.Equalizer -> MainComponentChild.Equalizer(
+                        playerComponentProvider.createEqualizerComponent(
+                            onClose = playerNavigator::closeEqualizer
+                        )
+                    )
                 }
             }
 
@@ -103,6 +120,9 @@ interface Root {
 
             @Serializable
             data object Player : MainConfig
+
+            @Serializable
+            data object Equalizer : MainConfig
         }
     }
 }

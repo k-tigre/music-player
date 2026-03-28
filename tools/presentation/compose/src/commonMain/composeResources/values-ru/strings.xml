@@ -18,4 +18,13 @@
 
     <string name="desktop_select_music_folder">Выберите папку с музыкой</string>
     <string name="cd_add_music_folder">Добавить папку с музыкой</string>
+
+    <string name="player_equalizer_menu">Эквалайзер</string>
+    <string name="player_queue_menu">Очередь</string>
+    <string name="equalizer_title">Эквалайзер</string>
+    <string name="equalizer_factory_presets_table">Заводские пресеты (дБ по полосам)</string>
+    <string name="equalizer_preset_picker">Пресеты</string>
+    <string name="equalizer_bands">Усиление по полосам</string>
+    <string name="equalizer_custom">Пользовательский</string>
+    <string name="equalizer_unavailable">Эквалайзер недоступен.</string>
 </resources>

@@ -191,7 +191,13 @@ internal object PreviewStub {
         override val isAvailable = MutableStateFlow(false).asStateFlow()
         override val presetNames = MutableStateFlow<List<String>>(emptyList()).asStateFlow()
         override val selectedPresetIndex = MutableStateFlow(0).asStateFlow()
+        override val bandCenterHz = MutableStateFlow<List<Float>>(emptyList()).asStateFlow()
+        override val bandGainDb = MutableStateFlow<List<Float>>(emptyList()).asStateFlow()
+        override val builtInPresetBandGainsDb = MutableStateFlow<List<List<Float>>>(emptyList()).asStateFlow()
+        override val customPresetIndex = MutableStateFlow(-1).asStateFlow()
+        override val bandGainRangeDb = MutableStateFlow(-12f to 12f).asStateFlow()
         override fun selectPreset(index: Int) = Unit
+        override fun setBandGainDb(bandIndex: Int, gainDb: Float) = Unit
     }
 
     private fun baseComponent(item: PlayerItem?, isNormalMode: Boolean) = object : BasePlayerComponent {
@@ -228,5 +234,6 @@ internal object PreviewStub {
     fun playerComponent(item: PlayerItem? = null, isNormalMode: Boolean = false): PlayerComponent =
         object : PlayerComponent, BasePlayerComponent by baseComponent(item, isNormalMode) {
             override fun showQueue() = Unit
+            override fun showEqualizer() = Unit
         }
 }

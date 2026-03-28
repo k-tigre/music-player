@@ -74,7 +74,12 @@ internal class FfmpegDesktopPlaybackPlayer private constructor() : PlaybackPlaye
 
     private var progressJob: Job? = null
 
-    private val _presetNames = MutableStateFlow(DesktopEqualizerPresets.names)
+    private val builtInPresetCount = DesktopEqualizerPresets.names.size
+    private val customPresetIdx get() = builtInPresetCount
+
+    private var currentEqGains: FloatArray = DesktopEqualizerPresets.gainsForPreset(0)
+
+    private val _presetNames = MutableStateFlow(DesktopEqualizerPresets.names + "Custom")
     override val presetNames = _presetNames.asStateFlow()
 
     private val _available = MutableStateFlow(true)
@@ -82,6 +87,23 @@ internal class FfmpegDesktopPlaybackPlayer private constructor() : PlaybackPlaye
 
     private val _selectedPreset = MutableStateFlow(0)
     override val selectedPresetIndex = _selectedPreset.asStateFlow()
+
+    private val _bandCenterHz = MutableStateFlow(DesktopEqualizerPresets.bandCentersHz.toList())
+    override val bandCenterHz = _bandCenterHz.asStateFlow()
+
+    private val _bandGainDb = MutableStateFlow(currentEqGains.toList())
+    override val bandGainDb = _bandGainDb.asStateFlow()
+
+    private val _builtInPresetBandGainsDb =
+        MutableStateFlow(DesktopEqualizerPresets.allBuiltInBandGainsDb())
+    override val builtInPresetBandGainsDb = _builtInPresetBandGainsDb.asStateFlow()
+
+    private val _customPresetIndex = MutableStateFlow(customPresetIdx)
+    override val customPresetIndex = _customPresetIndex.asStateFlow()
+
+    private val _bandGainRangeDb =
+        MutableStateFlow(DesktopEqualizerPresets.GAIN_DB_MIN to DesktopEqualizerPresets.GAIN_DB_MAX)
+    override val bandGainRangeDb = _bandGainRangeDb.asStateFlow()
 
     override val state = MutableStateFlow(PlaybackPlayer.State.Idle)
     private val _progress = MutableStateFlow(PlaybackPlayer.Progress(0, 0))
@@ -177,11 +199,29 @@ internal class FfmpegDesktopPlaybackPlayer private constructor() : PlaybackPlaye
     }
 
     override fun selectPreset(index: Int) {
-        if (index !in DesktopEqualizerPresets.names.indices) return
+        if (index !in 0..customPresetIdx) return
         _selectedPreset.value = index
         synchronized(grabberLock) {
-            pcmEqualizer?.setPreset(index)
+            val eq = pcmEqualizer ?: return@synchronized
+            if (index < builtInPresetCount) {
+                currentEqGains = DesktopEqualizerPresets.gainsForPreset(index)
+                eq.setPreset(index)
+            } else {
+                eq.setGains(currentEqGains.copyOf())
+            }
         }
+        _bandGainDb.value = currentEqGains.toList()
+    }
+
+    override fun setBandGainDb(bandIndex: Int, gainDb: Float) {
+        if (bandIndex !in currentEqGains.indices) return
+        currentEqGains[bandIndex] =
+            gainDb.coerceIn(DesktopEqualizerPresets.GAIN_DB_MIN, DesktopEqualizerPresets.GAIN_DB_MAX)
+        _selectedPreset.value = customPresetIdx
+        synchronized(grabberLock) {
+            pcmEqualizer?.setGains(currentEqGains.copyOf())
+        }
+        _bandGainDb.value = currentEqGains.toList()
     }
 
     override suspend fun stop() {
@@ -331,10 +371,11 @@ internal class FfmpegDesktopPlaybackPlayer private constructor() : PlaybackPlaye
             audioLine = line
 
             pcmEqualizer =
-                Pcm16EqualizerProcessor.forPreset(
+                Pcm16EqualizerProcessor.forGains(
                     channels = ch,
                     sampleRate = sr.toFloat(),
-                    presetIndex = _selectedPreset.value,
+                    gainsDb = currentEqGains.copyOf(),
+                    centersHz = DesktopEqualizerPresets.bandCentersHz,
                 )
 
             val startMs = position.coerceAtLeast(0L)

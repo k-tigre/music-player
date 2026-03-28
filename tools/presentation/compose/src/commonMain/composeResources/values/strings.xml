@@ -18,4 +18,13 @@
 
     <string name="desktop_select_music_folder">Select music folder</string>
     <string name="cd_add_music_folder">Add music folder</string>
+
+    <string name="player_equalizer_menu">Equalizer</string>
+    <string name="player_queue_menu">Queue</string>
+    <string name="equalizer_title">Equalizer</string>
+    <string name="equalizer_factory_presets_table">Factory presets (dB per band)</string>
+    <string name="equalizer_preset_picker">Presets</string>
+    <string name="equalizer_bands">Per-band gain</string>
+    <string name="equalizer_custom">Custom</string>
+    <string name="equalizer_unavailable">Equalizer is not available.</string>
 </resources>

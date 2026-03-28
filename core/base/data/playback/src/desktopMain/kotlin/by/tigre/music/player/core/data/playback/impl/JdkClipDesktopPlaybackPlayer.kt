@@ -48,7 +48,7 @@ internal class JdkClipDesktopPlaybackPlayer : PlaybackPlayer {
     private var progressJob: Job? = null
 
     @Volatile
-    private var equalizerPresetIndex: Int = 0
+    private var equalizerGains: FloatArray = DesktopEqualizerPresets.gainsForPreset(0)
 
     /** While mutating clip (seek stop/set/start), [!Clip.isRunning] must not be treated as track finished. */
     @Volatile
@@ -234,7 +234,7 @@ internal class JdkClipDesktopPlaybackPlayer : PlaybackPlayer {
         if (ch <= 0) return stream
         val sr = f.sampleRate
         if (sr <= 0f) return stream
-        val gains = DesktopEqualizerPresets.gainsForPreset(equalizerPresetIndex)
+        val gains = equalizerGains.copyOf()
         return EqualizingPcmAudioInputStream(stream, ch, sr, gains, DesktopEqualizerPresets.bandCentersHz)
     }
 
@@ -390,14 +390,42 @@ internal class JdkClipDesktopPlaybackPlayer : PlaybackPlayer {
         }
     }
 
-    suspend fun applyEqualizerPreset(index: Int) {
-        val i = index.coerceIn(0, DesktopEqualizerPresets.names.lastIndex)
+    suspend fun applyEqualizerPreset(builtInIndex: Int) {
+        val i = builtInIndex.coerceIn(0, DesktopEqualizerPresets.names.lastIndex)
+        val newGains = DesktopEqualizerPresets.gainsForPreset(i)
         val uri = currentUri ?: run {
-            equalizerPresetIndex = i
+            equalizerGains = newGains
             return
         }
-        if (i == equalizerPresetIndex && currentClip != null) return
-        equalizerPresetIndex = i
+        if (newGains.contentEquals(equalizerGains) && currentClip != null) return
+        equalizerGains = newGains
+        val savedPosition = currentPosition
+        val wasPlaying = playWhenReady
+        stopProgressJob()
+        closeClip()
+        openClipForUri(uri, savedPosition)
+        val clip = currentClip
+        if (clip != null) {
+            if (wasPlaying) {
+                runInterruptible(Dispatchers.IO) { clip.start() }
+                state.emit(PlaybackPlayer.State.Playing)
+                startProgressJob()
+            } else {
+                state.emit(PlaybackPlayer.State.Paused)
+            }
+            emitProgressSnapshot(clip)
+        }
+    }
+
+    suspend fun applyEqualizerCustomGains(gainsDb: FloatArray) {
+        if (gainsDb.size != DesktopEqualizerPresets.bandCentersHz.size) return
+        val next = gainsDb.map { it.coerceIn(DesktopEqualizerPresets.GAIN_DB_MIN, DesktopEqualizerPresets.GAIN_DB_MAX) }.toFloatArray()
+        val uri = currentUri ?: run {
+            equalizerGains = next
+            return
+        }
+        if (next.contentEquals(equalizerGains) && currentClip != null) return
+        equalizerGains = next
         val savedPosition = currentPosition
         val wasPlaying = playWhenReady
         stopProgressJob()
