@@ -5,7 +5,9 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.net.Uri
 import androidx.annotation.OptIn
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import by.tigre.music.player.core.data.playback.AndroidPlaybackPlayer
 import androidx.media3.common.util.UnstableApi
@@ -14,11 +16,14 @@ import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
 import by.tigre.background_player.R
 import by.tigre.music.player.core.presentation.backgound_player.presentation.component.BackgroundComponent
+import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
 import by.tigre.music.player.logger.Log
 import by.tigre.music.player.tools.platform.utils.getNotificationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
 class BackgroundPlayerView(
@@ -47,7 +52,14 @@ class BackgroundPlayerView(
             .build()
 
     fun onCreate() {
-        val player = InternalPlayerWrapper((component.getPlayer() as AndroidPlaybackPlayer).player)
+        val currentPlayerItem = MutableStateFlow<PlayerItem?>(null)
+        scope.launch {
+            component.currentItem.collect { currentPlayerItem.value = it }
+        }
+        val player = InternalPlayerWrapper(
+            (component.getPlayer() as AndroidPlaybackPlayer).player,
+            currentPlayerItem
+        )
         mediaSession = MediaSession.Builder(service, player)
             .setSessionActivity(
                 PendingIntent.getActivity(
@@ -71,7 +83,26 @@ class BackgroundPlayerView(
         return mediaNotificationProvider
     }
 
-    private inner class InternalPlayerWrapper(private val player: Player) : Player by player {
+    private inner class InternalPlayerWrapper(
+        private val player: Player,
+        private val currentPlayerItem: MutableStateFlow<PlayerItem?>
+    ) : Player by player {
+
+        // Prefer catalog strings over ExoPlayer-merged ID3 (often wrong encoding for Cyrillic).
+        override fun getMediaMetadata(): MediaMetadata {
+            val item = currentPlayerItem.value ?: return player.mediaMetadata
+            return player.mediaMetadata.buildUpon()
+                .setTitle(item.title)
+                .setArtist(item.artist ?: item.subtitle)
+                .apply {
+                    item.album?.let { setAlbumTitle(it) }
+                    when (val u = item.coverUri) {
+                        is Uri -> setArtworkUri(u)
+                        else -> Unit
+                    }
+                }
+                .build()
+        }
 
         override fun seekToNext() {
             component.next()

@@ -33,6 +33,8 @@ class DesktopApplicationGraph(
                     PlayerItem(
                         title = it.name,
                         subtitle = "${it.artist}/${it.album}",
+                        artist = it.artist,
+                        album = it.album,
                         coverUri = null
                     )
                 }

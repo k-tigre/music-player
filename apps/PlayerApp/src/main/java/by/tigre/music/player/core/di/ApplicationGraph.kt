@@ -37,6 +37,8 @@ class ApplicationGraph(
                     PlayerItem(
                         title = it.name,
                         subtitle = "${it.artist}/${it.album}",
+                        artist = it.artist,
+                        album = it.album,
                         coverUri = ContentUris.withAppendedId(
                             MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
                             it.albumId.value
