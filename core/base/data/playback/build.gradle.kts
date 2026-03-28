@@ -24,6 +24,8 @@ kotlin {
             dependencies {
                 implementation("com.googlecode.soundlibs:mp3spi:1.9.5.4")
                 implementation(Library.JAudioTagger.notation)
+                implementation(Library.JavaCv.notation)
+                implementation(Library.FfmpegPlatform.notation)
             }
         }
     }

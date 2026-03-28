@@ -30,6 +30,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import by.tigre.music.player.core.data.playback.PlaybackEqualizer
 import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
@@ -37,6 +38,7 @@ import by.tigre.music.player.core.presentation.catalog.component.SmallPlayerComp
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class SmallPlayerView(
     private val component: SmallPlayerComponent,
@@ -185,12 +187,21 @@ internal object PreviewStub {
         subtitle = "Test Artist/Test Album"
     )
 
+    private val previewEqualizer: PlaybackEqualizer = object : PlaybackEqualizer {
+        override val isAvailable = MutableStateFlow(false).asStateFlow()
+        override val presetNames = MutableStateFlow<List<String>>(emptyList()).asStateFlow()
+        override val selectedPresetIndex = MutableStateFlow(0).asStateFlow()
+        override fun selectPreset(index: Int) = Unit
+    }
+
     private fun baseComponent(item: PlayerItem?, isNormalMode: Boolean) = object : BasePlayerComponent {
         override val currentItem = MutableStateFlow(item)
         override val fraction = MutableStateFlow(0.5f)
         override val position = MutableStateFlow(BasePlayerComponent.Position("10:10", "-10:19", "10:19"))
         override val state = MutableStateFlow(BasePlayerComponent.State.Paused)
         override val isNormal: StateFlow<Boolean> = MutableStateFlow(isNormalMode)
+
+        override val playbackEqualizer: PlaybackEqualizer = previewEqualizer
 
         override fun pause() {
             state.tryEmit(BasePlayerComponent.State.Paused)
