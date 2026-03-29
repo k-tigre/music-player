@@ -1,7 +1,9 @@
 package by.tigre.music.player.core.data.playback.impl
 
+import by.tigre.music.player.core.data.playback.AppPlaybackVolume
 import by.tigre.music.player.core.data.playback.MediaItemWrapper
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
+import by.tigre.music.player.core.data.playback.prefs.PlaybackVolumePreferences
 import by.tigre.music.player.core.data.playback.impl.dsp.DesktopEqualizerPresets
 import by.tigre.music.player.core.data.playback.impl.dsp.EqualizingPcmAudioInputStream
 import by.tigre.music.player.logger.Log
@@ -14,6 +16,8 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
@@ -23,11 +27,28 @@ import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioInputStream
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Clip
+import javax.sound.sampled.FloatControl
 import javax.sound.sampled.UnsupportedAudioFileException
+import kotlin.math.log10
 
-internal class JdkClipDesktopPlaybackPlayer : PlaybackPlayer {
+internal class JdkClipDesktopPlaybackPlayer(
+    private val volumePrefs: PlaybackVolumePreferences,
+) : PlaybackPlayer, AppPlaybackVolume {
 
     private val playbackScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
+    private val _playbackVolume = MutableStateFlow(volumePrefs.load())
+    override val playbackVolume: StateFlow<Float> = _playbackVolume.asStateFlow()
+
+    override fun setPlaybackVolume(volume: Float) {
+        val v = volume.coerceIn(0f, 1f)
+        _playbackVolume.value = v
+        volumePrefs.save(v)
+        val clip = currentClip ?: return
+        playbackScope.launch(Dispatchers.IO) {
+            applyClipMasterGainSync(clip, v)
+        }
+    }
 
     override val state = MutableStateFlow(PlaybackPlayer.State.Idle)
     private val _progress = MutableStateFlow(PlaybackPlayer.Progress(0, 0))
@@ -92,6 +113,7 @@ internal class JdkClipDesktopPlaybackPlayer : PlaybackPlayer {
             if (rewindFromEof) {
                 seekClipUs(clip, 0L)
             }
+            applyClipMasterGainSync(clip, _playbackVolume.value)
             clip.start()
         }
         state.emit(PlaybackPlayer.State.Playing)
@@ -106,6 +128,7 @@ internal class JdkClipDesktopPlaybackPlayer : PlaybackPlayer {
         if (clip != null) {
             runInterruptible(Dispatchers.IO) {
                 seekClipUs(clip, msToUs(currentPosition))
+                applyClipMasterGainSync(clip, _playbackVolume.value)
             }
             if (playWhenReady) {
                 state.emit(PlaybackPlayer.State.Playing)
@@ -119,7 +142,10 @@ internal class JdkClipDesktopPlaybackPlayer : PlaybackPlayer {
             if (playWhenReady) {
                 openClipForUri(uri, currentPosition)
                 currentClip?.let { c ->
-                    runInterruptible(Dispatchers.IO) { c.start() }
+                    runInterruptible(Dispatchers.IO) {
+                        applyClipMasterGainSync(c, _playbackVolume.value)
+                        c.start()
+                    }
                     state.emit(PlaybackPlayer.State.Playing)
                     startProgressJob()
                     emitProgressSnapshot(c)
@@ -156,6 +182,7 @@ internal class JdkClipDesktopPlaybackPlayer : PlaybackPlayer {
             }
             runInterruptible(Dispatchers.IO) {
                 seekClipUs(clip, msToUs(currentPosition))
+                applyClipMasterGainSync(clip, _playbackVolume.value)
             }
             if (playWhenReady) {
                 runInterruptible(Dispatchers.IO) { clip.start() }
@@ -273,11 +300,26 @@ internal class JdkClipDesktopPlaybackPlayer : PlaybackPlayer {
             }
             runInterruptible(Dispatchers.IO) {
                 seekClipUs(clip, msToUs(startMs.coerceAtLeast(0L)))
+                applyClipMasterGainSync(clip, _playbackVolume.value)
             }
             currentPosition = startMs
         } catch (e: Exception) {
             Log.e("DesktopPlayer") { "Could not open clip: ${e.message}" }
             currentClip = null
+        }
+    }
+
+    private fun applyClipMasterGainSync(clip: Clip, linear: Float) {
+        try {
+            val control = clip.getControl(FloatControl.Type.MASTER_GAIN) as? FloatControl ?: return
+            val v = linear.coerceIn(0f, 1f)
+            if (v <= 0f) {
+                control.value = control.minimum
+                return
+            }
+            val db = (20.0 * log10(v.toDouble().coerceAtLeast(1e-5))).toFloat()
+            control.value = db.coerceIn(control.minimum, control.maximum)
+        } catch (_: Exception) {
         }
     }
 

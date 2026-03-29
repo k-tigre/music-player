@@ -39,6 +39,8 @@ class ApplicationGraph(
     AudiobookCatalogModule by audiobookCatalogModule,
     AudiobookPlaybackModule by audiobookPlaybackModule {
 
+    override val appPlaybackVolume = playbackModule.appPlaybackVolume
+
     override val basePlaybackController: BasePlaybackController by lazy {
         val controller: AudiobookPlaybackController = audiobookPlaybackController
         object : BasePlaybackController {

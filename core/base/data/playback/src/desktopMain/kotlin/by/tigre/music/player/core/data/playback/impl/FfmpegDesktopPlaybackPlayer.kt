@@ -1,11 +1,13 @@
 package by.tigre.music.player.core.data.playback.impl
 
+import by.tigre.music.player.core.data.playback.AppPlaybackVolume
 import by.tigre.music.player.core.data.playback.MediaItemWrapper
 import by.tigre.music.player.core.data.playback.PlaybackEqualizer
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
 import by.tigre.music.player.core.data.playback.impl.dsp.DesktopEqualizerPresets
 import by.tigre.music.player.core.data.playback.impl.dsp.Pcm16EqualizerProcessor
 import by.tigre.music.player.core.data.playback.prefs.EqualizerPreferences
+import by.tigre.music.player.core.data.playback.prefs.PlaybackVolumePreferences
 import by.tigre.music.player.core.data.playback.prefs.alignGainsToBandCount
 import by.tigre.music.player.logger.Log
 import kotlinx.coroutines.CoroutineScope
@@ -16,6 +18,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -40,9 +43,19 @@ import kotlin.math.min
  */
 internal class FfmpegDesktopPlaybackPlayer private constructor(
     private val equalizerPrefs: EqualizerPreferences,
-) : PlaybackPlayer, PlaybackEqualizer {
+    private val volumePrefs: PlaybackVolumePreferences,
+) : PlaybackPlayer, PlaybackEqualizer, AppPlaybackVolume {
 
     private val playbackScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    private val _playbackVolume = MutableStateFlow(volumePrefs.load())
+    override val playbackVolume: StateFlow<Float> = _playbackVolume.asStateFlow()
+
+    override fun setPlaybackVolume(volume: Float) {
+        val v = volume.coerceIn(0f, 1f)
+        _playbackVolume.value = v
+        volumePrefs.save(v)
+    }
 
     private val grabberLock = Any()
 
@@ -170,6 +183,7 @@ internal class FfmpegDesktopPlaybackPlayer private constructor(
 
             val pcm = ffmpegFrameToInterleavedS16Le(frame) ?: continue
             eq?.processInterleavedPcmS16(pcm, 0, pcm.size, bigEndian = false)
+            scaleInterleavedPcmS16Le(pcm, 0, pcm.size, _playbackVolume.value)
 
             var offset = 0
             while (offset < pcm.size && runDecode && playWhenReady) {
@@ -493,16 +507,35 @@ internal class FfmpegDesktopPlaybackPlayer private constructor(
 
     companion object {
 
-        fun tryCreate(equalizerPrefs: EqualizerPreferences): FfmpegDesktopPlaybackPlayer? =
+        fun tryCreate(
+            equalizerPrefs: EqualizerPreferences,
+            volumePrefs: PlaybackVolumePreferences,
+        ): FfmpegDesktopPlaybackPlayer? =
             runCatching {
                 Loader.load(org.bytedeco.ffmpeg.global.avutil::class.java)
-                FfmpegDesktopPlaybackPlayer(equalizerPrefs).also { it.registerShutdownHook() }
+                FfmpegDesktopPlaybackPlayer(equalizerPrefs, volumePrefs).also { it.registerShutdownHook() }
             }.getOrElse { e ->
                 Log.w("FfmpegDesktopPlayer") {
                     "FFmpeg (JavaCV) not available — ${e.message}"
                 }
                 null
             }
+    }
+}
+
+/** In-place linear gain on little-endian interleaved S16 PCM. */
+private fun scaleInterleavedPcmS16Le(pcm: ByteArray, offset: Int, length: Int, gainLinear: Float) {
+    if (gainLinear >= 0.999f) return
+    val g = gainLinear.coerceIn(0f, 1f)
+    var i = offset
+    val end = offset + length
+    while (i + 1 < end) {
+        var s = (pcm[i].toInt() and 0xff) or ((pcm[i + 1].toInt() and 0xff) shl 8)
+        if (s >= 0x8000) s -= 0x10000
+        val scaled = (s * g).toInt().coerceIn(-32768, 32767)
+        pcm[i] = (scaled and 0xff).toByte()
+        pcm[i + 1] = ((scaled shr 8) and 0xff).toByte()
+        i += 2
     }
 }
 

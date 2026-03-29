@@ -24,6 +24,8 @@ class DesktopApplicationGraph(
     PlaybackModule by playbackModule,
     CatalogModule by desktopCatalogModule {
 
+    override val appPlaybackVolume = playbackModule.appPlaybackVolume
+
     override val basePlaybackController: BasePlaybackController by lazy {
         val controller = playbackController
         object : BasePlaybackController {

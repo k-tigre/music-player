@@ -1,6 +1,7 @@
 package by.tigre.music.player.core.data.playback.di
 
 import by.tigre.music.player.core.data.catalog.di.CatalogModule
+import by.tigre.music.player.core.data.playback.AppPlaybackVolume
 import by.tigre.music.player.core.data.playback.PlaybackController
 import by.tigre.music.player.core.data.playback.PlaybackEqualizer
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
@@ -13,6 +14,7 @@ interface PlaybackModule {
     val playbackController: PlaybackController
     val playbackPlayer: PlaybackPlayer
     val playbackEqualizer: PlaybackEqualizer
+    val appPlaybackVolume: AppPlaybackVolume?
 
     class Impl(
         coroutineModule: CoroutineModule,
@@ -32,5 +34,7 @@ interface PlaybackModule {
         override val playbackPlayer: PlaybackPlayer = basePlaybackModule.playbackPlayer
 
         override val playbackEqualizer: PlaybackEqualizer = basePlaybackModule.playbackEqualizer
+
+        override val appPlaybackVolume: AppPlaybackVolume? = basePlaybackModule.appPlaybackVolume
     }
 }

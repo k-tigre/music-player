@@ -28,6 +28,8 @@ class ApplicationGraph(
     PlaybackModule by playbackModule,
     CatalogModule by catalogModule {
 
+    override val appPlaybackVolume = playbackModule.appPlaybackVolume
+
     override val basePlaybackController: BasePlaybackController by lazy {
         val controller = playbackController
         object : BasePlaybackController {

@@ -1,11 +1,13 @@
 package by.tigre.music.player.core.data.playback.di
 
+import by.tigre.music.player.core.data.playback.AppPlaybackVolume
 import by.tigre.music.player.core.data.playback.PlaybackEqualizer
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
 import by.tigre.music.player.core.data.playback.impl.DesktopPlaybackEqualizer
 import by.tigre.music.player.core.data.playback.impl.FfmpegDesktopPlaybackPlayer
 import by.tigre.music.player.core.data.playback.impl.JdkClipDesktopPlaybackPlayer
 import by.tigre.music.player.core.data.playback.prefs.EqualizerPreferences
+import by.tigre.music.player.core.data.playback.prefs.PlaybackVolumePreferences
 import by.tigre.music.player.core.data.storage.preferences.Preferences
 
 class DesktopBasePlaybackModule(
@@ -13,13 +15,17 @@ class DesktopBasePlaybackModule(
 ) : BasePlaybackModule {
 
     private val equalizerPreferences = EqualizerPreferences(preferences)
+    private val volumePreferences = PlaybackVolumePreferences(preferences)
 
-    private val ffmpegPlayer = FfmpegDesktopPlaybackPlayer.tryCreate(equalizerPreferences)
+    private val ffmpegPlayer = FfmpegDesktopPlaybackPlayer.tryCreate(equalizerPreferences, volumePreferences)
 
-    private val jdkPlayer = JdkClipDesktopPlaybackPlayer().takeIf { ffmpegPlayer == null }
+    private val jdkPlayer = JdkClipDesktopPlaybackPlayer(volumePreferences).takeIf { ffmpegPlayer == null }
 
     override val playbackPlayer: PlaybackPlayer = ffmpegPlayer ?: jdkPlayer!!
 
     override val playbackEqualizer: PlaybackEqualizer =
         ffmpegPlayer ?: DesktopPlaybackEqualizer(jdkPlayer!!, equalizerPreferences)
+
+    override val appPlaybackVolume: AppPlaybackVolume =
+        (ffmpegPlayer ?: jdkPlayer!!) as AppPlaybackVolume
 }

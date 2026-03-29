@@ -39,6 +39,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
@@ -50,6 +52,8 @@ import kotlin.math.abs
 import by.tigre.music.player.core.presentation.catalog.component.EqualizerComponent
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.resources.Res
+import by.tigre.music.player.tools.platform.compose.resources.equalizer_app_volume
+import by.tigre.music.player.tools.platform.compose.resources.equalizer_app_volume_cd
 import by.tigre.music.player.tools.platform.compose.resources.equalizer_custom
 import by.tigre.music.player.tools.platform.compose.resources.equalizer_preset_picker
 import by.tigre.music.player.tools.platform.compose.resources.equalizer_title
@@ -196,6 +200,18 @@ class EqualizerView(
                 horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.Bottom,
             ) {
+                component.appPlaybackVolume?.let { volCtrl ->
+                    val volLinear by volCtrl.playbackVolume.collectAsState()
+                    AppVolumeFaderColumn(
+                        volumeLinear = volLinear,
+                        onVolumeChange = volCtrl::setPlaybackVolume,
+                        bottomLabel = stringResource(Res.string.equalizer_app_volume),
+                        volumeSemanticsLabel = stringResource(Res.string.equalizer_app_volume_cd),
+                        modifier = Modifier
+                            .width(48.dp)
+                            .fillMaxHeight(),
+                    )
+                }
                 centers.forEachIndexed { index, hz ->
                     val g = gains.getOrNull(index) ?: 0f
                     EqBandFaderColumn(
@@ -209,6 +225,44 @@ class EqualizerView(
                     )
                 }
             }
+        }
+    }
+
+    @Composable
+    private fun AppVolumeFaderColumn(
+        volumeLinear: Float,
+        onVolumeChange: (Float) -> Unit,
+        bottomLabel: String,
+        volumeSemanticsLabel: String,
+        modifier: Modifier = Modifier,
+    ) {
+        Column(
+            modifier = modifier.semantics { contentDescription = volumeSemanticsLabel },
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                text = "${(volumeLinear * 100f).toInt().coerceIn(0, 100)}%",
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+            )
+            VerticalGainFader(
+                value = volumeLinear,
+                onValueChange = onVolumeChange,
+                valueRange = 0f..1f,
+                modifier = Modifier
+                    .weight(1f)
+                    .width(40.dp),
+                showCenterZeroReference = false,
+                fillActiveFromBottom = true,
+            )
+            Text(
+                text = bottomLabel,
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+            )
         }
     }
 
@@ -254,6 +308,8 @@ class EqualizerView(
         onValueChange: (Float) -> Unit,
         valueRange: ClosedFloatingPointRange<Float>,
         modifier: Modifier = Modifier,
+        showCenterZeroReference: Boolean = true,
+        fillActiveFromBottom: Boolean = false,
     ) {
         val trackColor = MaterialTheme.colorScheme.surfaceVariant
         val activeFillColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
@@ -297,7 +353,7 @@ class EqualizerView(
                 val clamped = value.coerceIn(minV, maxV)
                 val thumbFraction = (maxV - clamped) / (maxV - minV)
                 val thumbCenterY = thumbFraction * hPx
-                val zeroInRange = 0f in minV..maxV
+                val zeroInRange = showCenterZeroReference && 0f in minV..maxV
 
                 if (zeroInRange) {
                     val y0 = (maxV - 0f) / (maxV - minV) * hPx
@@ -321,13 +377,23 @@ class EqualizerView(
                             .background(zeroLineColor),
                     )
                 } else {
-                    Box(
-                        Modifier
-                            .fillMaxWidth(0.42f)
-                            .align(Alignment.TopCenter)
-                            .fillMaxHeight(thumbFraction.coerceIn(0.03f, 1f))
-                            .background(activeFillColor),
-                    )
+                    if (fillActiveFromBottom) {
+                        Box(
+                            Modifier
+                                .fillMaxWidth(0.42f)
+                                .align(Alignment.BottomCenter)
+                                .fillMaxHeight((1f - thumbFraction).coerceIn(0.03f, 1f))
+                                .background(activeFillColor),
+                        )
+                    } else {
+                        Box(
+                            Modifier
+                                .fillMaxWidth(0.42f)
+                                .align(Alignment.TopCenter)
+                                .fillMaxHeight(thumbFraction.coerceIn(0.03f, 1f))
+                                .background(activeFillColor),
+                        )
+                    }
                 }
 
                 val thumbDp = 20.dp

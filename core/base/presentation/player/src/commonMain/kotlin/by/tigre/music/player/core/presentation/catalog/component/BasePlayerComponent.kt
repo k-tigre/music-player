@@ -1,5 +1,6 @@
 package by.tigre.music.player.core.presentation.catalog.component
 
+import by.tigre.music.player.core.data.playback.AppPlaybackVolume
 import by.tigre.music.player.core.data.playback.PlaybackEqualizer
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
 import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent.Position
@@ -26,6 +27,7 @@ interface BasePlayerComponent {
     val state: StateFlow<State>
     val isNormal: StateFlow<Boolean>
     val playbackEqualizer: PlaybackEqualizer
+    val appPlaybackVolume: AppPlaybackVolume?
 
     fun pause()
     fun play()
@@ -49,6 +51,8 @@ internal class BasePlayerComponentImpl(
     private val basePlaybackController = dependency.basePlaybackController
 
     override val playbackEqualizer: PlaybackEqualizer = dependency.playbackEqualizer
+
+    override val appPlaybackVolume: AppPlaybackVolume? = dependency.appPlaybackVolume
 
     private val seekAction = MutableSharedFlow<Float>(extraBufferCapacity = 1)
     override val currentItem: StateFlow<PlayerItem?> = basePlaybackController.currentItem

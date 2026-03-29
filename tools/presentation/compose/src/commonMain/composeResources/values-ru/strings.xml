@@ -25,4 +25,6 @@
     <string name="equalizer_preset_picker">Пресеты</string>
     <string name="equalizer_custom">Пользовательский</string>
     <string name="equalizer_unavailable">Эквалайзер недоступен.</string>
+    <string name="equalizer_app_volume">Громкость</string>
+    <string name="equalizer_app_volume_cd">Громкость приложения (не системная)</string>
 </resources>
