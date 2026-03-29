@@ -27,3 +27,18 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
+  build_desktop:
+    name: Build desktop app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v1
+        with: { java-version: 21 }
+      - name: Package desktop for Linux (.deb)
+        run: ./gradlew :apps:PlayerDesktop:packageDistributionForCurrentOS
+      - name: Upload desktop .deb
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-linux-deb
+          path: apps/PlayerDesktop/build/compose/binaries/**/deb/*.deb
+
