@@ -1,6 +1,5 @@
 package by.tigre.audiobook.core.presentation.audiobook_catalog.view
 
-import android.net.Uri
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -42,13 +41,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.presentation.audiobook_catalog.component.BookListComponent
+import by.tigre.audiobook.core.presentation.catalog.resources.Res
+import by.tigre.audiobook.core.presentation.catalog.resources.audiobooks_empty_hint
+import by.tigre.audiobook.core.presentation.catalog.resources.audiobooks_empty_title
+import by.tigre.audiobook.core.presentation.catalog.resources.audiobooks_title
+import by.tigre.audiobook.core.presentation.catalog.resources.book_chapters_count
+import by.tigre.audiobook.core.presentation.catalog.resources.book_completed
+import by.tigre.audiobook.core.presentation.catalog.resources.book_progress_listened
+import by.tigre.audiobook.core.presentation.catalog.resources.cd_manage_folders
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicator
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicatorSize
-import `by`.tigre.audiobook.core.presentation.catalog.resources.Res
-import `by`.tigre.audiobook.core.presentation.catalog.resources.*
 import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.stringResource
 
@@ -132,7 +137,8 @@ class BookListView(
             }
         } else {
             LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
-                items(items = state.rootBooks, key = { book -> book.id }) { book -> BookCard(book) }
+                println("AAAAAA::: Books: ${state.rootBooks.map { it.id }}")
+                items(items = state.rootBooks, key = { book -> book.id.value }) { book -> BookCard(book) }
 
                 state.grouped.forEach { (path, booksInGroup) ->
                     stickyHeader(key = "header_$path") {
@@ -176,7 +182,7 @@ class BookListView(
                 val cover = book.coverUri
                 if (cover != null) {
                     AsyncImage(
-                        model = Uri.parse(cover),
+                        model = cover,
                         contentDescription = null,
                         modifier = Modifier
                             .size(56.dp)
