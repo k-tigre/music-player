@@ -13,9 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v.m.')
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v1
-        with: { java-version: 21 }
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
       - name: Build Music release APK & AAB
         run: |
           ./gradlew testReleaseUnitTest :apps:PlayerApp:assembleRelease :apps:PlayerApp:bundleRelease :apps:PlayerApp:publishReleaseBundle
@@ -24,7 +26,7 @@ jobs:
           MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD: ${{ secrets.MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD }}
           ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
       - name: Upload Music artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: music-artifacts
           path: |
@@ -37,9 +39,11 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v.b.')
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v1
-        with: { java-version: 21 }
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
       - name: Build Book release APK & AAB
         run: |
           ./gradlew testReleaseUnitTest :apps:AudioBook:assembleRelease :apps:AudioBook:bundleRelease :apps:AudioBook:publishReleaseBundle
@@ -48,7 +52,7 @@ jobs:
           AUDIO_BOOK_RELEASE_JKS_KEY_PASSWORD: ${{ secrets.AUDIO_BOOK_RELEASE_JKS_KEY_PASSWORD }}
           ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
       - name: Upload Book artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: book-artifacts
           path: |
