@@ -1,8 +1,8 @@
 package by.tigre.audiobook.core.di
 
 import android.content.Context
-import by.tigre.audiobook.core.data.audiobook.di.AndroidAudiobookCatalogModule
 import android.net.Uri
+import by.tigre.audiobook.core.data.audiobook.di.AndroidAudiobookCatalogModule
 import by.tigre.audiobook.core.data.audiobook.di.AudiobookCatalogModule
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
 import by.tigre.audiobook.core.data.audiobook_playback.di.AudiobookPlaybackModule
@@ -71,7 +71,8 @@ class ApplicationGraph(
             val catalogModule = AndroidCatalogModule(context)
             val coroutineModule = CoroutineModule.Impl()
             val playbackQueueModule = AndroidPlaybackQueueModule(context, coroutineModule, preferencesModule)
-            val basePlaybackModule = AndroidBasePlaybackModule(context, coroutineModule)
+            val basePlaybackModule =
+                AndroidBasePlaybackModule(context, coroutineModule, preferencesModule.preferences)
             val playbackModule =
                 PlaybackModule.Impl(coroutineModule, playbackQueueModule, catalogModule, basePlaybackModule)
 

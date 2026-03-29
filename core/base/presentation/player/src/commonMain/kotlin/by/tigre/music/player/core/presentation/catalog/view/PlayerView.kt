@@ -24,12 +24,19 @@ import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -85,14 +92,44 @@ class PlayerView(
                         )
                     }
 
-                    IconButton(
-                        modifier = Modifier.align(Alignment.TopEnd),
-                        onClick = component::showQueue
-                    ) {
-                        Icon(
-                            contentDescription = null,
-                            imageVector = Icons.Default.MoreVert
-                        )
+                    var menuExpanded by remember { mutableStateOf(false) }
+                    val eqAvailable = component.playbackEqualizer.isAvailable.collectAsState()
+                    val presetNames = component.playbackEqualizer.presetNames.collectAsState()
+
+                    Box(modifier = Modifier.align(Alignment.TopEnd)) {
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(
+                                contentDescription = null,
+                                imageVector = Icons.Default.MoreVert
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }
+                        ) {
+                            if (eqAvailable.value && presetNames.value.isNotEmpty()) {
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            text = config.equalizerMenuLabel,
+                                            style = MaterialTheme.typography.bodyLarge
+                                        )
+                                    },
+                                    onClick = {
+                                        menuExpanded = false
+                                        component.showEqualizer()
+                                    }
+                                )
+                                HorizontalDivider()
+                            }
+                            DropdownMenuItem(
+                                text = { Text(config.queueMenuLabel) },
+                                onClick = {
+                                    menuExpanded = false
+                                    component.showQueue()
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -250,5 +287,7 @@ class PlayerView(
         val emptyScreenActionTitle: String,
         val coverFallbackIcon: Int,
         val showOrderModeButton: Boolean = true,
+        val equalizerMenuLabel: String = "Equalizer",
+        val queueMenuLabel: String = "Queue",
     )
 }

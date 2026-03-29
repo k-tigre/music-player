@@ -3,4 +3,7 @@
     <string name="button_tap_to_retry">Нажмите, чтобы повторить</string>
     <string name="button_got_it">Понятно</string>
     <string name="button_continue">Продолжить</string>
+
+    <string name="player_equalizer_menu">Эквалайзер</string>
+    <string name="player_queue_menu">Очередь</string>
 </resources>

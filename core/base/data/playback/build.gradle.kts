@@ -15,6 +15,7 @@ kotlin {
             implementation(Library.CoroutinesCore.notation)
             implementation(project(Project.Tools.Coroutines.name))
             implementation(project(Project.Logger.Core.name))
+            implementation(project(Project.Core.Data.Storage.Preferences.name))
         }
         androidMain.dependencies {
             implementation(Library.MediaCommon.notation)
@@ -24,6 +25,8 @@ kotlin {
             dependencies {
                 implementation("com.googlecode.soundlibs:mp3spi:1.9.5.4")
                 implementation(Library.JAudioTagger.notation)
+                implementation(Library.JavaCv.notation)
+                implementation(Library.FfmpegPlatform.notation)
             }
         }
     }

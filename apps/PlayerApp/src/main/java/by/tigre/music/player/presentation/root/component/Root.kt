@@ -1,5 +1,6 @@
 package by.tigre.music.player.presentation.root.component
 
+import by.tigre.music.player.core.presentation.catalog.component.EqualizerComponent
 import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.RootCatalogComponent
 import by.tigre.music.player.core.presentation.catalog.component.SmallPlayerComponent
@@ -40,6 +41,7 @@ interface Root {
     sealed interface MainComponentChild {
         data object Main : MainComponentChild
         class Player(val component: PlayerComponent) : MainComponentChild
+        class Equalizer(val component: EqualizerComponent) : MainComponentChild
     }
 
     class Impl(
@@ -59,6 +61,14 @@ interface Root {
 
             override fun playerView() {
                 mainNavigation.push(MainConfig.Player)
+            }
+
+            override fun showEqualizer() {
+                mainNavigation.push(MainConfig.Equalizer)
+            }
+
+            override fun closeEqualizer() {
+                mainNavigation.pop()
             }
         }
 
@@ -108,6 +118,12 @@ interface Root {
                             navigator = playerNavigator
                         )
                     )
+
+                    MainConfig.Equalizer -> MainComponentChild.Equalizer(
+                        playerComponentProvider.createEqualizerComponent(
+                            onClose = playerNavigator::closeEqualizer
+                        )
+                    )
                 }
             }
 
@@ -134,6 +150,9 @@ interface Root {
 
             @Serializable
             data object Player : MainConfig
+
+            @Serializable
+            data object Equalizer : MainConfig
         }
     }
 }

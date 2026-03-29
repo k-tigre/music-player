@@ -62,7 +62,8 @@ class ApplicationGraph(
             val catalogModule = AndroidCatalogModule(context)
             val coroutineModule = CoroutineModule.Impl()
             val playbackQueueModule = AndroidPlaybackQueueModule(context, coroutineModule, preferencesModule)
-            val basePlaybackModule = AndroidBasePlaybackModule(context, coroutineModule)
+            val basePlaybackModule =
+                AndroidBasePlaybackModule(context, coroutineModule, preferencesModule.preferences)
             val playbackModule =
                 PlaybackModule.Impl(coroutineModule, playbackQueueModule, catalogModule, basePlaybackModule)
 

@@ -2,6 +2,8 @@ package by.tigre.music.player.core.data.playback.impl
 
 import by.tigre.music.player.core.data.playback.MediaItemWrapper
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
+import by.tigre.music.player.core.data.playback.impl.dsp.DesktopEqualizerPresets
+import by.tigre.music.player.core.data.playback.impl.dsp.EqualizingPcmAudioInputStream
 import by.tigre.music.player.logger.Log
 import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader
 import kotlinx.coroutines.CoroutineScope
@@ -23,7 +25,7 @@ import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Clip
 import javax.sound.sampled.UnsupportedAudioFileException
 
-class DesktopPlaybackPlayerImpl : PlaybackPlayer {
+internal class JdkClipDesktopPlaybackPlayer : PlaybackPlayer {
 
     private val playbackScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
@@ -31,13 +33,22 @@ class DesktopPlaybackPlayerImpl : PlaybackPlayer {
     private val _progress = MutableStateFlow(PlaybackPlayer.Progress(0, 0))
     override val progress: Flow<PlaybackPlayer.Progress> = _progress
 
-    @Volatile private var playWhenReady = false
+    @Volatile
+    private var playWhenReady = false
 
-    @Volatile private var currentClip: Clip? = null
-    @Volatile private var currentUri: String? = null
-    @Volatile private var currentPosition: Long = 0
-    @Volatile private var currentDurationMs: Long = 0
-    @Volatile private var progressJob: Job? = null
+    @Volatile
+    private var currentClip: Clip? = null
+    @Volatile
+    private var currentUri: String? = null
+    @Volatile
+    private var currentPosition: Long = 0
+    @Volatile
+    private var currentDurationMs: Long = 0
+    @Volatile
+    private var progressJob: Job? = null
+
+    @Volatile
+    private var equalizerGains: FloatArray = DesktopEqualizerPresets.gainsForPreset(0)
 
     /** While mutating clip (seek stop/set/start), [!Clip.isRunning] must not be treated as track finished. */
     @Volatile
@@ -210,9 +221,21 @@ class DesktopPlaybackPlayerImpl : PlaybackPlayer {
             false,
         )
         val useRaw = rawFormat.encoding == AudioFormat.Encoding.PCM_SIGNED &&
-            rawFormat.sampleSizeInBits == 16 &&
-            rawFormat.frameSize > 0
-        return if (useRaw) raw else AudioSystem.getAudioInputStream(pcmFormat, raw)
+                rawFormat.sampleSizeInBits == 16 &&
+                rawFormat.frameSize > 0
+        val pcm = if (useRaw) raw else AudioSystem.getAudioInputStream(pcmFormat, raw)
+        return wrapEqualizer(pcm)
+    }
+
+    private fun wrapEqualizer(stream: AudioInputStream): AudioInputStream {
+        val f = stream.format
+        if (f.encoding != AudioFormat.Encoding.PCM_SIGNED || f.sampleSizeInBits != 16) return stream
+        val ch = f.channels
+        if (ch <= 0) return stream
+        val sr = f.sampleRate
+        if (sr <= 0f) return stream
+        val gains = equalizerGains.copyOf()
+        return EqualizingPcmAudioInputStream(stream, ch, sr, gains, DesktopEqualizerPresets.bandCentersHz)
     }
 
     private fun openRawAudioInputStream(file: File): AudioInputStream {
@@ -364,6 +387,60 @@ class DesktopPlaybackPlayerImpl : PlaybackPlayer {
                 }
                 delay(100)
             }
+        }
+    }
+
+    suspend fun applyEqualizerPreset(builtInIndex: Int) {
+        val i = builtInIndex.coerceIn(0, DesktopEqualizerPresets.names.lastIndex)
+        val newGains = DesktopEqualizerPresets.gainsForPreset(i)
+        val uri = currentUri ?: run {
+            equalizerGains = newGains
+            return
+        }
+        if (newGains.contentEquals(equalizerGains) && currentClip != null) return
+        equalizerGains = newGains
+        val savedPosition = currentPosition
+        val wasPlaying = playWhenReady
+        stopProgressJob()
+        closeClip()
+        openClipForUri(uri, savedPosition)
+        val clip = currentClip
+        if (clip != null) {
+            if (wasPlaying) {
+                runInterruptible(Dispatchers.IO) { clip.start() }
+                state.emit(PlaybackPlayer.State.Playing)
+                startProgressJob()
+            } else {
+                state.emit(PlaybackPlayer.State.Paused)
+            }
+            emitProgressSnapshot(clip)
+        }
+    }
+
+    suspend fun applyEqualizerCustomGains(gainsDb: FloatArray) {
+        if (gainsDb.size != DesktopEqualizerPresets.bandCentersHz.size) return
+        val next = gainsDb.map { it.coerceIn(DesktopEqualizerPresets.GAIN_DB_MIN, DesktopEqualizerPresets.GAIN_DB_MAX) }.toFloatArray()
+        val uri = currentUri ?: run {
+            equalizerGains = next
+            return
+        }
+        if (next.contentEquals(equalizerGains) && currentClip != null) return
+        equalizerGains = next
+        val savedPosition = currentPosition
+        val wasPlaying = playWhenReady
+        stopProgressJob()
+        closeClip()
+        openClipForUri(uri, savedPosition)
+        val clip = currentClip
+        if (clip != null) {
+            if (wasPlaying) {
+                runInterruptible(Dispatchers.IO) { clip.start() }
+                state.emit(PlaybackPlayer.State.Playing)
+                startProgressJob()
+            } else {
+                state.emit(PlaybackPlayer.State.Paused)
+            }
+            emitProgressSnapshot(clip)
         }
     }
 }

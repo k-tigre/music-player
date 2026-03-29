@@ -14,4 +14,7 @@
     <string name="player_queue_empty_title">No songs in current playlist</string>
     <string name="player_queue_empty_message">Select some track for playing</string>
     <string name="player_queue_empty_action">Select from catalog</string>
+
+    <string name="player_equalizer_menu">Equalizer</string>
+    <string name="player_queue_menu">Queue</string>
 </resources>

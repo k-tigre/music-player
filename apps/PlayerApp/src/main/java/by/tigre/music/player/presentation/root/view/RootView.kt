@@ -78,9 +78,14 @@ class RootView(
                         emptyScreenTitle = stringResource(R.string.player_queue_empty_title),
                         emptyScreenMessage = stringResource(R.string.player_queue_empty_message),
                         emptyScreenActionTitle = stringResource(R.string.player_queue_empty_action),
-                        coverFallbackIcon = R.drawable.ic_launcher_foreground
+                        coverFallbackIcon = R.drawable.ic_launcher_foreground,
+                        equalizerMenuLabel = stringResource(R.string.player_equalizer_menu),
+                        queueMenuLabel = stringResource(R.string.player_queue_menu),
                     )
                 ).Draw(Modifier.fillMaxSize())
+
+                is Root.MainComponentChild.Equalizer ->
+                    playerViewProvider.createEqualizerView(child.component).Draw(Modifier.fillMaxSize())
             }
         }
     }

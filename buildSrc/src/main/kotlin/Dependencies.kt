@@ -42,6 +42,8 @@ enum class Library(group: String, artifact: String, version: Version) {
 
     CoilCompose("io.coil-kt.coil3", "coil-compose", Version.CoilCompose),
     JAudioTagger("net.jthink", "jaudiotagger", Version.JAudioTagger),
+    JavaCv("org.bytedeco", "javacv", Version.JavaCv),
+    FfmpegPlatform("org.bytedeco", "ffmpeg-platform", Version.FfmpegPlatform),
 
     DebugComposeUiToolingPreview("androidx.compose.ui", "ui-tooling-preview", Version.Compose),
 
@@ -84,6 +86,8 @@ enum class Library(group: String, artifact: String, version: Version) {
         Accompanist("0.37.3") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
         CoilCompose("3.1.0"),
         JAudioTagger("3.0.1"),
+        JavaCv("1.5.11"),
+        FfmpegPlatform("7.1-1.5.11"),
         Decompose("3.4.0"),
         Jnativehook("2.2.2"),
 

@@ -20,6 +20,7 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)
             implementation(compose.ui)
+            implementation(compose.components.resources)
             implementation(Library.CoilCompose.notation)
             implementation(Library.Decompose.notation)
             implementation(Library.DecomposeExtensions.notation)

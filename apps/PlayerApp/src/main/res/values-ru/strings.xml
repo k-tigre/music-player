@@ -14,4 +14,7 @@
     <string name="player_queue_empty_title">В очереди нет треков</string>
     <string name="player_queue_empty_message">Выберите трек для воспроизведения</string>
     <string name="player_queue_empty_action">Выбрать в каталоге</string>
+
+    <string name="player_equalizer_menu">Эквалайзер</string>
+    <string name="player_queue_menu">Очередь</string>
 </resources>
