@@ -61,6 +61,8 @@ internal fun PlayerWindowContent(
     player: BasePlayerComponent,
     libraryVisible: Boolean,
     onToggleLibrary: () -> Unit,
+    equalizerVisible: Boolean,
+    onToggleEqualizer: () -> Unit,
     onDragStart: () -> Unit,
     onDrag: (dx: Float, dy: Float) -> Unit,
     onClose: () -> Unit,
@@ -70,6 +72,7 @@ internal fun PlayerWindowContent(
     val fraction by player.fraction.collectAsState()
     val position by player.position.collectAsState()
     val isNormal by player.isNormal.collectAsState()
+    val eqAvailable by player.playbackEqualizer.isAvailable.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize()) {
         // ── Custom title bar (draggable) ─────────────────────────────────────
@@ -235,6 +238,32 @@ internal fun PlayerWindowContent(
             }
 
             Spacer(Modifier.width(4.dp))
+
+            if (eqAvailable) {
+                val eqBorder = if (equalizerVisible) DesktopGreen else DesktopBorder
+                val eqBg = if (equalizerVisible) DesktopGreen.copy(alpha = 0.15f) else DesktopButtonBg
+                val eqColor = if (equalizerVisible) DesktopGreen else DesktopSubText
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(eqBg)
+                        .border(1.dp, eqBorder, RoundedCornerShape(2.dp))
+                        .clickable(onClick = onToggleEqualizer)
+                        .padding(horizontal = 8.dp, vertical = 5.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "EQ",
+                        color = eqColor,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    )
+                }
+
+                Spacer(Modifier.width(6.dp))
+            }
 
             // [PL] toggle library window
             val plBorder = if (libraryVisible) DesktopGreen else DesktopBorder

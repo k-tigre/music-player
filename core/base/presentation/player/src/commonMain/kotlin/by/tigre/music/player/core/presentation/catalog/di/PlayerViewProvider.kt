@@ -20,7 +20,7 @@ interface PlayerViewProvider {
         topBarContent: (@Composable () -> Unit)? = null
     ): ComposableView
 
-    fun createEqualizerView(component: EqualizerComponent): ComposableView
+    fun createEqualizerView(component: EqualizerComponent, showTopBar: Boolean = true): ComposableView
 
     class Impl : PlayerViewProvider {
         override fun createSmallPlayerView(
@@ -35,7 +35,7 @@ interface PlayerViewProvider {
             topBarContent: (@Composable () -> Unit)?
         ): PlayerView = PlayerView(component, config, topBarContent)
 
-        override fun createEqualizerView(component: EqualizerComponent): EqualizerView =
-            EqualizerView(component)
+        override fun createEqualizerView(component: EqualizerComponent, showTopBar: Boolean): EqualizerView =
+            EqualizerView(component, showTopBar = showTopBar)
     }
 }

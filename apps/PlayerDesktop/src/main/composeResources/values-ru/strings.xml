@@ -2,6 +2,7 @@
 <resources>
     <string name="desktop_window_title_player">ПЛЕЕР</string>
     <string name="desktop_window_title_library">БИБЛИОТЕКА</string>
+    <string name="desktop_window_title_equalizer">ЭКВАЛАЙЗЕР</string>
 
     <string name="desktop_tab_queue">ОЧЕРЕДЬ</string>
     <string name="desktop_tab_library">БИБЛИОТЕКА</string>

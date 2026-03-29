@@ -37,6 +37,9 @@ interface Root {
     fun selectPage(index: Int)
     fun addCatalogFolder(folder: File)
 
+    /** Stand-alone equalizer for the desktop EQ window (not the main navigation stack). */
+    fun createEqualizerComponent(onClose: () -> Unit): EqualizerComponent
+
     sealed interface PageComponentChild {
         class Queue(val component: CurrentQueueComponent) : PageComponentChild
         class Catalog(val component: RootCatalogComponent) : PageComponentChild
@@ -51,7 +54,7 @@ interface Root {
     class Impl(
         context: BaseComponentContext,
         catalogComponentProvider: CatalogComponentProvider,
-        playerComponentProvider: PlayerComponentProvider,
+        private val playerComponentProvider: PlayerComponentProvider,
         currentQueueComponent: CurrentQueueComponentProvider,
         private val onAddFolder: suspend (File) -> Unit,
     ) : Root, BaseComponentContext by context {
@@ -151,6 +154,9 @@ interface Root {
                 }
             }
         }
+
+        override fun createEqualizerComponent(onClose: () -> Unit): EqualizerComponent =
+            playerComponentProvider.createEqualizerComponent(onClose)
 
         @Serializable
         private sealed interface PagesConfig {

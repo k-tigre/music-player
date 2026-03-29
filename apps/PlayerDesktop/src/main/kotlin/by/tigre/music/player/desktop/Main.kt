@@ -18,6 +18,7 @@ import androidx.compose.ui.window.rememberWindowState
 import by.tigre.music.player.core.presentation.catalog.di.CatalogComponentProvider
 import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.music.player.core.presentation.catalog.di.PlayerComponentProvider
+import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueComponentProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
 import by.tigre.music.player.desktop.di.DesktopApplicationGraph
@@ -30,10 +31,15 @@ import by.tigre.music.player.logger.Log
 import by.tigre.music.player.presentation.base.BaseComponentContextImpl
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import java.awt.event.WindowEvent
+import java.awt.event.WindowFocusListener
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.SwingUtilities
 
 private val PLAYER_SIZE = DpSize(520.dp, 210.dp)
 private val LIBRARY_SIZE = DpSize(520.dp, 500.dp)
+private val EQUALIZER_SIZE = DpSize(520.dp, 400.dp)
 
 // ── Persisted preferences ─────────────────────────────────────────────────────
 private object AppPrefs {
@@ -44,6 +50,51 @@ private object AppPrefs {
     var libraryVisible: Boolean
         get() = prefs.getBoolean("library_visible", true)
         set(value) = prefs.putBoolean("library_visible", value)
+
+    var equalizerVisible: Boolean
+        get() = prefs.getBoolean("equalizer_visible", false)
+        set(value) = prefs.putBoolean("equalizer_visible", value)
+}
+
+/**
+ * Keeps player / library / equalizer windows layered together: focusing any one
+ * brings the rest to the foreground (without stealing keyboard focus from the clicked window).
+ */
+private class AppWindowGroup {
+    private val windows = CopyOnWriteArrayList<java.awt.Window>()
+    private val syncing = AtomicBoolean(false)
+    private val focusListener = object : WindowFocusListener {
+        override fun windowGainedFocus(e: WindowEvent) {
+            if (!syncing.compareAndSet(false, true)) return
+            val focused = e.window
+            SwingUtilities.invokeLater {
+                try {
+                    for (w in windows) {
+                        if (w !== focused && w.isShowing) w.toFront()
+                    }
+                    if (focused.isShowing) {
+                        focused.toFront()
+                        focused.requestFocus()
+                    }
+                } finally {
+                    syncing.set(false)
+                }
+            }
+        }
+
+        override fun windowLostFocus(e: WindowEvent) = Unit
+    }
+
+    fun register(window: java.awt.Window) {
+        if (window in windows) return
+        windows.add(window)
+        window.addWindowFocusListener(focusListener)
+    }
+
+    fun unregister(window: java.awt.Window) {
+        window.removeWindowFocusListener(focusListener)
+        windows.remove(window)
+    }
 }
 
 fun main() {
@@ -82,11 +133,13 @@ fun main() {
         component = root,
         catalogViewProvider = CatalogViewProvider.Impl(),
         currentQueueViewProvider = CurrentQueueViewProvider.Impl(),
+        playerViewProvider = PlayerViewProvider.Impl(),
     )
 
     application {
         val onExit = { notificationManager.stop(); exitApplication() }
         val iconPainter = remember { BitmapPainter(appIconImage.toComposeImageBitmap()) }
+        val appWindowGroup = remember { AppWindowGroup() }
 
         val overlayVisible by notificationManager.overlayVisible.collectAsState()
         val overlayKey by notificationManager.overlayKey.collectAsState()
@@ -111,9 +164,14 @@ fun main() {
 
         // ── Persisted state ───────────────────────────────────────────────
         var libraryVisible by remember { mutableStateOf(AppPrefs.libraryVisible) }
+        var equalizerVisible by remember { mutableStateOf(AppPrefs.equalizerVisible) }
 
         LaunchedEffect(libraryVisible) {
             AppPrefs.libraryVisible = libraryVisible
+        }
+
+        LaunchedEffect(equalizerVisible) {
+            AppPrefs.equalizerVisible = equalizerVisible
         }
 
         // ── Initial positions — computed from usable screen area ──────────
@@ -152,6 +210,18 @@ fun main() {
             }
         }
 
+        val equalizerInitialPos = remember {
+            val screenRight = (usableScreen.x + usableScreen.width).dp
+            val spaceRight = screenRight - playerInitialPos.x - PLAYER_SIZE.width
+            val libraryStacksBelow = spaceRight < LIBRARY_SIZE.width
+            val yUnderPlayer = playerInitialPos.y + PLAYER_SIZE.height
+            val y = if (libraryStacksBelow) yUnderPlayer + LIBRARY_SIZE.height else yUnderPlayer
+            WindowPosition.Absolute(
+                x = playerInitialPos.x,
+                y = y,
+            )
+        }
+
         // ── Window states ─────────────────────────────────────────────────
         val playerState = rememberWindowState(
             width = PLAYER_SIZE.width,
@@ -166,6 +236,12 @@ fun main() {
             position = libraryInitialPos,
         )
 
+        val equalizerState = rememberWindowState(
+            width = EQUALIZER_SIZE.width,
+            height = EQUALIZER_SIZE.height,
+            position = equalizerInitialPos,
+        )
+
         // ── Main player window ────────────────────────────────────────────
         Window(
             onCloseRequest = onExit,
@@ -175,10 +251,15 @@ fun main() {
             resizable = false,
             undecorated = true,
         ) {
+            DisposableEffect(window) {
+                appWindowGroup.register(window)
+                onDispose { appWindowGroup.unregister(window) }
+            }
             // Snapshot both starting positions on drag start, then move both
             // windows in the same onDrag call — no async lag between them.
             val playerDragStart = remember { floatArrayOf(0f, 0f) }
             val libraryDragStart = remember { floatArrayOf(0f, 0f) }
+            val equalizerDragStart = remember { floatArrayOf(0f, 0f) }
 
             rootView.DrawPlayerWindow(
                 onDragStart = {
@@ -186,6 +267,8 @@ fun main() {
                     playerDragStart[1] = (playerState.position as? WindowPosition.Absolute)?.y?.value ?: 0f
                     libraryDragStart[0] = (libraryState.position as? WindowPosition.Absolute)?.x?.value ?: 0f
                     libraryDragStart[1] = (libraryState.position as? WindowPosition.Absolute)?.y?.value ?: 0f
+                    equalizerDragStart[0] = (equalizerState.position as? WindowPosition.Absolute)?.x?.value ?: 0f
+                    equalizerDragStart[1] = (equalizerState.position as? WindowPosition.Absolute)?.y?.value ?: 0f
                 },
                 onDrag = { dx, dy ->
                     playerState.position = WindowPosition.Absolute(
@@ -198,9 +281,17 @@ fun main() {
                             y = (libraryDragStart[1] + dy).dp,
                         )
                     }
+                    if (equalizerVisible) {
+                        equalizerState.position = WindowPosition.Absolute(
+                            x = (equalizerDragStart[0] + dx).dp,
+                            y = (equalizerDragStart[1] + dy).dp,
+                        )
+                    }
                 },
                 libraryVisible = libraryVisible,
                 onToggleLibrary = { libraryVisible = !libraryVisible },
+                equalizerVisible = equalizerVisible,
+                onToggleEqualizer = { equalizerVisible = !equalizerVisible },
                 onClose = onExit,
             )
         }
@@ -214,9 +305,35 @@ fun main() {
                 state = libraryState,
                 undecorated = true,
             ) {
+                DisposableEffect(window) {
+                    appWindowGroup.register(window)
+                    onDispose { appWindowGroup.unregister(window) }
+                }
                 rootView.DrawLibraryWindow(
                     windowState = libraryState,
                     onClose = { libraryVisible = false },
+                )
+            }
+        }
+
+        if (equalizerVisible) {
+            val equalizerComponent = remember {
+                root.createEqualizerComponent { equalizerVisible = false }
+            }
+            Window(
+                onCloseRequest = equalizerComponent::close,
+                title = "Equalizer",
+                icon = iconPainter,
+                state = equalizerState,
+                undecorated = true,
+            ) {
+                DisposableEffect(window) {
+                    appWindowGroup.register(window)
+                    onDispose { appWindowGroup.unregister(window) }
+                }
+                rootView.DrawEqualizerWindow(
+                    equalizerComponent = equalizerComponent,
+                    windowState = equalizerState,
                 )
             }
         }

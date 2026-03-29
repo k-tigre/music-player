@@ -5,7 +5,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.WindowState
+import by.tigre.music.player.core.presentation.catalog.component.EqualizerComponent
 import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
+import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
 import by.tigre.music.player.desktop.presentation.root.component.Root
 import by.tigre.music.player.desktop.presentation.theme.DesktopBg
@@ -16,6 +18,7 @@ class RootView(
     private val component: Root,
     private val catalogViewProvider: CatalogViewProvider,
     private val currentQueueViewProvider: CurrentQueueViewProvider,
+    private val playerViewProvider: PlayerViewProvider,
 ) : ComposableView {
 
     /** Not used in the desktop dual-window layout. */
@@ -30,6 +33,8 @@ class RootView(
         onDrag: (dx: Float, dy: Float) -> Unit,
         libraryVisible: Boolean,
         onToggleLibrary: () -> Unit,
+        equalizerVisible: Boolean,
+        onToggleEqualizer: () -> Unit,
         onClose: () -> Unit,
     ) {
         DesktopTheme {
@@ -38,6 +43,8 @@ class RootView(
                     player = component.playerComponent,
                     libraryVisible = libraryVisible,
                     onToggleLibrary = onToggleLibrary,
+                    equalizerVisible = equalizerVisible,
+                    onToggleEqualizer = onToggleEqualizer,
                     onDragStart = onDragStart,
                     onDrag = onDrag,
                     onClose = onClose,
@@ -58,6 +65,22 @@ class RootView(
                     currentQueueViewProvider = currentQueueViewProvider,
                     windowState = windowState,
                     onClose = onClose,
+                )
+            }
+        }
+    }
+
+    @Composable
+    fun DrawEqualizerWindow(
+        equalizerComponent: EqualizerComponent,
+        windowState: WindowState,
+    ) {
+        DesktopTheme {
+            Surface(color = DesktopBg, modifier = Modifier.fillMaxSize()) {
+                EqualizerWindowContent(
+                    component = equalizerComponent,
+                    playerViewProvider = playerViewProvider,
+                    windowState = windowState,
                 )
             }
         }

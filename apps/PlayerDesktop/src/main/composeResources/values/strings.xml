@@ -2,6 +2,7 @@
 <resources>
     <string name="desktop_window_title_player">MUSIC PLAYER</string>
     <string name="desktop_window_title_library">LIBRARY</string>
+    <string name="desktop_window_title_equalizer">EQUALIZER</string>
 
     <string name="desktop_tab_queue">QUEUE</string>
     <string name="desktop_tab_library">LIBRARY</string>

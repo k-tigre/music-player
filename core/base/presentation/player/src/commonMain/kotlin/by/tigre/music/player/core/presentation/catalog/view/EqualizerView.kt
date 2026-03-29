@@ -15,9 +15,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,11 +39,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlin.math.abs
 import by.tigre.music.player.core.presentation.catalog.component.EqualizerComponent
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.resources.Res
@@ -50,11 +55,11 @@ import by.tigre.music.player.tools.platform.compose.resources.equalizer_preset_p
 import by.tigre.music.player.tools.platform.compose.resources.equalizer_title
 import by.tigre.music.player.tools.platform.compose.resources.equalizer_unavailable
 import org.jetbrains.compose.resources.stringResource
-import kotlin.math.abs
 import kotlin.math.roundToInt
 
 class EqualizerView(
     private val component: EqualizerComponent,
+    private val showTopBar: Boolean = true,
 ) : ComposableView {
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -66,101 +71,142 @@ class EqualizerView(
         val customPresetLabel = stringResource(Res.string.equalizer_custom)
         val unavailableMessage = stringResource(Res.string.equalizer_unavailable)
 
-        Scaffold(
+        val rootModifier = modifier
+            .fillMaxSize()
+            .then(if (showTopBar) Modifier.navigationBarsPadding() else Modifier)
+
+        if (showTopBar) {
+            Scaffold(
+                modifier = rootModifier,
+                topBar = {
+                    TopAppBar(
+                        title = { Text(title) },
+                        navigationIcon = {
+                            IconButton(onClick = component::close) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = null,
+                                )
+                            }
+                        },
+                    )
+                },
+            ) { padding ->
+                EqualizerBody(
+                    available = available,
+                    unavailableMessage = unavailableMessage,
+                    presetPickerTitle = presetPickerTitle,
+                    customPresetLabel = customPresetLabel,
+                    contentPadding = padding,
+                )
+            }
+        } else {
+            EqualizerBody(
+                available = available,
+                unavailableMessage = unavailableMessage,
+                presetPickerTitle = presetPickerTitle,
+                customPresetLabel = customPresetLabel,
+                contentPadding = PaddingValues(),
+                modifier = rootModifier,
+            )
+        }
+    }
+
+    @Composable
+    private fun EqualizerBody(
+        available: Boolean,
+        unavailableMessage: String,
+        presetPickerTitle: String,
+        customPresetLabel: String,
+        contentPadding: PaddingValues,
+        modifier: Modifier = Modifier,
+    ) {
+        if (!available) {
+            Text(
+                text = unavailableMessage,
+                modifier = modifier
+                    .padding(contentPadding)
+                    .padding(24.dp),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            return
+        }
+
+        val presetNames by component.playbackEqualizer.presetNames.collectAsState()
+        val selected by component.playbackEqualizer.selectedPresetIndex.collectAsState()
+        val centers by component.playbackEqualizer.bandCenterHz.collectAsState()
+        val gains by component.playbackEqualizer.bandGainDb.collectAsState()
+        val customIdx by component.playbackEqualizer.customPresetIndex.collectAsState()
+        val gainRange by component.playbackEqualizer.bandGainRangeDb.collectAsState()
+
+        val presetScrollState = rememberScrollState()
+        val bandsScrollState = rememberScrollState()
+
+        Column(
             modifier = modifier
+                .padding(contentPadding)
                 .fillMaxSize()
-                .navigationBarsPadding(),
-            topBar = {
-                TopAppBar(
-                    title = { Text(title) },
-                    navigationIcon = {
-                        IconButton(onClick = component::close) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = null,
-                            )
-                        }
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = presetPickerTitle,
+                style = MaterialTheme.typography.titleMedium,
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(presetScrollState)
+                    .pointerInput(presetScrollState) {
+                        forwardWheelToHorizontalScroll(presetScrollState)
                     },
-                )
-            },
-        ) { padding ->
-            if (!available) {
-                Text(
-                    text = unavailableMessage,
-                    modifier = Modifier
-                        .padding(padding)
-                        .padding(24.dp),
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-                return@Scaffold
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                presetNames.forEachIndexed { index, name ->
+                    val label =
+                        if (index == customIdx && customPresetLabel.isNotEmpty()) {
+                            customPresetLabel
+                        } else {
+                            name
+                        }
+                    FilterChip(
+                        selected = selected == index,
+                        onClick = { component.playbackEqualizer.selectPreset(index) },
+                        label = {
+                            Text(
+                                text = label,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                        },
+                    )
+                }
             }
 
-            val presetNames by component.playbackEqualizer.presetNames.collectAsState()
-            val selected by component.playbackEqualizer.selectedPresetIndex.collectAsState()
-            val centers by component.playbackEqualizer.bandCenterHz.collectAsState()
-            val gains by component.playbackEqualizer.bandGainDb.collectAsState()
-            val customIdx by component.playbackEqualizer.customPresetIndex.collectAsState()
-            val gainRange by component.playbackEqualizer.bandGainRangeDb.collectAsState()
-
-            Column(
+            Row(
                 modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .horizontalScroll(bandsScrollState)
+                    .pointerInput(bandsScrollState) {
+                        forwardWheelToHorizontalScroll(bandsScrollState)
+                    },
+                horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.Bottom,
             ) {
-                Text(
-                    text = presetPickerTitle,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    presetNames.forEachIndexed { index, name ->
-                        val label =
-                            if (index == customIdx && customPresetLabel.isNotEmpty()) {
-                                customPresetLabel
-                            } else {
-                                name
-                            }
-                        FilterChip(
-                            selected = selected == index,
-                            onClick = { component.playbackEqualizer.selectPreset(index) },
-                            label = {
-                                Text(
-                                    text = label,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            },
-                        )
-                    }
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
-                    verticalAlignment = Alignment.Bottom,
-                ) {
-                    centers.forEachIndexed { index, hz ->
-                        val g = gains.getOrNull(index) ?: 0f
-                        EqBandFaderColumn(
-                            hzLabel = formatBandHz(hz),
-                            gainDb = g.coerceIn(gainRange.first, gainRange.second),
-                            gainRange = gainRange.first..gainRange.second,
-                            onGainChange = { component.playbackEqualizer.setBandGainDb(index, it) },
-                            modifier = Modifier
-                                .width(48.dp)
-                                .fillMaxHeight(),
-                        )
-                    }
+                centers.forEachIndexed { index, hz ->
+                    val g = gains.getOrNull(index) ?: 0f
+                    EqBandFaderColumn(
+                        hzLabel = formatBandHz(hz),
+                        gainDb = g.coerceIn(gainRange.first, gainRange.second),
+                        gainRange = gainRange.first..gainRange.second,
+                        onGainChange = { component.playbackEqualizer.setBandGainDb(index, it) },
+                        modifier = Modifier
+                            .width(48.dp)
+                            .fillMaxHeight(),
+                    )
                 }
             }
         }
@@ -222,7 +268,11 @@ class EqualizerView(
                 .clip(RoundedCornerShape(6.dp))
                 .background(trackColor),
         ) {
-            val hPx = with(density) { maxHeight.toPx() }.coerceAtLeast(1f)
+            val hPx = if (constraints.hasBoundedHeight) {
+                constraints.maxHeight.toFloat().coerceAtLeast(1f)
+            } else {
+                with(density) { maxHeight.toPx() }.coerceAtLeast(1f)
+            }
 
             fun valueFromY(y: Float, heightPx: Float): Float {
                 val h = heightPx.coerceAtLeast(1f)
@@ -310,4 +360,28 @@ class EqualizerView(
     private fun formatDb(db: Float): String =
         if (db >= 0f) "+%.1f".format(db).replace(",", ".")
         else "%.1f".format(db).replace(",", ".")
+}
+
+/**
+ * Desktop often reports tiny [PointerInputChange.scrollDelta] per wheel notch (≈1); [ScrollState.dispatchRawDelta]
+ * expects pixels. Large deltas usually come from a touchpad and are already pixel-like.
+ */
+private suspend fun PointerInputScope.forwardWheelToHorizontalScroll(scrollState: ScrollState) {
+    val wheelLinePx = with(this) { 40.dp.toPx().coerceAtLeast(24f) }
+    awaitPointerEventScope {
+        while (true) {
+            val event = awaitPointerEvent()
+            if (event.type != PointerEventType.Scroll) continue
+            var delta = 0f
+            for (change in event.changes) {
+                delta += change.scrollDelta.y + change.scrollDelta.x
+            }
+            if (delta == 0f) continue
+            val scaled =
+                if (abs(delta) < 5f) delta * wheelLinePx
+                else delta * 1.15f
+            scrollState.dispatchRawDelta(-scaled)
+            event.changes.forEach { it.consume() }
+        }
+    }
 }
