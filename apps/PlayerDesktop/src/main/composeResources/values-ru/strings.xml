@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="desktop_window_title_player">ПЛЕЕР</string>
+    <string name="desktop_window_title_library">БИБЛИОТЕКА</string>
+
+    <string name="desktop_tab_queue">ОЧЕРЕДЬ</string>
+    <string name="desktop_tab_library">БИБЛИОТЕКА</string>
+
+    <string name="desktop_no_track">Нет трека</string>
+</resources>

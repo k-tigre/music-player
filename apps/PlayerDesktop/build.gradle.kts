@@ -22,6 +22,10 @@ dependencies {
     implementation(Library.Decompose.notation)
     implementation(Library.DecomposeExtensions.notation)
     implementation(Library.CoilCompose.notation)
+    implementation("net.java.dev.jna:jna:5.14.0")
+    implementation("net.java.dev.jna:jna-platform:5.14.0")
+    implementation("com.github.hypfvieh:dbus-java-core:4.3.2")
+    implementation("com.github.hypfvieh:dbus-java-transport-native-unixsocket:4.3.2")
 
     implementation(project(Project.Tools.Entity.name))
     implementation(project(Project.Tools.Coroutines.name))
@@ -41,6 +45,13 @@ dependencies {
     implementation(project(Project.Core.Base.Presentation.Player.name))
     implementation(project(Project.Core.Music.Presentation.Catalog.name))
     implementation(project(Project.Core.Music.Presentation.PlaylistCurrentQueue.name))
+}
+
+compose {
+    resources {
+        publicResClass = true
+        packageOfResClass = "by.tigre.music.player.desktop.resources"
+    }
 }
 
 compose.desktop {
