@@ -1,17 +1,17 @@
 package by.tigre.music.player.core.data.playback.impl.dsp
 
-import by.tigre.music.player.core.data.playback.impl.dsp.DesktopEqualizerPresets.bandCentersHz
-import by.tigre.music.player.core.data.playback.impl.dsp.DesktopEqualizerPresets.gainsDb
 import kotlin.math.ln
-
 internal object DesktopEqualizerPresets {
 
     const val GAIN_DB_MIN = -12f
     const val GAIN_DB_MAX = 12f
 
-    /** Ten-band graphic EQ center frequencies (Hz). */
+    /**
+     * Graphic EQ band centers (Hz): sub ~32 Hz, ISO-style spacing through highs, **16 kHz** and **20 kHz** air bands.
+     * (Common references: third-octave ISO ~31.5 Hz … 16 kHz; consumer EQs often add 18–20 kHz as top shelf.)
+     */
     val bandCentersHz = floatArrayOf(
-        32f, 64f, 125f, 250f, 500f, 1000f, 2000f, 4000f, 8000f, 16000f,
+        32f, 64f, 125f, 250f, 500f, 1000f, 2000f, 4000f, 8000f, 16000f, 20000f,
     )
 
     val names: List<String> = listOf(
@@ -44,7 +44,7 @@ internal object DesktopEqualizerPresets {
     )
 
     private val gainsDb: Array<FloatArray> =
-        gainsDbLegacy.map { expandLegacyFiveBandToTen(it) }.toTypedArray()
+        gainsDbLegacy.map { expandLegacyFiveBandToCurrentBands(it) }.toTypedArray()
 
     fun gainsForPreset(index: Int): FloatArray {
         val i = index.coerceIn(0, gainsDb.lastIndex)
@@ -53,7 +53,7 @@ internal object DesktopEqualizerPresets {
 
     fun allBuiltInBandGainsDb(): List<List<Float>> = gainsDb.map { row -> row.map { it } }
 
-    private fun expandLegacyFiveBandToTen(legacyGains: FloatArray): FloatArray {
+    private fun expandLegacyFiveBandToCurrentBands(legacyGains: FloatArray): FloatArray {
         require(legacyGains.size == legacyCentersHz.size)
         return FloatArray(bandCentersHz.size) { i ->
             interpolateDb(bandCentersHz[i].toDouble(), legacyCentersHz, legacyGains)

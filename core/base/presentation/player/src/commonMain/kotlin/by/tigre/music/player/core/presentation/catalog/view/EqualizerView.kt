@@ -61,7 +61,7 @@ import by.tigre.music.player.tools.platform.compose.resources.equalizer_unavaila
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
-private const val MaxEqBandsDisplayed = 8
+private const val MaxEqBandsDisplayed = 16
 
 class EqualizerView(
     private val component: EqualizerComponent,
@@ -194,12 +194,12 @@ class EqualizerView(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .height(248.dp)
                     .horizontalScroll(bandsScrollState)
                     .pointerInput(bandsScrollState) {
                         forwardWheelToHorizontalScroll(bandsScrollState)
                     },
-                horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.Bottom,
             ) {
                 component.appPlaybackVolume?.let { volCtrl ->
@@ -210,7 +210,7 @@ class EqualizerView(
                         bottomLabel = stringResource(Res.string.equalizer_app_volume),
                         volumeSemanticsLabel = stringResource(Res.string.equalizer_app_volume_cd),
                         modifier = Modifier
-                            .width(48.dp)
+                            .width(58.dp)
                             .fillMaxHeight(),
                     )
                 }
@@ -224,7 +224,7 @@ class EqualizerView(
                         gainRange = gainRange.first..gainRange.second,
                         onGainChange = { component.playbackEqualizer.setBandGainDb(index, it) },
                         modifier = Modifier
-                            .width(48.dp)
+                            .width(30.dp)
                             .fillMaxHeight(),
                     )
                 }
@@ -257,7 +257,7 @@ class EqualizerView(
                 valueRange = 0f..1f,
                 modifier = Modifier
                     .weight(1f)
-                    .width(40.dp),
+                    .fillMaxWidth(),
                 showCenterZeroReference = false,
                 fillActiveFromBottom = true,
             )
@@ -266,6 +266,7 @@ class EqualizerView(
                 style = MaterialTheme.typography.labelSmall,
                 textAlign = TextAlign.Center,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
@@ -295,7 +296,7 @@ class EqualizerView(
                 valueRange = gainRange,
                 modifier = Modifier
                     .weight(1f)
-                    .width(40.dp),
+                    .fillMaxWidth(),
             )
             Text(
                 text = hzLabel,
@@ -400,7 +401,7 @@ class EqualizerView(
                     }
                 }
 
-                val thumbDp = 20.dp
+                val thumbDp = 16.dp
                 val thumbRadiusPx = with(density) { (thumbDp / 2).toPx() }
                 Box(
                     modifier = Modifier
