@@ -16,6 +16,7 @@ import by.tigre.audiobook.presentation.background.BackgroundService
 import by.tigre.audiobook.presentation.root.component.Root
 import by.tigre.audiobook.presentation.root.view.RootView
 import by.tigre.audiobook.theme.AppTheme
+import by.tigre.audiobook.theme.rememberAudiobookDarkTheme
 import by.tigre.music.player.core.presentation.catalog.di.PlayerComponentProvider
 import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
 import by.tigre.music.player.presentation.base.BaseComponentContextImpl
@@ -36,12 +37,15 @@ class MainActivity : AppCompatActivity() {
         )
 
         setContent {
-            AppTheme {
+            val preferences = graph.preferences
+            val (darkTheme, toggleNightMode) = rememberAudiobookDarkTheme(preferences)
+            AppTheme(darkTheme = darkTheme) {
                 Surface(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
                     RootView(
                         root,
                         playerViewProvider = PlayerViewProvider.Impl(),
-                        audiobookCatalogViewProvider = AndroidAudiobookCatalogViewProvider()
+                        audiobookCatalogViewProvider = AndroidAudiobookCatalogViewProvider(),
+                        onToggleNightMode = toggleNightMode,
                     ).Draw(Modifier)
                 }
             }

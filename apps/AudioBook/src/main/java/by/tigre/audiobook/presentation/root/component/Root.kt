@@ -32,6 +32,8 @@ interface Root {
 
     fun onShowCatalog()
 
+    fun onOpenFolderSettings()
+
     sealed interface MainComponentChild {
         data object Main : MainComponentChild
         class Player(val component: PlayerComponent) : MainComponentChild
@@ -111,6 +113,11 @@ interface Root {
 
         override fun onShowCatalog() {
             mainNavigation.pushToFront(MainConfig.Main)
+        }
+
+        override fun onOpenFolderSettings() {
+            mainNavigation.pushToFront(MainConfig.Main)
+            audiobookCatalogComponent.openFolderSelection()
         }
 
         @Serializable

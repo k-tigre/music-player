@@ -3,11 +3,16 @@ package by.tigre.audiobook.theme
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import by.tigre.music.player.core.data.storage.preferences.Preferences
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -251,6 +256,26 @@ data class ColorFamily(
 val unspecified_scheme = ColorFamily(
     Color.Unspecified, Color.Unspecified, Color.Unspecified, Color.Unspecified
 )
+
+private const val AudiobookThemeOverrideKey = "audiobook_theme_override"
+
+@Composable
+fun rememberAudiobookDarkTheme(preferences: Preferences): Pair<Boolean, () -> Unit> {
+    val systemDark = isSystemInDarkTheme()
+    var override by remember { mutableStateOf(preferences.loadString(AudiobookThemeOverrideKey, null)) }
+    val darkTheme = when (override) {
+        "dark" -> true
+        "light" -> false
+        else -> systemDark
+    }
+    val toggle: () -> Unit = {
+        val nextDark = !darkTheme
+        val encoded = if (nextDark) "dark" else "light"
+        preferences.saveString(AudiobookThemeOverrideKey, encoded)
+        override = encoded
+    }
+    return darkTheme to toggle
+}
 
 @Composable
 fun AppTheme(

@@ -1,6 +1,7 @@
 package by.tigre.audiobook.presentation.root.view
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -8,14 +9,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.GraphicEq
-import androidx.compose.material.icons.filled.LocalLibrary
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -33,7 +39,8 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 class RootView(
     private val component: Root,
     private val playerViewProvider: PlayerViewProvider,
-    private val audiobookCatalogViewProvider: AudiobookCatalogViewProvider
+    private val audiobookCatalogViewProvider: AudiobookCatalogViewProvider,
+    private val onToggleNightMode: () -> Unit,
 ) : ComposableView {
 
     @Composable
@@ -63,6 +70,7 @@ class RootView(
                     ),
                     topBarContent = {
                         val eqAvailable by child.component.playbackEqualizer.isAvailable.collectAsState()
+                        var menuExpanded by remember { mutableStateOf(false) }
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -71,27 +79,50 @@ class RootView(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.End
                         ) {
-                            if (eqAvailable) {
+                            Box {
                                 IconButton(
-                                    modifier = Modifier.align(Alignment.CenterVertically),
-                                    onClick = { child.component.showEqualizer() }
+                                    onClick = { menuExpanded = true }
                                 ) {
                                     Icon(
-                                        contentDescription = stringResource(R.string.player_equalizer_menu),
-                                        imageVector = Icons.Default.GraphicEq,
+                                        contentDescription = stringResource(R.string.player_overflow_menu_cd),
+                                        imageVector = Icons.Default.MoreVert,
                                         modifier = Modifier.size(56.dp)
                                     )
                                 }
-                            }
-                            IconButton(
-                                modifier = Modifier.align(Alignment.CenterVertically),
-                                onClick = component::onShowCatalog
-                            ) {
-                                Icon(
-                                    contentDescription = null,
-                                    imageVector = Icons.Default.LocalLibrary,
-                                    modifier = Modifier.size(56.dp)
-                                )
+                                DropdownMenu(
+                                    expanded = menuExpanded,
+                                    onDismissRequest = { menuExpanded = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.player_menu_settings)) },
+                                        onClick = {
+                                            menuExpanded = false
+                                            component.onOpenFolderSettings()
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.player_menu_library)) },
+                                        onClick = {
+                                            menuExpanded = false
+                                            component.onShowCatalog()
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.player_equalizer_menu)) },
+                                        onClick = {
+                                            menuExpanded = false
+                                            if (eqAvailable) child.component.showEqualizer()
+                                        },
+                                        enabled = eqAvailable
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.player_menu_night_mode)) },
+                                        onClick = {
+                                            menuExpanded = false
+                                            onToggleNightMode()
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

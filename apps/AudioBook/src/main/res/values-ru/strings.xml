@@ -6,4 +6,9 @@
 
     <string name="player_equalizer_menu">Эквалайзер</string>
     <string name="player_queue_menu">Очередь</string>
+
+    <string name="player_overflow_menu_cd">Ещё</string>
+    <string name="player_menu_settings">Настройки</string>
+    <string name="player_menu_library">Библиотека</string>
+    <string name="player_menu_night_mode">Ночной режим</string>
 </resources>

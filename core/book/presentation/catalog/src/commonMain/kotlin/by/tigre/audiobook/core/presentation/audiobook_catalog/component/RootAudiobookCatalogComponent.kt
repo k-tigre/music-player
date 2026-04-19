@@ -16,6 +16,8 @@ interface RootAudiobookCatalogComponent {
 
     val childStack: Value<ChildStack<*, AudiobookCatalogChild>>
 
+    fun openFolderSelection()
+
     sealed interface AudiobookCatalogChild {
         class FolderSelection(val component: FolderSelectionComponent) : AudiobookCatalogChild
         class BookList(val component: BookListComponent) : AudiobookCatalogChild
@@ -62,6 +64,10 @@ interface RootAudiobookCatalogComponent {
             }
 
         override val childStack: Value<ChildStack<*, AudiobookCatalogChild>> = stack
+
+        override fun openFolderSelection() {
+            navigation.bringToFront(Config.FolderSelection)
+        }
 
         @Serializable
         private sealed interface Config {
