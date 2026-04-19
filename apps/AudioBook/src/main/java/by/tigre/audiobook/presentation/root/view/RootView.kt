@@ -40,7 +40,6 @@ class RootView(
     private val component: Root,
     private val playerViewProvider: PlayerViewProvider,
     private val audiobookCatalogViewProvider: AudiobookCatalogViewProvider,
-    private val onToggleNightMode: () -> Unit,
 ) : ComposableView {
 
     @Composable
@@ -114,13 +113,6 @@ class RootView(
                                             if (eqAvailable) child.component.showEqualizer()
                                         },
                                         enabled = eqAvailable
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.player_menu_night_mode)) },
-                                        onClick = {
-                                            menuExpanded = false
-                                            onToggleNightMode()
-                                        }
                                     )
                                 }
                             }

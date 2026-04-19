@@ -13,7 +13,6 @@ import by.tigre.music.player.core.data.catalog.di.CatalogModule
 import by.tigre.music.player.core.data.playback.di.AndroidBasePlaybackModule
 import by.tigre.music.player.core.data.playback.di.PlaybackModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.AndroidPlaybackQueueModule
-import by.tigre.music.player.core.data.storage.preferences.Preferences
 import by.tigre.music.player.core.data.storage.preferences.di.AndroidPreferencesModule
 import by.tigre.music.player.core.presentation.backgound_player.di.PlayerBackgroundDependency
 import by.tigre.music.player.core.presentation.catalog.component.BasePlaybackController
@@ -30,7 +29,6 @@ class ApplicationGraph(
     catalogModule: CatalogModule,
     audiobookCatalogModule: AudiobookCatalogModule,
     audiobookPlaybackModule: AudiobookPlaybackModule,
-    val preferences: Preferences,
 ) : CatalogDependency,
     PlayerDependency,
     PlayerBackgroundDependency,
@@ -94,7 +92,6 @@ class ApplicationGraph(
                 catalogModule,
                 audiobookCatalogModule,
                 audiobookPlaybackModule,
-                preferences = preferencesModule.preferences,
             )
         }
     }

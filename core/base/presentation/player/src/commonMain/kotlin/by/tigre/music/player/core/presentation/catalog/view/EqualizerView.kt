@@ -61,6 +61,8 @@ import by.tigre.music.player.tools.platform.compose.resources.equalizer_unavaila
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
+private const val MaxEqBandsDisplayed = 8
+
 class EqualizerView(
     private val component: EqualizerComponent,
     private val showTopBar: Boolean = true,
@@ -212,7 +214,9 @@ class EqualizerView(
                             .fillMaxHeight(),
                     )
                 }
-                centers.forEachIndexed { index, hz ->
+                val bandCount = minOf(centers.size, MaxEqBandsDisplayed)
+                for (index in 0 until bandCount) {
+                    val hz = centers[index]
                     val g = gains.getOrNull(index) ?: 0f
                     EqBandFaderColumn(
                         hzLabel = formatBandHz(hz),
