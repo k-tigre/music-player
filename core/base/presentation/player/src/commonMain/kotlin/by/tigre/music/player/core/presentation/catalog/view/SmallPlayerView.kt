@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
@@ -89,7 +88,6 @@ class SmallPlayerView(
     private fun DrawItem(modifier: Modifier, item: PlayerItem) {
         Column(
             modifier = modifier
-                .systemBarsPadding()
                 .fillMaxWidth()
                 .clickable { component.showPlayerView() },
         ) {
