@@ -60,8 +60,14 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "MusicPlayer"
-            packageVersion = "1.0.0"
+            packageVersion = "1.0.1"
             modules("java.sql")
+
+            windows {
+                menu = true
+                menuGroup = "Music Player"
+                shortcut = true
+            }
         }
     }
 }
