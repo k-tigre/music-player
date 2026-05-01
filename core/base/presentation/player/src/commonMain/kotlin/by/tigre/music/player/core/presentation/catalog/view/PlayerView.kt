@@ -183,6 +183,7 @@ class PlayerView(
         PlayerProgressSlider(
             fraction = fraction.value,
             onSeekTo = component::seekTo,
+            onSeekCommitted = component::onSeekCommitted,
             modifier = modifier.fillMaxWidth()
         )
 

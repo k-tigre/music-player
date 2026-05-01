@@ -111,6 +111,7 @@ class SmallPlayerView(
         PlayerProgressSlider(
             fraction = position.value,
             onSeekTo = component::seekTo,
+            onSeekCommitted = component::onSeekCommitted,
             modifier = Modifier
                 .offset(y = (-22).dp)
                 .fillMaxWidth()

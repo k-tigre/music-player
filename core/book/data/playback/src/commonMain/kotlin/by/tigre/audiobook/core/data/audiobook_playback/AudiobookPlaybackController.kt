@@ -19,6 +19,9 @@ interface AudiobookPlaybackController {
     fun resume()
     fun stop()
 
+    /** Persists chapter/file position after the user scrubbed the timeline (e.g. while paused). */
+    fun persistPlaybackPositionAfterSeek(positionMs: Long)
+
     /**
      * Pauses playback and optionally seeks back in the current chapter (e.g. night sleep timer).
      * Does not apply the “rewind after pause” logic used for normal pause/resume.

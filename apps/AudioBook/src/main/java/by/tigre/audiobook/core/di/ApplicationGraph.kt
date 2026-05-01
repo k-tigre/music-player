@@ -67,6 +67,8 @@ class ApplicationGraph(
             override fun resume() = controller.resume()
             override fun stop() = controller.stop()
             override fun setOrderMode(isNormal: Boolean) = Unit
+            override fun onSeekPositionCommitted(positionMs: Long) =
+                controller.persistPlaybackPositionAfterSeek(positionMs)
         }
     }
 

@@ -215,6 +215,13 @@ internal class AudiobookPlaybackControllerImpl(
         }
     }
 
+    override fun persistPlaybackPositionAfterSeek(positionMs: Long) {
+        scope.launch {
+            mayPersistBelowCanonical = true
+            persistPlaybackPosition(positionMs)
+        }
+    }
+
     override suspend fun endPlaybackForNightTimer(rewindMs: Long?) {
         Log.d(TAG) { "endPlaybackForNightTimer rewindMs=$rewindMs" }
         clearPauseRewindState()

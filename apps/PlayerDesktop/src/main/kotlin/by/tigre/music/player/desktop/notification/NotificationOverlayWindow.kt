@@ -55,6 +55,7 @@ import by.tigre.music.player.desktop.presentation.theme.DesktopSubText
 import by.tigre.music.player.desktop.presentation.theme.DesktopText
 import by.tigre.music.player.desktop.presentation.theme.DesktopTheme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.awt.GraphicsEnvironment
 
@@ -176,6 +177,15 @@ fun NotificationOverlayWindow(
                         onSeekTo = { f ->
                             scope.launch {
                                 controller.player.seekTo((f * progress.duration).toLong())
+                            }
+                        },
+                        onSeekCommitted = { f ->
+                            scope.launch {
+                                val p = controller.player.progress.first()
+                                if (p.duration <= 0L) return@launch
+                                controller.onSeekPositionCommitted(
+                                    (f.coerceIn(0f, 1f) * p.duration).toLong()
+                                )
                             }
                         },
                         modifier = Modifier.fillMaxWidth()

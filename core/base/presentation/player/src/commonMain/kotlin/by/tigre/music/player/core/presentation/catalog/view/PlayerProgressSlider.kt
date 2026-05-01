@@ -25,10 +25,12 @@ import androidx.compose.ui.unit.dp
 fun PlayerProgressSlider(
     fraction: Float,
     onSeekTo: (Float) -> Unit,
+    onSeekCommitted: (Float) -> Unit = { },
     modifier: Modifier = Modifier,
 ) {
     var sliderPosition by remember { mutableFloatStateOf(0f) }
     var sliderEnabled by remember { mutableStateOf(false) }
+    var gestureChangedValue by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
     val colors = SliderDefaults.colors(
         activeTickColor = MaterialTheme.colorScheme.secondary,
@@ -43,9 +45,14 @@ fun PlayerProgressSlider(
         onValueChange = {
             sliderPosition = it
             sliderEnabled = true
+            gestureChangedValue = true
             onSeekTo(it)
         },
         onValueChangeFinished = {
+            if (gestureChangedValue) {
+                onSeekCommitted(sliderPosition)
+                gestureChangedValue = false
+            }
             sliderEnabled = false
         },
         colors = colors,

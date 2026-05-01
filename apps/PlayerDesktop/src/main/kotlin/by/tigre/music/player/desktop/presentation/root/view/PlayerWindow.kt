@@ -143,6 +143,7 @@ internal fun PlayerWindowContent(
         PlayerProgressSlider(
             fraction = fraction,
             onSeekTo = player::seekTo,
+            onSeekCommitted = player::onSeekCommitted,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp)
