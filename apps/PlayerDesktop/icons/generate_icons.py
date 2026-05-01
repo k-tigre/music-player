@@ -16,12 +16,30 @@ from matplotlib.path import Path as MPath
 from PIL import Image
 
 
+def zero_rgb_where_fully_transparent(img: Image.Image) -> Image.Image:
+    """Matplotlib can emit (255,255,255,0) in corners; some ICO/Shell paths ignore alpha and show white."""
+    if img.mode != "RGBA":
+        return img
+    rgba = np.array(img, copy=True)
+    transparent = rgba[:, :, 3] == 0
+    rgba[transparent, 0] = 0
+    rgba[transparent, 1] = 0
+    rgba[transparent, 2] = 0
+    return Image.fromarray(rgba)
+
+
 def render_player_brand_icon(size_px: int) -> Image.Image:
     """Keep in sync with AppIcon.kt (DesktopCoverBg + DesktopGreen)."""
     s = float(size_px)
     dpi = 100
-    fig = plt.figure(figsize=(size_px / dpi, size_px / dpi), dpi=dpi)
-    ax = fig.add_axes((0, 0, 1, 1))
+    # Default figure face is white → shows in the four wedges outside the rounded card.
+    fig = plt.figure(
+        figsize=(size_px / dpi, size_px / dpi),
+        dpi=dpi,
+        facecolor="none",
+        edgecolor="none",
+    )
+    ax = fig.add_axes((0, 0, 1, 1), facecolor="none")
     ax.set_xlim(0, s)
     ax.set_ylim(s, 0)
     ax.set_aspect("equal")
@@ -104,7 +122,10 @@ def render_player_brand_icon(size_px: int) -> Image.Image:
     fig.canvas.draw()
     buf = np.asarray(fig.canvas.buffer_rgba())
     plt.close(fig)
-    return Image.fromarray(buf)
+    img = Image.fromarray(buf)
+    if img.mode != "RGBA":
+        img = img.convert("RGBA")
+    return zero_rgb_where_fully_transparent(img)
 
 
 def main() -> None:

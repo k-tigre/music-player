@@ -20,6 +20,9 @@ internal fun createAppIcon(size: Int = 512): BufferedImage {
 
     val s = size.toDouble()
 
+    g.background = Color(0, 0, 0, 0)
+    g.clearRect(0, 0, size, size)
+
     g.color = Color(0x2A, 0x2A, 0x2A) // DesktopCoverBg
     val r = (s * 0.18).toInt()
     g.fillRoundRect(0, 0, size, size, r, r)
