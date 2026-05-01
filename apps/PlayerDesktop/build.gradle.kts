@@ -60,13 +60,20 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "MusicPlayer"
-            packageVersion = "1.0.1"
+            packageVersion = "1.0.3"
             modules("java.sql")
 
+            macOS {
+                iconFile.set(project.file("icons/app.icns"))
+            }
             windows {
+                iconFile.set(project.file("icons/app.ico"))
                 menu = true
                 menuGroup = "Music Player"
                 shortcut = true
+            }
+            linux {
+                iconFile.set(project.file("icons/app.png"))
             }
         }
     }

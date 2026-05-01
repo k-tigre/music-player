@@ -60,8 +60,9 @@ private object AppPrefs {
  * Keeps player / library / equalizer windows layered together: focusing any one
  * brings the rest to the foreground (without stealing keyboard focus from the clicked window).
  */
-private class AppWindowGroup {
+internal object AppWindowGroup {
     private val windows = CopyOnWriteArrayList<java.awt.Window>()
+    private var pendingSecondLaunchRaise = false
     private val syncing = AtomicBoolean(false)
     private val focusListener = object : WindowFocusListener {
         override fun windowGainedFocus(e: WindowEvent) {
@@ -89,15 +90,47 @@ private class AppWindowGroup {
         if (window in windows) return
         windows.add(window)
         window.addWindowFocusListener(focusListener)
+        if (pendingSecondLaunchRaise) {
+            pendingSecondLaunchRaise = false
+            raiseAllToFront()
+        }
     }
 
     fun unregister(window: java.awt.Window) {
         window.removeWindowFocusListener(focusListener)
         windows.remove(window)
     }
+
+    /** Used when a second process asks the running instance to come forward. */
+    fun raiseAllToFront() {
+        SwingUtilities.invokeLater {
+            for (w in windows) {
+                if (w.isShowing) w.toFront()
+            }
+            windows.lastOrNull { it.isShowing }?.requestFocus()
+        }
+    }
+
+    /**
+     * Second instance connected before any window existed (slow startup): raise as soon as the
+     * first window registers.
+     */
+    fun onSecondInstanceActivated() {
+        SwingUtilities.invokeLater {
+            if (windows.isEmpty()) {
+                pendingSecondLaunchRaise = true
+            } else {
+                raiseAllToFront()
+            }
+        }
+    }
 }
 
 fun main() {
+    if (DesktopSingleInstance.handOffToRunningInstanceIfAny()) {
+        return
+    }
+
     val graph = DesktopApplicationGraph.create()
 
     Log.init(Log.Level.DEBUG, ConsoleLogger())
@@ -137,9 +170,12 @@ fun main() {
     )
 
     application {
-        val onExit = { notificationManager.stop(); exitApplication() }
+        val onExit = {
+            notificationManager.stop()
+            DesktopSingleInstance.shutdown()
+            exitApplication()
+        }
         val iconPainter = remember { BitmapPainter(appIconImage.toComposeImageBitmap()) }
-        val appWindowGroup = remember { AppWindowGroup() }
 
         val overlayVisible by notificationManager.overlayVisible.collectAsState()
         val overlayKey by notificationManager.overlayKey.collectAsState()
@@ -252,8 +288,8 @@ fun main() {
             undecorated = true,
         ) {
             DisposableEffect(window) {
-                appWindowGroup.register(window)
-                onDispose { appWindowGroup.unregister(window) }
+                AppWindowGroup.register(window)
+                onDispose { AppWindowGroup.unregister(window) }
             }
             // Snapshot both starting positions on drag start, then move both
             // windows in the same onDrag call — no async lag between them.
@@ -306,8 +342,8 @@ fun main() {
                 undecorated = true,
             ) {
                 DisposableEffect(window) {
-                    appWindowGroup.register(window)
-                    onDispose { appWindowGroup.unregister(window) }
+                    AppWindowGroup.register(window)
+                    onDispose { AppWindowGroup.unregister(window) }
                 }
                 rootView.DrawLibraryWindow(
                     windowState = libraryState,
@@ -328,8 +364,8 @@ fun main() {
                 undecorated = true,
             ) {
                 DisposableEffect(window) {
-                    appWindowGroup.register(window)
-                    onDispose { appWindowGroup.unregister(window) }
+                    AppWindowGroup.register(window)
+                    onDispose { AppWindowGroup.unregister(window) }
                 }
                 rootView.DrawEqualizerWindow(
                     equalizerComponent = equalizerComponent,
