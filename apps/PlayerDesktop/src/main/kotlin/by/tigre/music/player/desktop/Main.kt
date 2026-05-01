@@ -31,7 +31,6 @@ import by.tigre.music.player.logger.Log
 import by.tigre.music.player.presentation.base.BaseComponentContextImpl
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import kotlin.system.exitProcess
 import java.awt.event.WindowEvent
 import java.awt.event.WindowFocusListener
 import java.util.concurrent.CopyOnWriteArrayList
@@ -63,7 +62,6 @@ private object AppPrefs {
  */
 internal object AppWindowGroup {
     private val windows = CopyOnWriteArrayList<java.awt.Window>()
-    private var pendingSecondLaunchRaise = false
     private val syncing = AtomicBoolean(false)
     private val focusListener = object : WindowFocusListener {
         override fun windowGainedFocus(e: WindowEvent) {
@@ -91,10 +89,6 @@ internal object AppWindowGroup {
         if (window in windows) return
         windows.add(window)
         window.addWindowFocusListener(focusListener)
-        if (pendingSecondLaunchRaise) {
-            pendingSecondLaunchRaise = false
-            raiseAllToFront()
-        }
     }
 
     fun unregister(window: java.awt.Window) {
@@ -102,36 +96,10 @@ internal object AppWindowGroup {
         windows.remove(window)
     }
 
-    /** Used when a second process asks the running instance to come forward. */
-    fun raiseAllToFront() {
-        SwingUtilities.invokeLater {
-            for (w in windows) {
-                if (w.isShowing) w.toFront()
-            }
-            windows.lastOrNull { it.isShowing }?.requestFocus()
-        }
-    }
-
-    /**
-     * Second instance connected before any window existed (slow startup): raise as soon as the
-     * first window registers.
-     */
-    fun onSecondInstanceActivated() {
-        SwingUtilities.invokeLater {
-            if (windows.isEmpty()) {
-                pendingSecondLaunchRaise = true
-            } else {
-                raiseAllToFront()
-            }
-        }
-    }
 }
 
 fun main() {
-    if (DesktopSingleInstance.handOffToRunningInstanceIfAny()) {
-        // Explicit exit helps the jpackage Windows launcher finish cleanly after hand-off.
-        exitProcess(0)
-    }
+    DesktopSingleInstance.acquireOrExit()
 
     val graph = DesktopApplicationGraph.create()
 
