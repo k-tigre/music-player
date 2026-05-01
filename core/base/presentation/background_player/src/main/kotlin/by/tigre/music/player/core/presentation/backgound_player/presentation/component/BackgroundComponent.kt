@@ -12,6 +12,7 @@ import kotlin.coroutines.CoroutineContext
 interface BackgroundComponent : CoroutineScope {
 
     val currentItem: Flow<PlayerItem?>
+    val carSessionMediaType: Int
 
     fun getPlayer(): PlaybackPlayer
 
@@ -27,6 +28,8 @@ interface BackgroundComponent : CoroutineScope {
         override val coroutineContext: CoroutineContext = Dispatchers.Main + job
 
         private val playbackController = dependency.basePlaybackController
+
+        override val carSessionMediaType: Int = dependency.carSessionMediaType
 
         override val currentItem: Flow<PlayerItem?> = playbackController.currentItem
 

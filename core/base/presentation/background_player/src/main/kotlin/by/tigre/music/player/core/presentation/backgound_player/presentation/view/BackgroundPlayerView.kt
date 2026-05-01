@@ -92,6 +92,7 @@ class BackgroundPlayerView(
         override fun getMediaMetadata(): MediaMetadata {
             val item = currentPlayerItem.value ?: return player.mediaMetadata
             return player.mediaMetadata.buildUpon()
+                .setMediaType(component.carSessionMediaType)
                 .setTitle(item.title)
                 .setArtist(item.artist ?: item.subtitle)
                 .apply {

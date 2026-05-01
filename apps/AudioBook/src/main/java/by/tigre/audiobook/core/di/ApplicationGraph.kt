@@ -2,6 +2,7 @@ package by.tigre.audiobook.core.di
 
 import android.content.Context
 import android.net.Uri
+import androidx.media3.common.MediaMetadata
 import by.tigre.audiobook.core.data.audiobook.di.AndroidAudiobookCatalogModule
 import by.tigre.audiobook.core.data.audiobook.di.AudiobookCatalogModule
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
@@ -43,6 +44,8 @@ class ApplicationGraph(
     AudiobookPlaybackModule by audiobookPlaybackModule {
 
     override val appPlaybackVolume = playbackModule.appPlaybackVolume
+
+    override val carSessionMediaType: Int = MediaMetadata.MEDIA_TYPE_AUDIO_BOOK
 
     override val basePlaybackController: BasePlaybackController by lazy {
         val controller: AudiobookPlaybackController = audiobookPlaybackController
