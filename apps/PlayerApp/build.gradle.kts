@@ -93,6 +93,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":apps:player-shared"))
+
     implementation(Library.AndroidXCore)
     implementation(Library.AndroidXAppcompat)
     implementation(Library.CoroutinesAndroid)

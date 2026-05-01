@@ -12,7 +12,11 @@ dependencyResolutionManagement {
 
 rootProject.name = "MusicPlayer"
 include(":apps:PlayerApp")
+include(":apps:player-shared")
+include(":apps:PlayerAutomotive")
 include(":apps:AudioBook")
+include(":apps:audiobook-shared")
+include(":apps:AudioBookAutomotive")
 include(":apps:PlayerDesktop")
 
 include(":core:base:data:playback")
