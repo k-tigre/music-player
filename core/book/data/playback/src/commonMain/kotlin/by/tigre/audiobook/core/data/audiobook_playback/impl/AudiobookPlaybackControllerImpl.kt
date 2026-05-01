@@ -215,6 +215,19 @@ internal class AudiobookPlaybackControllerImpl(
         }
     }
 
+    override suspend fun endPlaybackForNightTimer(rewindMs: Long?) {
+        Log.d(TAG) { "endPlaybackForNightTimer rewindMs=$rewindMs" }
+        clearPauseRewindState()
+        mayPersistBelowCanonical = true
+        saveCurrentPosition()
+        isPlaying.value = false
+        player.pause()
+        val back = rewindMs?.takeIf { it > 0L } ?: return
+        val positionMs = player.progress.first().position
+        player.seekTo((positionMs - back).coerceAtLeast(0L))
+        saveCurrentPosition()
+    }
+
     private suspend fun resumePlaybackIfDesired() {
         if (isPlaying.value) {
             player.resume()

@@ -18,4 +18,10 @@ interface AudiobookPlaybackController {
     fun pause()
     fun resume()
     fun stop()
+
+    /**
+     * Pauses playback and optionally seeks back in the current chapter (e.g. night sleep timer).
+     * Does not apply the “rewind after pause” logic used for normal pause/resume.
+     */
+    suspend fun endPlaybackForNightTimer(rewindMs: Long?)
 }

@@ -34,10 +34,16 @@ interface Root {
 
     fun onOpenFolderSettings()
 
+    fun onOpenNightTimerSettings()
+
+    fun onCloseNightTimerSettings()
+
     sealed interface MainComponentChild {
         data object Main : MainComponentChild
         class Player(val component: PlayerComponent) : MainComponentChild
         class Equalizer(val component: EqualizerComponent) : MainComponentChild
+
+        data object NightTimerSettings : MainComponentChild
     }
 
     class Impl(
@@ -108,6 +114,8 @@ interface Root {
                             onClose = playerNavigator::closeEqualizer
                         )
                     )
+
+                    MainConfig.NightTimer -> MainComponentChild.NightTimerSettings
                 }
             }
 
@@ -120,6 +128,14 @@ interface Root {
             audiobookCatalogComponent.openFolderSelection()
         }
 
+        override fun onOpenNightTimerSettings() {
+            mainNavigation.push(MainConfig.NightTimer)
+        }
+
+        override fun onCloseNightTimerSettings() {
+            mainNavigation.pop()
+        }
+
         @Serializable
         private sealed interface MainConfig {
             @Serializable
@@ -130,6 +146,9 @@ interface Root {
 
             @Serializable
             data object Equalizer : MainConfig
+
+            @Serializable
+            data object NightTimer : MainConfig
         }
     }
 }

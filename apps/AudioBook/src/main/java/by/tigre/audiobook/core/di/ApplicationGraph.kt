@@ -8,6 +8,8 @@ import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackControll
 import by.tigre.audiobook.core.data.audiobook_playback.di.AudiobookPlaybackModule
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.di.AndroidAudiobookCatalogStorageModule
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogDependency
+import by.tigre.audiobook.nighttimer.NightTimerController
+import by.tigre.audiobook.nighttimer.createNightTimerController
 import by.tigre.music.player.core.data.catalog.di.AndroidCatalogModule
 import by.tigre.music.player.core.data.catalog.di.CatalogModule
 import by.tigre.music.player.core.data.playback.di.AndroidBasePlaybackModule
@@ -29,6 +31,7 @@ class ApplicationGraph(
     catalogModule: CatalogModule,
     audiobookCatalogModule: AudiobookCatalogModule,
     audiobookPlaybackModule: AudiobookPlaybackModule,
+    val nightTimerController: NightTimerController,
 ) : CatalogDependency,
     PlayerDependency,
     PlayerBackgroundDependency,
@@ -87,11 +90,24 @@ class ApplicationGraph(
                 coroutineModule = coroutineModule
             )
 
+            val preferences = preferencesModule.preferences
+            val appPlaybackVolume = requireNotNull(basePlaybackModule.appPlaybackVolume) {
+                "Audiobook requires in-app playback volume"
+            }
+            val nightTimerController = createNightTimerController(
+                context = context.applicationContext,
+                preferences = preferences,
+                playbackController = audiobookPlaybackModule.audiobookPlaybackController,
+                appPlaybackVolume = appPlaybackVolume,
+                scope = coroutineModule.scope,
+            )
+
             return ApplicationGraph(
                 playbackModule,
                 catalogModule,
                 audiobookCatalogModule,
                 audiobookPlaybackModule,
+                nightTimerController,
             )
         }
     }

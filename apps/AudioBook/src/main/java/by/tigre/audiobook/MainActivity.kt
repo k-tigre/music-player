@@ -39,7 +39,8 @@ class MainActivity : AppCompatActivity() {
             AppTheme {
                 Surface(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
                     RootView(
-                        root,
+                        component = root,
+                        nightTimerController = graph.nightTimerController,
                         playerViewProvider = PlayerViewProvider.Impl(),
                         audiobookCatalogViewProvider = AndroidAudiobookCatalogViewProvider(),
                     ).Draw(Modifier)
