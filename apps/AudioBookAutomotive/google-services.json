@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "599220890045",
+    "project_id": "audiobooks-f8916",
+    "storage_bucket": "audiobooks-f8916.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:599220890045:android:551c7a0be74454e8310ad4",
+        "android_client_info": {
+          "package_name": "by.tigre.audiobook"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAl-2dtytoI7dgbFCrBl_FCqbVzfnN5oOo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:599220890045:android:30a118b4683ddaf9310ad4",
+        "android_client_info": {
+          "package_name": "by.tigre.audiobook.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAl-2dtytoI7dgbFCrBl_FCqbVzfnN5oOo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

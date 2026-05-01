@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Looper
 import android.os.SystemClock
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
-import by.tigre.audiobook.nighttimer.NightTimerControllerImpl.Companion.FACE_DOWN_GATE_SECONDS
 import by.tigre.music.player.core.data.playback.AppPlaybackVolume
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
 import by.tigre.music.player.core.data.storage.preferences.Preferences

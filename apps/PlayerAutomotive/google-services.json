@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "388261074221",
+    "project_id": "music-player-cd425",
+    "storage_bucket": "music-player-cd425.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:388261074221:android:f01c0aa4c35f5277492fa4",
+        "android_client_info": {
+          "package_name": "by.tigre.musicplayer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8I6rjMpi8dXQAGnyt93P7Nd3IAdsiBVw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:388261074221:android:6c4a89b9991a0c54492fa4",
+        "android_client_info": {
+          "package_name": "by.tigre.musicplayer.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8I6rjMpi8dXQAGnyt93P7Nd3IAdsiBVw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
