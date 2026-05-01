@@ -9,6 +9,7 @@ import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketException
+import java.net.SocketTimeoutException
 import java.nio.charset.StandardCharsets
 import javax.swing.SwingUtilities
 import kotlin.concurrent.thread
@@ -21,6 +22,7 @@ internal object DesktopSingleInstance {
     private const val PORT = 49263
     private const val LINE = "FOREGROUND"
     private const val CONNECT_TIMEOUT_MS = 500
+    private const val READ_TIMEOUT_MS = 2000
     private const val RACE_RETRY_MS = 250L
 
     private var server: ServerSocket? = null
@@ -47,7 +49,7 @@ internal object DesktopSingleInstance {
     private fun notifyRunningInstance(): Boolean =
         try {
             Socket().use { socket ->
-                socket.soTimeout = CONNECT_TIMEOUT_MS
+                socket.soTimeout = READ_TIMEOUT_MS
                 socket.connect(
                     InetSocketAddress(InetAddress.getByName("127.0.0.1"), PORT),
                     CONNECT_TIMEOUT_MS,
@@ -57,9 +59,12 @@ internal object DesktopSingleInstance {
                     out.newLine()
                     out.flush()
                 }
-                // Drain so the server can accept the next connection cleanly
                 socket.shutdownOutput()
-                BufferedReader(InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8)).readLine()
+                try {
+                    BufferedReader(InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8)).readLine()
+                } catch (_: SocketTimeoutException) {
+                    return false
+                }
             }
             true
         } catch (_: Exception) {
@@ -75,20 +80,29 @@ internal object DesktopSingleInstance {
             while (!Thread.currentThread().isInterrupted) {
                 try {
                     ss.accept().use { client ->
-                        BufferedReader(InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8)).readLine()
-                        client.getOutputStream().bufferedWriter(StandardCharsets.UTF_8).use { out ->
-                            out.write("OK")
-                            out.newLine()
-                            out.flush()
-                        }
-                        SwingUtilities.invokeLater {
-                            AppWindowGroup.onSecondInstanceActivated()
+                        try {
+                            client.soTimeout = READ_TIMEOUT_MS
+                            BufferedReader(InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8)).use { reader ->
+                                reader.readLine()
+                            }
+                            try {
+                                client.getOutputStream().bufferedWriter(StandardCharsets.UTF_8).use { out ->
+                                    out.write("OK")
+                                    out.newLine()
+                                    out.flush()
+                                }
+                            } catch (_: IOException) {
+                                // Client may have closed; keep the accept loop running
+                            }
+                            SwingUtilities.invokeLater {
+                                AppWindowGroup.onSecondInstanceActivated()
+                            }
+                        } catch (_: IOException) {
+                            // Bad or aborted client; continue accepting
                         }
                     }
-                } catch (_: SocketException) {
-                    break
-                } catch (_: IOException) {
-                    break
+                } catch (e: SocketException) {
+                    if (ss.isClosed) break
                 }
             }
         }

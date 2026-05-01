@@ -31,6 +31,7 @@ import by.tigre.music.player.logger.Log
 import by.tigre.music.player.presentation.base.BaseComponentContextImpl
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import kotlin.system.exitProcess
 import java.awt.event.WindowEvent
 import java.awt.event.WindowFocusListener
 import java.util.concurrent.CopyOnWriteArrayList
@@ -128,7 +129,8 @@ internal object AppWindowGroup {
 
 fun main() {
     if (DesktopSingleInstance.handOffToRunningInstanceIfAny()) {
-        return
+        // Explicit exit helps the jpackage Windows launcher finish cleanly after hand-off.
+        exitProcess(0)
     }
 
     val graph = DesktopApplicationGraph.create()

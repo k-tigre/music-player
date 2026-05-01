@@ -60,8 +60,9 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "MusicPlayer"
-            packageVersion = "1.0.4"
+            packageVersion = "1.0.5"
             modules("java.sql")
+            appResourcesRootDir.set(project.layout.projectDirectory.dir("packaging"))
 
             macOS {
                 iconFile.set(project.file("icons/app.icns"))
