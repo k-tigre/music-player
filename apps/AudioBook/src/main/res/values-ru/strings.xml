@@ -17,7 +17,7 @@
     <string name="night_timer_minutes_label">Выключить через</string>
     <string name="night_timer_minutes_option">%d мин</string>
     <string name="night_timer_fade_label">Приглушать громкость</string>
-    <string name="night_timer_fade_description">В последнюю минуту снижать громкость на 10% каждые 6 секунд. После остановки отмотать назад на 30 секунд, чтобы не пропустить конец.</string>
+    <string name="night_timer_fade_description">Перед остановкой громкость плавно снижается по кривой: сначала быстрее, к концу мягче. После остановки — отмотка на 30 секунд, если книга ещё играла, чтобы не пропустить конец.</string>
     <string name="night_timer_start">Запустить таймер</string>
     <string name="night_timer_stop">Остановить таймер</string>
     <string name="night_timer_countdown">Сон · %1$d:%2$02d</string>

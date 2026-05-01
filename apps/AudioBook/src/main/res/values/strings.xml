@@ -17,7 +17,7 @@
     <string name="night_timer_minutes_label">Stop playback after</string>
     <string name="night_timer_minutes_option">%d min</string>
     <string name="night_timer_fade_label">Fade out volume</string>
-    <string name="night_timer_fade_description">During the last minute, lower volume by 10% every 6 seconds. After stopping, rewind 30 seconds so you don’t miss the ending.</string>
+    <string name="night_timer_fade_description">In the last stretch before stop, volume eases down on a quick-then-gentle curve. After stopping, rewind 30 seconds if playback was running so you don’t miss the ending.</string>
     <string name="night_timer_start">Start timer</string>
     <string name="night_timer_stop">Stop timer</string>
     <string name="night_timer_countdown">Sleep · %1$d:%2$02d</string>

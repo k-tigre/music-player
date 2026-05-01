@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.math.pow
 
 data class NightTimerUiState(
     val isRunning: Boolean,
@@ -186,10 +187,13 @@ private class NightTimerControllerImpl(
         _uiState.value = NightTimerUiState(isRunning = true, remainingSeconds = remaining)
     }
 
+    /**
+     * Non-linear fade: factor drops faster at the start of the window (gamma > 1), then more gently.
+     */
     private suspend fun applyFadeVolumeOnMain(remainingSeconds: Int) {
-        val elapsed = FADE_WINDOW_SECONDS - remainingSeconds
-        val step = (elapsed / FADE_STEP_SECONDS).coerceIn(0, FADE_STEPS)
-        val factor = (FADE_STEPS - step) / FADE_STEPS.toFloat()
+        val elapsed = (FADE_WINDOW_SECONDS - remainingSeconds).coerceIn(0, FADE_WINDOW_SECONDS)
+        val t = elapsed / FADE_WINDOW_SECONDS.toDouble()
+        val factor = (1.0 - t.coerceIn(0.0, 1.0)).pow(FADE_CURVE_GAMMA).toFloat()
         setPlaybackVolumeOnMainSuspend(fadeBaseVolume * factor)
     }
 
@@ -216,8 +220,8 @@ private class NightTimerControllerImpl(
             val wasPlaying = playbackController.player.state.value == PlaybackPlayer.State.Playing
             val rewindMs =
                 if (fadeEnabled && wasPlaying) NIGHT_TIMER_REWIND_MS else null
-            appPlaybackVolume.setPlaybackVolume(volumeBeforeTimer)
             playbackController.endPlaybackForNightTimer(rewindMs)
+            appPlaybackVolume.setPlaybackVolume(volumeBeforeTimer)
             _uiState.value = NightTimerUiState(isRunning = false, remainingSeconds = 0)
             Log.d(TAG) { "Night timer finished, wasPlaying=$wasPlaying, rewindMs=$rewindMs" }
         }
@@ -238,9 +242,12 @@ private class NightTimerControllerImpl(
         const val DEFAULT_FADE = false
         val ALLOWED_MINUTES_SET = setOf(5, 10, 15, 20, 30)
         const val TICK_MS = 1_000L
-        const val FADE_WINDOW_SECONDS = 60
-        const val FADE_STEP_SECONDS = 6
-        const val FADE_STEPS = 10
+
+        /** Length of the fade-out phase before stop (a bit shorter than a full minute). */
+        const val FADE_WINDOW_SECONDS = 45
+
+        /** Greater than 1: volume falls faster early in the window, then eases. */
+        const val FADE_CURVE_GAMMA = 2.15
         const val FACE_DOWN_EXTRA_MS = 5 * 60_000L
 
         /** Face-down adds time only while remaining is strictly below this many seconds (less than one minute). */

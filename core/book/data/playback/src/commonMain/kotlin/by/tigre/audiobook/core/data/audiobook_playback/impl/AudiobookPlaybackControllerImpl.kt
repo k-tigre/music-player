@@ -224,8 +224,10 @@ internal class AudiobookPlaybackControllerImpl(
         player.pause()
         val back = rewindMs?.takeIf { it > 0L } ?: return
         val positionMs = player.progress.first().position
-        player.seekTo((positionMs - back).coerceAtLeast(0L))
-        saveCurrentPosition()
+        val target = (positionMs - back).coerceAtLeast(0L)
+        player.seekTo(target)
+        // ExoPlayer applies seek asynchronously; progress.first() can still be stale here — persist [target] explicitly.
+        persistPlaybackPosition(target)
     }
 
     private suspend fun resumePlaybackIfDesired() {
@@ -250,19 +252,26 @@ internal class AudiobookPlaybackControllerImpl(
         val book = currentBook.value ?: return
         val chapter = currentChapter.value ?: return
         val progress = player.progress.first()
+        persistPlaybackPosition(progress.position)
+    }
+
+    private suspend fun persistPlaybackPosition(positionMs: Long) {
+        val book = currentBook.value ?: return
+        val chapter = currentChapter.value ?: return
         val chapterList = chapters.value
+        val position = positionMs.coerceAtLeast(0L)
         val canonical = loadCanonicalListenedMs
         if (canonical != null && !mayPersistBelowCanonical) {
-            val currentListened = listenedMsForChapterPosition(chapterList, chapter, progress.position)
+            val currentListened = listenedMsForChapterPosition(chapterList, chapter, position)
             if (currentListened < canonical) {
                 return
             }
         }
-        if (progress.position > 0) {
-            storage.savePosition(book.id, chapter.id, progress.position)
-            Log.d(TAG) { "Saved position: book=${book.title}, chapter=${chapter.title}, pos=${progress.position}" }
+        if (position > 0) {
+            storage.savePosition(book.id, chapter.id, position)
+            Log.d(TAG) { "Saved position: book=${book.title}, chapter=${chapter.title}, pos=$position" }
         }
-        saveBookProgress(book, chapter, progress.position)
+        saveBookProgress(book, chapter, position)
     }
 
     private suspend fun saveBookProgress(book: Book, currentChapter: Chapter, currentPositionMs: Long) {
