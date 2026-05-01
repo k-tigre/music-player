@@ -212,7 +212,6 @@ internal class FfmpegDesktopPlaybackPlayer private constructor(
             return
         }
         if (playWhenReady) {
-            playWhenReady = false
             stopProgressJob()
             synchronized(grabberLock) {
                 runCatching { audioLine?.stop() }
