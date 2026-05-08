@@ -214,15 +214,30 @@ class PlayerView(
             val state = component.state.collectAsState()
 
             Spacer(modifier = Modifier.weight(1f))
-            IconButton(
-                modifier = Modifier.align(Alignment.CenterVertically),
-                onClick = component::prev
-            ) {
-                Icon(
-                    contentDescription = null,
-                    imageVector = Icons.Default.SkipPrevious,
-                    modifier = Modifier.size(56.dp)
-                )
+            if (config.actionsMode == ActionsMode.SeekButtons) {
+                IconButton(
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    onClick = component::seekBack1Minute
+                ) {
+                    Text(config.seekBack1MinuteLabel)
+                }
+                IconButton(
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    onClick = component::seekBack15Seconds
+                ) {
+                    Text(config.seekBack15SecondsLabel)
+                }
+            } else {
+                IconButton(
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    onClick = component::prev
+                ) {
+                    Icon(
+                        contentDescription = null,
+                        imageVector = Icons.Default.SkipPrevious,
+                        modifier = Modifier.size(56.dp)
+                    )
+                }
             }
 
             if (state.value == BasePlayerComponent.State.Playing) {
@@ -249,15 +264,30 @@ class PlayerView(
                 }
             }
 
-            IconButton(
-                modifier = Modifier.align(Alignment.CenterVertically),
-                onClick = component::next
-            ) {
-                Icon(
-                    contentDescription = null,
-                    imageVector = Icons.Default.SkipNext,
-                    modifier = Modifier.size(56.dp)
-                )
+            if (config.actionsMode == ActionsMode.SeekButtons) {
+                IconButton(
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    onClick = component::seekForward15Seconds
+                ) {
+                    Text(config.seekForward15SecondsLabel)
+                }
+                IconButton(
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    onClick = component::seekForward1Minute
+                ) {
+                    Text(config.seekForward1MinuteLabel)
+                }
+            } else {
+                IconButton(
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    onClick = component::next
+                ) {
+                    Icon(
+                        contentDescription = null,
+                        imageVector = Icons.Default.SkipNext,
+                        modifier = Modifier.size(56.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -288,7 +318,17 @@ class PlayerView(
         val emptyScreenActionTitle: String,
         val coverFallbackIcon: Int,
         val showOrderModeButton: Boolean = true,
+        val actionsMode: ActionsMode = ActionsMode.ChapterButtons,
+        val seekBack1MinuteLabel: String = "-1m",
+        val seekBack15SecondsLabel: String = "-15s",
+        val seekForward15SecondsLabel: String = "+15s",
+        val seekForward1MinuteLabel: String = "+1m",
         val equalizerMenuLabel: String = "Equalizer",
         val queueMenuLabel: String = "Queue",
     )
+
+    enum class ActionsMode {
+        ChapterButtons,
+        SeekButtons,
+    }
 }

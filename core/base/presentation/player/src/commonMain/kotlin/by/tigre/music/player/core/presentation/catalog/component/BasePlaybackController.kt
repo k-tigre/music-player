@@ -10,6 +10,8 @@ interface BasePlaybackController {
 
     fun playNext()
     fun playPrev()
+    fun playNextRemote() = playNext()
+    fun playPrevRemote() = playPrev()
     fun pause()
     fun resume()
     fun stop()

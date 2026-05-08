@@ -221,6 +221,10 @@ internal object PreviewStub {
 
         override fun next() = Unit
         override fun prev() = Unit
+        override fun seekBack15Seconds() = Unit
+        override fun seekBack1Minute() = Unit
+        override fun seekForward15Seconds() = Unit
+        override fun seekForward1Minute() = Unit
         override fun switchMode(isNormal: Boolean) = Unit
 
         override fun seekTo(fraction: Float) {

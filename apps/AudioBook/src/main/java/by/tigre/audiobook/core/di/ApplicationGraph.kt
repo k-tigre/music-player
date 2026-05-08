@@ -66,6 +66,8 @@ class ApplicationGraph(
             override val orderMode = flowOf(true)
             override fun playNext() = controller.playNextChapter()
             override fun playPrev() = controller.playPrevChapter()
+            override fun playNextRemote() = controller.seekBy(60_000L)
+            override fun playPrevRemote() = controller.seekBy(-60_000L)
             override fun pause() = controller.pause()
             override fun resume() = controller.resume()
             override fun stop() = controller.stop()

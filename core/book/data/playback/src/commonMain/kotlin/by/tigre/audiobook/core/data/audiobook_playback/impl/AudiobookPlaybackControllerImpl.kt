@@ -12,6 +12,7 @@ import by.tigre.music.player.logger.Log
 import by.tigre.music.player.tools.coroutines.CoreScope
 import by.tigre.music.player.tools.coroutines.extensions.tickerFlow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
@@ -33,6 +34,7 @@ internal class AudiobookPlaybackControllerImpl(
 
     override val currentBook = MutableStateFlow<Book?>(null)
     override val currentChapter = MutableStateFlow<Chapter?>(null)
+    override val onBookFinishedEvent = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     private val chapters = MutableStateFlow<List<Chapter>>(emptyList())
     private val isPlaying = MutableStateFlow(false)
@@ -142,11 +144,13 @@ internal class AudiobookPlaybackControllerImpl(
             } else {
                 Log.d(TAG) { "Book finished" }
                 currentBook.value?.let { book ->
-                    storage.savePosition(book.id, chapterList.first().id, 0L)
+                    val lastChapter = chapterList.last()
+                    storage.savePosition(book.id, lastChapter.id, lastChapter.duration.coerceAtLeast(0L))
                     saveBookProgressCompleted(book, chapterList)
                 }
                 isPlaying.value = false
-                player.stop()
+                player.pause()
+                onBookFinishedEvent.tryEmit(Unit)
             }
         }
     }
@@ -212,6 +216,17 @@ internal class AudiobookPlaybackControllerImpl(
             saveCurrentPosition()
             isPlaying.value = false
             player.stop()
+        }
+    }
+
+    override fun seekBy(deltaMs: Long) {
+        scope.launch {
+            val progress = player.progress.first()
+            val duration = progress.duration.coerceAtLeast(0L)
+            val target = (progress.position + deltaMs).coerceIn(0L, duration)
+            player.seekTo(target)
+            mayPersistBelowCanonical = true
+            persistPlaybackPosition(target)
         }
     }
 

@@ -41,6 +41,7 @@ class MainActivity : AppCompatActivity() {
                     RootView(
                         component = root,
                         nightTimerController = graph.nightTimerController,
+                        audiobookPlaybackController = graph.audiobookPlaybackController,
                         playerViewProvider = PlayerViewProvider.Impl(),
                         audiobookCatalogViewProvider = AndroidAudiobookCatalogViewProvider(),
                     ).Draw(Modifier)

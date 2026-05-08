@@ -34,6 +34,10 @@ interface BasePlayerComponent {
     fun play()
     fun next()
     fun prev()
+    fun seekBack15Seconds()
+    fun seekBack1Minute()
+    fun seekForward15Seconds()
+    fun seekForward1Minute()
     fun switchMode(isNormal: Boolean)
     fun seekTo(fraction: Float)
     fun onSeekCommitted(fraction: Float) = Unit
@@ -144,8 +148,34 @@ internal class BasePlayerComponentImpl(
         basePlaybackController.playPrev()
     }
 
+    override fun seekBack15Seconds() {
+        seekBy(-15_000L)
+    }
+
+    override fun seekBack1Minute() {
+        seekBy(-60_000L)
+    }
+
+    override fun seekForward15Seconds() {
+        seekBy(15_000L)
+    }
+
+    override fun seekForward1Minute() {
+        seekBy(60_000L)
+    }
+
     override fun switchMode(isNormal: Boolean) {
         basePlaybackController.setOrderMode(isNormal)
+    }
+
+    private fun seekBy(deltaMs: Long) {
+        launch {
+            val progress = basePlaybackController.player.progress.first()
+            val duration = progress.duration.coerceAtLeast(0L)
+            val target = (progress.position + deltaMs).coerceIn(0L, duration)
+            basePlaybackController.player.seekTo(target)
+            basePlaybackController.onSeekPositionCommitted(target)
+        }
     }
 
     private companion object {

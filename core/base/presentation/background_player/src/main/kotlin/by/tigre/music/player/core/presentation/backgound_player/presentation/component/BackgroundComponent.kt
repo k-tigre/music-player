@@ -46,11 +46,11 @@ interface BackgroundComponent : CoroutineScope {
         }
 
         override fun next() {
-            playbackController.playNext()
+            playbackController.playNextRemote()
         }
 
         override fun prev() {
-            playbackController.playPrev()
+            playbackController.playPrevRemote()
         }
 
         override fun stop() {

@@ -10,6 +10,10 @@
     <string name="player_overflow_menu_cd">Ещё</string>
     <string name="player_menu_settings">Настройки</string>
     <string name="player_menu_library">Библиотека</string>
+    <string name="player_seek_back_1_minute">-1 мин</string>
+    <string name="player_seek_back_15_seconds">-15 сек</string>
+    <string name="player_seek_forward_15_seconds">+15 сек</string>
+    <string name="player_seek_forward_1_minute">+1 мин</string>
 
     <string name="player_menu_night_timer">Ночной таймер</string>
     <string name="night_timer_title">Ночной таймер</string>
@@ -22,4 +26,5 @@
     <string name="night_timer_stop">Остановить таймер</string>
     <string name="night_timer_countdown">Сон · %1$d:%2$02d</string>
     <string name="night_timer_cancel_cd">Отменить ночной таймер</string>
+    <string name="player_book_finished_message">Книга закончилась</string>
 </resources>

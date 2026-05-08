@@ -3,6 +3,7 @@ package by.tigre.audiobook.core.data.audiobook_playback
 import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.entity.catalog.Chapter
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 interface AudiobookPlaybackController {
@@ -10,6 +11,7 @@ interface AudiobookPlaybackController {
     val player: PlaybackPlayer
     val currentBook: StateFlow<Book?>
     val currentChapter: StateFlow<Chapter?>
+    val onBookFinishedEvent: Flow<Unit>
 
     fun loadBook(book: Book)
     fun playBook(book: Book)
@@ -18,6 +20,7 @@ interface AudiobookPlaybackController {
     fun pause()
     fun resume()
     fun stop()
+    fun seekBy(deltaMs: Long)
 
     /** Persists chapter/file position after the user scrubbed the timeline (e.g. while paused). */
     fun persistPlaybackPositionAfterSeek(positionMs: Long)
