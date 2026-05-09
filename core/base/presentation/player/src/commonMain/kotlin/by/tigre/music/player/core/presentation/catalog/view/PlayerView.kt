@@ -1,6 +1,7 @@
 package by.tigre.music.player.core.presentation.catalog.view
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -17,6 +18,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -39,6 +42,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
@@ -209,24 +217,27 @@ class PlayerView(
     private fun DrawActions(modifier: Modifier) {
         Row(
             modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             val state = component.state.collectAsState()
 
             Spacer(modifier = Modifier.weight(1f))
             if (config.actionsMode == ActionsMode.SeekButtons) {
-                IconButton(
+                SeekIconButton(
                     modifier = Modifier.align(Alignment.CenterVertically),
-                    onClick = component::seekBack1Minute
-                ) {
-                    Text(config.seekBack1MinuteLabel)
-                }
-                IconButton(
+                    onClick = component::seekBack1Minute,
+                    imageVector = Icons.Filled.FastRewind,
+                    durationCaption = config.seek1MinuteDurationCaption,
+                    contentDescription = config.seekBack1MinuteLabel,
+                )
+                SeekIconButton(
                     modifier = Modifier.align(Alignment.CenterVertically),
-                    onClick = component::seekBack15Seconds
-                ) {
-                    Text(config.seekBack15SecondsLabel)
-                }
+                    onClick = component::seekBack15Seconds,
+                    imageVector = Icons.Filled.FastRewind,
+                    durationCaption = config.seek15SecondsDurationCaption,
+                    contentDescription = config.seekBack15SecondsLabel,
+                )
             } else {
                 IconButton(
                     modifier = Modifier.align(Alignment.CenterVertically),
@@ -265,18 +276,20 @@ class PlayerView(
             }
 
             if (config.actionsMode == ActionsMode.SeekButtons) {
-                IconButton(
+                SeekIconButton(
                     modifier = Modifier.align(Alignment.CenterVertically),
-                    onClick = component::seekForward15Seconds
-                ) {
-                    Text(config.seekForward15SecondsLabel)
-                }
-                IconButton(
+                    onClick = component::seekForward15Seconds,
+                    imageVector = Icons.Filled.FastForward,
+                    durationCaption = config.seek15SecondsDurationCaption,
+                    contentDescription = config.seekForward15SecondsLabel,
+                )
+                SeekIconButton(
                     modifier = Modifier.align(Alignment.CenterVertically),
-                    onClick = component::seekForward1Minute
-                ) {
-                    Text(config.seekForward1MinuteLabel)
-                }
+                    onClick = component::seekForward1Minute,
+                    imageVector = Icons.Filled.FastForward,
+                    durationCaption = config.seek1MinuteDurationCaption,
+                    contentDescription = config.seekForward1MinuteLabel,
+                )
             } else {
                 IconButton(
                     modifier = Modifier.align(Alignment.CenterVertically),
@@ -311,6 +324,40 @@ class PlayerView(
         }
     }
 
+    @Composable
+    private fun SeekIconButton(
+        onClick: () -> Unit,
+        imageVector: ImageVector,
+        durationCaption: String,
+        contentDescription: String,
+        modifier: Modifier = Modifier,
+    ) {
+        val captionColor = MaterialTheme.colorScheme.onSurface
+        Column(
+            modifier = modifier
+                .semantics {
+                    role = Role.Button
+                    this.contentDescription = contentDescription
+                }
+                .clickable(onClick = onClick)
+                .padding(horizontal = 4.dp, vertical = 6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                imageVector = imageVector,
+                contentDescription = null,
+                modifier = Modifier.size(36.dp),
+                tint = captionColor,
+            )
+            Text(
+                text = durationCaption,
+                style = MaterialTheme.typography.labelMedium,
+                color = captionColor,
+                maxLines = 1,
+            )
+        }
+    }
+
     data class Config(
         val emptyScreenAction: () -> Unit,
         val emptyScreenTitle: String,
@@ -323,6 +370,8 @@ class PlayerView(
         val seekBack15SecondsLabel: String = "-15s",
         val seekForward15SecondsLabel: String = "+15s",
         val seekForward1MinuteLabel: String = "+1m",
+        val seek15SecondsDurationCaption: String = "15s",
+        val seek1MinuteDurationCaption: String = "1m",
         val equalizerMenuLabel: String = "Equalizer",
         val queueMenuLabel: String = "Queue",
     )

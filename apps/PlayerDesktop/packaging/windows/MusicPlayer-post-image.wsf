@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Runs after app image is built; adds win.norestart so the launcher does not respawn a child exe (fixes second-launch / hand-off issues). -->
+<package>
+  <job id="patchCfg">
+    <script language="JScript"><![CDATA[
+      var fso = new ActiveXObject("Scripting.FileSystemObject");
+      var shell = new ActiveXObject("WScript.Shell");
+      var cwd = shell.CurrentDirectory;
+      var cfg = fso.BuildPath(cwd, "app\\MusicPlayer.cfg");
+      if (!fso.FileExists(cfg)) {
+        WScript.StdErr.WriteLine("MusicPlayer-post-image.wsf: missing " + cfg);
+        WScript.Quit(1);
+      }
+      var f = fso.OpenTextFile(cfg, 1);
+      var text = f.ReadAll();
+      f.Close();
+      if (text.indexOf("win.norestart") >= 0) {
+        WScript.Quit(0);
+      }
+      var marker = "[Application]";
+      var i = text.indexOf(marker);
+      if (i < 0) {
+        text = text + "\r\n[Application]\r\nwin.norestart=true\r\n";
+      } else {
+        var ins = i + marker.length;
+        text = text.substring(0, ins) + "\r\nwin.norestart=true" + text.substring(ins);
+      }
+      f = fso.OpenTextFile(cfg, 2);
+      f.Write(text);
+      f.Close();
+    ]]></script>
+  </job>
+</package>

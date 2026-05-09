@@ -14,6 +14,8 @@
     <string name="player_seek_back_15_seconds">-15 sec</string>
     <string name="player_seek_forward_15_seconds">+15 sec</string>
     <string name="player_seek_forward_1_minute">+1 min</string>
+    <string name="player_seek_duration_15_seconds">15 sec</string>
+    <string name="player_seek_duration_1_minute">1 min</string>
 
     <string name="player_menu_night_timer">Sleep timer</string>
     <string name="night_timer_title">Sleep timer</string>

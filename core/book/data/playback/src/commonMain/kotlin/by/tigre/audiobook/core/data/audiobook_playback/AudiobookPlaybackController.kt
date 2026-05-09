@@ -3,7 +3,6 @@ package by.tigre.audiobook.core.data.audiobook_playback
 import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.entity.catalog.Chapter
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 interface AudiobookPlaybackController {
@@ -11,7 +10,8 @@ interface AudiobookPlaybackController {
     val player: PlaybackPlayer
     val currentBook: StateFlow<Book?>
     val currentChapter: StateFlow<Chapter?>
-    val onBookFinishedEvent: Flow<Unit>
+    /** True after the book ends; cleared when the user seeks back or starts playback again. */
+    val bookFinishedBannerVisible: StateFlow<Boolean>
 
     fun loadBook(book: Book)
     fun playBook(book: Book)

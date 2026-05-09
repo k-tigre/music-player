@@ -20,7 +20,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,7 +41,6 @@ import by.tigre.music.player.tools.platform.compose.ComposableView
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
-import kotlinx.coroutines.delay
 
 class RootView(
     private val component: Root,
@@ -66,14 +64,7 @@ class RootView(
             when (val child = it.instance) {
                 is Root.MainComponentChild.Main -> DrawPages()
                 is Root.MainComponentChild.Player -> {
-                    var showFinishedOverlay by remember { mutableStateOf(false) }
-                    LaunchedEffect(Unit) {
-                        audiobookPlaybackController.onBookFinishedEvent.collect {
-                            showFinishedOverlay = true
-                            delay(2_500)
-                            showFinishedOverlay = false
-                        }
-                    }
+                    val showFinishedOverlay by audiobookPlaybackController.bookFinishedBannerVisible.collectAsState()
                     Box(modifier = Modifier.fillMaxSize()) {
                         playerViewProvider.createPlayerView(
                             component = child.component,
@@ -89,6 +80,8 @@ class RootView(
                                 seekBack15SecondsLabel = stringResource(R.string.player_seek_back_15_seconds),
                                 seekForward15SecondsLabel = stringResource(R.string.player_seek_forward_15_seconds),
                                 seekForward1MinuteLabel = stringResource(R.string.player_seek_forward_1_minute),
+                                seek15SecondsDurationCaption = stringResource(R.string.player_seek_duration_15_seconds),
+                                seek1MinuteDurationCaption = stringResource(R.string.player_seek_duration_1_minute),
                                 equalizerMenuLabel = stringResource(R.string.player_equalizer_menu),
                                 queueMenuLabel = stringResource(R.string.player_queue_menu),
                             ),

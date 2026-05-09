@@ -36,7 +36,9 @@ internal class PlaybackPlayerImpl(
     @OptIn(ExperimentalCoroutinesApi::class)
     override val progress: Flow<PlaybackPlayer.Progress> by lazy {
         state.map {
-            it == PlaybackPlayer.State.Paused || it == PlaybackPlayer.State.Playing
+            it == PlaybackPlayer.State.Paused ||
+                it == PlaybackPlayer.State.Playing ||
+                it == PlaybackPlayer.State.Ended
         }.distinctUntilChanged()
             .flatMapLatest { withProgress ->
                 if (withProgress) {

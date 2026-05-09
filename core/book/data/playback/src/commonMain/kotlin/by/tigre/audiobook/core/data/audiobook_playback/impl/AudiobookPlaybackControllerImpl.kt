@@ -34,7 +34,7 @@ internal class AudiobookPlaybackControllerImpl(
 
     override val currentBook = MutableStateFlow<Book?>(null)
     override val currentChapter = MutableStateFlow<Chapter?>(null)
-    override val onBookFinishedEvent = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    override val bookFinishedBannerVisible = MutableStateFlow(false)
 
     private val chapters = MutableStateFlow<List<Chapter>>(emptyList())
     private val isPlaying = MutableStateFlow(false)
@@ -99,6 +99,7 @@ internal class AudiobookPlaybackControllerImpl(
             return
         }
 
+        dismissBookFinishedBanner()
         chapters.value = chapterList
         currentBook.value = book
 
@@ -139,6 +140,7 @@ internal class AudiobookPlaybackControllerImpl(
             val current = currentChapter.value ?: return@launch
             val nextIndex = chapterList.indexOfFirst { it.id == current.id } + 1
             if (nextIndex < chapterList.size) {
+                dismissBookFinishedBanner()
                 setChapter(chapterList[nextIndex], 0L)
                 resumePlaybackIfDesired()
             } else {
@@ -150,7 +152,12 @@ internal class AudiobookPlaybackControllerImpl(
                 }
                 isPlaying.value = false
                 player.pause()
-                onBookFinishedEvent.tryEmit(Unit)
+                val lastChapter = chapterList.last()
+                val endMs = lastChapter.duration.coerceAtLeast(0L)
+                if (endMs > 0L) {
+                    player.seekTo(endMs)
+                }
+                bookFinishedBannerVisible.value = true
             }
         }
     }
@@ -158,6 +165,7 @@ internal class AudiobookPlaybackControllerImpl(
     override fun playPrevChapter() {
         Log.d(TAG) { "playPrevChapter" }
         scope.launch {
+            dismissBookFinishedBanner()
             val progress = player.progress.first()
             if (progress.position > AudiobookPlaybackConfig.PREV_BUTTON_CHAPTER_RESTART_THRESHOLD_MS) {
                 clearPauseRewindState()
@@ -170,6 +178,7 @@ internal class AudiobookPlaybackControllerImpl(
     }
 
     private suspend fun skipToPreviousChapter() {
+        dismissBookFinishedBanner()
         clearPauseRewindState()
         loadCanonicalListenedMs = null
         saveCurrentPosition()
@@ -201,6 +210,7 @@ internal class AudiobookPlaybackControllerImpl(
 
     override fun resume() {
         Log.d(TAG) { "resume" }
+        dismissBookFinishedBanner()
         isPlaying.value = true
         scope.launch {
             applyRewindBeforePlaybackResume()
@@ -221,6 +231,9 @@ internal class AudiobookPlaybackControllerImpl(
 
     override fun seekBy(deltaMs: Long) {
         scope.launch {
+            if (deltaMs < 0L) {
+                dismissBookFinishedBanner()
+            }
             val progress = player.progress.first()
             val duration = progress.duration.coerceAtLeast(0L)
             val target = (progress.position + deltaMs).coerceIn(0L, duration)
@@ -233,6 +246,7 @@ internal class AudiobookPlaybackControllerImpl(
     override fun persistPlaybackPositionAfterSeek(positionMs: Long) {
         scope.launch {
             mayPersistBelowCanonical = true
+            maybeDismissBookFinishedBannerAfterSeek(positionMs)
             persistPlaybackPosition(positionMs)
         }
     }
@@ -245,6 +259,7 @@ internal class AudiobookPlaybackControllerImpl(
         isPlaying.value = false
         player.pause()
         val back = rewindMs?.takeIf { it > 0L } ?: return
+        dismissBookFinishedBanner()
         val positionMs = player.progress.first().position
         val target = (positionMs - back).coerceAtLeast(0L)
         player.seekTo(target)
@@ -403,7 +418,22 @@ internal class AudiobookPlaybackControllerImpl(
         Log.d(TAG) { "Marked book as completed: ${book.title}" }
     }
 
+    private fun dismissBookFinishedBanner() {
+        bookFinishedBannerVisible.value = false
+    }
+
+    private fun maybeDismissBookFinishedBannerAfterSeek(positionMs: Long) {
+        if (!bookFinishedBannerVisible.value) return
+        val chapter = currentChapter.value ?: return
+        val dur = chapter.duration.coerceAtLeast(0L)
+        if (dur <= 0L) return
+        if (positionMs + BOOK_FINISHED_SEEK_DISMISS_THRESHOLD_MS < dur) {
+            dismissBookFinishedBanner()
+        }
+    }
+
     private companion object {
         const val TAG = "AudiobookPlaybackController"
+        const val BOOK_FINISHED_SEEK_DISMISS_THRESHOLD_MS = 750L
     }
 }
