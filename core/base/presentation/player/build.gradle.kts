@@ -29,7 +29,7 @@ kotlin {
             implementation(project(Project.Tools.Coroutines.name))
             implementation(project(Project.Core.Music.Data.Playback.name))
             implementation(project(Project.Core.Music.Entity.Catalog.name))
-            implementation(project(Project.Logger.Core.name))
+            implementation(TigreLogger.Artifact.Core.notation)
         }
         androidMain.dependencies {
             implementation(Library.ActivityCompose.notation)

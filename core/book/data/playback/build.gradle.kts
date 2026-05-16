@@ -14,7 +14,7 @@ kotlin {
             implementation(Library.KotlinStd.notation)
             implementation(Library.CoroutinesCore.notation)
             implementation(project(Project.Tools.Coroutines.name))
-            implementation(project(Project.Logger.Core.name))
+            implementation(TigreLogger.Artifact.Core.notation)
             implementation(project(Project.Core.Book.Entity.Catalog.name))
             implementation(project(Project.Core.Base.Data.Playback.name))
             implementation(project(Project.Core.Book.Data.Catalog.name))

@@ -13,7 +13,7 @@ kotlin {
         commonMain.dependencies {
             implementation(Library.KotlinStd.notation)
             implementation(Library.CoroutinesCore.notation)
-            implementation(project(Project.Logger.Core.name))
+            implementation(TigreLogger.Artifact.Core.notation)
             implementation(Library.Decompose.notation)
             implementation(Library.DecomposeExtensions.notation)
         }

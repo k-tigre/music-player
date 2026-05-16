@@ -117,10 +117,10 @@ dependencies {
     implementation(Project.Core.Music.Entity.Catalog)
     implementation(FirebaseLibrary.FirebaseAnalytics, FirebaseLibrary.FirebaseCrashLytics)
 
-    implementation(Project.Logger.Core)
-    implementation(Project.Logger.Crashlytics)
-    implementation(Project.Logger.Logcat)
-    implementation(Project.Logger.InternalStore)
+    implementation(TigreLogger.Artifact.Core)
+    implementation(TigreLogger.Artifact.Crashlytics)
+    implementation(TigreLogger.Artifact.Logcat)
+    implementation(TigreLogger.Artifact.InternalStore)
     implementation("androidx.compose.ui:ui-text-google-fonts:1.10.3")
 
     debugImplementation(Project.DebugSettings)

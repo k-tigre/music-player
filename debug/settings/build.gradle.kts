@@ -14,8 +14,8 @@ dependencies {
     implementation(Library.AndroidXCore)
     implementation(Library.AndroidXAppcompat)
     implementation(Project.Tools.Coroutines)
-    implementation(Project.Logger.InternalStore)
-    implementation(Project.Logger.Core)
+    implementation(TigreLogger.Artifact.InternalStore)
+    implementation(TigreLogger.Artifact.Core)
 
     implementation(Toolkit.UI)
 

@@ -114,10 +114,10 @@ dependencies {
     implementation(Library.AccompanistPermission)
     implementation(FirebaseLibrary.FirebaseAnalytics, FirebaseLibrary.FirebaseCrashLytics)
 
-    implementation(Project.Logger.Core)
-    implementation(Project.Logger.Crashlytics)
-    implementation(Project.Logger.Logcat)
-    implementation(Project.Logger.InternalStore)
+    implementation(TigreLogger.Artifact.Core)
+    implementation(TigreLogger.Artifact.Crashlytics)
+    implementation(TigreLogger.Artifact.Logcat)
+    implementation(TigreLogger.Artifact.InternalStore)
 
     // debugImplementation because LeakCanary should only run in debug builds.
 //    debugImplementation(Library.Leakcanary)

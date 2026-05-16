@@ -31,8 +31,8 @@ dependencies {
     implementation(project(Project.Tools.Coroutines.name))
     implementation(project(Project.Tools.Presentation.Compose.name))
     implementation(project(Project.Tools.Presentation.Decompose.name))
-    implementation(project(Project.Logger.Core.name))
-    implementation(project(Project.Logger.Console.name))
+    implementation(TigreLogger.Artifact.Core)
+    implementation(TigreLogger.Artifact.Console)
 
     implementation(project(Project.Core.Music.Entity.Catalog.name))
     implementation(project(Project.Core.Music.Entity.Playback.name))

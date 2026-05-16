@@ -296,15 +296,20 @@ sealed class Project(id: String) {
         }
     }
 
-    sealed class Logger(id: String) : Project("logger:$id") {
-        object Core : Logger("core")
-        object Crashlytics : Logger("crashlytics")
-        object Logcat : Logger("logcat")
-        object InternalStore : Logger("internal-store")
-        object Console : Logger("console")
-    }
-
     object DebugSettings : Project("debug:settings")
+}
+
+object TigreLogger {
+    const val version = "1.0.2"
+    private const val group = "com.github.k-tigre"
+
+    enum class Artifact(val notation: String) {
+        Core("$group:logger-core:$version"),
+        Logcat("$group:logger-logcat:$version"),
+        Crashlytics("$group:logger-crashlytics:$version"),
+        InternalStore("$group:logger-internal-store:$version"),
+        Console("$group:logger-console:$version"),
+    }
 }
 
 fun DependencyHandler.plugin(plugin: Plugin) = add(ScriptHandler.CLASSPATH_CONFIGURATION, plugin.notation)
@@ -315,6 +320,7 @@ fun DependencyHandler.implementation(toolkit: Toolkit) {
 }
 
 fun DependencyHandler.implementation(library: Library) = add("implementation", library.notation)
+fun DependencyHandler.implementation(artifact: TigreLogger.Artifact) = add("implementation", artifact.notation)
 fun DependencyHandler.debugImplementation(library: Library) = add("debugImplementation", library.notation)
 fun DependencyHandler.implementation(vararg firebaseLibrary: FirebaseLibrary) {
     add("implementation", platform(FirebaseLibrary.bom))

@@ -20,5 +20,5 @@ dependencies {
     implementation(Project.Tools.Platform.Utils)
     implementation(Project.Core.Base.Data.Playback)
     implementation(Project.Core.Base.Presentation.Player)
-    implementation(Project.Logger.Core)
+    implementation(TigreLogger.Artifact.Core)
 }
