@@ -1,0 +1,4 @@
+# GitHub Packages — k-tigre/logger (see ~/.gradle/gradle.properties or copy here)
+# PAT scopes: read:packages (required for resolving from GitHub Packages in most setups)
+gpr.user=YOUR_GITHUB_USERNAME
+gpr.key=ghp_xxxxxxxxxxxxxxxxxxxx

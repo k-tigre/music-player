@@ -8,7 +8,7 @@ import androidx.media3.session.MediaSessionService
 import by.tigre.music.player.core.presentation.backgound_player.di.PlayerBackgroundDependency
 import by.tigre.music.player.core.presentation.backgound_player.presentation.component.BackgroundComponent
 import by.tigre.music.player.core.presentation.backgound_player.presentation.view.BackgroundPlayerView
-import by.tigre.music.player.logger.Log
+import by.tigre.logger.Log
 import kotlinx.coroutines.cancel
 
 @OptIn(UnstableApi::class)

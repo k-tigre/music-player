@@ -9,7 +9,7 @@ import by.tigre.music.player.core.data.playback.impl.dsp.Pcm16EqualizerProcessor
 import by.tigre.music.player.core.data.playback.prefs.EqualizerPreferences
 import by.tigre.music.player.core.data.playback.prefs.PlaybackVolumePreferences
 import by.tigre.music.player.core.data.playback.prefs.alignGainsToBandCount
-import by.tigre.music.player.logger.Log
+import by.tigre.logger.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

@@ -26,8 +26,8 @@ import by.tigre.music.player.desktop.notification.DesktopNotificationManager
 import by.tigre.music.player.desktop.notification.NotificationOverlayWindow
 import by.tigre.music.player.desktop.presentation.root.component.Root
 import by.tigre.music.player.desktop.presentation.root.view.RootView
-import by.tigre.music.player.logger.ConsoleLogger
-import by.tigre.music.player.logger.Log
+import by.tigre.logger.ConsoleLogger
+import by.tigre.logger.Log
 import by.tigre.music.player.presentation.base.BaseComponentContextImpl
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry

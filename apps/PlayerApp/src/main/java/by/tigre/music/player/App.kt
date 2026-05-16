@@ -2,11 +2,11 @@ package by.tigre.music.player
 
 import android.app.Application
 import by.tigre.music.player.core.di.ApplicationGraph
-import by.tigre.music.player.logger.CrashlyticsLogger
-import by.tigre.music.player.logger.DbLogger
-import by.tigre.music.player.logger.Log
-import by.tigre.music.player.logger.LogDatabaseDriverFactory
-import by.tigre.music.player.logger.LogcatLogger
+import by.tigre.logger.CrashlyticsLogger
+import by.tigre.logger.DbLogger
+import by.tigre.logger.Log
+import by.tigre.logger.LogDatabaseDriverFactory
+import by.tigre.logger.LogcatLogger
 import by.tigre.music.player.BuildConfig
 
 class App : Application() {

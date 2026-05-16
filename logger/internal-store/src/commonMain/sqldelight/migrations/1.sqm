@@ -1,3 +1,0 @@
-import kotlin.Int;
-
-ALTER TABLE Logs ADD COLUMN pid INTEGER AS Int NOT NULL DEFAULT 0;

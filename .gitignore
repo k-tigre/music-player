@@ -16,3 +16,4 @@ local.properties
 !/.idea/codeStyles
 /!temp
 .vscode
+/docs

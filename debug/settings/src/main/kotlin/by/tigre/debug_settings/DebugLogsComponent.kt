@@ -1,8 +1,8 @@
 package by.tigre.debug_settings
 
-import by.tigre.music.player.logger.LogsProvider
+import by.tigre.logger.LogsProvider
 import by.tigre.music.player.presentation.base.BaseComponentContext
-import bytigremusicplayerloggerdb.Logs
+import bytigreloggerdb.Logs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay

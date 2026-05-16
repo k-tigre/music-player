@@ -1,6 +1,6 @@
 package by.tigre.music.player.tools.coroutines.extensions
 
-import by.tigre.music.player.logger.Log
+import by.tigre.logger.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onCompletion

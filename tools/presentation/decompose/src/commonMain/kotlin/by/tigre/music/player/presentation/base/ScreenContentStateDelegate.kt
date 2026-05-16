@@ -1,6 +1,6 @@
 package by.tigre.music.player.presentation.base
 
-import by.tigre.music.player.logger.Log
+import by.tigre.logger.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow

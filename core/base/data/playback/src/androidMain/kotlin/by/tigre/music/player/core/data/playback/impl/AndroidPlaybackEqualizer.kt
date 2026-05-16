@@ -8,7 +8,7 @@ import by.tigre.music.player.core.data.playback.AndroidPlaybackPlayer
 import by.tigre.music.player.core.data.playback.PlaybackEqualizer
 import by.tigre.music.player.core.data.playback.prefs.EqualizerPreferences
 import by.tigre.music.player.core.data.playback.prefs.alignGainsToBandCount
-import by.tigre.music.player.logger.Log
+import by.tigre.logger.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

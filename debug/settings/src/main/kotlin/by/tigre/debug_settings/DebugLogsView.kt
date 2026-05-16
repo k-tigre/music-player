@@ -29,7 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import by.tigre.music.player.tools.platform.compose.ComposableView
-import bytigremusicplayerloggerdb.Logs
+import bytigreloggerdb.Logs
 import kotlinx.coroutines.Dispatchers
 import java.text.SimpleDateFormat
 import java.util.Locale

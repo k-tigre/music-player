@@ -13,7 +13,7 @@ import by.tigre.audiobook.core.data.storage.audiobook_catalog.AudiobookCatalogSt
 import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.entity.catalog.Chapter
 import by.tigre.audiobook.core.entity.catalog.FolderSource
-import by.tigre.music.player.logger.Log
+import by.tigre.logger.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

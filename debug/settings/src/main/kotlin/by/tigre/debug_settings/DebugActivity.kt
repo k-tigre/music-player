@@ -5,7 +5,7 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
-import by.tigre.music.player.logger.DbLogger
+import by.tigre.logger.DbLogger
 import by.tigre.music.player.presentation.base.BaseComponentContextImpl
 import com.arkivanov.decompose.defaultComponentContext
 

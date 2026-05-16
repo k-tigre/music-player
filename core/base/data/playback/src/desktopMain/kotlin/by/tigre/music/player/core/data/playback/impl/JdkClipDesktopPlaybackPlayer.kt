@@ -6,7 +6,7 @@ import by.tigre.music.player.core.data.playback.PlaybackPlayer
 import by.tigre.music.player.core.data.playback.prefs.PlaybackVolumePreferences
 import by.tigre.music.player.core.data.playback.impl.dsp.DesktopEqualizerPresets
 import by.tigre.music.player.core.data.playback.impl.dsp.EqualizingPcmAudioInputStream
-import by.tigre.music.player.logger.Log
+import by.tigre.logger.Log
 import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
