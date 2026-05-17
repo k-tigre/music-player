@@ -18,6 +18,8 @@ jobs:
       - name: Build and verify
         run: |
           ./gradlew testQaUnitTest assembleQa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload to Music Firebase
         run: |
           ./gradlew :apps:PlayerApp:appDistributionUploadQa
@@ -40,6 +42,8 @@ jobs:
           java-version: "21"
       - name: Package desktop for Linux (.deb)
         run: ./gradlew :apps:PlayerDesktop:packageDistributionForCurrentOS
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload desktop .deb
         uses: actions/upload-artifact@v7
         with:
