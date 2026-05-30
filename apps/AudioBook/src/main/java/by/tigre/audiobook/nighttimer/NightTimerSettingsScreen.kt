@@ -108,7 +108,10 @@ fun NightTimerSettingsScreen(
                 }
             } else {
                 Button(
-                    onClick = controller::startTimer,
+                    onClick = {
+                        controller.startTimer()
+                        onBack()
+                    },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(stringResource(R.string.night_timer_start))
