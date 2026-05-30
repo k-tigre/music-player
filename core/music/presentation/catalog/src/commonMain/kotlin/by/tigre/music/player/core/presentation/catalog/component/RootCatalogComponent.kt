@@ -15,7 +15,9 @@ import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.Value
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 
 interface RootCatalogComponent {
@@ -64,7 +66,9 @@ interface RootCatalogComponent {
                 launch {
                     val artist = catalogSource.getArtistById(song.artistId) ?: return@launch
                     val album = catalogSource.getAlbumById(song.artistId, song.albumId) ?: return@launch
-                    navigation.push(CatalogConfig.SongsList(album, artist))
+                    withContext(Dispatchers.Main.immediate) {
+                        navigation.push(CatalogConfig.SongsList(album, artist))
+                    }
                 }
             }
         }
@@ -117,10 +121,12 @@ interface RootCatalogComponent {
         override fun navigateToArtist(artistId: Artist.Id) {
             launch {
                 val artist = catalogSource.getArtistById(artistId) ?: return@launch
-                navigation.replaceAll(
-                    CatalogConfig.ArtistsList,
-                    CatalogConfig.AlbumsList(artist),
-                )
+                withContext(Dispatchers.Main.immediate) {
+                    navigation.replaceAll(
+                        CatalogConfig.ArtistsList,
+                        CatalogConfig.AlbumsList(artist),
+                    )
+                }
             }
         }
 
@@ -128,11 +134,13 @@ interface RootCatalogComponent {
             launch {
                 val artist = catalogSource.getArtistById(artistId) ?: return@launch
                 val album = catalogSource.getAlbumById(artistId, albumId) ?: return@launch
-                navigation.replaceAll(
-                    CatalogConfig.ArtistsList,
-                    CatalogConfig.AlbumsList(artist),
-                    CatalogConfig.SongsList(album, artist),
-                )
+                withContext(Dispatchers.Main.immediate) {
+                    navigation.replaceAll(
+                        CatalogConfig.ArtistsList,
+                        CatalogConfig.AlbumsList(artist),
+                        CatalogConfig.SongsList(album, artist),
+                    )
+                }
             }
         }
 
