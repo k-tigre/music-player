@@ -2,6 +2,7 @@ package by.tigre.music.player.core.presentation.catalog.view
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -70,30 +71,47 @@ class ArtistListView(
             content = { paddingValues ->
                 val screenState by component.screenState.collectAsState()
                 val searchQuery by component.searchQuery.collectAsState()
+                val contentState = when (screenState) {
+                    is ScreenContentState.Loading -> ArtistListUiState.Loading
+                    is ScreenContentState.Error -> ArtistListUiState.Error
+                    is ScreenContentState.Content -> ArtistListUiState.Content
+                }
 
-                Crossfade(
+                Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues),
-                    targetState = screenState,
-                    animationSpec = tween(500),
-                    label = "state"
-                ) { state ->
+                        .padding(paddingValues)
+                ) {
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        value = searchQuery,
+                        onValueChange = component::onSearchQueryChanged,
+                        singleLine = true,
+                        placeholder = { Text(stringResource(Res.string.catalog_search_hint)) },
+                        label = { Text(stringResource(Res.string.catalog_search_hint)) }
+                    )
 
-                    when (state) {
-                        is ScreenContentState.Loading -> {
-                            ProgressIndicator(Modifier.fillMaxSize(), ProgressIndicatorSize.LARGE)
-                        }
+                    Crossfade(
+                        modifier = Modifier.fillMaxSize(),
+                        targetState = contentState,
+                        animationSpec = tween(500),
+                        label = "state"
+                    ) { state ->
+                        when (state) {
+                            ArtistListUiState.Loading -> {
+                                ProgressIndicator(Modifier.fillMaxSize(), ProgressIndicatorSize.LARGE)
+                            }
 
-                        is ScreenContentState.Error -> {
-                            ErrorScreen(retryAction = component::retry)
-                        }
+                            ArtistListUiState.Error -> {
+                                ErrorScreen(retryAction = component::retry)
+                            }
 
-                        is ScreenContentState.Content -> {
-                            DrawContent(
-                                data = state.value,
-                                searchQuery = searchQuery
-                            )
+                            ArtistListUiState.Content -> {
+                                val data = (screenState as ScreenContentState.Content).value
+                                DrawContent(data)
+                            }
                         }
                     }
                 }
@@ -102,22 +120,11 @@ class ArtistListView(
     }
 
     @Composable
-    private fun DrawContent(data: ArtistListScreenData, searchQuery: String) {
+    private fun DrawContent(data: ArtistListScreenData) {
         LazyColumn(
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            item {
-                OutlinedTextField(
-                    modifier = Modifier.fillMaxWidth(),
-                    value = searchQuery,
-                    onValueChange = component::onSearchQueryChanged,
-                    singleLine = true,
-                    placeholder = { Text(stringResource(Res.string.catalog_search_hint)) },
-                    label = { Text(stringResource(Res.string.catalog_search_hint)) }
-                )
-            }
-
             if (data.searchResult != null) {
                 val result = data.searchResult
                 if (result.artists.isEmpty() && result.songs.isEmpty()) {
@@ -201,5 +208,11 @@ class ArtistListView(
                 stringResource(Res.string.catalog_track_meta, song.artist, song.album)
             )
         )
+    }
+
+    private enum class ArtistListUiState {
+        Loading,
+        Error,
+        Content,
     }
 }
