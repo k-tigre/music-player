@@ -11,12 +11,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FastForward
@@ -218,60 +221,31 @@ class PlayerView(
 
     @Composable
     private fun DrawActions(modifier: Modifier) {
-        val useSeekButtons = config.actionsMode == ActionsMode.SeekButtons
+        if (config.actionsMode == ActionsMode.SeekButtons) {
+            DrawSeekActions(modifier)
+            return
+        }
+
         Row(
             modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
-            verticalAlignment = if (useSeekButtons) Alignment.Top else Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             val state = component.state.collectAsState()
 
             Spacer(modifier = Modifier.weight(1f))
-            if (useSeekButtons) {
-                SeekIconButton(
-                    onClick = component::seekBack1Minute,
-                    imageVector = Icons.Filled.FastRewind,
-                    durationCaption = config.seek1MinuteDurationCaption,
-                    contentDescription = config.seekBack1MinuteLabel,
+            IconButton(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                onClick = component::prev
+            ) {
+                Icon(
+                    contentDescription = null,
+                    imageVector = Icons.Default.SkipPrevious,
+                    modifier = Modifier.size(56.dp)
                 )
-                SeekIconButton(
-                    onClick = component::seekBack15Seconds,
-                    imageVector = Icons.Filled.FastRewind,
-                    durationCaption = config.seek15SecondsDurationCaption,
-                    contentDescription = config.seekBack15SecondsLabel,
-                )
-            } else {
-                IconButton(
-                    modifier = Modifier.align(Alignment.CenterVertically),
-                    onClick = component::prev
-                ) {
-                    Icon(
-                        contentDescription = null,
-                        imageVector = Icons.Default.SkipPrevious,
-                        modifier = Modifier.size(56.dp)
-                    )
-                }
             }
 
-            if (useSeekButtons) {
-                if (state.value == BasePlayerComponent.State.Playing) {
-                    PlayPauseActionSlot(onClick = component::pause) {
-                        Icon(
-                            contentDescription = null,
-                            imageVector = Icons.Default.Pause,
-                            modifier = Modifier.size(56.dp),
-                        )
-                    }
-                } else {
-                    PlayPauseActionSlot(onClick = component::play) {
-                        Icon(
-                            contentDescription = null,
-                            imageVector = Icons.Default.PlayArrow,
-                            modifier = Modifier.size(56.dp),
-                        )
-                    }
-                }
-            } else if (state.value == BasePlayerComponent.State.Playing) {
+            if (state.value == BasePlayerComponent.State.Playing) {
                 IconButton(
                     modifier = Modifier.align(Alignment.CenterVertically),
                     onClick = component::pause
@@ -295,30 +269,15 @@ class PlayerView(
                 }
             }
 
-            if (useSeekButtons) {
-                SeekIconButton(
-                    onClick = component::seekForward15Seconds,
-                    imageVector = Icons.Filled.FastForward,
-                    durationCaption = config.seek15SecondsDurationCaption,
-                    contentDescription = config.seekForward15SecondsLabel,
+            IconButton(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                onClick = component::next
+            ) {
+                Icon(
+                    contentDescription = null,
+                    imageVector = Icons.Default.SkipNext,
+                    modifier = Modifier.size(56.dp)
                 )
-                SeekIconButton(
-                    onClick = component::seekForward1Minute,
-                    imageVector = Icons.Filled.FastForward,
-                    durationCaption = config.seek1MinuteDurationCaption,
-                    contentDescription = config.seekForward1MinuteLabel,
-                )
-            } else {
-                IconButton(
-                    modifier = Modifier.align(Alignment.CenterVertically),
-                    onClick = component::next
-                ) {
-                    Icon(
-                        contentDescription = null,
-                        imageVector = Icons.Default.SkipNext,
-                        modifier = Modifier.size(56.dp)
-                    )
-                }
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -343,7 +302,65 @@ class PlayerView(
     }
 
     @Composable
-    private fun seekCaptionReservedHeight(): Dp {
+    private fun DrawSeekActions(modifier: Modifier) {
+        val state = component.state.collectAsState()
+        val playPauseIcon = if (state.value == BasePlayerComponent.State.Playing) {
+            Icons.Default.Pause
+        } else {
+            Icons.Default.PlayArrow
+        }
+        val playPauseAction = if (state.value == BasePlayerComponent.State.Playing) {
+            component::pause
+        } else {
+            component::play
+        }
+
+        Row(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Spacer(modifier = Modifier.weight(1f))
+            SeekControlSlot(
+                onClick = component::seekBack1Minute,
+                imageVector = Icons.Filled.FastRewind,
+                caption = config.seek1MinuteDurationCaption,
+                contentDescription = config.seekBack1MinuteLabel,
+            )
+            SeekControlSlot(
+                onClick = component::seekBack15Seconds,
+                imageVector = Icons.Filled.FastRewind,
+                caption = config.seek15SecondsDurationCaption,
+                contentDescription = config.seekBack15SecondsLabel,
+            )
+            SeekControlSlot(
+                onClick = playPauseAction,
+                imageVector = playPauseIcon,
+                caption = null,
+                contentDescription = if (state.value == BasePlayerComponent.State.Playing) {
+                    "Pause"
+                } else {
+                    "Play"
+                },
+            )
+            SeekControlSlot(
+                onClick = component::seekForward15Seconds,
+                imageVector = Icons.Filled.FastForward,
+                caption = config.seek15SecondsDurationCaption,
+                contentDescription = config.seekForward15SecondsLabel,
+            )
+            SeekControlSlot(
+                onClick = component::seekForward1Minute,
+                imageVector = Icons.Filled.FastForward,
+                caption = config.seek1MinuteDurationCaption,
+                contentDescription = config.seekForward1MinuteLabel,
+            )
+            Spacer(modifier = Modifier.weight(1f))
+        }
+    }
+
+    @Composable
+    private fun seekCaptionHeight(): Dp {
         val style = MaterialTheme.typography.labelMedium
         return with(LocalDensity.current) {
             style.lineHeight.toDp()
@@ -351,82 +368,58 @@ class PlayerView(
     }
 
     @Composable
-    private fun PlayPauseActionSlot(
-        onClick: () -> Unit,
-        icon: @Composable () -> Unit,
-    ) {
-        ActionIconSlot(
-            icon = {
-                IconButton(
-                    modifier = Modifier.size(ActionIconSlotHeight),
-                    onClick = onClick,
-                ) {
-                    icon()
-                }
-            },
-            caption = {
-                Spacer(modifier = Modifier.height(seekCaptionReservedHeight()))
-            },
-        )
-    }
-
-    @Composable
-    private fun ActionIconSlot(
-        modifier: Modifier = Modifier,
-        icon: @Composable () -> Unit,
-        caption: @Composable () -> Unit,
-    ) {
-        Column(
-            modifier = modifier.padding(horizontal = 4.dp, vertical = 6.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Box(
-                modifier = Modifier.height(ActionIconSlotHeight),
-                contentAlignment = Alignment.TopCenter,
-            ) {
-                icon()
-            }
-            caption()
-        }
-    }
-
-    @Composable
-    private fun SeekIconButton(
+    private fun SeekControlSlot(
         onClick: () -> Unit,
         imageVector: ImageVector,
-        durationCaption: String,
         contentDescription: String,
-        modifier: Modifier = Modifier,
+        caption: String?,
     ) {
-        val captionColor = MaterialTheme.colorScheme.onSurface
-        ActionIconSlot(
-            modifier = modifier
+        val color = MaterialTheme.colorScheme.onSurface
+        Column(
+            modifier = Modifier
+                .defaultMinSize(minWidth = SeekControlSlotMinWidth)
                 .semantics {
                     role = Role.Button
                     this.contentDescription = contentDescription
                 }
-                .clickable(onClick = onClick),
-            icon = {
+                .clickable(onClick = onClick)
+                .padding(horizontal = 4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(
+                modifier = Modifier.size(SeekControlIconAreaSize),
+                contentAlignment = Alignment.Center,
+            ) {
                 Icon(
                     imageVector = imageVector,
                     contentDescription = null,
-                    modifier = Modifier.size(36.dp),
-                    tint = captionColor,
+                    modifier = Modifier.size(SeekControlIconSize),
+                    tint = color,
                 )
-            },
-            caption = {
-                Text(
-                    text = durationCaption,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = captionColor,
-                    maxLines = 1,
-                )
-            },
-        )
+            }
+            Box(
+                modifier = Modifier
+                    .height(seekCaptionHeight())
+                    .widthIn(min = SeekControlSlotMinWidth),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (caption != null) {
+                    Text(
+                        text = caption,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = color,
+                        maxLines = 1,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+        }
     }
 
     private companion object {
-        private val ActionIconSlotHeight = 56.dp
+        private val SeekControlIconAreaSize = 48.dp
+        private val SeekControlIconSize = 40.dp
+        private val SeekControlSlotMinWidth = 56.dp
     }
 
     data class Config(
