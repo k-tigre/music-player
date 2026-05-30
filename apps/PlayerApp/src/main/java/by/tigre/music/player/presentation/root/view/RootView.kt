@@ -4,6 +4,7 @@ import android.Manifest
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -94,6 +95,7 @@ class RootView(
     private fun DrawPages() {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
                 Column {
                     playerViewProvider.createSmallPlayerView(component.playerComponent).Draw(Modifier)
