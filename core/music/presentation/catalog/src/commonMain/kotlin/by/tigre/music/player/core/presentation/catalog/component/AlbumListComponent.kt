@@ -4,25 +4,34 @@ import by.tigre.music.player.core.data.catalog.CatalogSource
 import by.tigre.music.player.core.data.playback.PlaybackController
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
+import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigator
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.presentation.base.ScreenContentState.Content
 import by.tigre.music.player.presentation.base.ScreenContentStateDelegate
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 
 interface AlbumListComponent {
 
     val screenState: StateFlow<ScreenContentState<List<Album>>>
     val artist: Artist
+    val removePrompt: StateFlow<RemovePrompt?>
 
     fun retry()
     fun onAlbumClicked(album: Album)
     fun onBackClicked()
     fun onPlayAlbumClicked(album: Album)
     fun onAddToPlayAlbumClicked(album: Album)
+    fun onRemoveAlbumClicked(album: Album)
+    fun confirmHide()
+    fun confirmDeleteForever()
+    fun dismissRemove()
 
     class Impl(
         context: BaseComponentContext,
@@ -34,10 +43,17 @@ interface AlbumListComponent {
         private val catalogSource: CatalogSource = dependency.catalogSource
         private val playbackController: PlaybackController = dependency.playbackController
 
+        private val _removePrompt = MutableStateFlow<RemovePrompt?>(null)
+        override val removePrompt: StateFlow<RemovePrompt?> = _removePrompt
+
+        private var pendingAlbum: Album? = null
+
         private val stateDelegate = ScreenContentStateDelegate(
             scope = this,
             loadData = {
-                flow { emit(catalogSource.getAlbums(artist.id)) }
+                catalogSource.dataVersion.flatMapLatest {
+                    flow { emit(catalogSource.getAlbums(artist.id)) }
+                }
             },
             mapDataToState = { albums ->
                 Content(albums)
@@ -64,6 +80,45 @@ interface AlbumListComponent {
 
         override fun onAddToPlayAlbumClicked(album: Album) {
             playbackController.addAlbumToPlay(album.id, artist.id)
+        }
+
+        override fun onRemoveAlbumClicked(album: Album) {
+            pendingAlbum = album
+            _removePrompt.value = RemovePrompt(
+                onHide = ::confirmHide,
+                onDeleteForever = ::confirmDeleteForever
+            )
+        }
+
+        override fun confirmHide() {
+            val album = pendingAlbum ?: return
+            launch {
+                val songIds = catalogSource.hideAlbum(artist.id, album.id)
+                playbackController.removeSongsFromQueue(songIds)
+                clearRemovePrompt()
+                stateDelegate.reload()
+            }
+        }
+
+        override fun confirmDeleteForever() {
+            val album = pendingAlbum ?: return
+            launch {
+                val songIds = catalogSource.deleteAlbum(artist.id, album.id)
+                if (songIds.isNotEmpty()) {
+                    playbackController.removeSongsFromQueue(songIds)
+                    stateDelegate.reload()
+                }
+                clearRemovePrompt()
+            }
+        }
+
+        override fun dismissRemove() {
+            clearRemovePrompt()
+        }
+
+        private fun clearRemovePrompt() {
+            pendingAlbum = null
+            _removePrompt.value = null
         }
     }
 }

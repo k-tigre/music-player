@@ -7,7 +7,6 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-//        mavenLocal()
         maven {
             url = uri("https://maven.pkg.github.com/k-tigre/logger")
             credentials {
@@ -17,9 +16,6 @@ dependencyResolutionManagement {
                 password = providers.gradleProperty("gpr.key")
                     .orElse(providers.environmentVariable("GITHUB_TOKEN"))
                     .getOrElse("")
-
-                println("username=$username")
-                println("password=$password")
             }
         }
     }

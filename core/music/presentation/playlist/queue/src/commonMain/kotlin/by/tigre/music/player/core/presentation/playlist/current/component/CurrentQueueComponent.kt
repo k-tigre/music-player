@@ -17,6 +17,8 @@ interface CurrentQueueComponent {
     fun retry()
     fun onSongClicked(song: SongInQueueItem)
     fun onAddToQueueClicked()
+    fun onOpenArtistClicked(song: SongInQueueItem)
+    fun onOpenAlbumClicked(song: SongInQueueItem)
 
     class Impl(
         context: BaseComponentContext,
@@ -46,6 +48,14 @@ interface CurrentQueueComponent {
 
         override fun onAddToQueueClicked() {
             navigator.onOpenCatalog()
+        }
+
+        override fun onOpenArtistClicked(song: SongInQueueItem) {
+            navigator.onOpenArtist(song.song.artistId)
+        }
+
+        override fun onOpenAlbumClicked(song: SongInQueueItem) {
+            navigator.onOpenAlbum(song.song.artistId, song.song.albumId)
         }
     }
 }

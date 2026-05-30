@@ -57,7 +57,7 @@ class DesktopApplicationGraph(
         fun create(): DesktopApplicationGraph {
             val preferencesModule = DesktopPreferencesModule()
             val dbDir = File(System.getProperty("user.home"), ".music-player")
-            val desktopCatalogModule = DesktopCatalogModule(dbDir)
+            val desktopCatalogModule = DesktopCatalogModule(dbDir, preferencesModule.preferences)
             val coroutineModule = CoroutineModule.Impl()
             val playbackQueueModule = DesktopPlaybackQueueModule(dbDir, coroutineModule, preferencesModule)
             val basePlaybackModule = DesktopBasePlaybackModule(preferencesModule.preferences)

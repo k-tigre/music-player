@@ -2,13 +2,24 @@ package by.tigre.music.player.core.data.catalog.di
 
 import by.tigre.music.player.core.data.catalog.CatalogSource
 import by.tigre.music.player.core.data.catalog.desktop.DesktopCatalogSourceImpl
+import by.tigre.music.player.core.data.catalog.hidden.HiddenCatalogStorageImpl
+import by.tigre.music.player.core.data.catalog.impl.CatalogSourceImpl
+import by.tigre.music.player.core.data.storage.preferences.Preferences
 import java.io.File
 
-class DesktopCatalogModule(dbDir: File) : CatalogModule {
+class DesktopCatalogModule(
+    dbDir: File,
+    preferences: Preferences,
+) : CatalogModule {
 
-    private val sourceImpl: DesktopCatalogSourceImpl by lazy { DesktopCatalogSourceImpl(dbDir) }
+    private val backend: DesktopCatalogSourceImpl by lazy { DesktopCatalogSourceImpl(dbDir) }
 
-    override val catalogSource: CatalogSource by lazy { sourceImpl }
+    override val catalogSource: CatalogSource by lazy {
+        CatalogSourceImpl(
+            backend = backend,
+            hidden = HiddenCatalogStorageImpl(preferences),
+        )
+    }
 
-    suspend fun addFolder(folder: File) = sourceImpl.addFolder(folder)
+    suspend fun addFolder(folder: File) = backend.addFolder(folder)
 }

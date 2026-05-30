@@ -31,7 +31,7 @@ interface CatalogComponentProvider {
     ) : CatalogComponentProvider {
         override fun createRootCatalogComponent(
             context: BaseComponentContext
-        ): RootCatalogComponent = Impl(context, this)
+        ): RootCatalogComponent = Impl(context, this, dependency)
 
         override fun createArtistListComponent(
             context: BaseComponentContext,

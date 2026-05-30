@@ -88,6 +88,15 @@ class AlbumListView(
             },
             content = { paddingValues ->
                 val screenState by component.screenState.collectAsState()
+                val removePrompt by component.removePrompt.collectAsState()
+
+                removePrompt?.let { prompt ->
+                    RemoveItemDialog(
+                        onHide = component::confirmHide,
+                        onDeleteForever = component::confirmDeleteForever,
+                        onDismiss = component::dismissRemove
+                    )
+                }
 
                 Crossfade(
                     modifier = Modifier
@@ -131,6 +140,7 @@ class AlbumListView(
                         popupActions = listOf(
                             PopupAction(stringResource(Res.string.action_play)) { component.onPlayAlbumClicked(album) },
                             PopupAction(stringResource(Res.string.action_add_to_queue)) { component.onAddToPlayAlbumClicked(album) },
+                            PopupAction(stringResource(Res.string.action_delete)) { component.onRemoveAlbumClicked(album) },
                         ),
                         descriptions = listOf(
                             stringResource(Res.string.catalog_album_years, album.years),

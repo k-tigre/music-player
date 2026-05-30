@@ -1,8 +1,11 @@
 package by.tigre.music.player.core.presentation.catalog.component
 
+import by.tigre.music.player.core.data.catalog.CatalogSource
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
+import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.di.CatalogComponentProvider
+import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigator
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.appChildStack
@@ -10,12 +13,17 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.push
+import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.Value
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 interface RootCatalogComponent {
 
     val childStack: Value<ChildStack<*, CatalogChild>>
+
+    fun navigateToArtist(artistId: Artist.Id)
+    fun navigateToAlbum(artistId: Artist.Id, albumId: Album.Id)
 
     sealed interface CatalogChild {
         class ArtistsList(val component: ArtistListComponent) : CatalogChild
@@ -25,9 +33,11 @@ interface RootCatalogComponent {
 
     class Impl(
         context: BaseComponentContext,
-        private val componentProvider: CatalogComponentProvider
+        private val componentProvider: CatalogComponentProvider,
+        private val dependency: CatalogDependency,
     ) : RootCatalogComponent, BaseComponentContext by context {
         private val navigation = StackNavigation<CatalogConfig>()
+        private val catalogSource: CatalogSource = dependency.catalogSource
 
         private val navigator = object : CatalogNavigator {
             override fun showArtists() {
@@ -47,6 +57,14 @@ interface RootCatalogComponent {
                     if (isSuccess.not()) {
                         // TODO
                     }
+                }
+            }
+
+            override fun showSongsForTrack(song: Song) {
+                launch {
+                    val artist = catalogSource.getArtistById(song.artistId) ?: return@launch
+                    val album = catalogSource.getAlbumById(song.artistId, song.albumId) ?: return@launch
+                    navigation.push(CatalogConfig.SongsList(album, artist))
                 }
             }
         }
@@ -95,6 +113,28 @@ interface RootCatalogComponent {
             }
 
         override val childStack: Value<ChildStack<*, CatalogChild>> = stack
+
+        override fun navigateToArtist(artistId: Artist.Id) {
+            launch {
+                val artist = catalogSource.getArtistById(artistId) ?: return@launch
+                navigation.replaceAll(
+                    CatalogConfig.ArtistsList,
+                    CatalogConfig.AlbumsList(artist),
+                )
+            }
+        }
+
+        override fun navigateToAlbum(artistId: Artist.Id, albumId: Album.Id) {
+            launch {
+                val artist = catalogSource.getArtistById(artistId) ?: return@launch
+                val album = catalogSource.getAlbumById(artistId, albumId) ?: return@launch
+                navigation.replaceAll(
+                    CatalogConfig.ArtistsList,
+                    CatalogConfig.AlbumsList(artist),
+                    CatalogConfig.SongsList(album, artist),
+                )
+            }
+        }
 
         @Serializable
         private sealed interface CatalogConfig {

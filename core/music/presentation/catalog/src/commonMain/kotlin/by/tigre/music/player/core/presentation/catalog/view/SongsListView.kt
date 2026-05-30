@@ -82,6 +82,15 @@ class SongsListView(
             },
             content = { paddingValues ->
                 val screenState by component.screenState.collectAsState()
+                val removePrompt by component.removePrompt.collectAsState()
+
+                if (removePrompt != null) {
+                    RemoveItemDialog(
+                        onHide = component::confirmHide,
+                        onDeleteForever = component::confirmDeleteForever,
+                        onDismiss = component::dismissRemove
+                    )
+                }
 
                 Crossfade(
                     modifier = Modifier
@@ -125,6 +134,7 @@ class SongsListView(
                         popupActions = listOf(
                             PopupAction(stringResource(Res.string.action_play)) { component.onPlaySongClicked(song) },
                             PopupAction(stringResource(Res.string.action_add_to_queue)) { component.onAddSongClicked(song) },
+                            PopupAction(stringResource(Res.string.action_delete)) { component.onRemoveSongClicked(song) },
                         ),
                         descriptions = listOf(
                             stringResource(Res.string.catalog_track_meta, song.artist, song.album)

@@ -5,4 +5,6 @@
     <string name="queue_empty_message">Select some track for playing</string>
     <string name="queue_empty_action">Select from catalog</string>
     <string name="queue_track_meta">%1$s / %2$s</string>
+    <string name="queue_action_open_artist">Go to artist</string>
+    <string name="queue_action_open_album">Go to album</string>
 </resources>

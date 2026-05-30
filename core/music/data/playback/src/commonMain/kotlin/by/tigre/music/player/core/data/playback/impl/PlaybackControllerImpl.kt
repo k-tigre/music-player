@@ -228,6 +228,10 @@ internal class PlaybackControllerImpl(
         action.tryEmit(Action.AddArtistToQueue(id))
     }
 
+    override fun removeSongsFromQueue(ids: List<Song.Id>) {
+        scope.launch { storage.removeSongsByIds(ids) }
+    }
+
     override fun stop() {
         Log.d("PlaybackController") { "stop" }
         scope.launch { player.stop() }

@@ -7,8 +7,11 @@ import by.tigre.music.player.core.presentation.catalog.component.SmallPlayerComp
 import by.tigre.music.player.core.presentation.catalog.di.CatalogComponentProvider
 import by.tigre.music.player.core.presentation.catalog.di.PlayerComponentProvider
 import by.tigre.music.player.core.presentation.catalog.navigation.PlayerNavigator
+import by.tigre.music.player.core.entiry.catalog.Album
+import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.presentation.playlist.current.component.CurrentQueueComponent
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueComponentProvider
+import by.tigre.music.player.core.presentation.playlist.current.navigation.QueueNavigator
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.appChildContext
 import by.tigre.music.player.presentation.base.appChildStack
@@ -81,6 +84,23 @@ interface Root {
 
         override val onStartServiceEvent = MutableSharedFlow<Unit>()
 
+        private val catalogComponent: RootCatalogComponent =
+            catalogComponentProvider.createRootCatalogComponent(appChildContext("catalog"))
+
+        private val queueNavigator = object : QueueNavigator {
+            override fun onOpenCatalog() = selectPage(1)
+
+            override fun onOpenArtist(artistId: Artist.Id) {
+                selectPage(1)
+                catalogComponent.navigateToArtist(artistId)
+            }
+
+            override fun onOpenAlbum(artistId: Artist.Id, albumId: Album.Id) {
+                selectPage(1)
+                catalogComponent.navigateToAlbum(artistId, albumId)
+            }
+        }
+
         override val pages: Value<ChildStack<*, PageComponentChild>> =
             appChildStack(
                 source = pagesNavigation,
@@ -89,14 +109,12 @@ interface Root {
                 handleBackButton = false
             ) { config, componentContext ->
                 when (config) {
-                    PagesConfig.Catalog -> PageComponentChild.Catalog(
-                        catalogComponentProvider.createRootCatalogComponent(componentContext)
-                    )
+                    PagesConfig.Catalog -> PageComponentChild.Catalog(catalogComponent)
 
                     PagesConfig.Queue -> PageComponentChild.Queue(
                         currentQueueComponent.createCurrentQueueComponent(
                             componentContext,
-                            navigator = { selectPage(1) }
+                            navigator = queueNavigator
                         )
                     )
                 }

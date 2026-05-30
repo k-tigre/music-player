@@ -1,6 +1,6 @@
 package by.tigre.music.player.core.presentation.playlist.current.view
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -26,8 +24,10 @@ import by.tigre.music.player.core.entiry.playback.SongInQueueItem
 import by.tigre.music.player.core.presentation.playlist.current.component.CurrentQueueComponent
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.tools.platform.compose.ComposableView
+import by.tigre.music.player.tools.platform.compose.view.CardWithPopup
 import by.tigre.music.player.tools.platform.compose.view.EmptyScreen
 import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
+import by.tigre.music.player.tools.platform.compose.view.PopupAction
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicator
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicatorSize
 import `by`.tigre.music.player.core.presentation.queue.resources.Res
@@ -100,31 +100,29 @@ class CurrentQueueView(
             ) {
                 songs.forEachIndexed { index, item ->
                     item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            onClick = { component.onSongClicked(item) },
-                            colors = CardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                                contentColor = MaterialTheme.colorScheme.onSurface,
-                                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-                                disabledContentColor = MaterialTheme.colorScheme.onSurface
-                            ),
-                            border = if (item.isPlaying) BorderStroke(
-                                1.dp,
-                                MaterialTheme.colorScheme.secondary
-                            ) else null
-                        ) {
-                            Text(
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                text = formatQueueRowTitle(queuePositionOneBased = index + 1, item = item)
-                            )
-
-                            Text(
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 2.dp),
-                                text = stringResource(Res.string.queue_track_meta, item.song.artist, item.song.album),
-                                style = MaterialTheme.typography.bodySmall
-                            )
+                        val rowModifier = if (item.isPlaying) {
+                            Modifier
+                                .fillMaxWidth()
+                                .border(1.dp, MaterialTheme.colorScheme.secondary, MaterialTheme.shapes.medium)
+                        } else {
+                            Modifier.fillMaxWidth()
                         }
+                        CardWithPopup(
+                            modifier = rowModifier,
+                            title = formatQueueRowTitle(queuePositionOneBased = index + 1, item = item),
+                            onCardClicked = { component.onSongClicked(item) },
+                            popupActions = listOf(
+                                PopupAction(stringResource(Res.string.queue_action_open_artist)) {
+                                    component.onOpenArtistClicked(item)
+                                },
+                                PopupAction(stringResource(Res.string.queue_action_open_album)) {
+                                    component.onOpenAlbumClicked(item)
+                                },
+                            ),
+                            descriptions = listOf(
+                                stringResource(Res.string.queue_track_meta, item.song.artist, item.song.album)
+                            ),
+                        )
                     }
                 }
             }

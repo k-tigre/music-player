@@ -7,6 +7,16 @@
     <string name="cd_reload">Обновить</string>
     <string name="action_play">Играть</string>
     <string name="action_add_to_queue">В очередь</string>
+    <string name="action_delete">Убрать</string>
+    <string name="action_cancel">Отмена</string>
+    <string name="action_hide">Спрятать</string>
+    <string name="action_delete_forever">Удалить навсегда</string>
+    <string name="remove_item_title">Убрать из библиотеки?</string>
+    <string name="remove_item_message">Спрятать — файл останется на устройстве. Удалить навсегда — файл будет удалён с диска.</string>
+    <string name="catalog_search_hint">Поиск исполнителя или трека</string>
+    <string name="catalog_search_empty">Ничего не найдено</string>
+    <string name="catalog_search_section_artists">Исполнители</string>
+    <string name="catalog_search_section_tracks">Треки</string>
     <string name="catalog_album_years">Годы: %1$s</string>
     <string name="catalog_album_songs_count">Треков: %1$d</string>
     <string name="catalog_artist_albums_count">Альбомов: %1$d</string>

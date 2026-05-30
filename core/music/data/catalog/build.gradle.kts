@@ -25,6 +25,11 @@ kotlin {
                 implementation(Library.JAudioTagger.notation)
             }
         }
+        androidMain.dependencies {
+            implementation(Library.AndroidXCore.notation)
+            implementation(Library.ActivityCompose.notation)
+            implementation(Library.CoroutinesAndroid.notation)
+        }
     }
 }
 

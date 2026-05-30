@@ -16,6 +16,8 @@ import by.tigre.music.player.core.presentation.catalog.di.PlayerComponentProvide
 import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueComponentProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
+import by.tigre.music.player.core.data.catalog.android.ActivityMediaDeleteHandler
+import by.tigre.music.player.core.data.catalog.android.MediaDeleteHandlerRegistry
 import by.tigre.music.player.presentation.background.BackgroundService
 import by.tigre.music.player.presentation.base.BaseComponentContextImpl
 import by.tigre.music.player.presentation.root.component.Root
@@ -29,6 +31,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        MediaDeleteHandlerRegistry.register(ActivityMediaDeleteHandler(this))
 
         val graph = (application as App).graph
         val root = Root.Impl(
@@ -70,6 +74,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        MediaDeleteHandlerRegistry.unregister()
         releaseController()
         super.onDestroy()
     }

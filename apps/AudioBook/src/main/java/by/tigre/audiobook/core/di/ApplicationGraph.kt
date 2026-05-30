@@ -80,7 +80,7 @@ class ApplicationGraph(
     companion object {
         fun create(context: Context): ApplicationGraph {
             val preferencesModule = AndroidPreferencesModule(context)
-            val catalogModule = AndroidCatalogModule(context)
+            val catalogModule = AndroidCatalogModule(context, preferencesModule.preferences)
             val coroutineModule = CoroutineModule.Impl()
             val playbackQueueModule = AndroidPlaybackQueueModule(context, coroutineModule, preferencesModule)
             val basePlaybackModule =

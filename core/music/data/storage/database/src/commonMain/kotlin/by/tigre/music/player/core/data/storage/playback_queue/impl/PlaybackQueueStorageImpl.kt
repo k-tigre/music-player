@@ -111,6 +111,15 @@ class PlaybackQueueStorageImpl(
         }
     }
 
+    override suspend fun removeSongsByIds(ids: List<Song.Id>) {
+        if (ids.isEmpty()) return
+        database.queueQueries.transaction {
+            ids.forEach { id ->
+                database.queueQueries.deleteBySongId(song_id = id.value)
+            }
+        }
+    }
+
     private fun getPlaybackOrderedQueue(): List<QueueItem> {
         return when (orderMode.value) {
             PlaybackQueueStorage.OrderMode.Normal -> database.queueQueries.selectAllById(

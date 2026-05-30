@@ -1,8 +1,9 @@
 package by.tigre.music.player.core.data.catalog.desktop
 
-import by.tigre.music.player.core.data.catalog.CatalogSource
+import by.tigre.music.player.core.data.catalog.CatalogBackend
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
+import by.tigre.music.player.core.entiry.catalog.CatalogSearchResult
 import by.tigre.music.player.core.entiry.catalog.Song
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,10 +14,10 @@ import java.io.File
 import java.sql.Connection
 import java.sql.DriverManager
 
-class DesktopCatalogSourceImpl(dbDir: File) : CatalogSource {
+class DesktopCatalogSourceImpl(dbDir: File) : CatalogBackend {
 
     private val _dataVersion = MutableStateFlow(0L)
-    override val dataVersion: Flow<Long> = _dataVersion.asStateFlow()
+    override val dataRevision: Flow<Long> = _dataVersion.asStateFlow()
 
     private val connection: Connection by lazy {
         dbDir.mkdirs()
@@ -86,6 +87,25 @@ class DesktopCatalogSourceImpl(dbDir: File) : CatalogSource {
         return result
     }
 
+    override suspend fun getArtistById(id: Artist.Id): Artist? {
+        connection.prepareStatement(
+            "SELECT id, name, song_count, album_count FROM Artist WHERE id = ?"
+        ).use { stmt ->
+            stmt.setLong(1, id.value)
+            stmt.executeQuery().use { rs ->
+                if (rs.next()) {
+                    return Artist(
+                        id = Artist.Id(rs.getLong(1)),
+                        name = rs.getString(2),
+                        songCount = rs.getInt(3),
+                        albumCount = rs.getInt(4)
+                    )
+                }
+            }
+        }
+        return null
+    }
+
     override suspend fun getAlbums(artistId: Artist.Id): List<Album> {
         val result = mutableListOf<Album>()
         connection.prepareStatement(
@@ -118,7 +138,7 @@ class DesktopCatalogSourceImpl(dbDir: File) : CatalogSource {
     override suspend fun getSongsByArtist(artistId: Artist.Id): List<Song> {
         val result = mutableListOf<Song>()
         connection.prepareStatement(
-            "SELECT id, name, track_index, artist, album, album_id, path FROM Song WHERE artist_id = ? ORDER BY album, track_index"
+            "SELECT id, name, track_index, artist, album, artist_id, album_id, path FROM Song WHERE artist_id = ? ORDER BY album, track_index"
         ).use { stmt ->
             stmt.setLong(1, artistId.value)
             stmt.executeQuery().use { rs ->
@@ -133,7 +153,7 @@ class DesktopCatalogSourceImpl(dbDir: File) : CatalogSource {
     override suspend fun getSongsByAlbum(artistId: Artist.Id, albumId: Album.Id): List<Song> {
         val result = mutableListOf<Song>()
         connection.prepareStatement(
-            "SELECT id, name, track_index, artist, album, album_id, path FROM Song WHERE artist_id = ? AND album_id = ? ORDER BY track_index"
+            "SELECT id, name, track_index, artist, album, artist_id, album_id, path FROM Song WHERE artist_id = ? AND album_id = ? ORDER BY track_index"
         ).use { stmt ->
             stmt.setLong(1, artistId.value)
             stmt.setLong(2, albumId.value)
@@ -151,7 +171,7 @@ class DesktopCatalogSourceImpl(dbDir: File) : CatalogSource {
         val placeholders = ids.joinToString(",") { "?" }
         val result = mutableListOf<Song>()
         connection.prepareStatement(
-            "SELECT id, name, track_index, artist, album, album_id, path FROM Song WHERE id IN ($placeholders)"
+            "SELECT id, name, track_index, artist, album, artist_id, album_id, path FROM Song WHERE id IN ($placeholders)"
         ).use { stmt ->
             ids.forEachIndexed { index, songId -> stmt.setLong(index + 1, songId.value) }
             stmt.executeQuery().use { rs ->
@@ -165,7 +185,7 @@ class DesktopCatalogSourceImpl(dbDir: File) : CatalogSource {
 
     override suspend fun getSongById(id: Song.Id): Song? {
         connection.prepareStatement(
-            "SELECT id, name, track_index, artist, album, album_id, path FROM Song WHERE id = ?"
+            "SELECT id, name, track_index, artist, album, artist_id, album_id, path FROM Song WHERE id = ?"
         ).use { stmt ->
             stmt.setLong(1, id.value)
             stmt.executeQuery().use { rs ->
@@ -173,6 +193,74 @@ class DesktopCatalogSourceImpl(dbDir: File) : CatalogSource {
             }
         }
         return null
+    }
+
+    override suspend fun search(query: String): CatalogSearchResult {
+        val trimmed = query.trim()
+        if (trimmed.isEmpty()) return CatalogSearchResult(emptyList(), emptyList())
+        val like = "%$trimmed%"
+        val artists = mutableListOf<Artist>()
+        connection.prepareStatement(
+            "SELECT id, name, song_count, album_count FROM Artist WHERE name LIKE ? ORDER BY name"
+        ).use { stmt ->
+            stmt.setString(1, like)
+            stmt.executeQuery().use { rs ->
+                while (rs.next()) {
+                    artists.add(
+                        Artist(
+                            id = Artist.Id(rs.getLong(1)),
+                            name = rs.getString(2),
+                            songCount = rs.getInt(3),
+                            albumCount = rs.getInt(4)
+                        )
+                    )
+                }
+            }
+        }
+        val songs = mutableListOf<Song>()
+        connection.prepareStatement(
+            "SELECT id, name, track_index, artist, album, artist_id, album_id, path FROM Song WHERE name LIKE ? OR artist LIKE ? ORDER BY artist, album, name"
+        ).use { stmt ->
+            stmt.setString(1, like)
+            stmt.setString(2, like)
+            stmt.executeQuery().use { rs ->
+                while (rs.next()) {
+                    songs.add(mapRowToSong(rs))
+                }
+            }
+        }
+        return CatalogSearchResult(artists = artists, songs = songs)
+    }
+
+    override suspend fun deleteSong(id: Song.Id): Boolean {
+        val song = getSongById(id) ?: return false
+        val file = File(song.path)
+        if (file.exists() && !file.delete()) return false
+        connection.prepareStatement("DELETE FROM Song WHERE id = ?").use { stmt ->
+            stmt.setLong(1, id.value)
+            stmt.executeUpdate()
+        }
+        updateCounts()
+        cleanupEmptyAlbumsAndArtists()
+        _dataVersion.value++
+        return true
+    }
+
+    override suspend fun deleteAlbum(artistId: Artist.Id, albumId: Album.Id): Boolean {
+        val songs = getSongsByAlbum(artistId, albumId)
+        if (songs.isEmpty()) return false
+        var deletedAny = false
+        songs.forEach { song ->
+            if (deleteSong(song.id)) deletedAny = true
+        }
+        return deletedAny
+    }
+
+    private fun cleanupEmptyAlbumsAndArtists() {
+        connection.createStatement().use { stmt ->
+            stmt.executeUpdate("DELETE FROM Album WHERE song_count = 0")
+            stmt.executeUpdate("DELETE FROM Artist WHERE song_count = 0")
+        }
     }
 
     suspend fun addFolder(folder: File) {
@@ -299,7 +387,8 @@ class DesktopCatalogSourceImpl(dbDir: File) : CatalogSource {
         index = rs.getString(3),
         artist = rs.getString(4),
         album = rs.getString(5),
-        albumId = Album.Id(rs.getLong(6)),
-        path = rs.getString(7)
+        artistId = Artist.Id(rs.getLong(6)),
+        albumId = Album.Id(rs.getLong(7)),
+        path = rs.getString(8)
     )
 }

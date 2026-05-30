@@ -26,4 +26,5 @@ interface PlaybackController {
     fun playArtist(id: Artist.Id)
     fun addArtistToPlay(id: Artist.Id)
     fun setOrderMode(isNormal: Boolean)
+    fun removeSongsFromQueue(ids: List<Song.Id>)
 }

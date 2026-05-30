@@ -14,6 +14,7 @@ interface PlaybackQueueStorage {
     suspend fun playNext()
     suspend fun playPrev()
     suspend fun playSongInQueue(queueId: Long)
+    suspend fun removeSongsByIds(ids: List<Song.Id>)
 
     data class QueueItem(val id: Long, val songsId: Song.Id, val state: State) {
         enum class State {

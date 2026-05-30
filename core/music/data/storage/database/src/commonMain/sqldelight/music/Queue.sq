@@ -46,6 +46,9 @@ SELECT id, status, song_id FROM Queue ORDER BY sort_order DESC LIMIT :limit;
 deleteById:
 DELETE FROM Queue WHERE id = ?;
 
+deleteBySongId:
+DELETE FROM Queue WHERE song_id = ?;
+
 deleteAll:
 DELETE FROM Queue;
 

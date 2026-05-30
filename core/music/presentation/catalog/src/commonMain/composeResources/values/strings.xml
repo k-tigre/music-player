@@ -7,6 +7,16 @@
     <string name="cd_reload">Reload</string>
     <string name="action_play">Play</string>
     <string name="action_add_to_queue">Add to Queue</string>
+    <string name="action_delete">Remove</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_hide">Hide</string>
+    <string name="action_delete_forever">Delete forever</string>
+    <string name="remove_item_title">Remove from library?</string>
+    <string name="remove_item_message">Hide keeps the file on your device. Delete forever removes it permanently.</string>
+    <string name="catalog_search_hint">Search artist or track</string>
+    <string name="catalog_search_empty">Nothing found</string>
+    <string name="catalog_search_section_artists">Artists</string>
+    <string name="catalog_search_section_tracks">Tracks</string>
     <string name="catalog_album_years">Years: %1$s</string>
     <string name="catalog_album_songs_count">Songs: %1$d</string>
     <string name="catalog_artist_albums_count">Albums: %1$d</string>
