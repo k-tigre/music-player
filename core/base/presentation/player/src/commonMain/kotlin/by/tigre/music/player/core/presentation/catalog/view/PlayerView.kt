@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -43,10 +44,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
@@ -215,24 +218,23 @@ class PlayerView(
 
     @Composable
     private fun DrawActions(modifier: Modifier) {
+        val useSeekButtons = config.actionsMode == ActionsMode.SeekButtons
         Row(
             modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = if (useSeekButtons) Alignment.Top else Alignment.CenterVertically,
         ) {
             val state = component.state.collectAsState()
 
             Spacer(modifier = Modifier.weight(1f))
-            if (config.actionsMode == ActionsMode.SeekButtons) {
+            if (useSeekButtons) {
                 SeekIconButton(
-                    modifier = Modifier.align(Alignment.CenterVertically),
                     onClick = component::seekBack1Minute,
                     imageVector = Icons.Filled.FastRewind,
                     durationCaption = config.seek1MinuteDurationCaption,
                     contentDescription = config.seekBack1MinuteLabel,
                 )
                 SeekIconButton(
-                    modifier = Modifier.align(Alignment.CenterVertically),
                     onClick = component::seekBack15Seconds,
                     imageVector = Icons.Filled.FastRewind,
                     durationCaption = config.seek15SecondsDurationCaption,
@@ -251,7 +253,25 @@ class PlayerView(
                 }
             }
 
-            if (state.value == BasePlayerComponent.State.Playing) {
+            if (useSeekButtons) {
+                if (state.value == BasePlayerComponent.State.Playing) {
+                    PlayPauseActionSlot(onClick = component::pause) {
+                        Icon(
+                            contentDescription = null,
+                            imageVector = Icons.Default.Pause,
+                            modifier = Modifier.size(56.dp),
+                        )
+                    }
+                } else {
+                    PlayPauseActionSlot(onClick = component::play) {
+                        Icon(
+                            contentDescription = null,
+                            imageVector = Icons.Default.PlayArrow,
+                            modifier = Modifier.size(56.dp),
+                        )
+                    }
+                }
+            } else if (state.value == BasePlayerComponent.State.Playing) {
                 IconButton(
                     modifier = Modifier.align(Alignment.CenterVertically),
                     onClick = component::pause
@@ -275,16 +295,14 @@ class PlayerView(
                 }
             }
 
-            if (config.actionsMode == ActionsMode.SeekButtons) {
+            if (useSeekButtons) {
                 SeekIconButton(
-                    modifier = Modifier.align(Alignment.CenterVertically),
                     onClick = component::seekForward15Seconds,
                     imageVector = Icons.Filled.FastForward,
                     durationCaption = config.seek15SecondsDurationCaption,
                     contentDescription = config.seekForward15SecondsLabel,
                 )
                 SeekIconButton(
-                    modifier = Modifier.align(Alignment.CenterVertically),
                     onClick = component::seekForward1Minute,
                     imageVector = Icons.Filled.FastForward,
                     durationCaption = config.seek1MinuteDurationCaption,
@@ -325,6 +343,54 @@ class PlayerView(
     }
 
     @Composable
+    private fun seekCaptionReservedHeight(): Dp {
+        val style = MaterialTheme.typography.labelMedium
+        return with(LocalDensity.current) {
+            style.lineHeight.toDp()
+        }
+    }
+
+    @Composable
+    private fun PlayPauseActionSlot(
+        onClick: () -> Unit,
+        icon: @Composable () -> Unit,
+    ) {
+        ActionIconSlot(
+            icon = {
+                IconButton(
+                    modifier = Modifier.size(ActionIconSlotHeight),
+                    onClick = onClick,
+                ) {
+                    icon()
+                }
+            },
+            caption = {
+                Spacer(modifier = Modifier.height(seekCaptionReservedHeight()))
+            },
+        )
+    }
+
+    @Composable
+    private fun ActionIconSlot(
+        modifier: Modifier = Modifier,
+        icon: @Composable () -> Unit,
+        caption: @Composable () -> Unit,
+    ) {
+        Column(
+            modifier = modifier.padding(horizontal = 4.dp, vertical = 6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(
+                modifier = Modifier.height(ActionIconSlotHeight),
+                contentAlignment = Alignment.TopCenter,
+            ) {
+                icon()
+            }
+            caption()
+        }
+    }
+
+    @Composable
     private fun SeekIconButton(
         onClick: () -> Unit,
         imageVector: ImageVector,
@@ -333,29 +399,34 @@ class PlayerView(
         modifier: Modifier = Modifier,
     ) {
         val captionColor = MaterialTheme.colorScheme.onSurface
-        Column(
+        ActionIconSlot(
             modifier = modifier
                 .semantics {
                     role = Role.Button
                     this.contentDescription = contentDescription
                 }
-                .clickable(onClick = onClick)
-                .padding(horizontal = 4.dp, vertical = 6.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Icon(
-                imageVector = imageVector,
-                contentDescription = null,
-                modifier = Modifier.size(36.dp),
-                tint = captionColor,
-            )
-            Text(
-                text = durationCaption,
-                style = MaterialTheme.typography.labelMedium,
-                color = captionColor,
-                maxLines = 1,
-            )
-        }
+                .clickable(onClick = onClick),
+            icon = {
+                Icon(
+                    imageVector = imageVector,
+                    contentDescription = null,
+                    modifier = Modifier.size(36.dp),
+                    tint = captionColor,
+                )
+            },
+            caption = {
+                Text(
+                    text = durationCaption,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = captionColor,
+                    maxLines = 1,
+                )
+            },
+        )
+    }
+
+    private companion object {
+        private val ActionIconSlotHeight = 56.dp
     }
 
     data class Config(
