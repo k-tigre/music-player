@@ -92,6 +92,26 @@ internal class AudiobookPlaybackControllerImpl(
         }
     }
 
+    override fun playBookChapter(bookId: Book.Id, chapterId: Chapter.Id) {
+        Log.d(TAG) { "playBookChapter: bookId=$bookId chapterId=$chapterId" }
+        scope.launch {
+            val book = catalog.getBook(bookId) ?: return@launch
+            val chapterList = catalog.getChapters(bookId)
+            val chapter = chapterList.firstOrNull { it.id == chapterId } ?: return@launch
+            dismissBookFinishedBanner()
+            chapters.value = chapterList
+            currentBook.value = book
+            loadCanonicalListenedMs = null
+            mayPersistBelowCanonical = false
+            storage.saveLastPlayedBook(book.id)
+            setChapter(chapter, 0L)
+            isPlaying.value = true
+            applyRewindBeforePlaybackResume()
+            player.resume()
+            saveCurrentPosition()
+        }
+    }
+
     private suspend fun loadBookInternal(book: Book, autoPlay: Boolean) {
         val chapterList = catalog.getChapters(book.id)
         if (chapterList.isEmpty()) {

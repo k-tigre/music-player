@@ -1,6 +1,7 @@
 package by.tigre.music.player.core.presentation.backgound_player.presentation.component
 
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
+import by.tigre.music.player.core.presentation.backgound_player.car.CarMediaLibrary
 import by.tigre.music.player.core.presentation.backgound_player.di.PlayerBackgroundDependency
 import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
 import kotlinx.coroutines.CoroutineScope
@@ -13,6 +14,7 @@ interface BackgroundComponent : CoroutineScope {
 
     val currentItem: Flow<PlayerItem?>
     val carSessionMediaType: Int
+    val carMediaLibrary: CarMediaLibrary
 
     fun getPlayer(): PlaybackPlayer
 
@@ -30,6 +32,7 @@ interface BackgroundComponent : CoroutineScope {
         private val playbackController = dependency.basePlaybackController
 
         override val carSessionMediaType: Int = dependency.carSessionMediaType
+        override val carMediaLibrary: CarMediaLibrary = dependency.carMediaLibrary
 
         override val currentItem: Flow<PlayerItem?> = playbackController.currentItem
 

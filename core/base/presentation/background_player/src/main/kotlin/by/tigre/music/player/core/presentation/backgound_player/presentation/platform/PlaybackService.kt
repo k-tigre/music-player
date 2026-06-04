@@ -3,8 +3,8 @@ package by.tigre.music.player.core.presentation.backgound_player.presentation.pl
 import android.content.Intent
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
-import androidx.media3.session.MediaSessionService
 import by.tigre.music.player.core.presentation.backgound_player.di.PlayerBackgroundDependency
 import by.tigre.music.player.core.presentation.backgound_player.presentation.component.BackgroundComponent
 import by.tigre.music.player.core.presentation.backgound_player.presentation.view.BackgroundPlayerView
@@ -12,7 +12,7 @@ import by.tigre.logger.Log
 import kotlinx.coroutines.cancel
 
 @OptIn(UnstableApi::class)
-abstract class PlaybackService : MediaSessionService() {
+abstract class PlaybackService : MediaLibraryService() {
 
     private val component: BackgroundComponent by lazy {
         BackgroundComponent.Impl(dependency = onProviderDependency())
@@ -37,7 +37,8 @@ abstract class PlaybackService : MediaSessionService() {
         super.onUpdateNotification(session, session.player.playWhenReady) // hack for "stop playing in background"
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = view.onGetSession()
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibraryService.MediaLibrarySession? =
+        view.onGetSession()
 
     override fun onDestroy() {
         super.onDestroy()

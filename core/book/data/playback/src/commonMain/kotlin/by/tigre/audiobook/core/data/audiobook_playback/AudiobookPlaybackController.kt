@@ -15,6 +15,7 @@ interface AudiobookPlaybackController {
 
     fun loadBook(book: Book)
     fun playBook(book: Book)
+    fun playBookChapter(bookId: Book.Id, chapterId: Chapter.Id)
     fun playNextChapter()
     fun playPrevChapter()
     fun pause()

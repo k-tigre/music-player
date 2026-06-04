@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="notification_channel_name">Воспроизведение</string>
+    <string name="car_tab_artists">Исполнители</string>
+    <string name="car_tab_queue">Очередь</string>
+    <string name="car_tab_books">Книги</string>
 </resources>

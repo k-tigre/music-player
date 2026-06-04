@@ -3,7 +3,6 @@ package by.tigre.music.player.core.presentation.backgound_player.presentation.vi
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.Service
 import android.content.Intent
 import android.net.Uri
 import androidx.annotation.OptIn
@@ -12,8 +11,10 @@ import androidx.media3.common.Player
 import by.tigre.music.player.core.data.playback.AndroidPlaybackPlayer
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.DefaultMediaNotificationProvider
+import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
+import by.tigre.music.player.core.presentation.backgound_player.car.CarMediaLibrarySessionCallback
 import by.tigre.background_player.R
 import by.tigre.music.player.core.presentation.backgound_player.presentation.component.BackgroundComponent
 import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
@@ -27,14 +28,14 @@ import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
 class BackgroundPlayerView(
-    private val service: Service,
+    private val service: MediaLibraryService,
     private val component: BackgroundComponent,
     private val onIntentProvider: () -> Intent
 ) {
     private val scope = CoroutineScope(Dispatchers.Main)
     private val notificationManager = service.getNotificationManager()
 
-    private var mediaSession: MediaSession? = null
+    private var mediaSession: MediaLibraryService.MediaLibrarySession? = null
 
     init {
         val nc = NotificationChannel(
@@ -60,7 +61,12 @@ class BackgroundPlayerView(
             (component.getPlayer() as AndroidPlaybackPlayer).player,
             currentPlayerItem
         )
-        mediaSession = MediaSession.Builder(service, player)
+        val callback = CarMediaLibrarySessionCallback(
+            scope = scope,
+            carMediaLibrary = component.carMediaLibrary,
+            carSessionMediaType = component.carSessionMediaType,
+        )
+        mediaSession = MediaLibraryService.MediaLibrarySession.Builder(service, player, callback)
             .setSessionActivity(
                 PendingIntent.getActivity(
                     service,
@@ -78,7 +84,7 @@ class BackgroundPlayerView(
         mediaSession = null
     }
 
-    fun onGetSession(): MediaSession? = mediaSession
+    fun onGetSession(): MediaLibraryService.MediaLibrarySession? = mediaSession
     fun mediaNotificationProvider(): MediaNotification.Provider {
         return mediaNotificationProvider
     }

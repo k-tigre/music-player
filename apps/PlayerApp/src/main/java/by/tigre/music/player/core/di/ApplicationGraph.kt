@@ -9,6 +9,8 @@ import by.tigre.music.player.core.data.playback.di.AndroidBasePlaybackModule
 import by.tigre.music.player.core.data.playback.di.PlaybackModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.AndroidPlaybackQueueModule
 import by.tigre.music.player.core.data.storage.preferences.di.AndroidPreferencesModule
+import by.tigre.music.player.car.MusicCarMediaLibrary
+import by.tigre.music.player.core.presentation.backgound_player.car.CarMediaLibrary
 import by.tigre.music.player.core.presentation.backgound_player.di.PlayerBackgroundDependency
 import by.tigre.music.player.core.presentation.catalog.component.BasePlaybackController
 import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
@@ -19,8 +21,9 @@ import by.tigre.music.player.tools.coroutines.CoroutineModule
 import kotlinx.coroutines.flow.map
 
 class ApplicationGraph(
+    private val appContext: Context,
     playbackModule: PlaybackModule,
-    catalogModule: CatalogModule
+    catalogModule: CatalogModule,
 ) : CatalogDependency,
     PlayerDependency,
     PlayerBackgroundDependency,
@@ -29,6 +32,14 @@ class ApplicationGraph(
     CatalogModule by catalogModule {
 
     override val appPlaybackVolume = playbackModule.appPlaybackVolume
+
+    override val carMediaLibrary: CarMediaLibrary by lazy {
+        MusicCarMediaLibrary(
+            context = appContext,
+            catalog = catalogSource,
+            playback = playbackController,
+        )
+    }
 
     override val basePlaybackController: BasePlaybackController by lazy {
         val controller = playbackController
@@ -69,7 +80,7 @@ class ApplicationGraph(
             val playbackModule =
                 PlaybackModule.Impl(coroutineModule, playbackQueueModule, catalogModule, basePlaybackModule)
 
-            return ApplicationGraph(playbackModule, catalogModule)
+            return ApplicationGraph(context.applicationContext, playbackModule, catalogModule)
         }
     }
 }
