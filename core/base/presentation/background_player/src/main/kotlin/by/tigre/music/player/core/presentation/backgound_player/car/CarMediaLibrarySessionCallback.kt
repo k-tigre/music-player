@@ -16,7 +16,9 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(UnstableApi::class)
 internal class CarMediaLibrarySessionCallback(
@@ -77,7 +79,9 @@ internal class CarMediaLibrarySessionCallback(
         val future = SettableFuture.create<LibraryResult<MediaItem>>()
         scope.launch {
             try {
-                val item = carMediaLibrary.getBrowseItem(mediaId)
+                val item = withContext(Dispatchers.IO) {
+                    carMediaLibrary.getBrowseItem(mediaId)
+                }
                 if (item != null) {
                     future.set(
                         LibraryResult.ofItem(
@@ -130,7 +134,9 @@ internal class CarMediaLibrarySessionCallback(
         val future = SettableFuture.create<LibraryResult<ImmutableList<MediaItem>>>()
         scope.launch {
             try {
-                val browseItems = carMediaLibrary.getChildren(parentId)
+                val browseItems = withContext(Dispatchers.IO) {
+                    carMediaLibrary.getChildren(parentId)
+                }
                 val mediaItems = browseItems.map { CarMediaItemFactory.fromBrowseItem(it, carSessionMediaType) }
                 future.set(LibraryResult.ofItemList(ImmutableList.copyOf(mediaItems), null))
             } catch (e: Exception) {
