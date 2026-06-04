@@ -8,7 +8,10 @@ import by.tigre.audiobook.core.data.audiobook.di.AudiobookCatalogModule
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
 import by.tigre.audiobook.core.data.audiobook_playback.di.AudiobookPlaybackModule
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.di.AndroidAudiobookCatalogStorageModule
+import by.tigre.audiobook.car.AudiobookCarMediaLibrary
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogDependency
+import by.tigre.background_player.R
+import by.tigre.music.player.core.presentation.backgound_player.car.CarMediaLibrary
 import by.tigre.audiobook.nighttimer.NightTimerController
 import by.tigre.audiobook.nighttimer.createNightTimerController
 import by.tigre.music.player.core.data.catalog.di.AndroidCatalogModule
@@ -28,6 +31,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 
 class ApplicationGraph(
+    private val appContext: Context,
+    private val coroutineScope: kotlinx.coroutines.CoroutineScope,
     playbackModule: PlaybackModule,
     catalogModule: CatalogModule,
     audiobookCatalogModule: AudiobookCatalogModule,
@@ -46,6 +51,15 @@ class ApplicationGraph(
     override val appPlaybackVolume = playbackModule.appPlaybackVolume
 
     override val carSessionMediaType: Int = MediaMetadata.MEDIA_TYPE_AUDIO_BOOK
+
+    override val carMediaLibrary: CarMediaLibrary by lazy {
+        AudiobookCarMediaLibrary(
+            scope = coroutineScope,
+            catalog = audiobookCatalogSource,
+            playback = audiobookPlaybackController,
+            booksTabTitle = appContext.getString(R.string.car_tab_books),
+        )
+    }
 
     override val basePlaybackController: BasePlaybackController by lazy {
         val controller: AudiobookPlaybackController = audiobookPlaybackController
@@ -110,11 +124,13 @@ class ApplicationGraph(
             )
 
             return ApplicationGraph(
-                playbackModule,
-                catalogModule,
-                audiobookCatalogModule,
-                audiobookPlaybackModule,
-                nightTimerController,
+                appContext = context.applicationContext,
+                coroutineScope = coroutineModule.scope,
+                playbackModule = playbackModule,
+                catalogModule = catalogModule,
+                audiobookCatalogModule = audiobookCatalogModule,
+                audiobookPlaybackModule = audiobookPlaybackModule,
+                nightTimerController = nightTimerController,
             )
         }
     }

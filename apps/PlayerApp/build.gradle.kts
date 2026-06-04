@@ -111,6 +111,7 @@ dependencies {
     implementation(Project.Core.Music.Data.Playback)
     implementation(Project.Core.Music.Data.Catalog)
     implementation(Project.Core.Music.Entity.Catalog)
+    implementation(Project.Core.Music.Entity.Playback)
     implementation(Library.AccompanistPermission)
     implementation(FirebaseLibrary.FirebaseAnalytics, FirebaseLibrary.FirebaseCrashLytics)
 
