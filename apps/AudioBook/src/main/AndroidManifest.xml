@@ -17,6 +17,7 @@
 
     <application
         android:name=".App"
+        android:appCategory="audio"
         android:icon="@mipmap/ic_launcher"
         android:label="${appName}"
         android:roundIcon="@mipmap/ic_launcher"
@@ -44,7 +45,8 @@
             android:foregroundServiceType="mediaPlayback"
             android:stopWithTask="false">
             <intent-filter>
-                <action android:name="androidx.media3.session.MediaSessionService" />
+                <action android:name="androidx.media3.session.MediaLibraryService" />
+                <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
 
