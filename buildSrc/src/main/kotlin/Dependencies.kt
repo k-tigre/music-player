@@ -293,7 +293,12 @@ sealed class Project(id: String) {
 
         object Entity : Tools("entity")
         object Coroutines : Tools("coroutines")
-        object Analytics : Tools("analytics")
+        sealed class Analytics(id: String) : Tools("analytics$id") {
+            object Common : Analytics(":common")
+            object Music : Analytics(":music")
+            object Book : Analytics(":book")
+            companion object : Analytics("")
+        }
 
         sealed class Platform(id: String) : Tools("platform:$id") {
             object Utils : Platform("utils")

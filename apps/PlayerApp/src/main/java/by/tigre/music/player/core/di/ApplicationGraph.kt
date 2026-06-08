@@ -17,7 +17,7 @@ import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueDependency
-import by.tigre.music.player.tools.analytics.AnalyticsModule
+import by.tigre.music.player.tools.analytics.music.MusicAnalyticsModule
 import by.tigre.music.player.tools.coroutines.CoroutineModule
 import kotlinx.coroutines.flow.map
 
@@ -25,12 +25,12 @@ class ApplicationGraph(
     private val appContext: Context,
     playbackModule: PlaybackModule,
     catalogModule: CatalogModule,
-    analyticsModule: AnalyticsModule,
+    analyticsModule: MusicAnalyticsModule,
 ) : CatalogDependency,
     PlayerDependency,
     PlayerBackgroundDependency,
     CurrentQueueDependency,
-    AnalyticsModule by analyticsModule,
+    MusicAnalyticsModule by analyticsModule,
     PlaybackModule by playbackModule,
     CatalogModule by catalogModule {
 
@@ -75,7 +75,7 @@ class ApplicationGraph(
     companion object {
         fun create(
             context: Context,
-            analyticsModule: AnalyticsModule,
+            analyticsModule: MusicAnalyticsModule,
         ): ApplicationGraph {
             val preferencesModule = AndroidPreferencesModule(context)
             val catalogModule = AndroidCatalogModule(context, preferencesModule.preferences)

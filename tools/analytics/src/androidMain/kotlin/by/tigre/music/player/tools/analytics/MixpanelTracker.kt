@@ -1,6 +1,10 @@
 package by.tigre.music.player.tools.analytics
 
 import android.content.Context
+import by.tigre.music.player.tools.analytics.common.AnalyticsAction
+import by.tigre.music.player.tools.analytics.common.AnalyticsScreen
+import by.tigre.music.player.tools.analytics.common.Tracker
+import by.tigre.music.player.tools.analytics.common.WithPayload
 import by.tigre.music.player.tools.coroutines.CoreScope
 import by.tigre.music.player.tools.coroutines.extensions.tickerFlow
 import com.mixpanel.android.mpmetrics.MixpanelAPI
@@ -22,15 +26,15 @@ class MixpanelTracker(
         }
     }
 
-    override fun trackEvent(event: Event.Action) {
-        mixpanel.trackMap("ACTION:${event.name}", (event as? Event.WithPayload)?.payload)
+    override fun trackAction(event: AnalyticsAction) {
+        mixpanel.trackMap("ACTION:${event.name}", (event as? WithPayload)?.payload)
     }
 
-    override fun trackScreen(previous: Event.Screen?, current: Event.Screen) {
+    override fun trackScreen(previous: AnalyticsScreen?, current: AnalyticsScreen) {
         mixpanel.trackMap(
             "SCREEN:${current.name}",
             mapOf("prev_screen" to previous?.name).run {
-                if (current is Event.WithPayload) this + current.payload else this
+                if (current is WithPayload) this + current.payload else this
             }
         )
     }

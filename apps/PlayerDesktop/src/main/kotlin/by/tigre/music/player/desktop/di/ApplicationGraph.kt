@@ -11,8 +11,9 @@ import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueDependency
-import by.tigre.music.player.tools.analytics.AnalyticsModule
 import by.tigre.music.player.tools.analytics.LogTracker
+import by.tigre.music.player.tools.analytics.music.MusicAnalyticsModuleImpl
+import by.tigre.music.player.tools.analytics.music.MusicAnalyticsModule
 import by.tigre.music.player.tools.coroutines.CoroutineModule
 import kotlinx.coroutines.flow.map
 import java.io.File
@@ -20,11 +21,11 @@ import java.io.File
 class DesktopApplicationGraph(
     playbackModule: PlaybackModule,
     private val desktopCatalogModule: DesktopCatalogModule,
-    analyticsModule: AnalyticsModule,
+    analyticsModule: MusicAnalyticsModule,
 ) : CatalogDependency,
     PlayerDependency,
     CurrentQueueDependency,
-    AnalyticsModule by analyticsModule,
+    MusicAnalyticsModule by analyticsModule,
     PlaybackModule by playbackModule,
     CatalogModule by desktopCatalogModule {
 
@@ -67,7 +68,7 @@ class DesktopApplicationGraph(
             val basePlaybackModule = DesktopBasePlaybackModule(preferencesModule.preferences)
             val playbackModule =
                 PlaybackModule.Impl(coroutineModule, playbackQueueModule, desktopCatalogModule, basePlaybackModule)
-            val analyticsModule = AnalyticsModule.Impl(
+            val analyticsModule = MusicAnalyticsModuleImpl.create(
                 tracker = LogTracker(),
                 coroutineModule = coroutineModule,
             )

@@ -28,7 +28,7 @@ android {
         buildConfigField(
             "String",
             "MIXPANEL_TOKEN",
-            "\"${System.getenv("MUSIC_PLAYER_MIXPANEL_TOKEN") ?: System.getenv("MIXPANEL_TOKEN") ?: ""}\""
+            "\"${System.getenv("MUSIC_PLAYER_MIXPANEL_TOKEN") ?: ""}\""
         )
     }
 
@@ -109,6 +109,7 @@ dependencies {
 
     implementation(Project.Tools.Coroutines)
     implementation(Project.Tools.Analytics)
+    implementation(Project.Tools.Analytics.Music)
     implementation(Project.Core.Music.Presentation.Catalog)
     implementation(Project.Core.Base.Presentation.Player)
     implementation(Project.Core.Music.Presentation.PlaylistCurrentQueue)

@@ -12,9 +12,11 @@ import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.appChildContext
 import by.tigre.music.player.presentation.base.appChildStack
 import by.tigre.music.player.presentation.base.trackScreens
-import by.tigre.music.player.tools.analytics.Event
-import by.tigre.music.player.tools.analytics.EventAnalytics
-import by.tigre.music.player.tools.analytics.ScreenAnalytics
+import by.tigre.music.player.tools.analytics.book.AudiobookEvents
+import by.tigre.music.player.tools.analytics.book.BookEventAnalytics
+import by.tigre.music.player.tools.analytics.book.BookScreenAnalytics
+import by.tigre.music.player.tools.analytics.common.AnalyticsScreen
+import by.tigre.music.player.tools.analytics.common.CommonEvents
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
@@ -55,8 +57,8 @@ interface Root {
         context: BaseComponentContext,
         playerComponentProvider: PlayerComponentProvider,
         audiobookCatalogComponentProvider: AudiobookCatalogComponentProvider,
-        screenAnalytics: ScreenAnalytics,
-        private val eventAnalytics: EventAnalytics,
+        screenAnalytics: BookScreenAnalytics,
+        private val eventAnalytics: BookEventAnalytics,
     ) : Root, BaseComponentContext by context {
 
         private val mainNavigation = StackNavigation<MainConfig>()
@@ -67,12 +69,12 @@ interface Root {
             }
 
             override fun playerView() {
-                eventAnalytics.trackEvent(Event.Action.UI.Button.OpenPlayer)
+                eventAnalytics.trackEvent(CommonEvents.Action.NavOpenPlayer)
                 mainNavigation.pushToFront(MainConfig.Player)
             }
 
             override fun showEqualizer() {
-                eventAnalytics.trackEvent(Event.Action.UI.Button.OpenEqualizer)
+                eventAnalytics.trackEvent(CommonEvents.Action.NavOpenEqualizer)
                 mainNavigation.push(MainConfig.Equalizer)
             }
 
@@ -129,19 +131,19 @@ interface Root {
             }
 
         override fun onShowCatalog() {
-            eventAnalytics.trackEvent(Event.Action.UI.Button.OpenCatalog)
+            eventAnalytics.trackEvent(AudiobookEvents.Action.NavOpenCatalog)
             mainNavigation.pushToFront(MainConfig.Main)
             audiobookCatalogComponent.focusCurrentBookInLibrary()
         }
 
         override fun onOpenFolderSettings() {
-            eventAnalytics.trackEvent(Event.Action.UI.Button.OpenFolderSettings)
+            eventAnalytics.trackEvent(AudiobookEvents.Action.CatalogOpenFolderSettings)
             mainNavigation.pushToFront(MainConfig.Main)
             audiobookCatalogComponent.openFolderSelection()
         }
 
         override fun onOpenNightTimerSettings() {
-            eventAnalytics.trackEvent(Event.Action.UI.Button.OpenNightTimer)
+            eventAnalytics.trackEvent(AudiobookEvents.Action.NavOpenNightTimer)
             mainNavigation.push(MainConfig.NightTimer)
         }
 
@@ -151,12 +153,20 @@ interface Root {
 
         init {
             launch {
-                mainComponent.trackScreens<MainConfig>(screenAnalytics, "MainConfig") {
+                mainComponent.trackScreens<MainConfig, AnalyticsScreen>(
+                    trackScreen = { screen ->
+                        when (screen) {
+                            is CommonEvents.Screen -> screenAnalytics.trackScreen(screen)
+                            is AudiobookEvents.Screen -> screenAnalytics.trackScreen(screen)
+                        }
+                    },
+                    name = "MainConfig",
+                ) {
                     when (it) {
-                        MainConfig.Main -> Event.Screen.AudiobookCatalog
-                        MainConfig.Player -> Event.Screen.Player
-                        MainConfig.Equalizer -> Event.Screen.Equalizer
-                        MainConfig.NightTimer -> Event.Screen.NightTimerSettings
+                        MainConfig.Main -> AudiobookEvents.Screen.Catalog
+                        MainConfig.NightTimer -> AudiobookEvents.Screen.NightTimerSettings
+                        MainConfig.Player -> CommonEvents.Screen.Player
+                        MainConfig.Equalizer -> CommonEvents.Screen.Equalizer
                     }
                 }
             }

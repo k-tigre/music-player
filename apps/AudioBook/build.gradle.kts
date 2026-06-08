@@ -27,7 +27,7 @@ android {
         buildConfigField(
             "String",
             "MIXPANEL_TOKEN",
-            "\"${System.getenv("AUDIO_BOOK_MIXPANEL_TOKEN") ?: System.getenv("MIXPANEL_TOKEN") ?: ""}\""
+            "\"${System.getenv("AUDIO_BOOK_MIXPANEL_TOKEN") ?: ""}\""
         )
     }
 
@@ -108,6 +108,7 @@ dependencies {
 
     implementation(Project.Tools.Coroutines)
     implementation(Project.Tools.Analytics)
+    implementation(Project.Tools.Analytics.Book)
     implementation(Project.Core.Music.Presentation.Catalog)
     implementation(Project.Core.Book.Presentation.Catalog)
     implementation(Project.Core.Book.Data.Catalog)

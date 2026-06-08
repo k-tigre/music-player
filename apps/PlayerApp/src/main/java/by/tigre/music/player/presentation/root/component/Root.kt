@@ -16,9 +16,10 @@ import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.appChildContext
 import by.tigre.music.player.presentation.base.appChildStack
 import by.tigre.music.player.presentation.base.trackScreens
-import by.tigre.music.player.tools.analytics.Event
-import by.tigre.music.player.tools.analytics.EventAnalytics
-import by.tigre.music.player.tools.analytics.ScreenAnalytics
+import by.tigre.music.player.tools.analytics.common.CommonEvents
+import by.tigre.music.player.tools.analytics.music.MusicEvents
+import by.tigre.music.player.tools.analytics.music.MusicEventAnalytics
+import by.tigre.music.player.tools.analytics.music.MusicScreenAnalytics
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.bringToFront
@@ -57,8 +58,8 @@ interface Root {
         catalogComponentProvider: CatalogComponentProvider,
         playerComponentProvider: PlayerComponentProvider,
         currentQueueComponent: CurrentQueueComponentProvider,
-        screenAnalytics: ScreenAnalytics,
-        private val eventAnalytics: EventAnalytics,
+        screenAnalytics: MusicScreenAnalytics,
+        private val eventAnalytics: MusicEventAnalytics,
     ) : Root, BaseComponentContext by context {
 
         private val pagesNavigation = StackNavigation<PagesConfig>()
@@ -66,17 +67,17 @@ interface Root {
 
         private val playerNavigator = object : PlayerNavigator {
             override fun showQueue() {
-                eventAnalytics.trackEvent(Event.Action.UI.Button.OpenQueue)
+                eventAnalytics.trackEvent(MusicEvents.Action.NavOpenQueue)
                 mainNavigation.pop()
             }
 
             override fun playerView() {
-                eventAnalytics.trackEvent(Event.Action.UI.Button.OpenPlayer)
+                eventAnalytics.trackEvent(CommonEvents.Action.NavOpenPlayer)
                 mainNavigation.push(MainConfig.Player)
             }
 
             override fun showEqualizer() {
-                eventAnalytics.trackEvent(Event.Action.UI.Button.OpenEqualizer)
+                eventAnalytics.trackEvent(CommonEvents.Action.NavOpenEqualizer)
                 mainNavigation.push(MainConfig.Equalizer)
             }
 
@@ -159,7 +160,7 @@ interface Root {
             when (index) {
                 0 -> pagesNavigation.bringToFront(PagesConfig.Queue)
                 1 -> {
-                    eventAnalytics.trackEvent(Event.Action.UI.Button.OpenCatalog)
+                    eventAnalytics.trackEvent(MusicEvents.Action.NavOpenCatalog)
                     pagesNavigation.bringToFront(PagesConfig.Catalog)
                 }
             }
@@ -167,19 +168,25 @@ interface Root {
 
         init {
             launch {
-                pages.trackScreens<PagesConfig>(screenAnalytics, "PagesConfig") {
+                pages.trackScreens<PagesConfig, MusicEvents.Screen>(
+                    trackScreen = screenAnalytics::trackScreen,
+                    name = "PagesConfig",
+                ) {
                     when (it) {
-                        PagesConfig.Queue -> Event.Screen.Queue
-                        PagesConfig.Catalog -> Event.Screen.CatalogTab
+                        PagesConfig.Queue -> MusicEvents.Screen.Queue
+                        PagesConfig.Catalog -> MusicEvents.Screen.CatalogTab
                     }
                 }
             }
             launch {
-                mainComponent.trackScreens<MainConfig>(screenAnalytics, "MainConfig") {
+                mainComponent.trackScreens<MainConfig, CommonEvents.Screen>(
+                    trackScreen = screenAnalytics::trackScreen,
+                    name = "MainConfig",
+                ) {
                     when (it) {
-                        MainConfig.Main -> Event.Screen.RootOverlay
-                        MainConfig.Player -> Event.Screen.Player
-                        MainConfig.Equalizer -> Event.Screen.Equalizer
+                        MainConfig.Main -> CommonEvents.Screen.RootOverlay
+                        MainConfig.Player -> CommonEvents.Screen.Player
+                        MainConfig.Equalizer -> CommonEvents.Screen.Equalizer
                     }
                 }
             }

@@ -7,8 +7,8 @@ import by.tigre.music.player.core.presentation.catalog.component.BasePlayerCompo
 import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent.State
 import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
 import by.tigre.music.player.presentation.base.BaseComponentContext
-import by.tigre.music.player.tools.analytics.Event
-import by.tigre.music.player.tools.analytics.EventAnalytics
+import by.tigre.music.player.tools.analytics.common.CommonEventAnalytics
+import by.tigre.music.player.tools.analytics.common.CommonEvents
 import by.tigre.music.player.tools.coroutines.extensions.throttleFirst
 import by.tigre.music.player.tools.coroutines.extensions.withLatestFrom
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -57,7 +57,7 @@ internal class BasePlayerComponentImpl(
     dependency: PlayerDependency,
 ) : BasePlayerComponent, BaseComponentContext by context {
     private val basePlaybackController = dependency.basePlaybackController
-    private val eventAnalytics: EventAnalytics = dependency.eventAnalytics
+    private val eventAnalytics: CommonEventAnalytics = dependency.eventAnalytics
 
     override val playbackEqualizer: PlaybackEqualizer = dependency.playbackEqualizer
 
@@ -136,47 +136,47 @@ internal class BasePlayerComponentImpl(
     }
 
     override fun pause() {
-        eventAnalytics.trackEvent(Event.Action.UI.Button.Pause)
+        eventAnalytics.trackEvent(CommonEvents.Action.PlayerPause)
         basePlaybackController.pause()
     }
 
     override fun play() {
-        eventAnalytics.trackEvent(Event.Action.UI.Button.Play)
+        eventAnalytics.trackEvent(CommonEvents.Action.PlayerPlay)
         basePlaybackController.resume()
     }
 
     override fun next() {
-        eventAnalytics.trackEvent(Event.Action.UI.Button.Next)
+        eventAnalytics.trackEvent(CommonEvents.Action.PlayerNext)
         basePlaybackController.playNext()
     }
 
     override fun prev() {
-        eventAnalytics.trackEvent(Event.Action.UI.Button.Prev)
+        eventAnalytics.trackEvent(CommonEvents.Action.PlayerPrev)
         basePlaybackController.playPrev()
     }
 
     override fun seekBack15Seconds() {
-        eventAnalytics.trackEvent(Event.Action.UI.Button.SeekBack15)
+        eventAnalytics.trackEvent(CommonEvents.Action.PlayerSeekBack15)
         seekBy(-15_000L)
     }
 
     override fun seekBack1Minute() {
-        eventAnalytics.trackEvent(Event.Action.UI.Button.SeekBack60)
+        eventAnalytics.trackEvent(CommonEvents.Action.PlayerSeekBack60)
         seekBy(-60_000L)
     }
 
     override fun seekForward15Seconds() {
-        eventAnalytics.trackEvent(Event.Action.UI.Button.SeekForward15)
+        eventAnalytics.trackEvent(CommonEvents.Action.PlayerSeekForward15)
         seekBy(15_000L)
     }
 
     override fun seekForward1Minute() {
-        eventAnalytics.trackEvent(Event.Action.UI.Button.SeekForward60)
+        eventAnalytics.trackEvent(CommonEvents.Action.PlayerSeekForward60)
         seekBy(60_000L)
     }
 
     override fun switchMode(isNormal: Boolean) {
-        eventAnalytics.trackEvent(Event.Action.UI.Button.ShuffleToggle)
+        eventAnalytics.trackEvent(CommonEvents.Action.PlayerShuffleToggle)
         basePlaybackController.setOrderMode(isNormal)
     }
 

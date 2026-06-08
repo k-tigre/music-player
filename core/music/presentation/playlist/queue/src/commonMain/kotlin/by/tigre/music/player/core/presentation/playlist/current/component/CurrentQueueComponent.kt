@@ -5,8 +5,8 @@ import by.tigre.music.player.core.entiry.playback.SongInQueueItem
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueDependency
 import by.tigre.music.player.core.presentation.playlist.current.navigation.QueueNavigator
 import by.tigre.music.player.presentation.base.BaseComponentContext
-import by.tigre.music.player.tools.analytics.Event
-import by.tigre.music.player.tools.analytics.EventAnalytics
+import by.tigre.music.player.tools.analytics.music.MusicEventAnalytics
+import by.tigre.music.player.tools.analytics.music.MusicEvents
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.presentation.base.ScreenContentState.Content
 import by.tigre.music.player.presentation.base.ScreenContentStateDelegate
@@ -29,7 +29,7 @@ interface CurrentQueueComponent {
     ) : CurrentQueueComponent, BaseComponentContext by context {
 
         private val playbackController: PlaybackController = dependency.playbackController
-        private val eventAnalytics: EventAnalytics = dependency.eventAnalytics
+        private val eventAnalytics: MusicEventAnalytics = dependency.eventAnalytics
 
         private val stateDelegate = ScreenContentStateDelegate(
             scope = this,
@@ -46,22 +46,22 @@ interface CurrentQueueComponent {
         }
 
         override fun onSongClicked(song: SongInQueueItem) {
-            eventAnalytics.trackEvent(Event.Action.UI.Button.QueueSongSelected)
+            eventAnalytics.trackEvent(MusicEvents.Action.QueueSongSelected)
             playbackController.playSongInQueue(song.id)
         }
 
         override fun onAddToQueueClicked() {
-            eventAnalytics.trackEvent(Event.Action.UI.Button.OpenCatalog)
+            eventAnalytics.trackEvent(MusicEvents.Action.NavOpenCatalog)
             navigator.onOpenCatalog()
         }
 
         override fun onOpenArtistClicked(song: SongInQueueItem) {
-            eventAnalytics.trackEvent(Event.Action.UI.Button.OpenArtistFromQueue)
+            eventAnalytics.trackEvent(MusicEvents.Action.QueueOpenArtist)
             navigator.onOpenArtist(song.song.artistId)
         }
 
         override fun onOpenAlbumClicked(song: SongInQueueItem) {
-            eventAnalytics.trackEvent(Event.Action.UI.Button.OpenAlbumFromQueue)
+            eventAnalytics.trackEvent(MusicEvents.Action.QueueOpenAlbum)
             navigator.onOpenAlbum(song.song.artistId, song.song.albumId)
         }
     }
