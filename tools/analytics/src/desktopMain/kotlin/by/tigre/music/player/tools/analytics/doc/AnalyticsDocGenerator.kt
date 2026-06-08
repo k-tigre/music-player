@@ -40,7 +40,7 @@ private object AnalyticsDocParser {
         var pendingScopes = emptyList<String>()
         var pendingDoc = ""
 
-        lines.forEach { line ->
+        lines.forEachIndexed { index, line ->
             scopeRegex.find(line)?.let { match ->
                 pendingScopes = match.groupValues[1]
                     .split(',')
@@ -51,16 +51,22 @@ private object AnalyticsDocParser {
                 pendingDoc = match.groupValues[1]
             }
 
-            if (line.contains(" : Action(") || line.contains(" : Screen(") ||
+            val isEventLine = line.contains(" : Action(") || line.contains(" : Screen(") ||
+                line.contains(") : Action(") || line.contains(") : Screen(") ||
                 (line.contains("data object ") && line.contains(" : Action")) ||
                 (line.contains("data object ") && line.contains(" : Screen")) ||
                 (line.contains("data class ") && line.contains(" : Screen"))
-            ) {
-                val eventId = eventRegex.find(line)?.groupValues?.get(1).orEmpty()
+
+            if (isEventLine) {
+                val eventId = eventRegex.find(line)?.groupValues?.get(1)
+                    ?: lines.subList((index - 4).coerceAtLeast(0), index)
+                        .asReversed()
+                        .firstNotNullOfOrNull { eventRegex.find(it)?.groupValues?.get(1) }
+                    .orEmpty()
                 val eventName = nameRegex.find(line)?.destructured?.let { (a, b, c) ->
                     listOf(a, b, c).firstOrNull { it.isNotEmpty() }
                 }.orEmpty()
-                val kind = if (line.contains(" : Action") || line.contains(" : Action(")) "action" else "screen"
+                val kind = if (line.contains("Action(")) "action" else "screen"
                 if (eventName.isNotEmpty()) {
                     events += AnalyticsEventDoc(
                         module = module,

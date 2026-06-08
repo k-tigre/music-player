@@ -43,4 +43,4 @@ Auto-generated from `@AnalyticsScope` annotations. Regenerate:
 | music | screen | `music_screen_artists_list` | ArtistsList | ✓ |  | ✓ |  | Artists list in music catalog |
 | music | screen | `music_screen_catalog_tab` | CatalogTab | ✓ |  | ✓ |  | Music catalog tab |
 | music | screen | `music_screen_queue` | Queue | ✓ |  | ✓ |  | Playback queue tab |
-| music | screen | `music_screen_songs_list` |  | ✓ |  | ✓ |  | Songs list for selected album |
+| music | screen | `music_screen_songs_list` | SongsList | ✓ |  | ✓ |  | Songs list for selected album |

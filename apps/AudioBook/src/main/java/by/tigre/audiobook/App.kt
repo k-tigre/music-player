@@ -38,11 +38,14 @@ class App : Application() {
 
         val coroutineModule = CoroutineModule.Impl()
         val tracker = if (BuildConfig.REMOTE_ANALYTICS_ENABLED) {
-            Tracker.Aggregator(
+            val backends = mutableListOf<Tracker>(
                 LogTracker(),
                 FirebaseTracker(this),
-                MixpanelTracker(this, BuildConfig.MIXPANEL_TOKEN, coroutineModule.scope),
             )
+            if (BuildConfig.MIXPANEL_TOKEN.isNotBlank()) {
+                backends.add(MixpanelTracker(this, BuildConfig.MIXPANEL_TOKEN, coroutineModule.scope))
+            }
+            Tracker.Aggregator(*backends.toTypedArray())
         } else {
             Tracker.Aggregator(LogTracker())
         }
