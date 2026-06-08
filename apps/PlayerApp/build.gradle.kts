@@ -53,7 +53,7 @@ android {
             create(Environment.Release.gradleName) {
                 storeFile = File(rootDir, "/keys/release.jks")
                 storePassword = releaseStorePassword
-                keyAlias = "music_upload_release"
+                keyAlias = "upload_release"
                 keyPassword = releaseKeyPassword
             }
         }
