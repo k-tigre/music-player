@@ -1,7 +1,6 @@
 plugins {
     id(Plugin.Id.KotlinMultiplatform.value)
     id(Plugin.Id.AndroidLibrary.value)
-    id(Plugin.Id.KotlinSerialization.value)
 }
 
 kotlin {
@@ -14,13 +13,14 @@ kotlin {
             implementation(Library.KotlinStd.notation)
             implementation(Library.CoroutinesCore.notation)
             implementation(TigreLogger.Artifact.Core.notation)
-            implementation(Library.Decompose.notation)
-            implementation(Library.DecomposeExtensions.notation)
-            implementation(project(Project.Tools.Analytics.name))
+            implementation(project(Project.Tools.Coroutines.name))
+        }
+        androidMain.dependencies {
+            implementation(Library.CoroutinesAndroid.notation)
         }
     }
 }
 
 android {
-    namespace = "by.tigre.tools.presentation.decompose"
+    namespace = "by.tigre.music.player.tools.analytics"
 }

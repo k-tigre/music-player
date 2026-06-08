@@ -15,6 +15,10 @@ import by.tigre.music.player.core.presentation.playlist.current.navigation.Queue
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.appChildContext
 import by.tigre.music.player.presentation.base.appChildStack
+import by.tigre.music.player.presentation.base.trackScreens
+import by.tigre.music.player.tools.analytics.Event
+import by.tigre.music.player.tools.analytics.EventAnalytics
+import by.tigre.music.player.tools.analytics.ScreenAnalytics
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.bringToFront
@@ -23,6 +27,7 @@ import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 interface Root {
@@ -52,6 +57,8 @@ interface Root {
         catalogComponentProvider: CatalogComponentProvider,
         playerComponentProvider: PlayerComponentProvider,
         currentQueueComponent: CurrentQueueComponentProvider,
+        screenAnalytics: ScreenAnalytics,
+        private val eventAnalytics: EventAnalytics,
     ) : Root, BaseComponentContext by context {
 
         private val pagesNavigation = StackNavigation<PagesConfig>()
@@ -59,14 +66,17 @@ interface Root {
 
         private val playerNavigator = object : PlayerNavigator {
             override fun showQueue() {
+                eventAnalytics.trackEvent(Event.Action.UI.Button.OpenQueue)
                 mainNavigation.pop()
             }
 
             override fun playerView() {
+                eventAnalytics.trackEvent(Event.Action.UI.Button.OpenPlayer)
                 mainNavigation.push(MainConfig.Player)
             }
 
             override fun showEqualizer() {
+                eventAnalytics.trackEvent(Event.Action.UI.Button.OpenEqualizer)
                 mainNavigation.push(MainConfig.Equalizer)
             }
 
@@ -148,7 +158,30 @@ interface Root {
         override fun selectPage(index: Int) {
             when (index) {
                 0 -> pagesNavigation.bringToFront(PagesConfig.Queue)
-                1 -> pagesNavigation.bringToFront(PagesConfig.Catalog)
+                1 -> {
+                    eventAnalytics.trackEvent(Event.Action.UI.Button.OpenCatalog)
+                    pagesNavigation.bringToFront(PagesConfig.Catalog)
+                }
+            }
+        }
+
+        init {
+            launch {
+                pages.trackScreens<PagesConfig>(screenAnalytics, "PagesConfig") {
+                    when (it) {
+                        PagesConfig.Queue -> Event.Screen.Queue
+                        PagesConfig.Catalog -> Event.Screen.CatalogTab
+                    }
+                }
+            }
+            launch {
+                mainComponent.trackScreens<MainConfig>(screenAnalytics, "MainConfig") {
+                    when (it) {
+                        MainConfig.Main -> Event.Screen.RootOverlay
+                        MainConfig.Player -> Event.Screen.Player
+                        MainConfig.Equalizer -> Event.Screen.Equalizer
+                    }
+                }
             }
         }
 

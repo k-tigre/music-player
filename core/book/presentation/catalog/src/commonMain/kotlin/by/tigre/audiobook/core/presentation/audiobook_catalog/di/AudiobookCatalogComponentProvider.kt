@@ -32,7 +32,8 @@ interface AudiobookCatalogComponentProvider {
         override fun createRootAudiobookCatalogComponent(
             context: BaseComponentContext,
             onBookSelectedListener: OnBookSelectedListener
-        ): RootAudiobookCatalogComponent = RootAudiobookCatalogComponent.Impl(context, this, onBookSelectedListener)
+        ): RootAudiobookCatalogComponent =
+            RootAudiobookCatalogComponent.Impl(context, this, dependency, onBookSelectedListener)
 
         override fun createFolderSelectionComponent(
             context: BaseComponentContext,

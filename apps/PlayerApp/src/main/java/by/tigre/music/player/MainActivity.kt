@@ -40,6 +40,8 @@ class MainActivity : AppCompatActivity() {
             catalogComponentProvider = CatalogComponentProvider.Impl(graph),
             playerComponentProvider = PlayerComponentProvider.Impl(graph),
             currentQueueComponent = CurrentQueueComponentProvider.Impl(graph),
+            screenAnalytics = graph.screenAnalytics,
+            eventAnalytics = graph.eventAnalytics,
         )
 
         setContent {

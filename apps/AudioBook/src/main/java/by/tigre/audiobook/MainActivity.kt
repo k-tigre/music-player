@@ -33,6 +33,8 @@ class MainActivity : AppCompatActivity() {
             context = BaseComponentContextImpl(defaultComponentContext()),
             playerComponentProvider = PlayerComponentProvider.Impl(graph),
             audiobookCatalogComponentProvider = AudiobookCatalogComponentProvider.Impl(graph),
+            screenAnalytics = graph.screenAnalytics,
+            eventAnalytics = graph.eventAnalytics,
         )
 
         setContent {

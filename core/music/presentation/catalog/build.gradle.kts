@@ -34,6 +34,7 @@ kotlin {
             implementation(project(Project.Tools.Presentation.Compose.name))
             implementation(project(Project.Tools.Presentation.Decompose.name))
             implementation(project(Project.Tools.Coroutines.name))
+            implementation(project(Project.Tools.Analytics.name))
             implementation(project(Project.Core.Music.Data.Catalog.name))
             implementation(project(Project.Core.Music.Data.Playback.name))
             implementation(project(Project.Core.Data.Storage.Preferences.name))

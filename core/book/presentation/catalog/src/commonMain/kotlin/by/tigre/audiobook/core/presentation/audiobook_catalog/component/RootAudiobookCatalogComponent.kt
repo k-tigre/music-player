@@ -1,15 +1,19 @@
 package by.tigre.audiobook.core.presentation.audiobook_catalog.component
 
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogComponentProvider
+import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogDependency
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.AudiobookCatalogNavigator
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.OnBookSelectedListener
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.appChildStack
+import by.tigre.music.player.presentation.base.trackScreens
+import by.tigre.music.player.tools.analytics.Event
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.bringToFront
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.value.Value
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 interface RootAudiobookCatalogComponent {
@@ -27,7 +31,8 @@ interface RootAudiobookCatalogComponent {
     class Impl(
         context: BaseComponentContext,
         private val componentProvider: AudiobookCatalogComponentProvider,
-        private val onBookSelectedListener: OnBookSelectedListener
+        private val dependency: AudiobookCatalogDependency,
+        private val onBookSelectedListener: OnBookSelectedListener,
     ) : RootAudiobookCatalogComponent, BaseComponentContext by context {
 
         private val navigation = StackNavigation<Config>()
@@ -65,6 +70,17 @@ interface RootAudiobookCatalogComponent {
             }
 
         override val childStack: Value<ChildStack<*, AudiobookCatalogChild>> = stack
+
+        init {
+            launch {
+                stack.trackScreens<Config>(dependency.screenAnalytics, "AudiobookCatalogConfig") {
+                    when (it) {
+                        Config.FolderSelection -> Event.Screen.FolderSelection
+                        Config.BookList -> Event.Screen.BookList
+                    }
+                }
+            }
+        }
 
         override fun openFolderSelection() {
             navigation.bringToFront(Config.FolderSelection)
