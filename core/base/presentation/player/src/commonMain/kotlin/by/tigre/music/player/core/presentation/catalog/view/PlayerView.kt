@@ -66,6 +66,7 @@ class PlayerView(
     private val component: PlayerComponent,
     private val config: Config,
     private val topBarContent: (@Composable () -> Unit)? = null,
+    private val chapterTitleContent: (@Composable (title: String) -> Unit)? = null,
 ) : ComposableView {
 
     @Composable
@@ -172,10 +173,14 @@ class PlayerView(
                     .fillMaxWidth()
                     .animateContentSize()
             ) {
-                Text(
-                    text = item.title,
-                    style = MaterialTheme.typography.headlineMedium
-                )
+                if (chapterTitleContent != null) {
+                    chapterTitleContent.invoke(item.title)
+                } else {
+                    Text(
+                        text = item.title,
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                }
 
                 Text(
                     text = item.subtitle,

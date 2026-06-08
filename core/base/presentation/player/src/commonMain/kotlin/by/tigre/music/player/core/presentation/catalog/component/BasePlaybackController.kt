@@ -19,4 +19,10 @@ interface BasePlaybackController {
 
     /** Called when the user releases the seek slider; [positionMs] is the intended time in the current item. */
     fun onSeekPositionCommitted(positionMs: Long) = Unit
+
+    /**
+     * Relative seek (e.g. ±15s). Return true if the controller handled cross-item seeking;
+     * false to fall back to seeking within the current media item only.
+     */
+    fun seekBy(deltaMs: Long): Boolean = false
 }

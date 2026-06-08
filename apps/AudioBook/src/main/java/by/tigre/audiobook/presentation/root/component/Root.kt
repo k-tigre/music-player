@@ -121,6 +121,7 @@ interface Root {
 
         override fun onShowCatalog() {
             mainNavigation.pushToFront(MainConfig.Main)
+            audiobookCatalogComponent.focusCurrentBookInLibrary()
         }
 
         override fun onOpenFolderSettings() {

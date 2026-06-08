@@ -17,7 +17,8 @@ interface PlayerViewProvider {
     fun createPlayerView(
         component: PlayerComponent,
         config: PlayerView.Config,
-        topBarContent: (@Composable () -> Unit)? = null
+        topBarContent: (@Composable () -> Unit)? = null,
+        chapterTitleContent: (@Composable (title: String) -> Unit)? = null
     ): ComposableView
 
     fun createEqualizerView(component: EqualizerComponent, showTopBar: Boolean = true): ComposableView
@@ -32,8 +33,9 @@ interface PlayerViewProvider {
         override fun createPlayerView(
             component: PlayerComponent,
             config: PlayerView.Config,
-            topBarContent: (@Composable () -> Unit)?
-        ): PlayerView = PlayerView(component, config, topBarContent)
+            topBarContent: (@Composable () -> Unit)?,
+            chapterTitleContent: (@Composable (title: String) -> Unit)?,
+        ): PlayerView = PlayerView(component, config, topBarContent, chapterTitleContent)
 
         override fun createEqualizerView(component: EqualizerComponent, showTopBar: Boolean): EqualizerView =
             EqualizerView(component, showTopBar = showTopBar)

@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 
 interface BookListComponent {
 
@@ -23,11 +24,15 @@ interface BookListComponent {
     fun onManageFolders()
     fun retry()
     fun toggleGroup(path: String)
+    fun focusCurrentBook()
 
     data class BookListUiState(
+        val continueListeningBook: Book?,
         val rootBooks: List<Book>,
         val grouped: List<Pair<String, List<Book>>>,
-        val expanded: Set<String>
+        val expanded: Set<String>,
+        val currentBookId: Book.Id?,
+        val scrollToBookNonce: Long,
     )
 
     class Impl(
@@ -41,25 +46,41 @@ interface BookListComponent {
         private val playbackController: AudiobookPlaybackController = dependency.audiobookPlaybackController
 
         private val expandedState = MutableStateFlow(emptySet<String>())
+        private val scrollToBookNonce = MutableStateFlow(0L)
 
         override val screenState: StateFlow<ScreenContentState<BookListUiState>> = combine(
-            catalogSource.books
-                .map { books ->
-                    val rootBooks = books.filter { it.subPath.isEmpty() }
-                    val grouped = books
-                        .filter { it.subPath.isNotEmpty() }
-                        .groupBy { it.subPath }
-                        .entries
-                        .sortedBy { it.key }
-                        .map { it.key to it.value }
-                    rootBooks to grouped
-                }, expandedState
-        ) { (rootBooks, grouped), _ ->
+            catalogSource.books,
+            playbackController.currentBook,
+            expandedState,
+            scrollToBookNonce,
+        ) { books, currentBook, expanded, scrollNonce ->
+            val currentBookId = currentBook?.id
+            val continueListeningBook = currentBook?.takeUnless { it.isCompleted }
+            val otherBooks = if (currentBookId != null) {
+                books.filter { it.id != currentBookId }
+            } else {
+                books
+            }
+            val rootBooks = otherBooks.filter { it.subPath.isEmpty() }
+            val grouped = otherBooks
+                .filter { it.subPath.isNotEmpty() }
+                .groupBy { it.subPath }
+                .entries
+                .sortedBy { it.key }
+                .map { it.key to it.value }
+            val expandedWithCurrent = if (currentBook?.subPath?.isNotEmpty() == true) {
+                expanded + currentBook.subPath
+            } else {
+                expanded
+            }
             ScreenContentState.Content(
                 BookListUiState(
-                    rootBooks,
-                    grouped,
-                    expandedState.value
+                    continueListeningBook = continueListeningBook,
+                    rootBooks = rootBooks,
+                    grouped = grouped,
+                    expanded = expandedWithCurrent,
+                    currentBookId = currentBookId,
+                    scrollToBookNonce = scrollNonce,
                 )
             )
         }
@@ -79,8 +100,13 @@ interface BookListComponent {
         }
 
         override fun toggleGroup(path: String) {
-            val current = expandedState.value
-            expandedState.value = if (current.contains(path)) current - path else current + path
+            expandedState.update { current ->
+                if (current.contains(path)) current - path else current + path
+            }
+        }
+
+        override fun focusCurrentBook() {
+            scrollToBookNonce.update { it + 1L }
         }
     }
 }

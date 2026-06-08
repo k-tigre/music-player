@@ -10,6 +10,7 @@ interface AudiobookPlaybackController {
     val player: PlaybackPlayer
     val currentBook: StateFlow<Book?>
     val currentChapter: StateFlow<Chapter?>
+    val chapters: StateFlow<List<Chapter>>
     /** True after the book ends; cleared when the user seeks back or starts playback again. */
     val bookFinishedBannerVisible: StateFlow<Boolean>
 
@@ -18,6 +19,7 @@ interface AudiobookPlaybackController {
     fun playBookChapter(bookId: Book.Id, chapterId: Chapter.Id)
     fun playNextChapter()
     fun playPrevChapter()
+    fun jumpToChapter(chapterId: Chapter.Id)
     fun pause()
     fun resume()
     fun stop()

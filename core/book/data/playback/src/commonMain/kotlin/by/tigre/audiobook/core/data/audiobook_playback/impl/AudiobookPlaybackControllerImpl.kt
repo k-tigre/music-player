@@ -34,9 +34,8 @@ internal class AudiobookPlaybackControllerImpl(
 
     override val currentBook = MutableStateFlow<Book?>(null)
     override val currentChapter = MutableStateFlow<Chapter?>(null)
+    override val chapters = MutableStateFlow<List<Chapter>>(emptyList())
     override val bookFinishedBannerVisible = MutableStateFlow(false)
-
-    private val chapters = MutableStateFlow<List<Chapter>>(emptyList())
     private val isPlaying = MutableStateFlow(false)
 
     /** Monotonic mark when [pause] was invoked; used to rewind on [resume]. */
@@ -182,6 +181,21 @@ internal class AudiobookPlaybackControllerImpl(
         }
     }
 
+    override fun jumpToChapter(chapterId: Chapter.Id) {
+        Log.d(TAG) { "jumpToChapter: chapterId=$chapterId" }
+        scope.launch {
+            val chapter = chapters.value.firstOrNull { it.id == chapterId } ?: return@launch
+            dismissBookFinishedBanner()
+            clearPauseRewindState()
+            loadCanonicalListenedMs = null
+            mayPersistBelowCanonical = false
+            saveCurrentPosition()
+            setChapter(chapter, 0L)
+            resumePlaybackIfDesired()
+            saveCurrentPosition()
+        }
+    }
+
     override fun playPrevChapter() {
         Log.d(TAG) { "playPrevChapter" }
         scope.launch {
@@ -251,15 +265,16 @@ internal class AudiobookPlaybackControllerImpl(
 
     override fun seekBy(deltaMs: Long) {
         scope.launch {
+            if (deltaMs == 0L) return@launch
             if (deltaMs < 0L) {
                 dismissBookFinishedBanner()
+            } else {
+                dismissBookFinishedBanner()
             }
-            val progress = player.progress.first()
-            val duration = progress.duration.coerceAtLeast(0L)
-            val target = (progress.position + deltaMs).coerceIn(0L, duration)
-            player.seekTo(target)
+            clearPauseRewindState()
             mayPersistBelowCanonical = true
-            persistPlaybackPosition(target)
+            seekAcrossChapters(deltaMs)
+            saveCurrentPosition()
         }
     }
 
@@ -392,6 +407,14 @@ internal class AudiobookPlaybackControllerImpl(
         return (minMs + (maxMs - minMs) * fraction).toLong()
     }
 
+    private suspend fun seekAcrossChapters(deltaMs: Long) {
+        if (deltaMs < 0L) {
+            rewindAcrossChapters(-deltaMs)
+        } else {
+            forwardAcrossChapters(deltaMs)
+        }
+    }
+
     /**
      * Moves playback back by [rewindMs] within the current chapter; overflow goes to the previous chapter(s)
      * from the end of each file, same as rewinding from the chapter boundary.
@@ -430,6 +453,55 @@ internal class AudiobookPlaybackControllerImpl(
         }
 
         setChapter(chapterList.first(), 0L)
+    }
+
+    private suspend fun forwardAcrossChapters(forwardMs: Long) {
+        val chapterList = chapters.value
+        if (chapterList.isEmpty()) return
+        val current = currentChapter.value ?: return
+        var chapterIndex = chapterList.indexOfFirst { it.id == current.id }
+        if (chapterIndex < 0) return
+
+        val positionMs = player.progress.first().position.coerceAtLeast(0L)
+        var remaining = forwardMs
+
+        val currentDurationMs = chapterList[chapterIndex].duration.coerceAtLeast(0L)
+        if (currentDurationMs > 0L && positionMs + remaining <= currentDurationMs) {
+            player.seekTo(positionMs + remaining)
+            return
+        }
+
+        if (currentDurationMs > 0L) {
+            remaining -= (currentDurationMs - positionMs)
+        }
+        chapterIndex++
+
+        while (chapterIndex < chapterList.size && remaining > 0) {
+            val chapter = chapterList[chapterIndex]
+            val durationMs = chapter.duration.coerceAtLeast(0L)
+            if (durationMs == 0L) {
+                chapterIndex++
+                continue
+            }
+            if (remaining < durationMs) {
+                setChapter(chapter, remaining)
+                return
+            }
+            if (remaining == durationMs) {
+                if (chapterIndex < chapterList.size - 1) {
+                    setChapter(chapterList[chapterIndex + 1], 0L)
+                } else {
+                    setChapter(chapter, durationMs)
+                }
+                return
+            }
+            remaining -= durationMs
+            chapterIndex++
+        }
+
+        val lastChapter = chapterList.last()
+        val endMs = lastChapter.duration.coerceAtLeast(0L)
+        setChapter(lastChapter, endMs)
     }
 
     private suspend fun saveBookProgressCompleted(book: Book, chapterList: List<Chapter>) {

@@ -88,6 +88,10 @@ class ApplicationGraph(
             override fun setOrderMode(isNormal: Boolean) = Unit
             override fun onSeekPositionCommitted(positionMs: Long) =
                 controller.persistPlaybackPositionAfterSeek(positionMs)
+            override fun seekBy(deltaMs: Long): Boolean {
+                controller.seekBy(deltaMs)
+                return true
+            }
         }
     }
 

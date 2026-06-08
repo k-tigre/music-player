@@ -7,6 +7,12 @@
     <string name="book_chapters_count">Глав: %1$d</string>
     <string name="book_completed">Завершено</string>
     <string name="book_progress_listened">Прослушано %1$d%%</string>
+    <string name="continue_listening_title">Продолжить слушать</string>
+    <string name="book_currently_playing">Сейчас играет</string>
+    <string name="chapters_sheet_title">Главы</string>
+    <string name="chapter_fallback_title">Глава %1$d</string>
+    <string name="chapter_sheet_subtitle">%1$d из %2$d · с %3$s</string>
+    <string name="cd_select_chapter">Выбрать главу</string>
 
     <string name="folder_selection_title">Папки аудиокниг</string>
     <string name="nav_books">Книги</string>

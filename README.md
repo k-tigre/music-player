@@ -15,8 +15,9 @@ app (work in progress) that shares the same core modules.
 - **PlayerDesktop** — desktop client in Kotlin and Jetpack Compose for desktop OSes (native installers: MSI, DMG, DEB).
 - **AudioBook** — separate Android app for audiobooks (WIP), same overall architecture as the music player.
 
-Stack: Kotlin, Jetpack Compose, Decompose (navigation), SQLDelight (queue), Coil, Firebase Crashlytics (mobile builds). Developer-oriented
-details are in [`CLAUDE.md`](CLAUDE.md).
+Stack: Kotlin, Jetpack Compose, Decompose (navigation), SQLDelight (queue), Coil, Firebase Crashlytics (mobile builds).
+
+**For AI agents and contributors:** architecture, module map, task routing, and build commands are in [`CLAUDE.md`](CLAUDE.md) (canonical) and [`AGENTS.md`](AGENTS.md) (quick index).
 
 ## Requirements
 

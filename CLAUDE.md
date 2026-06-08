@@ -1,159 +1,271 @@
-# CLAUDE.md
+# CLAUDE.md — AI context for this repository
 
-This file provides guidance to Claude Code (claude.ai/code) when working in this repository.
+Kotlin monorepo: **3 apps** (2 Android + 1 Desktop) sharing KMP modules. Architecture: **manual DI** (`ApplicationGraph`) + **Decompose** navigation + **Component/View** split. Read this file before making changes.
 
-## Build Commands
-```bash
-# Debug build – generates a debuggable APK for local testing
-echo "Running debug build"
-./gradlew assembleDebug
+---
 
-# QA build (Firebase App Distribution) – includes minification and Firebase upload
-echo "Building QA variant"
-./gradlew assembleQa
+## Quick routing — where to work
 
-# Release build – requires release keystore credentials set as environment variables
-echo "Preparing release build"
-./gradlew assembleRelease 
+| Task | Start here |
+|------|------------|
+| Android music player shell / root nav | `apps/PlayerApp/src/main/java/by/tigre/music/player/` |
+| Android audiobook shell / night timer | `apps/AudioBook/src/main/java/by/tigre/audiobook/` |
+| Desktop app shell / windows | `apps/PlayerDesktop/src/main/kotlin/by/tigre/music/player/desktop/` |
+| Shared music catalog UI | `core/music/presentation/catalog/` |
+| Shared player / equalizer UI | `core/base/presentation/player/` |
+| Shared queue UI | `core/music/presentation/playlist/queue/` |
+| Audiobook catalog UI | `core/book/presentation/catalog/` |
+| Playback engine (ExoPlayer / JVM) | `core/base/data/playback/` |
+| Music playback + queue logic | `core/music/data/playback/` |
+| Audiobook chapter playback | `core/book/data/playback/` |
+| SQLDelight schemas | `core/*/data/storage/database/src/commonMain/sqldelight/` |
+| Compose theme / shared widgets | `tools/presentation/compose/` |
+| Decompose helpers | `tools/presentation/decompose/` |
+| Dependency versions | `buildSrc/src/main/kotlin/Dependencies.kt` |
+| App IDs / SDK / versions | `buildSrc/src/main/kotlin/Application.kt` |
+| Module registry | `settings.gradle.kts` |
 
-# Run all unit tests across modules
-./gradlew test
+**Rule of thumb:** UI and domain logic go in `core:*` KMP modules; app-specific wiring (DI graph, root nav, Car, night timer) stays in `apps:*`.
 
-# Check for dependency updates (Gradle Versions Plugin)
-echo "Checking dependencies"
-./gradlew dependencyUpdates
+---
 
-# Generate SQLDelight database code from .sq files
-echo "Generating SQLDelight interfaces"
-./gradlew generateSqlDelightInterface
+## Apps
+
+### PlayerApp (Android music player)
+- Package: `by.tigre.music.player` | App ID: `by.tigre.musicplayer` (no dot)
+- Entry: `apps/PlayerApp/.../App.kt`, `MainActivity.kt`
+- DI: `apps/PlayerApp/.../core/di/ApplicationGraph.kt`
+- Root nav: `apps/PlayerApp/.../presentation/root/component/Root.kt`
+- Car: `apps/PlayerApp/.../car/MusicCarMediaLibrary.kt`
+- Playback: `playbackController` (songs from MediaStore)
+
+### AudioBook (Android audiobook, WIP)
+- Package: `by.tigre.audiobook` | App ID: `by.tigre.audiobook`
+- Entry: `apps/AudioBook/.../App.kt`, `MainActivity.kt`
+- DI: `apps/AudioBook/.../core/di/ApplicationGraph.kt` — extends PlayerApp graph + book modules + `nightTimerController`
+- Root nav: `apps/AudioBook/.../presentation/root/component/Root.kt` — initial screen is **Player**, not catalog
+- Playback: `audiobookPlaybackController` (books/chapters); prev/next = ±60s seek, not track skip
+- App-only features: night timer (`apps/AudioBook/.../nighttimer/`), face-down extender, audiobook Car library
+- Still uses shared music modules for queue infra, preferences, base playback
+
+### PlayerDesktop (JVM Compose Desktop)
+- Package: `by.tigre.music.player.desktop`
+- Entry: `apps/PlayerDesktop/.../desktop/Main.kt`
+- DI: `apps/PlayerDesktop/.../desktop/di/ApplicationGraph.kt` (`DesktopApplicationGraph`)
+- Multi-window UI (library, player, equalizer) — not single-activity Android nav
+- Data dir: `~/.music-player`
+- No Firebase, Car, permissions, `background_player`, or `debug:settings`
+- Logger: console only
+
+---
+
+## Module map
+
+```
+apps:PlayerApp          — Android music app
+apps:AudioBook          — Android audiobook app
+apps:PlayerDesktop      — Desktop music app
+
+core:base:data:playback              — ExoPlayer/JVM playback, equalizer, app volume
+core:base:presentation:player        — Player, mini-player, equalizer UI
+core:base:presentation:background_player — Android MediaSessionService + Car (Android-only)
+
+core:music:entity:catalog|playback   — Song, Artist, Album, SongInQueueItem
+core:music:data:catalog              — MediaStore (Android) / folder scan (Desktop)
+core:music:data:playback             — Music PlaybackController
+core:music:data:storage:database     — SQLDelight queue (DatabaseMusic)
+core:music:presentation:catalog      — Artists → Albums → Songs UI
+core:music:presentation:playlist:queue — Queue management UI
+
+core:book:entity:catalog             — Book, chapter entities
+core:book:data:catalog|playback|storage:database — Audiobook data layer
+core:book:presentation:catalog       — Audiobook library UI
+
+core:data:storage:preferences        — SharedPreferences / desktop prefs
+core:platform:permission             — Runtime permissions (Android)
+
+tools:presentation:compose|decompose — Shared UI theme + Decompose base
+tools:entity|coroutines|platform:utils
+debug:settings                       — Debug log viewer (Android debug/qa only)
 ```
 
-## Build Variants
-| Variant     | Debuggable | Minify | App ID Suffix |
-|-------------|------------|--------|---------------|
-| **debug**   | ✓          | ✗      | `.dev`        |
-| **qa**      | ✓          | ✓      | `.dev`        |
-| **release** | ✗          | ✓      | _(none)_      |
+### Dependency layering (do not violate)
 
-## Environment Variables (Release Signing)
+```
+apps → presentation → data → entity
+                    ↘ base:data:playback, tools:*
+```
 
-- **Music Player:**
-  - `MUSIC_PLAYER_RELEASE_JKS_STORE_PASSWORD`
-  - `MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD`
+- `entity` modules: pure Kotlin types, no Android/Compose
+- `data` modules: repositories, playback, SQLDelight
+- `presentation` modules: Component + View + Providers (KMP: commonMain + androidMain + desktopMain)
+- `apps` modules: wire graphs, root navigation, platform-only code
 
-- **AudioBook:**
-  - `AUDIO_BOOK_RELEASE_JKS_STORE_PASSWORD`
-  - `AUDIO_BOOK_RELEASE_JKS_KEY_PASSWORD`
+---
 
-## Project Architecture
+## Architecture patterns
 
-Two Android apps built with Kotlin and Jetpack Compose, sharing a common set of modules. Uses a modular multi-project architecture with
-manual dependency injection and Decompose for navigation.
+### Manual DI
+1. `ApplicationGraph.create()` in `App.onCreate()` — root container
+2. `*Dependency` interface — what a feature needs from the graph
+3. `*Module` with `Impl` — data-layer factories
+4. `*ComponentProvider.Impl(dependency)` — creates Decompose components
 
-- Compile SDK: 34 | Target SDK: 33 | Min SDK: 26 | Java: 17
+### Decompose navigation
+- `StackNavigation` + `@Serializable` sealed config classes
+- Components extend `BaseComponentContext` (= `ComponentContext` + `CoroutineScope`)
+  - `tools/presentation/decompose/.../BaseComponentContext.kt`
+- Child stacks: `appChildStack`, `appChildContext` extensions in same module
+- Nested example: `RootCatalogComponent` (Artists → Albums → Songs)
 
-### App Modules
+### Component / View split (every feature)
 
-- **apps:PlayerApp** – Music Player app
-- **apps:AudioBook** – Audiobook app (WIP)
+| File | Role |
+|------|------|
+| `*Component.kt` | Logic: interface + `Impl` |
+| `*View.kt` | UI: class implementing `ComposableView` with `.Draw(Modifier)` |
+| `*ComponentProvider.kt` | Factory: `interface + Impl(dependency)` |
+| `*ViewProvider.kt` | Factory for views |
+| `navigation/*Navigator.kt` | Navigation callbacks; implemented in parent component or app `Root` |
 
-### Shared Module Structure
+Reference implementation — music catalog artist list:
+- Component: `core/music/presentation/catalog/.../component/ArtistListComponent.kt`
+- View: `.../view/ArtistListView.kt`
+- Providers: `.../di/CatalogComponentProvider.kt`, `CatalogViewProvider.kt`
+- Navigator: `.../navigation/CatalogNavigator.kt`
 
-- **core:base:data, core:music:data, core:book:data**
-    - `playback` - Media3 ExoPlayer wrapper and playback control
-    - `catalog` - Music catalog data source using Android MediaStore
-    - `storage:preferences` - SharedPreferences wrapper
-    - `storage:database:music` - SQLDelight database for playback queue persistence
+### UI state
+- `ScreenContentState` + `ScreenContentStateDelegate` for loading/error/empty/content
 
-- **core:entity**
-    - `catalog` - Song, Artist, Album entities
-    - `playback` - SongInQueueItem entities
-    - `queue` - Queue domain model
+### Playback
+- `PlaybackController` — music queue API (`core:music:data:playback`)
+- `PlaybackPlayer` — ExoPlayer wrapper (`core:base:data:playback`)
+- `PlaybackService` — background `MediaSessionService` (`core:base:presentation:background_player`)
+- Queue persisted via SQLDelight `Queue.sq`
+- Equalizer shared across all apps: `EqualizerComponent` in `core:base:presentation:player`
 
-- **core:presentation**
-    - `catalog` - Catalog browsing (Artists → Albums → Songs)
-    - `player` - Full player and mini player views
-    - `playlist:queue` - Current queue management UI
-    - `background_player` - Background playback service with Media3 MediaSession
+### Strings & resources
+- KMP modules: `src/commonMain/composeResources/values/strings.xml` (+ `values-ru/`)
+  - Generated access: `Res.string.*` (package set in `compose.resources { packageOfResClass }`)
+- Android app strings: `apps/*/src/main/res/values/strings.xml`
+- Locales: `en`, `ru` (`androidResources.localeFilters`)
 
-- **core:platform**
-    - `permission` - Runtime permissions handling
+### Logger (external package)
+- Artifact: `com.github.k-tigre:logger-*` v1.0.2 from GitHub Packages
+- Needs `gpr.user`/`gpr.key` or `GITHUB_ACTOR`/`GITHUB_TOKEN` in Gradle
+- Debug/QA Android: Logcat + Crashlytics + Internal DB
+- Release Android: Crashlytics only
+- Desktop: `ConsoleLogger`
 
-- **tools**
-    - `coroutines` - Coroutine scope and extensions
-    - `entity` - Optional type wrapper
-    - `presentation:compose` - Compose UI utilities (Theme, Colors, Views)
-    - `presentation:decompose` - Decompose navigation base classes
-    - `platform:utils` - Platform-specific utilities
+---
 
-- **logger** - Multi-backend logging (Logcat, Crashlytics, Internal DB)
+## Recipe: add a new screen (Decompose)
 
-- **debug:settings** - Debug-only UI for viewing internal logs
+1. Add `@Serializable` config to parent's sealed `*Config` class
+2. Create `*Component.kt` (interface + Impl extending `BaseComponentContext`)
+3. Create `*View.kt` with `ComposableView.Draw()`
+4. Add `*Navigator.kt` interface; implement in parent component or app `Root`
+5. Add factory methods to `*ComponentProvider` / `*ViewProvider`
+6. Register child in parent's `appChildStack` factory
+7. If new data needed: add to `*Dependency` interface + wire in `ApplicationGraph`
 
-### Key Architectural Patterns
-#### Manual Dependency Injection
-The app uses manual DI with a simple graph pattern:
+Put shared UI in `core:*:presentation:*`; put app-specific nav wiring in `apps:*`.
 
-- `ApplicationGraph` is the root DI container created in `App.onCreate()`
-- Each module defines a `*Dependency` interface and a `*Module` implementation
-- Components are created via `*ComponentProvider` interfaces that take dependencies as constructor parameters
-- See `ApplicationGraph.create()` in `apps/PlayerApp/src/main/java/by/tigre/music/player/core/di/ApplicationGraph.kt` and
-  `apps/AudioBook/src/main/java/by/tigre/audiobook/core/di/ApplicationGraph.kt`
+---
 
-#### Decompose Navigation
+## Recipe: add a new Gradle module
 
-Navigation uses Arkivanov Decompose for state‑preserving navigation:
+1. Add `include(":...")` in `settings.gradle.kts`
+2. Add enum entry in `buildSrc/.../Dependencies.kt` → `Project` sealed class
+3. Create `build.gradle.kts` following a sibling module (KMP vs Android-only)
+4. Wire `implementation(project(...))` from dependent modules
+5. KMP modules: `commonMain` + `androidMain` + `jvm("desktop")`, `jvmToolchain(21)`
 
-- Components implement interfaces and are created via Providers
-- Navigation is handled via `StackNavigation` with sealed config classes
-- Components have corresponding `*ViewProvider` for UI rendering
-- See `RootCatalogComponent` for an example of nested navigation (Artists → Albums → Songs)
+---
 
-#### BaseComponentContext
-All components extend `BaseComponentContext` which combines `ComponentContext` (Decompose lifecycle/state saving) with a
-`CoroutineScope`. See
-`tools/presentation/decompose/src/main/kotlin/by/tigre/music/player/presentation/base/BaseComponentContext.kt`.
+## Stable quirks — do NOT "fix" without a migration plan
 
-#### View/Component Separation
-Each feature follows this pattern:
-- `*Component.kt` - Logic layer (interface + Impl class)
-- `*View.kt` - UI layer (Compose composable with `.Draw()` extension)
-- `*ComponentProvider.kt` - Factory for creating components with DI
-- `*ViewProvider.kt` - Factory for creating views
-- `navigation/*Navigator.kt` - Navigation interface
+| Quirk | Location |
+|-------|----------|
+| Package `entiry` (not `entity`) | `by.tigre.music.player.core.entiry.*`, `by.tigre.audiobook.core.entiry.*` |
+| Package `backgound_player` (not `background`) | Module dir is `background_player/`, but Kotlin package is `...presentation.backgound_player.*` |
+| App ID `by.tigre.musicplayer` vs package `by.tigre.music.player` | Intentional mismatch |
 
-#### Playback Architecture
-Music playback uses AndroidX Media3 (ExoPlayer):
-- `PlaybackController` - Main playback API with queue management
-- `PlaybackPlayer` - ExoPlayer wrapper interface
-- `PlaybackService` - MediaSessionService for background playback with media controls
-- Queue state is persisted via SQLDelight (`Queue.sq`)
-- See `core:data:playback` module
+---
 
-#### Logger
-- `Log.init()` is called in `App.onCreate()`
-- Debug/QA builds: Logcat, Crashlytics, and Internal DB logger
-- Release builds: Crashlytics only
-- See `logger/core` and `logger/internal-store` modules
+## Build & verify
 
-### Key File Locations
+Windows: use `gradlew.bat` instead of `./gradlew`.
 
-- App entry point (Music Player): `apps/PlayerApp/src/main/java/by/tigre/music/player/App.kt`
-- Main activity (Music Player): `apps/PlayerApp/src/main/java/by/tigre/music/player/MainActivity.kt`
-- Root DI graph: `apps/PlayerApp/src/main/java/by/tigre/music/player/core/di/ApplicationGraph.kt` and
-  `apps/AudioBook/src/main/java/by/tigre/audiobook/core/di/ApplicationGraph.kt`
-- Root navigation component (Music Player): `apps/PlayerApp/src/main/java/by/tigre/music/player/presentation/root/component/Root.kt`
-- Dependency versions: `buildSrc/src/main/kotlin/Dependencies.kt`
-- App configuration: `buildSrc/src/main/kotlin/Application.kt`
-- Module registry: `settings.gradle.kts`
+```bash
+# Android — install debug
+./gradlew :apps:PlayerApp:installDebug
+./gradlew :apps:AudioBook:installDebug
 
-### Key Dependencies
+# Desktop — run
+./gradlew :apps:PlayerDesktop:run
 
-- **Kotlin** 2.1.21 | **AGP** 8.13.2 | **Gradle** 8.9
-- **Jetpack Compose** 1.8.0 | **Material3** 1.4.0
-- **Decompose** 3.4.0
-- **Media3** 1.5.0
-- **SQLDelight** 2.2.1
-- **Coroutines** 1.10.2
-- **Firebase BOM** 34.0.0 (Crashlytics + Analytics)
-- **Coil Compose** 3.1.0
+# Build variants (both Android apps)
+./gradlew assembleDebug      # debuggable, no minify, .dev suffix
+./gradlew assembleQa         # debuggable, minify, .dev suffix, Firebase distribution
+./gradlew assembleRelease    # requires signing env vars
+
+# Tests (no test sources exist yet; command is prepared)
+./gradlew test
+
+# After editing .sq files
+./gradlew generateSqlDelightInterface
+
+# Dependency updates
+./gradlew dependencyUpdates
+```
+
+### Build variants
+
+| Variant | Debuggable | Minify | App ID suffix | App name suffix |
+|---------|------------|--------|---------------|-----------------|
+| debug | yes | no | `.dev` | ` Dev` |
+| qa | yes | yes | `.dev` | ` Qa` |
+| release | no | yes | none | none |
+
+### Signing env vars
+
+- Music Player: `MUSIC_PLAYER_RELEASE_JKS_STORE_PASSWORD`, `MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD`
+- AudioBook: `AUDIO_BOOK_RELEASE_JKS_STORE_PASSWORD`, `AUDIO_BOOK_RELEASE_JKS_KEY_PASSWORD`
+
+---
+
+## Platform & versions
+
+| Setting | Value |
+|---------|-------|
+| Kotlin | 2.1.21 |
+| AGP | 8.13.2 |
+| Gradle | 8.9 |
+| JVM toolchain | 21 |
+| Compile SDK | 36 |
+| Target SDK | 35 |
+| Min SDK | 26 |
+| Compose (Android) | 1.8.0 |
+| Compose Multiplatform | 1.8.1 |
+| Material3 | 1.4.0 |
+| Decompose | 3.4.0 |
+| Media3 | 1.5.0 |
+| SQLDelight | 2.2.1 |
+| Coroutines | 1.10.2 |
+| Firebase BOM | 34.0.0 |
+| Coil | 3.1.0 |
+
+App versions: Music Player `0.17.0`, AudioBook `0.2.0`, Desktop `1.0.5`.
+
+---
+
+## Coding constraints for AI agents
+
+1. **Minimize scope** — match existing patterns in the nearest sibling file; no drive-by refactors
+2. **Respect module boundaries** — don't import `apps:*` from `core:*`; don't put Android APIs in `entity`
+3. **Both apps may need wiring** — if changing shared `core:*`, check PlayerApp AND AudioBook `ApplicationGraph` / `Root`
+4. **KMP source sets** — platform code in `androidMain`/`desktopMain`, shared in `commonMain`
+5. **No tests exist** — don't claim test coverage; run relevant `assembleDebug` or `:apps:PlayerDesktop:run` to verify
+6. **Don't rename `entiry`/`backgound_player`** — breaks imports across the entire codebase
+7. **Commits/PRs** — only when explicitly asked by the user

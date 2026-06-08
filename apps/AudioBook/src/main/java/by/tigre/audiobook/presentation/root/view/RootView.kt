@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import by.tigre.audiobook.R
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogViewProvider
+import by.tigre.audiobook.core.presentation.audiobook_catalog.view.AudiobookChapterSelector
 import by.tigre.audiobook.nighttimer.NightTimerController
 import by.tigre.audiobook.nighttimer.NightTimerSettingsScreen
 import by.tigre.audiobook.presentation.root.component.Root
@@ -85,6 +86,12 @@ class RootView(
                                 equalizerMenuLabel = stringResource(R.string.player_equalizer_menu),
                                 queueMenuLabel = stringResource(R.string.player_queue_menu),
                             ),
+                            chapterTitleContent = { chapterTitle ->
+                                AudiobookChapterSelector(
+                                    controller = audiobookPlaybackController,
+                                    chapterTitle = chapterTitle,
+                                )
+                            },
                             topBarContent = {
                                 val eqAvailable by child.component.playbackEqualizer.isAvailable.collectAsState()
                                 val nightUi by nightTimerController.uiState.collectAsState()

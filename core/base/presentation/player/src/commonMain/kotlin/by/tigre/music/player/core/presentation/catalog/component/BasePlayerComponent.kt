@@ -170,6 +170,7 @@ internal class BasePlayerComponentImpl(
 
     private fun seekBy(deltaMs: Long) {
         launch {
+            if (basePlaybackController.seekBy(deltaMs)) return@launch
             val progress = basePlaybackController.player.progress.first()
             val duration = progress.duration.coerceAtLeast(0L)
             val target = (progress.position + deltaMs).coerceIn(0L, duration)
