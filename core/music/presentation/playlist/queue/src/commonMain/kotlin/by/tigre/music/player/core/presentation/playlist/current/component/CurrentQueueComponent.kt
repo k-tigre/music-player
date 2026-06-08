@@ -51,7 +51,6 @@ interface CurrentQueueComponent {
         }
 
         override fun onAddToQueueClicked() {
-            eventAnalytics.trackEvent(MusicEvents.Action.NavOpenCatalog)
             navigator.onOpenCatalog()
         }
 

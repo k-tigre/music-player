@@ -160,7 +160,9 @@ interface Root {
             when (index) {
                 0 -> pagesNavigation.bringToFront(PagesConfig.Queue)
                 1 -> {
-                    eventAnalytics.trackEvent(MusicEvents.Action.NavOpenCatalog)
+                    if (pages.value.active.configuration != PagesConfig.Catalog) {
+                        eventAnalytics.trackEvent(MusicEvents.Action.NavOpenCatalog)
+                    }
                     pagesNavigation.bringToFront(PagesConfig.Catalog)
                 }
             }

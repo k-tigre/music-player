@@ -25,7 +25,7 @@ class FirebaseTracker(context: Context) : Tracker {
 
     override fun trackScreen(previous: AnalyticsScreen?, current: AnalyticsScreen) {
         firebaseAnalytics.logEvent("SCREEN_${current.name}") {
-            param(KEY_PREV_SCREEN, previous?.name.toString())
+            previous?.name?.let { param(KEY_PREV_SCREEN, it) }
             if (current is WithPayload) {
                 current.payload.forEach { (key, value) ->
                     param(key, value)
