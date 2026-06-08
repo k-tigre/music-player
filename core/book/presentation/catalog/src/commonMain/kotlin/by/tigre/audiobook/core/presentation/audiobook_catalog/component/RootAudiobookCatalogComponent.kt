@@ -7,7 +7,7 @@ import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.OnBookS
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.appChildStack
 import by.tigre.music.player.presentation.base.trackScreens
-import by.tigre.music.player.tools.analytics.Event
+import by.tigre.music.player.tools.analytics.book.AudiobookEvents
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.bringToFront
@@ -73,10 +73,13 @@ interface RootAudiobookCatalogComponent {
 
         init {
             launch {
-                stack.trackScreens<Config>(dependency.screenAnalytics, "AudiobookCatalogConfig") {
+                stack.trackScreens<Config, AudiobookEvents.Screen>(
+                    trackScreen = dependency.screenAnalytics::trackScreen,
+                    name = "AudiobookCatalogConfig",
+                ) {
                     when (it) {
-                        Config.FolderSelection -> Event.Screen.FolderSelection
-                        Config.BookList -> Event.Screen.BookList
+                        Config.FolderSelection -> AudiobookEvents.Screen.FolderSelection
+                        Config.BookList -> AudiobookEvents.Screen.BookList
                     }
                 }
             }

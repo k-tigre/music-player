@@ -7,8 +7,8 @@ import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalo
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.AudiobookCatalogNavigator
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.OnBookSelectedListener
 import by.tigre.music.player.presentation.base.BaseComponentContext
-import by.tigre.music.player.tools.analytics.Event
-import by.tigre.music.player.tools.analytics.EventAnalytics
+import by.tigre.music.player.tools.analytics.book.AudiobookEvents
+import by.tigre.music.player.tools.analytics.book.BookEventAnalytics
 import by.tigre.music.player.presentation.base.ScreenContentState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -46,7 +46,7 @@ interface BookListComponent {
 
         private val catalogSource: AudiobookCatalogSource = dependency.audiobookCatalogSource
         private val playbackController: AudiobookPlaybackController = dependency.audiobookPlaybackController
-        private val eventAnalytics: EventAnalytics = dependency.eventAnalytics
+        private val eventAnalytics: BookEventAnalytics = dependency.eventAnalytics
 
         private val expandedState = MutableStateFlow(emptySet<String>())
         private val scrollToBookNonce = MutableStateFlow(0L)
@@ -90,13 +90,13 @@ interface BookListComponent {
             .stateIn(this, SharingStarted.WhileSubscribed(), ScreenContentState.Loading)
 
         override fun onBookClicked(book: Book) {
-            eventAnalytics.trackEvent(Event.Action.UI.Button.SelectBook)
+            eventAnalytics.trackEvent(AudiobookEvents.Action.CatalogSelectBook)
             playbackController.loadBook(book)
             onBookSelectedListener.onBookSelected()
         }
 
         override fun onManageFolders() {
-            eventAnalytics.trackEvent(Event.Action.UI.Button.OpenFolderSettings)
+            eventAnalytics.trackEvent(AudiobookEvents.Action.CatalogOpenFolderSettings)
             navigator.showFolderSelection()
         }
 

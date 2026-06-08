@@ -2,18 +2,17 @@ package by.tigre.music.player.presentation.base
 
 import by.tigre.logger.Log
 import by.tigre.logger.extensions.debugLog
-import by.tigre.music.player.tools.analytics.Event
-import by.tigre.music.player.tools.analytics.ScreenAnalytics
+import by.tigre.music.player.tools.analytics.common.AnalyticsScreen
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.mapNotNull
 
 const val TAG_UNEXPECTED = "UNEXPECTED"
 
-suspend inline fun <reified T> Value<ChildStack<*, *>>.trackScreens(
-    analytics: ScreenAnalytics,
+suspend inline fun <reified T, S : AnalyticsScreen> Value<ChildStack<*, *>>.trackScreens(
+    crossinline trackScreen: (S) -> Unit,
     name: String,
-    crossinline screenMapper: (T) -> Event.Screen,
+    crossinline screenMapper: (T) -> S,
 ) {
     toFlow()
         .debugLog("trackScreens", name)
@@ -24,5 +23,5 @@ suspend inline fun <reified T> Value<ChildStack<*, *>>.trackScreens(
                     null
                 }
         }
-        .collect(analytics::trackScreen)
+        .collect { trackScreen(it) }
 }

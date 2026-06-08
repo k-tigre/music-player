@@ -8,8 +8,8 @@ import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigator
 import by.tigre.music.player.presentation.base.BaseComponentContext
-import by.tigre.music.player.tools.analytics.Event
-import by.tigre.music.player.tools.analytics.EventAnalytics
+import by.tigre.music.player.tools.analytics.music.MusicEventAnalytics
+import by.tigre.music.player.tools.analytics.music.MusicEvents
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.presentation.base.ScreenContentState.Content
 import by.tigre.music.player.presentation.base.ScreenContentStateDelegate
@@ -44,7 +44,7 @@ interface SongsListComponent {
 
         private val catalogSource: CatalogSource = dependency.catalogSource
         private val playbackController: PlaybackController = dependency.playbackController
-        private val eventAnalytics: EventAnalytics = dependency.eventAnalytics
+        private val eventAnalytics: MusicEventAnalytics = dependency.eventAnalytics
 
         private val _removePrompt = MutableStateFlow<RemovePrompt?>(null)
         override val removePrompt: StateFlow<RemovePrompt?> = _removePrompt
@@ -70,12 +70,12 @@ interface SongsListComponent {
         }
 
         override fun onPlaySongClicked(song: Song) {
-            eventAnalytics.trackEvent(Event.Action.UI.Button.PlaySong)
+            eventAnalytics.trackEvent(MusicEvents.Action.CatalogPlaySong)
             playbackController.playSong(song.id)
         }
 
         override fun onAddSongClicked(song: Song) {
-            eventAnalytics.trackEvent(Event.Action.UI.Button.AddSongToQueue)
+            eventAnalytics.trackEvent(MusicEvents.Action.CatalogAddSongToQueue)
             playbackController.addSongToPlay(song.id)
         }
 

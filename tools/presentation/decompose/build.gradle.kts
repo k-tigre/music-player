@@ -16,7 +16,7 @@ kotlin {
             implementation(TigreLogger.Artifact.Core.notation)
             implementation(Library.Decompose.notation)
             implementation(Library.DecomposeExtensions.notation)
-            implementation(project(Project.Tools.Analytics.name))
+            implementation(project(Project.Tools.Analytics.Common.name))
         }
     }
 }

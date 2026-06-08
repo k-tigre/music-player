@@ -10,7 +10,7 @@ import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigat
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.appChildStack
 import by.tigre.music.player.presentation.base.trackScreens
-import by.tigre.music.player.tools.analytics.Event
+import by.tigre.music.player.tools.analytics.music.MusicEvents
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
@@ -122,11 +122,14 @@ interface RootCatalogComponent {
 
         init {
             launch {
-                stack.trackScreens<CatalogConfig>(dependency.screenAnalytics, "CatalogConfig") {
+                stack.trackScreens<CatalogConfig, MusicEvents.Screen>(
+                    trackScreen = dependency.screenAnalytics::trackScreen,
+                    name = "CatalogConfig",
+                ) {
                     when (it) {
-                        CatalogConfig.ArtistsList -> Event.Screen.ArtistsList
-                        is CatalogConfig.AlbumsList -> Event.Screen.AlbumsList(it.artist.id.value)
-                        is CatalogConfig.SongsList -> Event.Screen.SongsList(it.album.id.value, it.artist.id.value)
+                        CatalogConfig.ArtistsList -> MusicEvents.Screen.ArtistsList
+                        is CatalogConfig.AlbumsList -> MusicEvents.Screen.AlbumsList(it.artist.id.value)
+                        is CatalogConfig.SongsList -> MusicEvents.Screen.SongsList(it.album.id.value, it.artist.id.value)
                     }
                 }
             }

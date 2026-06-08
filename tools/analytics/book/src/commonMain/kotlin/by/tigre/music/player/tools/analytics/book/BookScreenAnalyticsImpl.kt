@@ -1,0 +1,18 @@
+package by.tigre.music.player.tools.analytics.book
+
+import by.tigre.music.player.tools.analytics.common.CommonEvents
+import by.tigre.music.player.tools.analytics.common.ScreenAnalyticsEngine
+import by.tigre.music.player.tools.analytics.common.Tracker
+import by.tigre.music.player.tools.coroutines.CoreDispatchers
+import by.tigre.music.player.tools.coroutines.CoreScope
+
+internal class BookScreenAnalyticsImpl(
+    tracker: Tracker,
+    dispatchers: CoreDispatchers,
+    scope: CoreScope,
+) : BookScreenAnalytics {
+    private val engine = ScreenAnalyticsEngine(tracker, dispatchers, scope)
+
+    override fun trackScreen(screen: CommonEvents.Screen) = engine.trackScreen(screen)
+    override fun trackScreen(screen: AudiobookEvents.Screen) = engine.trackScreen(screen)
+}
