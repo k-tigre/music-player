@@ -3,6 +3,13 @@ plugins {
 }
 @Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
+    fun envOrPropertyNullable(key: String): String? {
+        return providers.gradleProperty(key)
+            .orElse(providers.environmentVariable(key))
+            .orNull
+    }
+
+
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
@@ -10,12 +17,8 @@ dependencyResolutionManagement {
         maven {
             url = uri("https://maven.pkg.github.com/k-tigre/logger")
             credentials {
-                username = providers.gradleProperty("gpr.user")
-                    .orElse(providers.environmentVariable("GITHUB_ACTOR"))
-                    .getOrElse("")
-                password = providers.gradleProperty("gpr.key")
-                    .orElse(providers.environmentVariable("GITHUB_TOKEN"))
-                    .getOrElse("")
+                username = envOrPropertyNullable("GITHUB_ACTOR")
+                password = envOrPropertyNullable("GITHUB_TOKEN")
             }
         }
     }

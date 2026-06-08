@@ -2,7 +2,7 @@
 
 A modular music player with a catalog backed by the on-device media library, a playback queue, and background playback on **Android** (
 Media3 / ExoPlayer), plus a separate **desktop** app built with Compose Multiplatform (JVM). The repo also includes an **AudioBook** Android
-app (work in progress) that shares the same core modules.
+app for local audiobooks that shares the same core modules.
 
 ## Author
 
@@ -13,7 +13,8 @@ app (work in progress) that shares the same core modules.
 - **Music (PlayerApp)** — main Android player: catalog browsing (artists → albums → tracks), current queue, full-screen and mini player,
   background playback via `MediaSession`.
 - **PlayerDesktop** — desktop client in Kotlin and Jetpack Compose for desktop OSes (native installers: MSI, DMG, DEB).
-- **AudioBook** — separate Android app for audiobooks (WIP), same overall architecture as the music player.
+- **AudioBook** — Android audiobook player: folder library (SAF), chapters, sleep timer, background playback; same architecture as the music
+  player.
 
 Stack: Kotlin, Jetpack Compose, Decompose (navigation), SQLDelight (queue), Coil, Firebase Crashlytics (mobile builds).
 

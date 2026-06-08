@@ -28,7 +28,7 @@ android {
         buildConfigField(
             "String",
             "MIXPANEL_TOKEN",
-            "\"${System.getenv("MUSIC_PLAYER_MIXPANEL_TOKEN") ?: ""}\""
+            "\"${envOrPropertyNullable("MUSIC_PLAYER_MIXPANEL_TOKEN")}\""
         )
     }
 
@@ -43,8 +43,8 @@ android {
             initWith(getAt(Environment.Debug.gradleName))
         }
 
-        val releaseStorePassword = System.getenv("MUSIC_PLAYER_RELEASE_JKS_STORE_PASSWORD")
-        val releaseKeyPassword = System.getenv("MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD")
+        val releaseStorePassword = envOrPropertyNullable("MUSIC_PLAYER_RELEASE_JKS_STORE_PASSWORD")
+        val releaseKeyPassword = envOrPropertyNullable("MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD")
 
         if (listOf(releaseStorePassword, releaseKeyPassword).any { it.isNullOrBlank() }) {
             System.err.println("Release JKS credentials are not available")
@@ -53,7 +53,7 @@ android {
             create(Environment.Release.gradleName) {
                 storeFile = File(rootDir, "/keys/release.jks")
                 storePassword = releaseStorePassword
-                keyAlias = "upload_release"
+                keyAlias = "music_upload_release"
                 keyPassword = releaseKeyPassword
             }
         }

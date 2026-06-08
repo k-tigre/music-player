@@ -27,7 +27,7 @@ android {
         buildConfigField(
             "String",
             "MIXPANEL_TOKEN",
-            "\"${System.getenv("AUDIO_BOOK_MIXPANEL_TOKEN") ?: ""}\""
+            "\"${envOrPropertyNullable("AUDIO_BOOK_MIXPANEL_TOKEN")}\""
         )
     }
 
@@ -42,8 +42,8 @@ android {
             initWith(getAt(Environment.Debug.gradleName))
         }
 
-        val releaseStorePassword = System.getenv("AUDIO_BOOK_RELEASE_JKS_STORE_PASSWORD")
-        val releaseKeyPassword = System.getenv("AUDIO_BOOK_RELEASE_JKS_KEY_PASSWORD")
+        val releaseStorePassword = envOrPropertyNullable("AUDIO_BOOK_RELEASE_JKS_STORE_PASSWORD")
+        val releaseKeyPassword = envOrPropertyNullable("AUDIO_BOOK_RELEASE_JKS_KEY_PASSWORD")
 
         if (listOf(releaseStorePassword, releaseKeyPassword).any { it.isNullOrBlank() }) {
             System.err.println("Release JKS credentials are not available")
@@ -52,7 +52,7 @@ android {
             create(Environment.Release.gradleName) {
                 storeFile = File(rootDir, "/keys/release.jks")
                 storePassword = releaseStorePassword
-                keyAlias = "upload_release"
+                keyAlias = "book_upload_release"
                 keyPassword = releaseKeyPassword
             }
         }

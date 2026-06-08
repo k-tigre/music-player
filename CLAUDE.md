@@ -39,7 +39,7 @@ Kotlin monorepo: **3 apps** (2 Android + 1 Desktop) sharing KMP modules. Archite
 - Car: `apps/PlayerApp/.../car/MusicCarMediaLibrary.kt`
 - Playback: `playbackController` (songs from MediaStore)
 
-### AudioBook (Android audiobook, WIP)
+### AudioBook (Android audiobook)
 - Package: `by.tigre.audiobook` | App ID: `by.tigre.audiobook`
 - Entry: `apps/AudioBook/.../App.kt`, `MainActivity.kt`
 - DI: `apps/AudioBook/.../core/di/ApplicationGraph.kt` — extends PlayerApp graph + book modules + `nightTimerController`
