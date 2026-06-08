@@ -16,5 +16,6 @@ local.properties
 !/.idea/codeStyles
 /!temp
 .vscode
-/docs
+/docs/*
+!/docs/analytics-events.md
 apps/*/src/main/play/
