@@ -17,6 +17,7 @@ kotlin {
         }
         androidMain.dependencies {
             implementation(Library.CoroutinesAndroid.notation)
+            implementation(Library.Mixpanel.notation)
         }
     }
 }

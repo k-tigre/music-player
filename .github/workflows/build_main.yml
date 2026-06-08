@@ -20,6 +20,9 @@ jobs:
           ./gradlew testQaUnitTest assembleQa
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MIXPANEL_TOKEN: ${{ secrets.MIXPANEL_TOKEN }}
+          MUSIC_PLAYER_MIXPANEL_TOKEN: ${{ secrets.MUSIC_PLAYER_MIXPANEL_TOKEN }}
+          AUDIO_BOOK_MIXPANEL_TOKEN: ${{ secrets.AUDIO_BOOK_MIXPANEL_TOKEN }}
       - name: Upload to Music Firebase
         run: |
           ./gradlew :apps:PlayerApp:appDistributionUploadQa

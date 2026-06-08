@@ -30,6 +30,8 @@ jobs:
           MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD: ${{ secrets.MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD }}
           ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MIXPANEL_TOKEN: ${{ secrets.MIXPANEL_TOKEN }}
+          MUSIC_PLAYER_MIXPANEL_TOKEN: ${{ secrets.MUSIC_PLAYER_MIXPANEL_TOKEN }}
       - name: Upload Music artifacts
         uses: actions/upload-artifact@v7
         with:
@@ -61,6 +63,8 @@ jobs:
           AUDIO_BOOK_RELEASE_JKS_KEY_PASSWORD: ${{ secrets.AUDIO_BOOK_RELEASE_JKS_KEY_PASSWORD }}
           ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MIXPANEL_TOKEN: ${{ secrets.MIXPANEL_TOKEN }}
+          AUDIO_BOOK_MIXPANEL_TOKEN: ${{ secrets.AUDIO_BOOK_MIXPANEL_TOKEN }}
       - name: Upload Book artifacts
         uses: actions/upload-artifact@v7
         with:
