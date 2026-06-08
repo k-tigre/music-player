@@ -26,7 +26,7 @@ android {
     namespace = "by.tigre.music.player.tools.analytics"
 }
 
-tasks.register<JavaExec>("generateAnalyticsDocs") {
+val generateAnalyticsDocs = tasks.register<JavaExec>("generateAnalyticsDocs") {
     group = "documentation"
     description = "Generates analytics event catalog from @AnalyticsScope annotations"
     val desktopCompilation = kotlin.targets.getByName("desktop").compilations.getByName("main")
@@ -37,4 +37,12 @@ tasks.register<JavaExec>("generateAnalyticsDocs") {
         rootProject.layout.projectDirectory.dir("tools/analytics").asFile.absolutePath,
         rootProject.layout.projectDirectory.dir("docs/analytics-events.md").asFile.absolutePath,
     )
+}
+
+tasks.register<Exec>("checkAnalyticsDocs") {
+    group = "verification"
+    description = "Regenerates analytics docs and fails if docs/analytics-events.md is out of date"
+    dependsOn(generateAnalyticsDocs)
+    workingDir(rootProject.projectDir)
+    commandLine("git", "diff", "--exit-code", "docs/analytics-events.md")
 }
