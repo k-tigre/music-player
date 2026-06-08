@@ -48,6 +48,7 @@ include(":core:book:presentation:catalog")
 
 include(":tools:presentation:compose")
 include(":tools:presentation:decompose")
+include(":tools:analytics")
 include(":tools:entity")
 include(":tools:coroutines")
 include(":tools:platform:utils")

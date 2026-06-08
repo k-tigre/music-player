@@ -9,6 +9,8 @@ import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigator
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.appChildStack
+import by.tigre.music.player.presentation.base.trackScreens
+import by.tigre.music.player.tools.analytics.Event
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
@@ -117,6 +119,18 @@ interface RootCatalogComponent {
             }
 
         override val childStack: Value<ChildStack<*, CatalogChild>> = stack
+
+        init {
+            launch {
+                stack.trackScreens<CatalogConfig>(dependency.screenAnalytics, "CatalogConfig") {
+                    when (it) {
+                        CatalogConfig.ArtistsList -> Event.Screen.ArtistsList
+                        is CatalogConfig.AlbumsList -> Event.Screen.AlbumsList(it.artist.id.value)
+                        is CatalogConfig.SongsList -> Event.Screen.SongsList(it.album.id.value, it.artist.id.value)
+                    }
+                }
+            }
+        }
 
         override fun navigateToArtist(artistId: Artist.Id) {
             launch {

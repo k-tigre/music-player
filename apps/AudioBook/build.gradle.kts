@@ -100,6 +100,7 @@ dependencies {
     implementation(Toolkit.UI)
 
     implementation(Project.Tools.Coroutines)
+    implementation(Project.Tools.Analytics)
     implementation(Project.Core.Music.Presentation.Catalog)
     implementation(Project.Core.Book.Presentation.Catalog)
     implementation(Project.Core.Book.Data.Catalog)

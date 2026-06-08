@@ -11,6 +11,10 @@ import by.tigre.music.player.core.presentation.catalog.navigation.PlayerNavigato
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.presentation.base.appChildContext
 import by.tigre.music.player.presentation.base.appChildStack
+import by.tigre.music.player.presentation.base.trackScreens
+import by.tigre.music.player.tools.analytics.Event
+import by.tigre.music.player.tools.analytics.EventAnalytics
+import by.tigre.music.player.tools.analytics.ScreenAnalytics
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
@@ -19,6 +23,7 @@ import com.arkivanov.decompose.router.stack.pushToFront
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 interface Root {
@@ -50,6 +55,8 @@ interface Root {
         context: BaseComponentContext,
         playerComponentProvider: PlayerComponentProvider,
         audiobookCatalogComponentProvider: AudiobookCatalogComponentProvider,
+        screenAnalytics: ScreenAnalytics,
+        private val eventAnalytics: EventAnalytics,
     ) : Root, BaseComponentContext by context {
 
         private val mainNavigation = StackNavigation<MainConfig>()
@@ -60,10 +67,12 @@ interface Root {
             }
 
             override fun playerView() {
+                eventAnalytics.trackEvent(Event.Action.UI.Button.OpenPlayer)
                 mainNavigation.pushToFront(MainConfig.Player)
             }
 
             override fun showEqualizer() {
+                eventAnalytics.trackEvent(Event.Action.UI.Button.OpenEqualizer)
                 mainNavigation.push(MainConfig.Equalizer)
             }
 
@@ -120,21 +129,37 @@ interface Root {
             }
 
         override fun onShowCatalog() {
+            eventAnalytics.trackEvent(Event.Action.UI.Button.OpenCatalog)
             mainNavigation.pushToFront(MainConfig.Main)
             audiobookCatalogComponent.focusCurrentBookInLibrary()
         }
 
         override fun onOpenFolderSettings() {
+            eventAnalytics.trackEvent(Event.Action.UI.Button.OpenFolderSettings)
             mainNavigation.pushToFront(MainConfig.Main)
             audiobookCatalogComponent.openFolderSelection()
         }
 
         override fun onOpenNightTimerSettings() {
+            eventAnalytics.trackEvent(Event.Action.UI.Button.OpenNightTimer)
             mainNavigation.push(MainConfig.NightTimer)
         }
 
         override fun onCloseNightTimerSettings() {
             mainNavigation.pop()
+        }
+
+        init {
+            launch {
+                mainComponent.trackScreens<MainConfig>(screenAnalytics, "MainConfig") {
+                    when (it) {
+                        MainConfig.Main -> Event.Screen.AudiobookCatalog
+                        MainConfig.Player -> Event.Screen.Player
+                        MainConfig.Equalizer -> Event.Screen.Equalizer
+                        MainConfig.NightTimer -> Event.Screen.NightTimerSettings
+                    }
+                }
+            }
         }
 
         @Serializable

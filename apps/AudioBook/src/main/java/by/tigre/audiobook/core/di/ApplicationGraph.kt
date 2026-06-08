@@ -26,6 +26,7 @@ import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueDependency
+import by.tigre.music.player.tools.analytics.AnalyticsModule
 import by.tigre.music.player.tools.coroutines.CoroutineModule
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
@@ -37,12 +38,14 @@ class ApplicationGraph(
     catalogModule: CatalogModule,
     audiobookCatalogModule: AudiobookCatalogModule,
     audiobookPlaybackModule: AudiobookPlaybackModule,
+    analyticsModule: AnalyticsModule,
     val nightTimerController: NightTimerController,
 ) : CatalogDependency,
     PlayerDependency,
     PlayerBackgroundDependency,
     CurrentQueueDependency,
     AudiobookCatalogDependency,
+    AnalyticsModule by analyticsModule,
     PlaybackModule by playbackModule,
     CatalogModule by catalogModule,
     AudiobookCatalogModule by audiobookCatalogModule,
@@ -96,7 +99,10 @@ class ApplicationGraph(
     }
 
     companion object {
-        fun create(context: Context): ApplicationGraph {
+        fun create(
+            context: Context,
+            analyticsModule: AnalyticsModule,
+        ): ApplicationGraph {
             val preferencesModule = AndroidPreferencesModule(context)
             val catalogModule = AndroidCatalogModule(context, preferencesModule.preferences)
             val coroutineModule = CoroutineModule.Impl()
@@ -134,6 +140,7 @@ class ApplicationGraph(
                 catalogModule = catalogModule,
                 audiobookCatalogModule = audiobookCatalogModule,
                 audiobookPlaybackModule = audiobookPlaybackModule,
+                analyticsModule = analyticsModule,
                 nightTimerController = nightTimerController,
             )
         }

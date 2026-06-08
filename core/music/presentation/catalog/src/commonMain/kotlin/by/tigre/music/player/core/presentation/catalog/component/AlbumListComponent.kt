@@ -8,6 +8,8 @@ import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigator
 import by.tigre.music.player.presentation.base.BaseComponentContext
+import by.tigre.music.player.tools.analytics.Event
+import by.tigre.music.player.tools.analytics.EventAnalytics
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.presentation.base.ScreenContentState.Content
 import by.tigre.music.player.presentation.base.ScreenContentStateDelegate
@@ -42,6 +44,7 @@ interface AlbumListComponent {
 
         private val catalogSource: CatalogSource = dependency.catalogSource
         private val playbackController: PlaybackController = dependency.playbackController
+        private val eventAnalytics: EventAnalytics = dependency.eventAnalytics
 
         private val _removePrompt = MutableStateFlow<RemovePrompt?>(null)
         override val removePrompt: StateFlow<RemovePrompt?> = _removePrompt
@@ -75,10 +78,12 @@ interface AlbumListComponent {
         }
 
         override fun onPlayAlbumClicked(album: Album) {
+            eventAnalytics.trackEvent(Event.Action.UI.Button.PlayAlbum)
             playbackController.playAlbum(album.id, artist.id)
         }
 
         override fun onAddToPlayAlbumClicked(album: Album) {
+            eventAnalytics.trackEvent(Event.Action.UI.Button.AddAlbumToQueue)
             playbackController.addAlbumToPlay(album.id, artist.id)
         }
 

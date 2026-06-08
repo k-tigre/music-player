@@ -29,6 +29,7 @@ dependencies {
 
     implementation(project(Project.Tools.Entity.name))
     implementation(project(Project.Tools.Coroutines.name))
+    implementation(project(Project.Tools.Analytics.name))
     implementation(project(Project.Tools.Presentation.Compose.name))
     implementation(project(Project.Tools.Presentation.Decompose.name))
     implementation(TigreLogger.Artifact.Core)

@@ -7,7 +7,12 @@ import by.tigre.logger.DbLogger
 import by.tigre.logger.Log
 import by.tigre.logger.LogDatabaseDriverFactory
 import by.tigre.logger.LogcatLogger
-import by.tigre.music.player.BuildConfig
+import by.tigre.music.player.tools.analytics.AnalyticsModule
+import by.tigre.music.player.analytics.FirebaseTracker
+import by.tigre.music.player.tools.analytics.LogTracker
+import by.tigre.music.player.tools.analytics.Tracker
+import by.tigre.music.player.tools.coroutines.CoroutineModule
+import com.google.firebase.FirebaseApp
 
 class App : Application() {
     lateinit var graph: ApplicationGraph
@@ -26,6 +31,18 @@ class App : Application() {
             Log.init(Log.Level.DEBUG, CrashlyticsLogger())
         }
 
-        graph = ApplicationGraph.create(this)
+        if (FirebaseApp.getApps(this).isEmpty()) {
+            FirebaseApp.initializeApp(this)
+        }
+
+        val coroutineModule = CoroutineModule.Impl()
+        val tracker = if (BuildConfig.DEBUG) {
+            Tracker.TrackerAggregator(LogTracker())
+        } else {
+            Tracker.TrackerAggregator(LogTracker(), FirebaseTracker(this))
+        }
+        val analyticsModule = AnalyticsModule.Impl(tracker, coroutineModule)
+
+        graph = ApplicationGraph.create(this, analyticsModule)
     }
 }
