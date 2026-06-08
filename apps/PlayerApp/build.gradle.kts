@@ -24,6 +24,12 @@ android {
             versionCode = app.version.code
         }
         androidResources.localeFilters.addAll(listOf("en", "ru"))
+
+        buildConfigField(
+            "String",
+            "MIXPANEL_TOKEN",
+            "\"${System.getenv("MUSIC_PLAYER_MIXPANEL_TOKEN") ?: System.getenv("MIXPANEL_TOKEN") ?: ""}\""
+        )
     }
 
     signingConfigs {
@@ -66,6 +72,7 @@ android {
 
                 applicationIdSuffix = env.suffix
                 manifestPlaceholders["appName"] = "${Application.MusicPlayer.name}${env.appNameSuffix}"
+                buildConfigField("Boolean", "REMOTE_ANALYTICS_ENABLED", env.remoteAnalytics.toString())
                 if (env.useProguard) {
                     proguardFiles(
                         "rules.proguard",

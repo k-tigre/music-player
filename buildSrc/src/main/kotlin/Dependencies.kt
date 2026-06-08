@@ -54,6 +54,8 @@ enum class Library(group: String, artifact: String, version: Version) {
 
     Jnativehook("com.github.kwhat", "jnativehook", Version.Jnativehook),
 
+    Mixpanel("com.mixpanel.android", "mixpanel-android", Version.Mixpanel),
+
     // TODO compose preview not working, check issue: https://issuetracker.google.com/issues/227767363
     DebugComposeCustomView("androidx.customview", "customview", Version.DebugComposeCustomView),
     DebugComposeCustomViewPoolingcontainer(
@@ -90,6 +92,7 @@ enum class Library(group: String, artifact: String, version: Version) {
         FfmpegPlatform("7.1-1.5.11"),
         Decompose("3.4.0"),
         Jnativehook("2.2.2"),
+        Mixpanel("8.2.0"),
 
         DebugComposeCustomView("1.2.0-alpha02"),
         DebugComposeCustomViewPoolingcontainer("1.0.0"),

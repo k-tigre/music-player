@@ -23,6 +23,12 @@ android {
         }
 
         androidResources.localeFilters.addAll(listOf("en", "ru"))
+
+        buildConfigField(
+            "String",
+            "MIXPANEL_TOKEN",
+            "\"${System.getenv("AUDIO_BOOK_MIXPANEL_TOKEN") ?: System.getenv("MIXPANEL_TOKEN") ?: ""}\""
+        )
     }
 
     signingConfigs {
@@ -65,6 +71,7 @@ android {
 
                 applicationIdSuffix = env.suffix
                 manifestPlaceholders["appName"] = "${Application.AudioBook.name}${env.appNameSuffix}"
+                buildConfigField("Boolean", "REMOTE_ANALYTICS_ENABLED", env.remoteAnalytics.toString())
                 if (env.useProguard) {
                     proguardFiles(
                         "rules.proguard",
