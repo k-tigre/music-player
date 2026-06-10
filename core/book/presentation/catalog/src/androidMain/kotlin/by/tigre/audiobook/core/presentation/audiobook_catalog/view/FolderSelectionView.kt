@@ -48,6 +48,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.documentfile.provider.DocumentFile
+import by.tigre.audiobook.core.data.audiobook.CatalogScanDetail
+import by.tigre.audiobook.core.data.audiobook.CatalogScanSummary
 import by.tigre.audiobook.core.data.audiobook.FolderSourceAccessHealth
 import by.tigre.audiobook.core.entity.catalog.FolderSource
 import by.tigre.audiobook.core.presentation.audiobook_catalog.component.FolderSelectionComponent
@@ -96,12 +98,11 @@ class FolderSelectionView(
         }
 
         val scanUi by component.catalogScanUi.collectAsState()
+        val completedSummaryText = scanUi.completedSummary?.let { formatScanSummary(it) }
         var wasScanActive by remember { mutableStateOf(false) }
-        LaunchedEffect(scanUi.active, scanUi.completedSummary) {
+        LaunchedEffect(scanUi.active, completedSummaryText) {
             if (wasScanActive && !scanUi.active) {
-                if (scanUi.completedSummary.isNotEmpty()) {
-                    snackbarHostState.showSnackbar(scanUi.completedSummary)
-                }
+                completedSummaryText?.let { snackbarHostState.showSnackbar(it) }
                 component.refreshFolderAccessHealth()
             }
             wasScanActive = scanUi.active
@@ -128,7 +129,7 @@ class FolderSelectionView(
                             CircularProgressIndicator()
                         }
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text(scanUi.detail)
+                        Text(formatScanDetail(scanUi.detail))
                     }
                 }
             )
@@ -274,6 +275,77 @@ class FolderSelectionView(
                         }
                     }
                 }
+            }
+        }
+    }
+
+    @Composable
+    private fun formatScanDetail(detail: CatalogScanDetail): String {
+        return when (detail) {
+            CatalogScanDetail.Preparing -> stringResource(Res.string.scan_detail_preparing)
+            CatalogScanDetail.CollectingFiles -> stringResource(Res.string.scan_detail_collecting_files)
+            CatalogScanDetail.ReadingMetadata -> stringResource(Res.string.scan_detail_reading_metadata)
+        }
+    }
+
+    @Composable
+    private fun formatScanSummary(summary: CatalogScanSummary): String {
+        return when (summary) {
+            CatalogScanSummary.CannotOpenFolder ->
+                stringResource(Res.string.scan_summary_cannot_open_folder)
+
+            CatalogScanSummary.CannotReadFolder ->
+                stringResource(Res.string.scan_summary_cannot_read_folder)
+
+            CatalogScanSummary.NoFilesSeenAccessIssue ->
+                stringResource(Res.string.scan_summary_no_files_seen)
+
+            is CatalogScanSummary.UpdatedBooks ->
+                stringResource(Res.string.scan_summary_updated_books, summary.books, summary.files)
+
+            CatalogScanSummary.ScanFailed ->
+                stringResource(Res.string.scan_summary_failed)
+
+            CatalogScanSummary.NoFoldersToScan ->
+                stringResource(Res.string.scan_summary_no_folders_to_scan)
+
+            is CatalogScanSummary.CannotOpenFolders ->
+                stringResource(
+                    Res.string.scan_summary_cannot_open_folders,
+                    summary.names.joinToString(),
+                )
+
+            CatalogScanSummary.NothingToScan ->
+                stringResource(Res.string.scan_summary_nothing_to_scan)
+
+            is CatalogScanSummary.NoFilesReadAccess ->
+                stringResource(
+                    Res.string.scan_summary_no_files_read_access,
+                    summary.folderNames.joinToString(),
+                )
+
+            CatalogScanSummary.NothingIndexed ->
+                stringResource(Res.string.scan_summary_nothing_indexed)
+
+            is CatalogScanSummary.Indexed -> {
+                val base = stringResource(
+                    Res.string.scan_summary_indexed,
+                    summary.books,
+                    summary.files,
+                )
+                val suffix = when {
+                    summary.problemFolders.isEmpty() -> ""
+                    summary.problemFolders.size <= 2 -> stringResource(
+                        Res.string.scan_summary_skipped_or_failed_names,
+                        summary.problemFolders.joinToString(),
+                    )
+
+                    else -> stringResource(
+                        Res.string.scan_summary_skipped_or_failed_count,
+                        summary.problemFolders.size,
+                    )
+                }
+                base + suffix
             }
         }
     }

@@ -5,6 +5,8 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import by.tigre.audiobook.core.data.audiobook.AudiobookCatalogSource
+import by.tigre.audiobook.core.data.audiobook.CatalogScanDetail
+import by.tigre.audiobook.core.data.audiobook.CatalogScanSummary
 import by.tigre.audiobook.core.data.audiobook.CatalogScanUi
 import by.tigre.audiobook.core.data.audiobook.FolderSourceAccessHealth
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.AudiobookCatalogStorage
@@ -40,7 +42,7 @@ class AudiobookCatalogSourceImpl(
             val root = DocumentFile.fromTreeUri(context, Uri.parse(uri))
             if (root == null) {
                 Log.e(TAG) { "fromTreeUri null for addFolderAndScan: $uri" }
-                endScan("Cannot open folder. Grant access again.")
+                endScan(CatalogScanSummary.CannotOpenFolder)
                 return@withContext
             }
             val pending = mutableListOf<PendingBook>()
@@ -48,14 +50,14 @@ class AudiobookCatalogSourceImpl(
                 is CollectResult.Ok -> collected.fileCount
                 CollectResult.ListingFailed -> {
                     Log.e(TAG) { "Cannot list folder contents (permission?): $uri" }
-                    endScan("Cannot read folder. Open it again via + or re-add the folder.")
+                    endScan(CatalogScanSummary.CannotReadFolder)
                     return@withContext
                 }
             }
             _catalogScanUi.value = _catalogScanUi.value.copy(
                 total = total,
                 processed = 0,
-                detail = "Reading metadata…",
+                detail = CatalogScanDetail.ReadingMetadata,
             )
             var processed = 0
             val scanned = buildScannedBooksForFolder(folderSourceId, pending) {
@@ -65,15 +67,15 @@ class AudiobookCatalogSourceImpl(
             val hadBooks = storage.countBooksByFolderSource(folderSourceId) > 0
             if (scanned.isEmpty() && hadBooks) {
                 Log.w(TAG) { "addFolderAndScan: 0 books found but DB already has books for source $folderSourceId — skip sync" }
-                endScan("No files seen (access issue?). Your catalog was not changed. Re-pick the folder if needed.")
+                endScan(CatalogScanSummary.NoFilesSeenAccessIssue)
                 return@withContext
             }
             storage.syncBooksForFolder(folderSourceId, scanned)
             Log.d(TAG) { "Scan complete for folder $uri: ${scanned.size} books, $total files" }
-            endScan("Updated ${scanned.size} books · $total files")
+            endScan(CatalogScanSummary.UpdatedBooks(scanned.size, total))
         } catch (e: Exception) {
             Log.e(e) { "Error in addFolderAndScan: $uri" }
-            endScan(e.message ?: "Scan failed")
+            endScan(CatalogScanSummary.ScanFailed)
         }
     }
 
@@ -87,11 +89,11 @@ class AudiobookCatalogSourceImpl(
             val folders = storage.getFolderSources()
             if (folders.isEmpty()) {
                 Log.w(TAG) { "rescanAllFolders: no folder sources" }
-                endScan("No folders to scan.")
+                endScan(CatalogScanSummary.NoFoldersToScan)
                 return@withContext
             }
 
-            _catalogScanUi.value = _catalogScanUi.value.copy(detail = "Collecting files…")
+            _catalogScanUi.value = _catalogScanUi.value.copy(detail = CatalogScanDetail.CollectingFiles)
             val works = mutableListOf<FolderScanWork>()
             val failedNames = mutableListOf<String>()
             for (folder in folders) {
@@ -113,12 +115,12 @@ class AudiobookCatalogSourceImpl(
             }
 
             if (works.isEmpty()) {
-                val hint = if (failedNames.isNotEmpty()) {
-                    "Cannot open: ${failedNames.joinToString()}. Re-add folders."
+                val summary = if (failedNames.isNotEmpty()) {
+                    CatalogScanSummary.CannotOpenFolders(failedNames)
                 } else {
-                    "Nothing to scan."
+                    CatalogScanSummary.NothingToScan
                 }
-                endScan(hint)
+                endScan(summary)
                 return@withContext
             }
 
@@ -126,7 +128,7 @@ class AudiobookCatalogSourceImpl(
             _catalogScanUi.value = _catalogScanUi.value.copy(
                 total = totalFiles,
                 processed = 0,
-                detail = "Reading metadata…",
+                detail = CatalogScanDetail.ReadingMetadata,
             )
 
             var processed = 0
@@ -149,31 +151,23 @@ class AudiobookCatalogSourceImpl(
             }
 
             val problemFolders = failedNames.distinct()
-            val suffix = when {
-                problemFolders.isEmpty() -> ""
-                problemFolders.size <= 2 ->
-                    " — skipped or failed: ${problemFolders.joinToString()}"
-
-                else ->
-                    " — skipped or failed: ${problemFolders.size} folders"
+            Log.d(TAG) {
+                "rescanAllFolders done: $booksCount books, $totalFiles files, problems=${problemFolders.size}"
             }
-            Log.d(TAG) { "rescanAllFolders done: $booksCount books, $totalFiles files$suffix" }
             val summary = when {
                 booksCount == 0 && totalFiles == 0 && problemFolders.isNotEmpty() ->
-                    "No files were read (storage access). Catalog left unchanged. Re-add or re-pick: ${
-                        problemFolders.take(2).joinToString()
-                    }"
+                    CatalogScanSummary.NoFilesReadAccess(problemFolders.take(2))
 
                 booksCount == 0 && totalFiles == 0 ->
-                    "Nothing indexed. Check folder access or file types."
+                    CatalogScanSummary.NothingIndexed
 
                 else ->
-                    "Indexed $booksCount books · $totalFiles files$suffix"
+                    CatalogScanSummary.Indexed(booksCount, totalFiles, problemFolders)
             }
             endScan(summary)
         } catch (e: Exception) {
             Log.e(e) { "Error in rescanAllFolders" }
-            endScan(e.message ?: "Scan failed")
+            endScan(CatalogScanSummary.ScanFailed)
         }
     }
 
@@ -210,12 +204,12 @@ class AudiobookCatalogSourceImpl(
             active = true,
             processed = 0,
             total = 0,
-            detail = "Preparing…",
-            completedSummary = "",
+            detail = CatalogScanDetail.Preparing,
+            completedSummary = null,
         )
     }
 
-    private fun endScan(summary: String) {
+    private fun endScan(summary: CatalogScanSummary) {
         _catalogScanUi.value = CatalogScanUi(
             active = false,
             completedSummary = summary,
