@@ -9,6 +9,15 @@
 
 ### EN
 
+## [0.3.2] - 2026-06-12
+### RU
+- Ночной таймер: переворот телефона снова продлевает сон
+- Подсказка в настройках ночного таймера
+
+### EN
+- Night timer: flipping the phone extends sleep again
+- Help text in night timer settings
+
 ## [0.3.1]
 
 ### RU
