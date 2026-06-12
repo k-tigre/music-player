@@ -18,6 +18,8 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+      - name: Generate Play release notes
+        run: bash scripts/generate-play-release-notes.sh
       - name: Build Music release APK & AAB
         run: |
           ./gradlew \
@@ -50,6 +52,8 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+      - name: Generate Play release notes
+        run: bash scripts/generate-play-release-notes.sh
       - name: Build Book release APK & AAB
         run: |
           ./gradlew \

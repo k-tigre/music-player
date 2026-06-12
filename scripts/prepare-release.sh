@@ -17,6 +17,6 @@ if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 fi
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
-python scripts/changelog_tool.py bump-version --app "$APP" --version "$VERSION"
-python scripts/changelog_tool.py write-play-notes --app "$APP" --version "$VERSION"
-python scripts/changelog_tool.py finalize --app "$APP" --version "$VERSION"
+python3 scripts/changelog_tool.py bump-version --app "$APP" --version "$VERSION"
+python3 scripts/changelog_tool.py write-play-notes --app "$APP" --version "$VERSION"
+python3 scripts/changelog_tool.py finalize --app "$APP" --version "$VERSION"

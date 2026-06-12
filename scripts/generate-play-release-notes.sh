@@ -33,4 +33,4 @@ ARGS=(scripts/changelog_tool.py write-play-notes --app "$APP" --version "$VERSIO
 if [[ -n "$TRACK" ]]; then
     ARGS+=(--track "$TRACK")
 fi
-python "${ARGS[@]}"
+python3 "${ARGS[@]}"
