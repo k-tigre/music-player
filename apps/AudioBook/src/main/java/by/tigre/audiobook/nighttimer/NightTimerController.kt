@@ -63,7 +63,7 @@ private class NightTimerControllerImpl(
     private val scope: CoreScope,
 ) : NightTimerController {
 
-    private val faceDownExtender = FaceDownFlipExtender(context, ::extendByFaceDown)
+    private val faceDownExtender = FaceDownFlipExtender(context, ::extendByFlip)
 
     private val _uiState = MutableStateFlow(NightTimerUiState(isRunning = false, remainingSeconds = 0))
     override val uiState: StateFlow<NightTimerUiState> = _uiState.asStateFlow()
@@ -136,10 +136,12 @@ private class NightTimerControllerImpl(
             if (remaining < FACE_DOWN_GATE_SECONDS) {
                 if (!faceDownGateEntered) {
                     faceDownGateEntered = true
+                    faceDownExtender.enable()
                     faceDownExtender.resetDetectionState()
                 }
-            } else {
+            } else if (faceDownGateEntered) {
                 faceDownGateEntered = false
+                faceDownExtender.disable()
             }
 
             if (remaining <= 0) {
@@ -174,11 +176,12 @@ private class NightTimerControllerImpl(
         _uiState.value = NightTimerUiState(isRunning = true, remainingSeconds = remaining)
     }
 
-    private fun extendByFaceDown() {
+    private fun extendByFlip() {
         if (timerJob?.isActive != true) return
         if (computeRemainingSeconds() >= FACE_DOWN_GATE_SECONDS) return
         endAtElapsedRealtime.addAndGet(FACE_DOWN_EXTRA_MS)
-        Log.d(TAG) { "Face down: +5 min" }
+        Log.d(TAG) { "Flip extend: +5 min" }
+        faceDownExtender.resetDetectionState()
         val remaining = computeRemainingSeconds()
         if (remaining > FADE_WINDOW_SECONDS && fadeBaseCaptured) {
             setPlaybackVolumeOnMainSync(volumeBeforeTimer)

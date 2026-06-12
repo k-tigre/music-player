@@ -99,6 +99,8 @@ fun NightTimerSettingsScreen(
                 )
             }
 
+            NightTimerFlipExtendHelp()
+
             if (ui.isRunning) {
                 Button(
                     onClick = controller::cancelTimer,
