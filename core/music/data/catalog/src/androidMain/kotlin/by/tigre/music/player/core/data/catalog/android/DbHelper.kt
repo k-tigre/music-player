@@ -4,6 +4,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
 import android.os.Build
+import android.provider.BaseColumns
 import android.provider.MediaStore
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
@@ -98,8 +99,14 @@ interface DbHelper {
         }
 
         override suspend fun getAlbums(artistId: Artist.Id): List<Album> {
+            // Pre-Q: use _ID for album id; on Q+ use ALBUM_ID (_ID returns a wrong value there).
+            val albumIdColumn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                MediaStore.Audio.Artists.Albums.ALBUM_ID
+            } else {
+                BaseColumns._ID
+            }
             val projection = arrayOf(
-                MediaStore.Audio.Artists.Albums.ALBUM_ID,
+                albumIdColumn,
                 MediaStore.Audio.Artists.Albums.ALBUM,
                 MediaStore.Audio.Artists.Albums.ALBUM_ART,
                 MediaStore.Audio.Artists.Albums.NUMBER_OF_SONGS_FOR_ARTIST,
@@ -121,7 +128,7 @@ interface DbHelper {
                 null,
                 MediaStore.Audio.Albums.FIRST_YEAR + " ASC"
             )?.use { cursor ->
-                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.Albums.ALBUM_ID)
+                val idColumn = cursor.getColumnIndexOrThrow(albumIdColumn)
                 val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.Albums.ALBUM)
                 val countColumn =
                     cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.Albums.NUMBER_OF_SONGS_FOR_ARTIST)
