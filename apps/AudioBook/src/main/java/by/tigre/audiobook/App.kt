@@ -43,7 +43,14 @@ class App : Application() {
                 FirebaseTracker(this),
             )
             if (BuildConfig.MIXPANEL_TOKEN.isNotBlank()) {
-                backends.add(MixpanelTracker(this, BuildConfig.MIXPANEL_TOKEN, coroutineModule.scope))
+                backends.add(
+                    MixpanelTracker(
+                        context = this,
+                        mixpanelToken = BuildConfig.MIXPANEL_TOKEN,
+                        serverUrl = BuildConfig.MIXPANEL_SERVER_URL,
+                        scope = coroutineModule.scope,
+                    )
+                )
             }
             Tracker.Aggregator(*backends.toTypedArray())
         } else {

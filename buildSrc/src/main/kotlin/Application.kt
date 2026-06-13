@@ -12,19 +12,11 @@ object Application {
         const val id: String = "by.tigre.audiobook"
         val version: Version = Version(0, 3, 2)
         const val name: String = "AudioBook"
-
-        const val SDK_COMPILE = Application.SDK_COMPILE
-        const val SDK_MINIMUM = Application.SDK_MINIMUM
-        const val SDK_TARGET = Application.SDK_TARGET
     }
 
     object MusicPlayer {
         const val id: String = "by.tigre.musicplayer"
         val version: Version = Version(0, 18, 2)
         const val name: String = "Music"
-
-        const val SDK_COMPILE = Application.SDK_COMPILE
-        const val SDK_MINIMUM = Application.SDK_MINIMUM
-        const val SDK_TARGET = Application.SDK_TARGET
     }
 }

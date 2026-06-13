@@ -33,6 +33,7 @@ jobs:
           ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MUSIC_PLAYER_MIXPANEL_TOKEN: ${{ secrets.MUSIC_PLAYER_MIXPANEL_TOKEN }}
+          MIXPANEL_SERVER_URL: ${{ secrets.MIXPANEL_SERVER_URL }}
       - name: Upload Music artifacts
         uses: actions/upload-artifact@v7
         with:
@@ -67,6 +68,7 @@ jobs:
           ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AUDIO_BOOK_MIXPANEL_TOKEN: ${{ secrets.AUDIO_BOOK_MIXPANEL_TOKEN }}
+          MIXPANEL_SERVER_URL: ${{ secrets.MIXPANEL_SERVER_URL }}
       - name: Upload Book artifacts
         uses: actions/upload-artifact@v7
         with:

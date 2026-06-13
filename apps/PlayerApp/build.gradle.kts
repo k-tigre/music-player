@@ -30,6 +30,11 @@ android {
             "MIXPANEL_TOKEN",
             "\"${envOrPropertyNullable("MUSIC_PLAYER_MIXPANEL_TOKEN")}\""
         )
+        buildConfigField(
+            "String",
+            "MIXPANEL_SERVER_URL",
+            envOrPropertyNullable("MIXPANEL_SERVER_URL")?.let { "\"$it\"" } ?: "null"
+        )
     }
 
     signingConfigs {

@@ -27,7 +27,12 @@ android {
         buildConfigField(
             "String",
             "MIXPANEL_TOKEN",
-            "\"${envOrPropertyNullable("AUDIO_BOOK_MIXPANEL_TOKEN")}\""
+            "\"${envOrPropertyNullable("AUDIO_BOOK_MIXPANEL_TOKEN").also{println("Has AUDIO MIXPANEL_TOKEN=${it?.isNotBlank()}")}}\""
+        )
+        buildConfigField(
+            "String",
+            "MIXPANEL_SERVER_URL",
+            envOrPropertyNullable("MIXPANEL_SERVER_URL")?.let { "\"$it\"" } ?: "null"
         )
     }
 

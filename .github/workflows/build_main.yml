@@ -23,6 +23,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MUSIC_PLAYER_MIXPANEL_TOKEN: ${{ secrets.MUSIC_PLAYER_MIXPANEL_TOKEN }}
           AUDIO_BOOK_MIXPANEL_TOKEN: ${{ secrets.AUDIO_BOOK_MIXPANEL_TOKEN }}
+          MIXPANEL_SERVER_URL: ${{ secrets.MIXPANEL_SERVER_URL }}
       - name: Upload to Music Firebase
         run: |
           ./gradlew :apps:PlayerApp:appDistributionUploadQa
