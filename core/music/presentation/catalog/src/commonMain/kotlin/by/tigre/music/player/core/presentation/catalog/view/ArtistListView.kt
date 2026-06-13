@@ -1,7 +1,6 @@
 package by.tigre.music.player.core.presentation.catalog.view
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -71,11 +70,6 @@ class ArtistListView(
             content = { paddingValues ->
                 val screenState by component.screenState.collectAsState()
                 val searchQuery by component.searchQuery.collectAsState()
-                val contentState = when (screenState) {
-                    is ScreenContentState.Loading -> ArtistListUiState.Loading
-                    is ScreenContentState.Error -> ArtistListUiState.Error
-                    is ScreenContentState.Content -> ArtistListUiState.Content
-                }
 
                 Column(
                     modifier = Modifier
@@ -93,24 +87,23 @@ class ArtistListView(
                         label = { Text(stringResource(Res.string.catalog_search_hint)) }
                     )
 
-                    Crossfade(
+                    AnimatedContent(
                         modifier = Modifier.fillMaxSize(),
-                        targetState = contentState,
-                        animationSpec = tween(500),
-                        label = "state"
+                        targetState = screenState,
+                        contentKey = { state -> state::class },
+                        label = "state",
                     ) { state ->
                         when (state) {
-                            ArtistListUiState.Loading -> {
+                            is ScreenContentState.Loading -> {
                                 ProgressIndicator(Modifier.fillMaxSize(), ProgressIndicatorSize.LARGE)
                             }
 
-                            ArtistListUiState.Error -> {
+                            is ScreenContentState.Error -> {
                                 ErrorScreen(retryAction = component::retry)
                             }
 
-                            ArtistListUiState.Content -> {
-                                val data = (screenState as ScreenContentState.Content).value
-                                DrawContent(data)
+                            is ScreenContentState.Content -> {
+                                DrawContent(state.value)
                             }
                         }
                     }
@@ -210,9 +203,4 @@ class ArtistListView(
         )
     }
 
-    private enum class ArtistListUiState {
-        Loading,
-        Error,
-        Content,
-    }
 }
