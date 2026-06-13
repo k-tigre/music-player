@@ -1,2 +1,1 @@
-• Night timer: flipping the phone extends sleep again
-• Help text in night timer settings
+• Bug fixes and improvements
