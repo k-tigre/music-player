@@ -15,13 +15,13 @@ import kotlin.time.Duration.Companion.seconds
 class MixpanelTracker(
     context: Context,
     mixpanelToken: String,
-    serverUrl: String,
+    serverUrl: String?,
     scope: CoreScope,
 ) : Tracker {
     private val mixpanel: MixpanelAPI = MixpanelAPI.getInstance(context, mixpanelToken, true)
         .apply {
             setEnableLogging(true)
-            if (serverUrl.isNotBlank()){
+            if (serverUrl.isNullOrBlank().not()){
                 setServerURL(serverUrl)
             }
         }

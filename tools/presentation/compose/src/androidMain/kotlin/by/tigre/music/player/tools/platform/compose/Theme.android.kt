@@ -1,7 +1,8 @@
 package by.tigre.music.player.tools.platform.compose
 
-import android.app.Activity
+import android.graphics.Color
 import android.os.Build
+import androidx.activity.ComponentActivity
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -27,9 +28,19 @@ actual fun PlatformThemeEffect(colorScheme: ColorScheme, darkTheme: Boolean) {
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
-            val window = (view.context as Activity).window
+            val activity = view.context as ComponentActivity
+            val window = activity.window
+
+            WindowCompat.setDecorFitsSystemWindows(window, false)
             window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            window.navigationBarColor = Color.TRANSPARENT
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                window.isNavigationBarContrastEnforced = false
+            }
+
+            val insetsController = WindowCompat.getInsetsController(window, view)
+            insetsController.isAppearanceLightStatusBars = darkTheme
+            insetsController.isAppearanceLightNavigationBars = darkTheme.not()
         }
     }
 }

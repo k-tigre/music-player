@@ -3,6 +3,7 @@ package by.tigre.audiobook.presentation.root.view
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -39,6 +40,7 @@ import by.tigre.audiobook.presentation.root.component.Root
 import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
 import by.tigre.music.player.core.presentation.catalog.view.PlayerView
 import by.tigre.music.player.tools.platform.compose.ComposableView
+import by.tigre.music.player.tools.platform.compose.view.BottomBarContainer
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
@@ -210,11 +212,14 @@ class RootView(
     private fun DrawPages() {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
-                playerViewProvider.createSmallPlayerView(
-                    component = component.playerComponent,
-                    showOrderModeButton = false,
-                ).Draw(Modifier)
+                BottomBarContainer {
+                    playerViewProvider.createSmallPlayerView(
+                        component = component.playerComponent,
+                        showOrderModeButton = false,
+                    ).Draw(Modifier)
+                }
             }
         ) { paddings ->
             audiobookCatalogViewProvider.createRootView(component.audiobookCatalogComponent)

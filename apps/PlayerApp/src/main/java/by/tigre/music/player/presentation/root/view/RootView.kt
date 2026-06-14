@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -15,6 +14,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +28,8 @@ import by.tigre.music.player.core.presentation.catalog.view.PlayerView
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
 import by.tigre.music.player.presentation.root.component.Root
 import by.tigre.music.player.tools.platform.compose.ComposableView
+import by.tigre.music.player.tools.platform.compose.view.BottomBarContainer
+import by.tigre.music.player.tools.platform.compose.view.BottomBarNavigationBarInsets
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.plus
@@ -97,14 +99,17 @@ class RootView(
             modifier = Modifier.fillMaxSize(),
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
-                Column {
+                BottomBarContainer {
                     playerViewProvider.createSmallPlayerView(component.playerComponent).Draw(Modifier)
 
-                    NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
+                    NavigationBar(
+                        containerColor = Color.Transparent,
+                        tonalElevation = 0.dp,
+                        windowInsets = BottomBarNavigationBarInsets,
+                    ) {
                         val pages = component.pages.subscribeAsState()
 
                         NavigationBarItem(
-                            modifier = Modifier.navigationBarsPadding(),
                             selected = pages.value.active.instance is Root.PageComponentChild.Queue,
                             onClick = { component.selectPage(0) },
                             icon = {
@@ -117,13 +122,11 @@ class RootView(
                                 Text(
                                     text = stringResource(R.string.nav_playlist),
                                     style = MaterialTheme.typography.titleSmall,
-                                    modifier = Modifier.padding(top = 4.dp)
                                 )
                             },
                         )
 
                         NavigationBarItem(
-                            modifier = Modifier.navigationBarsPadding(),
                             selected = pages.value.active.instance is Root.PageComponentChild.Catalog,
                             onClick = { component.selectPage(1) },
                             icon = {
@@ -136,7 +139,6 @@ class RootView(
                                 Text(
                                     text = stringResource(R.string.nav_library),
                                     style = MaterialTheme.typography.titleSmall,
-                                    modifier = Modifier.padding(top = 4.dp)
                                 )
                             },
                         )

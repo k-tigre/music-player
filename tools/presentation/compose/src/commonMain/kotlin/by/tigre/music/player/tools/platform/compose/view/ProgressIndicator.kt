@@ -40,15 +40,10 @@ fun ProgressIndicator(
 ) {
     Box(modifier, contentAlignment = Alignment.Center) {
         CircularProgressIndicator(
-            progress = { 1f },
             modifier = Modifier.size(size.size),
-            color = backgroundColor,
-            strokeWidth = size.strokeWidth * 2,
-        )
-        CircularProgressIndicator(
-            modifier = Modifier.size(size.size - size.strokeWidth),
             strokeWidth = size.strokeWidth,
-            color = progress
+            color = progress,
+            trackColor = backgroundColor,
         )
     }
 }
