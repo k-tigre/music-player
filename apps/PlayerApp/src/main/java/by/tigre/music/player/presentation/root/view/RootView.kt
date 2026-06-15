@@ -3,8 +3,8 @@ package by.tigre.music.player.presentation.root.view
 import android.Manifest
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -12,12 +12,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -30,6 +36,7 @@ import by.tigre.music.player.presentation.root.component.Root
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.view.BottomBarContainer
 import by.tigre.music.player.tools.platform.compose.view.BottomBarNavigationBarInsets
+import by.tigre.music.player.tools.platform.compose.view.LocalBottomBarHeight
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.plus
@@ -95,62 +102,11 @@ class RootView(
 
     @Composable
     private fun DrawPages() {
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
-            bottomBar = {
-                BottomBarContainer {
-                    playerViewProvider.createSmallPlayerView(component.playerComponent).Draw(Modifier)
+        var bottomBarHeight by remember { mutableStateOf(0.dp) }
+        val density = LocalDensity.current
 
-                    NavigationBar(
-                        containerColor = Color.Transparent,
-                        tonalElevation = 0.dp,
-                        windowInsets = BottomBarNavigationBarInsets,
-                    ) {
-                        val pages = component.pages.subscribeAsState()
-
-                        NavigationBarItem(
-                            selected = pages.value.active.instance is Root.PageComponentChild.Queue,
-                            onClick = { component.selectPage(0) },
-                            icon = {
-                                Icon(
-                                    painter = painterResource(R.drawable.baseline_format_list_numbered_24),
-                                    contentDescription = stringResource(R.string.cd_nav_playlist)
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = stringResource(R.string.nav_playlist),
-                                    style = MaterialTheme.typography.titleSmall,
-                                )
-                            },
-                        )
-
-                        NavigationBarItem(
-                            selected = pages.value.active.instance is Root.PageComponentChild.Catalog,
-                            onClick = { component.selectPage(1) },
-                            icon = {
-                                Icon(
-                                    painter = painterResource(R.drawable.outline_library_music_24),
-                                    contentDescription = stringResource(R.string.cd_nav_library)
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = stringResource(R.string.nav_library),
-                                    style = MaterialTheme.typography.titleSmall,
-                                )
-                            },
-                        )
-                    }
-                }
-            }
-        ) { paddings ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddings)
-            ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            CompositionLocalProvider(LocalBottomBarHeight provides bottomBarHeight) {
                 Children(
                     stack = component.pages,
                     animation = stackAnimation(animator = scale(frontFactor = 0.8f, backFactor = 0.8f) + fade())
@@ -158,7 +114,59 @@ class RootView(
                     when (val child = it.instance) {
                         is Root.PageComponentChild.Catalog -> catalogViewProvider.createRootView(child.component)
                         is Root.PageComponentChild.Queue -> currentQueueViewProvider.createCurrentQueueView(child.component)
-                    }.Draw(Modifier)
+                    }.Draw(Modifier.fillMaxSize())
+                }
+            }
+
+            BottomBarContainer(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .onSizeChanged { size ->
+                        bottomBarHeight = with(density) { size.height.toDp() }
+                    },
+            ) {
+                playerViewProvider.createSmallPlayerView(component.playerComponent).Draw(Modifier)
+
+                NavigationBar(
+                    containerColor = Color.Transparent,
+                    tonalElevation = 0.dp,
+                    windowInsets = BottomBarNavigationBarInsets,
+                ) {
+                    val pages = component.pages.subscribeAsState()
+
+                    NavigationBarItem(
+                        selected = pages.value.active.instance is Root.PageComponentChild.Queue,
+                        onClick = { component.selectPage(0) },
+                        icon = {
+                            Icon(
+                                painter = painterResource(R.drawable.baseline_format_list_numbered_24),
+                                contentDescription = stringResource(R.string.cd_nav_playlist)
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = stringResource(R.string.nav_playlist),
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                        },
+                    )
+
+                    NavigationBarItem(
+                        selected = pages.value.active.instance is Root.PageComponentChild.Catalog,
+                        onClick = { component.selectPage(1) },
+                        icon = {
+                            Icon(
+                                painter = painterResource(R.drawable.outline_library_music_24),
+                                contentDescription = stringResource(R.string.cd_nav_library)
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = stringResource(R.string.nav_library),
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                        },
+                    )
                 }
             }
         }

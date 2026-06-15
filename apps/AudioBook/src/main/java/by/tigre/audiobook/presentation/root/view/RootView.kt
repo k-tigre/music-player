@@ -21,6 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +29,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import by.tigre.audiobook.R
@@ -41,6 +44,7 @@ import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
 import by.tigre.music.player.core.presentation.catalog.view.PlayerView
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.view.BottomBarContainer
+import by.tigre.music.player.tools.platform.compose.view.LocalBottomBarHeight
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
@@ -210,24 +214,27 @@ class RootView(
 
     @Composable
     private fun DrawPages() {
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
-            bottomBar = {
-                BottomBarContainer {
-                    playerViewProvider.createSmallPlayerView(
-                        component = component.playerComponent,
-                        showOrderModeButton = false,
-                    ).Draw(Modifier)
-                }
+        var bottomBarHeight by remember { mutableStateOf(0.dp) }
+        val density = LocalDensity.current
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            CompositionLocalProvider(LocalBottomBarHeight provides bottomBarHeight) {
+                audiobookCatalogViewProvider.createRootView(component.audiobookCatalogComponent)
+                    .Draw(Modifier.fillMaxSize())
             }
-        ) { paddings ->
-            audiobookCatalogViewProvider.createRootView(component.audiobookCatalogComponent)
-                .Draw(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(paddings)
-                )
+
+            BottomBarContainer(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .onSizeChanged { size ->
+                        bottomBarHeight = with(density) { size.height.toDp() }
+                    },
+            ) {
+                playerViewProvider.createSmallPlayerView(
+                    component = component.playerComponent,
+                    showOrderModeButton = false,
+                ).Draw(Modifier)
+            }
         }
     }
 }

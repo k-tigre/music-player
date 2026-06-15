@@ -4,7 +4,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -25,6 +24,7 @@ import by.tigre.music.player.core.presentation.playlist.current.component.Curren
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.view.CardWithPopup
+import by.tigre.music.player.tools.platform.compose.view.bottomBarListContentPadding
 import by.tigre.music.player.tools.platform.compose.view.EmptyScreen
 import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
 import by.tigre.music.player.tools.platform.compose.view.PopupAction
@@ -95,7 +95,7 @@ class CurrentQueueView(
             )
         } else {
             LazyColumn(
-                contentPadding = PaddingValues(16.dp),
+                contentPadding = bottomBarListContentPadding(),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 songs.forEachIndexed { index, item ->

@@ -31,6 +31,7 @@ import by.tigre.music.player.core.presentation.catalog.component.AlbumListCompon
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.view.CardWithPopup
+import by.tigre.music.player.tools.platform.compose.view.bottomBarListContentPadding
 import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
 import by.tigre.music.player.tools.platform.compose.view.PopupAction
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicator
@@ -49,6 +50,7 @@ class AlbumListView(
     @Composable
     override fun Draw(modifier: Modifier) {
         Scaffold(
+            modifier = modifier,
             topBar = {
                 CenterAlignedTopAppBar(
                     title = {
@@ -128,7 +130,7 @@ class AlbumListView(
     @Composable
     private fun DrawContent(albums: List<Album>) {
         LazyColumn(
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = bottomBarListContentPadding(top = 16.dp, extraBottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             albums.forEach { album ->

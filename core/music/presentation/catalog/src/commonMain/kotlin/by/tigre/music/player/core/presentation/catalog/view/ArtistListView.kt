@@ -31,6 +31,7 @@ import by.tigre.music.player.core.presentation.catalog.component.ArtistListScree
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.view.CardWithPopup
+import by.tigre.music.player.tools.platform.compose.view.bottomBarListContentPadding
 import by.tigre.music.player.tools.platform.compose.view.EmptyScreen
 import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
 import by.tigre.music.player.tools.platform.compose.view.PopupAction
@@ -48,6 +49,7 @@ class ArtistListView(
     @Composable
     override fun Draw(modifier: Modifier) {
         Scaffold(
+            modifier = modifier,
             topBar = {
                 CenterAlignedTopAppBar(
                     title = {
@@ -115,7 +117,7 @@ class ArtistListView(
     @Composable
     private fun DrawContent(data: ArtistListScreenData) {
         LazyColumn(
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            contentPadding = bottomBarListContentPadding(),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             if (data.searchResult != null) {

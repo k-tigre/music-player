@@ -31,15 +31,15 @@ class RootCatalogView(
         ) {
             when (val child = it.instance) {
                 is CatalogChild.AlbumsList -> {
-                    viewProvider.createAlbumsListView(child.component).Draw(Modifier)
+                    viewProvider.createAlbumsListView(child.component).Draw(Modifier.fillMaxSize())
                 }
 
                 is CatalogChild.ArtistsList -> {
-                    viewProvider.createArtistsListView(child.component).Draw(Modifier)
+                    viewProvider.createArtistsListView(child.component).Draw(Modifier.fillMaxSize())
                 }
 
                 is CatalogChild.SongsList -> {
-                    viewProvider.createSongsListView(child.component).Draw(Modifier)
+                    viewProvider.createSongsListView(child.component).Draw(Modifier.fillMaxSize())
                 }
 
             }

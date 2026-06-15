@@ -66,6 +66,7 @@ import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicator
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicatorSize
+import by.tigre.music.player.tools.platform.compose.view.bottomBarListContentPadding
 import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.stringResource
 
@@ -157,7 +158,7 @@ class BookListView(
 
             LazyColumn(
                 state = listState,
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                contentPadding = bottomBarListContentPadding(),
             ) {
                 state.continueListeningBook?.let { book ->
                     item(key = "continue_${book.id.value}") {

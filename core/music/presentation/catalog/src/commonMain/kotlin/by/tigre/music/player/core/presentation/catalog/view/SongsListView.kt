@@ -29,6 +29,7 @@ import by.tigre.music.player.core.presentation.catalog.component.SongsListCompon
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.view.CardWithPopup
+import by.tigre.music.player.tools.platform.compose.view.bottomBarListContentPadding
 import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
 import by.tigre.music.player.tools.platform.compose.view.PopupAction
 import by.tigre.music.player.tools.platform.compose.view.ProgressIndicator
@@ -45,6 +46,7 @@ class SongsListView(
     @Composable
     override fun Draw(modifier: Modifier) {
         Scaffold(
+            modifier = modifier,
             topBar = {
                 CenterAlignedTopAppBar(
                     title = {
@@ -122,7 +124,7 @@ class SongsListView(
     @Composable
     private fun DrawContent(songs: List<Song>) {
         LazyColumn(
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = bottomBarListContentPadding(top = 16.dp, extraBottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             songs.forEach { song ->
