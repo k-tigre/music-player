@@ -16,7 +16,7 @@ object Application {
 
     object MusicPlayer {
         const val id: String = "by.tigre.musicplayer"
-        val version: Version = Version(0, 18, 6)
+        val version: Version = Version(0, 18, 7)
         const val name: String = "Music"
     }
 }

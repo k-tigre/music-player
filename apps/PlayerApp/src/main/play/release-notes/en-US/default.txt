@@ -1,1 +1,1 @@
-• Bug fixes and improvements
+• Library and queue lists scroll under the mini player
