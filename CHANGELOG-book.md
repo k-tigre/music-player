@@ -9,6 +9,15 @@
 
 ### EN
 
+## [0.3.5] - 2026-06-15
+### RU
+- Списки библиотеки и очереди прокручиваются под мини-плеером
+- Заголовки папок в библиотеке: понятнее свернуть и развернуть
+
+### EN
+- Library and queue lists scroll under the mini player
+- Folder headers in the library are easier to expand and collapse
+
 ## [0.3.4] - 2026-06-14
 ### RU
 - Правка багов и улучшения

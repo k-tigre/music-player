@@ -1,1 +1,2 @@
-• Bug fixes and improvements
+• Library and queue lists scroll under the mini player
+• Folder headers in the library are easier to expand and collapse
