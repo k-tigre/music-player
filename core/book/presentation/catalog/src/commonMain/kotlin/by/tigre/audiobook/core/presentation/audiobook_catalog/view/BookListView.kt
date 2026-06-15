@@ -21,12 +21,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -54,8 +56,11 @@ import by.tigre.audiobook.core.presentation.catalog.resources.book_chapters_coun
 import by.tigre.audiobook.core.presentation.catalog.resources.book_completed
 import by.tigre.audiobook.core.presentation.catalog.resources.book_currently_playing
 import by.tigre.audiobook.core.presentation.catalog.resources.book_progress_listened
+import by.tigre.audiobook.core.presentation.catalog.resources.cd_collapse_folder
+import by.tigre.audiobook.core.presentation.catalog.resources.cd_expand_folder
 import by.tigre.audiobook.core.presentation.catalog.resources.cd_manage_folders
 import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening_title
+import by.tigre.audiobook.core.presentation.catalog.resources.folder_group_books_count
 import by.tigre.music.player.presentation.base.ScreenContentState
 import by.tigre.music.player.tools.platform.compose.ComposableView
 import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
@@ -179,24 +184,16 @@ class BookListView(
                 }
 
                 state.grouped.forEach { (path, booksInGroup) ->
+                    val isExpanded = state.expanded.contains(path)
                     stickyHeader(key = "header_$path") {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(color = MaterialTheme.colorScheme.background)
-                                .padding(top = 12.dp, bottom = 4.dp)
-                                .clickable { component.toggleGroup(path) }
-                        ) {
-                            Text(
-                                text = path.replace("/", " / "),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
-                            )
-                            HorizontalDivider()
-                        }
+                        FolderGroupHeader(
+                            path = path,
+                            bookCount = booksInGroup.size,
+                            isExpanded = isExpanded,
+                            onClick = { component.toggleGroup(path) },
+                        )
                     }
-                    if (state.expanded.contains(path)) {
+                    if (isExpanded) {
                         items(booksInGroup, key = { book -> "group_${path}_${book.id.value}" }) { book ->
                             BookCard(
                                 book = book,
@@ -204,6 +201,74 @@ class BookListView(
                             )
                         }
                     }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun FolderGroupHeader(
+        path: String,
+        bookCount: Int,
+        isExpanded: Boolean,
+        onClick: () -> Unit,
+    ) {
+        val shape = RoundedCornerShape(12.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(top = 8.dp, bottom = 4.dp),
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                        shape = shape,
+                    )
+                    .clickable(onClick = onClick),
+                shape = shape,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                ),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Folder,
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = path.replace("/", " / "),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            text = stringResource(Res.string.folder_group_books_count, bookCount),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Icon(
+                        imageVector = if (isExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                        contentDescription = stringResource(
+                            if (isExpanded) Res.string.cd_collapse_folder else Res.string.cd_expand_folder,
+                        ),
+                        modifier = Modifier.size(28.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         }

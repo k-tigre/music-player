@@ -2,6 +2,9 @@
 <resources>
     <string name="audiobooks_title">Audiobooks</string>
     <string name="cd_manage_folders">Manage folders</string>
+    <string name="folder_group_books_count">%1$d books</string>
+    <string name="cd_expand_folder">Expand folder</string>
+    <string name="cd_collapse_folder">Collapse folder</string>
     <string name="audiobooks_empty_title">No audiobooks found.</string>
     <string name="audiobooks_empty_hint">Add a folder with audiobooks first.</string>
     <string name="book_chapters_count">Chapters: %1$d</string>

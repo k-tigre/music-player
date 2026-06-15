@@ -2,6 +2,9 @@
 <resources>
     <string name="audiobooks_title">Аудиокниги</string>
     <string name="cd_manage_folders">Управление папками</string>
+    <string name="folder_group_books_count">%1$d книг</string>
+    <string name="cd_expand_folder">Развернуть папку</string>
+    <string name="cd_collapse_folder">Свернуть папку</string>
     <string name="audiobooks_empty_title">Аудиокниги не найдены.</string>
     <string name="audiobooks_empty_hint">Сначала добавьте папку с аудиокнигами.</string>
     <string name="book_chapters_count">Глав: %1$d</string>
