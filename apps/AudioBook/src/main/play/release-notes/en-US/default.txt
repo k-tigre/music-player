@@ -1,2 +1,2 @@
-• Library and queue lists scroll under the mini player
-• Folder headers in the library are easier to expand and collapse
+• Night timer: more reliable flip-to-extend
+• Clearer help text and illustration in night timer settings
