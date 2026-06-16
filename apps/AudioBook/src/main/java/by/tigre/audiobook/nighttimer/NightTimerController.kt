@@ -21,6 +21,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.pow
+import kotlin.time.Duration.Companion.milliseconds
 
 data class NightTimerUiState(
     val isRunning: Boolean,
@@ -162,7 +163,7 @@ private class NightTimerControllerImpl(
                 applyFadeVolumeOnMain(remaining)
             }
 
-            delay(TICK_MS)
+            delay(TICK_MS.milliseconds)
         }
     }
 
@@ -255,6 +256,6 @@ private class NightTimerControllerImpl(
 
         /** Face-down adds time only while remaining is strictly below this many seconds (less than one minute). */
         const val FACE_DOWN_GATE_SECONDS = 60
-        const val NIGHT_TIMER_REWIND_MS = 30_000L
+        const val NIGHT_TIMER_REWIND_MS = 30_000L   
     }
 }
