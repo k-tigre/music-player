@@ -17,11 +17,9 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -77,19 +75,19 @@ private fun NightTimerFlipExtendDiagram(
                 )
             },
         )
-        FlipArrow(color = outline)
+        StepArrow(color = outline, direction = StepArrowDirection.Forward)
         FlipStep(
             label = stringResource(R.string.night_timer_flip_step_flipped),
             content = {
                 PhoneFlipCanvas(
-                    pose = PhonePose.Flipped,
+                    pose = PhonePose.FaceDown,
                     outlineColor = outline,
                     screenColor = screen,
                     surfaceColor = surface,
                 )
             },
         )
-        FlipArrow(color = outline)
+        StepArrow(color = outline, direction = StepArrowDirection.Back)
         FlipStep(
             label = stringResource(R.string.night_timer_flip_step_done),
             content = {
@@ -114,7 +112,7 @@ private fun FlipStep(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp),
-        modifier = Modifier.width(88.dp),
+        modifier = Modifier.width(96.dp),
     ) {
         content()
         Text(
@@ -127,42 +125,64 @@ private fun FlipStep(
     }
 }
 
+private enum class StepArrowDirection {
+    Forward,
+    Back,
+}
+
 @Composable
-private fun FlipArrow(
+private fun StepArrow(
     color: androidx.compose.ui.graphics.Color,
+    direction: StepArrowDirection,
 ) {
-    Canvas(modifier = Modifier.size(width = 28.dp, height = 40.dp)) {
-        val stroke = Stroke(width = 2.5f, cap = StrokeCap.Round)
-        val path = Path().apply {
-            moveTo(size.width * 0.1f, size.height * 0.55f)
-            quadraticBezierTo(
-                size.width * 0.5f,
-                size.height * 0.05f,
-                size.width * 0.9f,
-                size.height * 0.45f,
-            )
+    Canvas(modifier = Modifier.size(width = 20.dp, height = 40.dp)) {
+        val strokeWidth = 2.5f
+        val y = size.height * 0.42f
+        val left = size.width * 0.12f
+        val right = size.width * 0.88f
+
+        when (direction) {
+            StepArrowDirection.Forward -> {
+                drawLine(color, Offset(left, y), Offset(right, y), strokeWidth, StrokeCap.Round)
+                drawLine(
+                    color,
+                    Offset(right, y),
+                    Offset(right - 7f, y - 5f),
+                    strokeWidth,
+                    StrokeCap.Round,
+                )
+                drawLine(
+                    color,
+                    Offset(right, y),
+                    Offset(right - 7f, y + 5f),
+                    strokeWidth,
+                    StrokeCap.Round,
+                )
+            }
+            StepArrowDirection.Back -> {
+                drawLine(color, Offset(right, y), Offset(left, y), strokeWidth, StrokeCap.Round)
+                drawLine(
+                    color,
+                    Offset(left, y),
+                    Offset(left + 7f, y - 5f),
+                    strokeWidth,
+                    StrokeCap.Round,
+                )
+                drawLine(
+                    color,
+                    Offset(left, y),
+                    Offset(left + 7f, y + 5f),
+                    strokeWidth,
+                    StrokeCap.Round,
+                )
+            }
         }
-        drawPath(path, color = color, style = stroke)
-        drawLine(
-            color = color,
-            start = Offset(size.width * 0.9f, size.height * 0.45f),
-            end = Offset(size.width * 0.62f, size.height * 0.38f),
-            strokeWidth = 2.5f,
-            cap = StrokeCap.Round,
-        )
-        drawLine(
-            color = color,
-            start = Offset(size.width * 0.9f, size.height * 0.45f),
-            end = Offset(size.width * 0.82f, size.height * 0.68f),
-            strokeWidth = 2.5f,
-            cap = StrokeCap.Round,
-        )
     }
 }
 
 private enum class PhonePose {
     Resting,
-    Flipped,
+    FaceDown,
 }
 
 @Composable
@@ -174,26 +194,23 @@ private fun PhoneFlipCanvas(
     badgeColor: androidx.compose.ui.graphics.Color = outlineColor,
     showPlusBadge: Boolean = false,
 ) {
-    Canvas(modifier = Modifier.size(width = 72.dp, height = 88.dp)) {
-        val bedY = size.height * 0.78f
-        drawLine(
-            color = surfaceColor,
-            start = Offset(size.width * 0.05f, bedY),
-            end = Offset(size.width * 0.95f, bedY),
-            strokeWidth = 3f,
-            cap = StrokeCap.Round,
-        )
-        drawLine(
-            color = surfaceColor.copy(alpha = 0.35f),
-            start = Offset(size.width * 0.12f, bedY + 5f),
-            end = Offset(size.width * 0.88f, bedY + 5f),
-            strokeWidth = 2f,
-            cap = StrokeCap.Round,
-        )
+    Canvas(modifier = Modifier.size(width = 96.dp, height = 72.dp)) {
+        val tableY = size.height * 0.72f
+        drawTableSurface(surfaceColor, tableY)
 
         when (pose) {
-            PhonePose.Resting -> drawPhoneResting(outlineColor, screenColor, bedY)
-            PhonePose.Flipped -> drawPhoneFlipped(outlineColor, screenColor, bedY)
+            PhonePose.Resting -> drawPhoneLyingOnTable(
+                outlineColor = outlineColor,
+                screenColor = screenColor,
+                tableY = tableY,
+                faceUp = true,
+            )
+            PhonePose.FaceDown -> drawPhoneLyingOnTable(
+                outlineColor = outlineColor,
+                screenColor = screenColor,
+                tableY = tableY,
+                faceUp = false,
+            )
         }
 
         if (showPlusBadge) {
@@ -202,61 +219,90 @@ private fun PhoneFlipCanvas(
     }
 }
 
-private fun DrawScope.drawPhoneResting(
-    outlineColor: androidx.compose.ui.graphics.Color,
-    screenColor: androidx.compose.ui.graphics.Color,
-    bedY: Float,
+private fun DrawScope.drawTableSurface(
+    surfaceColor: androidx.compose.ui.graphics.Color,
+    tableY: Float,
 ) {
-    val phoneWidth = size.width * 0.42f
-    val phoneHeight = size.height * 0.34f
-    val left = (size.width - phoneWidth) / 2f
-    val top = bedY - phoneHeight
-
-    drawRoundRect(
-        color = outlineColor,
-        topLeft = Offset(left, top),
-        size = Size(phoneWidth, phoneHeight),
-        cornerRadius = CornerRadius(phoneWidth * 0.12f, phoneWidth * 0.12f),
-        style = Stroke(width = 2.5f),
-    )
-    drawRoundRect(
-        color = screenColor.copy(alpha = 0.25f),
-        topLeft = Offset(left + phoneWidth * 0.12f, top + phoneHeight - phoneHeight * 0.22f),
-        size = Size(phoneWidth * 0.76f, phoneHeight * 0.14f),
-        cornerRadius = CornerRadius(4f, 4f),
+    drawLine(
+        color = surfaceColor,
+        start = Offset(size.width * 0.04f, tableY),
+        end = Offset(size.width * 0.96f, tableY),
+        strokeWidth = 3f,
+        cap = StrokeCap.Round,
     )
     drawLine(
-        color = outlineColor.copy(alpha = 0.5f),
-        start = Offset(left + phoneWidth * 0.35f, top + phoneHeight * 0.18f),
-        end = Offset(left + phoneWidth * 0.65f, top + phoneHeight * 0.18f),
+        color = surfaceColor.copy(alpha = 0.35f),
+        start = Offset(size.width * 0.1f, tableY + 5f),
+        end = Offset(size.width * 0.9f, tableY + 5f),
         strokeWidth = 2f,
         cap = StrokeCap.Round,
     )
 }
 
-private fun DrawScope.drawPhoneFlipped(
+/**
+ * Phone lying flat on a table, seen from a slight angle above.
+ * Landscape orientation — wider edge parallel to the table front.
+ */
+private fun DrawScope.drawPhoneLyingOnTable(
     outlineColor: androidx.compose.ui.graphics.Color,
     screenColor: androidx.compose.ui.graphics.Color,
-    bedY: Float,
+    tableY: Float,
+    faceUp: Boolean,
 ) {
-    val phoneWidth = size.width * 0.42f
-    val phoneHeight = size.height * 0.34f
-    val pivot = Offset(size.width / 2f, bedY)
+    val phoneWidth = size.width * 0.72f
+    val phoneDepth = size.height * 0.28f
+    val left = (size.width - phoneWidth) / 2f
+    val top = tableY - phoneDepth
+    val corner = phoneDepth * 0.22f
 
-    rotate(degrees = 180f, pivot = pivot) {
+    val bodyRect = Rect(
+        offset = Offset(left, top),
+        size = Size(phoneWidth, phoneDepth),
+    )
+
+    drawRoundRect(
+        color = if (faceUp) screenColor.copy(alpha = 0.18f) else outlineColor.copy(alpha = 0.1f),
+        topLeft = bodyRect.topLeft,
+        size = bodyRect.size,
+        cornerRadius = CornerRadius(corner, corner),
+    )
+    drawRoundRect(
+        color = outlineColor,
+        topLeft = bodyRect.topLeft,
+        size = bodyRect.size,
+        cornerRadius = CornerRadius(corner, corner),
+        style = Stroke(width = 2.5f),
+    )
+
+    if (faceUp) {
+        val screenInset = phoneDepth * 0.14f
         drawRoundRect(
-            color = outlineColor,
-            topLeft = Offset(pivot.x - phoneWidth / 2f, pivot.y - phoneHeight),
-            size = Size(phoneWidth, phoneHeight),
-            cornerRadius = CornerRadius(phoneWidth * 0.12f, phoneWidth * 0.12f),
-            style = Stroke(width = 2.5f),
+            color = screenColor.copy(alpha = 0.35f),
+            topLeft = Offset(left + screenInset, top + screenInset * 0.7f),
+            size = Size(phoneWidth - screenInset * 2f, phoneDepth - screenInset * 1.4f),
+            cornerRadius = CornerRadius(corner * 0.6f, corner * 0.6f),
         )
-        val screenTop = pivot.y - phoneHeight + phoneHeight * 0.12f
-        drawRoundRect(
-            color = screenColor.copy(alpha = 0.55f),
-            topLeft = Offset(pivot.x - phoneWidth * 0.38f, screenTop),
-            size = Size(phoneWidth * 0.76f, phoneHeight * 0.62f),
-            cornerRadius = CornerRadius(6f, 6f),
+        drawLine(
+            color = outlineColor.copy(alpha = 0.45f),
+            start = Offset(left + phoneWidth * 0.38f, top + phoneDepth * 0.22f),
+            end = Offset(left + phoneWidth * 0.62f, top + phoneDepth * 0.22f),
+            strokeWidth = 2f,
+            cap = StrokeCap.Round,
+        )
+    } else {
+        drawLine(
+            color = outlineColor.copy(alpha = 0.35f),
+            start = Offset(left + phoneWidth * 0.2f, top + phoneDepth * 0.35f),
+            end = Offset(left + phoneWidth * 0.8f, top + phoneDepth * 0.35f),
+            strokeWidth = 1.5f,
+            cap = StrokeCap.Round,
+        )
+        drawLine(
+            color = outlineColor.copy(alpha = 0.35f),
+            start = Offset(left + phoneWidth * 0.2f, top + phoneDepth * 0.65f),
+            end = Offset(left + phoneWidth * 0.8f, top + phoneDepth * 0.65f),
+            strokeWidth = 1.5f,
+            cap = StrokeCap.Round,
         )
     }
 }
@@ -264,7 +310,7 @@ private fun DrawScope.drawPhoneFlipped(
 private fun DrawScope.drawPlusBadge(
     badgeColor: androidx.compose.ui.graphics.Color,
 ) {
-    val badgeSize = size.width * 0.34f
+    val badgeSize = size.width * 0.28f
     val rect = Rect(
         offset = Offset(size.width - badgeSize - 2f, 2f),
         size = Size(badgeSize, badgeSize),
