@@ -22,13 +22,14 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import by.tigre.audiobook.R
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import by.tigre.audiobook.R
 
 @Composable
 fun NightTimerFlipExtendHelp(
@@ -62,7 +63,6 @@ private fun NightTimerFlipExtendDiagram(
     val outline = MaterialTheme.colorScheme.onSurfaceVariant
     val screen = MaterialTheme.colorScheme.primary
     val surface = MaterialTheme.colorScheme.outline
-    val accent = MaterialTheme.colorScheme.tertiary
 
     Row(
         modifier = modifier,
@@ -101,8 +101,6 @@ private fun NightTimerFlipExtendDiagram(
                     outlineColor = outline,
                     screenColor = screen,
                     surfaceColor = surface,
-                    badgeColor = accent,
-                    showPlusBadge = true,
                 )
             },
         )
@@ -150,6 +148,7 @@ private fun StepArrow(
                 control = Offset(size.width * 0.95f, size.height * 0.5f),
                 strokeWidth = strokeWidth,
             )
+
             StepArrowDirection.FlipBack -> drawFlipRotationArrow(
                 color = color,
                 from = Offset(size.width * 0.25f, size.height * 0.88f),
@@ -172,8 +171,6 @@ private fun PhoneFlipCanvas(
     outlineColor: androidx.compose.ui.graphics.Color,
     screenColor: androidx.compose.ui.graphics.Color,
     surfaceColor: androidx.compose.ui.graphics.Color,
-    badgeColor: androidx.compose.ui.graphics.Color = outlineColor,
-    showPlusBadge: Boolean = false,
 ) {
     val screenLabel = stringResource(R.string.night_timer_flip_screen_label)
     Box(modifier = Modifier.size(width = 96.dp, height = 72.dp)) {
@@ -188,16 +185,13 @@ private fun PhoneFlipCanvas(
                     tableY = tableY,
                     faceUp = true,
                 )
+
                 PhonePose.FaceDown -> drawPhoneLyingOnTable(
                     outlineColor = outlineColor,
                     screenColor = screenColor,
                     tableY = tableY,
                     faceUp = false,
                 )
-            }
-
-            if (showPlusBadge) {
-                drawPlusBadge(badgeColor)
             }
         }
         if (pose == PhonePose.Resting) {
@@ -283,13 +277,6 @@ private fun DrawScope.drawPhoneLyingOnTable(
             strokeWidth = 2f,
             cap = StrokeCap.Round,
         )
-        drawFlipRotationArrow(
-            color = outlineColor.copy(alpha = 0.55f),
-            from = Offset(left + phoneWidth * 0.82f, top + phoneDepth * 0.15f),
-            to = Offset(left + phoneWidth * 0.82f, top + phoneDepth * 0.85f),
-            control = Offset(left + phoneWidth + phoneDepth * 0.55f, top + phoneDepth * 0.5f),
-            strokeWidth = 1.8f,
-        )
     } else {
         drawLine(
             color = outlineColor.copy(alpha = 0.35f),
@@ -350,34 +337,8 @@ private fun DrawScope.drawFlipRotationArrow(
     )
 }
 
-private fun DrawScope.drawPlusBadge(
-    badgeColor: androidx.compose.ui.graphics.Color,
-) {
-    val badgeSize = size.width * 0.28f
-    val rect = Rect(
-        offset = Offset(size.width - badgeSize - 2f, 2f),
-        size = Size(badgeSize, badgeSize),
-    )
-    drawRoundRect(
-        color = badgeColor,
-        topLeft = rect.topLeft,
-        size = rect.size,
-        cornerRadius = CornerRadius(badgeSize / 2f, badgeSize / 2f),
-    )
-    val center = rect.center
-    val arm = badgeSize * 0.18f
-    drawLine(
-        color = androidx.compose.ui.graphics.Color.White,
-        start = Offset(center.x - arm, center.y),
-        end = Offset(center.x + arm, center.y),
-        strokeWidth = 3f,
-        cap = StrokeCap.Round,
-    )
-    drawLine(
-        color = androidx.compose.ui.graphics.Color.White,
-        start = Offset(center.x, center.y - arm),
-        end = Offset(center.x, center.y + arm),
-        strokeWidth = 3f,
-        cap = StrokeCap.Round,
-    )
+@Preview(showBackground = true)
+@Composable
+private fun Preview() {
+    NightTimerFlipExtendHelp()
 }
