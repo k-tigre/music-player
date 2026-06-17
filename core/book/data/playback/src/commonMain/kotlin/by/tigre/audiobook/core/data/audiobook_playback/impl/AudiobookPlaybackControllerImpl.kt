@@ -6,8 +6,8 @@ import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackControll
 import by.tigre.audiobook.core.data.storage.audiobook_playback.AudiobookPlaybackStorage
 import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.entity.catalog.Chapter
-import by.tigre.music.player.core.data.playback.MediaItemWrapper
-import by.tigre.music.player.core.data.playback.PlaybackPlayer
+import by.tigre.media.platform.playback.MediaItemWrapper
+import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.logger.Log
 import by.tigre.media.platform.tools.coroutines.CoreScope
 import by.tigre.media.platform.tools.coroutines.extensions.tickerFlow

@@ -1,0 +1,21 @@
+package by.tigre.media.platform.playback.prefs
+
+import by.tigre.media.platform.preferences.Preferences
+
+internal class PlaybackVolumePreferences(
+    private val preferences: Preferences,
+) {
+    fun load(): Float =
+        preferences.loadString(KEY, null)
+            ?.toFloatOrNull()
+            ?.coerceIn(0f, 1f)
+            ?: 1f
+
+    fun save(volume: Float) {
+        preferences.saveString(KEY, volume.coerceIn(0f, 1f).toString())
+    }
+
+    companion object {
+        private const val KEY = "playback_app_volume_linear"
+    }
+}

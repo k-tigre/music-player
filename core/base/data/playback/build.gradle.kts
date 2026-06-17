@@ -33,5 +33,5 @@ kotlin {
 }
 
 android {
-    namespace = "by.tigre.music.player.core.base.data.playback"
+    namespace = "by.tigre.media.platform.playback"
 }

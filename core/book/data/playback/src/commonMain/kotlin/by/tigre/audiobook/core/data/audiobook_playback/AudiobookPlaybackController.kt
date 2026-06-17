@@ -2,7 +2,7 @@ package by.tigre.audiobook.core.data.audiobook_playback
 
 import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.entity.catalog.Chapter
-import by.tigre.music.player.core.data.playback.PlaybackPlayer
+import by.tigre.media.platform.playback.PlaybackPlayer
 import kotlinx.coroutines.flow.StateFlow
 
 interface AudiobookPlaybackController {

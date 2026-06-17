@@ -8,7 +8,7 @@ import android.net.Uri
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
-import by.tigre.music.player.core.data.playback.AndroidPlaybackPlayer
+import by.tigre.media.platform.playback.AndroidPlaybackPlayer
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaLibraryService

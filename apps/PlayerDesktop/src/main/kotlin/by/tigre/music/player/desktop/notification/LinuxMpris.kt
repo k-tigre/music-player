@@ -1,6 +1,6 @@
 package by.tigre.music.player.desktop.notification
 
-import by.tigre.music.player.core.data.playback.PlaybackPlayer
+import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.music.player.core.presentation.catalog.component.BasePlaybackController
 import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
 import by.tigre.logger.Log

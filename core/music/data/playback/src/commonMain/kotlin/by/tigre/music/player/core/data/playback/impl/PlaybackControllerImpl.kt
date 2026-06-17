@@ -1,9 +1,9 @@
 package by.tigre.music.player.core.data.playback.impl
 
 import by.tigre.music.player.core.data.catalog.CatalogSource
-import by.tigre.music.player.core.data.playback.MediaItemWrapper
+import by.tigre.media.platform.playback.MediaItemWrapper
 import by.tigre.music.player.core.data.playback.PlaybackController
-import by.tigre.music.player.core.data.playback.PlaybackPlayer
+import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
