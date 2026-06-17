@@ -8,7 +8,7 @@ import by.tigre.music.player.core.presentation.catalog.view.AlbumListView
 import by.tigre.music.player.core.presentation.catalog.view.ArtistListView
 import by.tigre.music.player.core.presentation.catalog.view.RootCatalogView
 import by.tigre.music.player.core.presentation.catalog.view.SongsListView
-import by.tigre.music.player.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.ComposableView
 
 interface CatalogViewProvider {
     fun createRootView(component: RootCatalogComponent): ComposableView

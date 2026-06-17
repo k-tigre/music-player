@@ -12,7 +12,7 @@ import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueV
 import by.tigre.music.player.desktop.presentation.root.component.Root
 import by.tigre.music.player.desktop.presentation.theme.DesktopBg
 import by.tigre.music.player.desktop.presentation.theme.DesktopTheme
-import by.tigre.music.player.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.ComposableView
 
 class RootView(
     private val component: Root,

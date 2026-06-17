@@ -11,7 +11,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import by.tigre.music.player.tools.platform.compose.PlatformThemeEffect
+import by.tigre.media.platform.tools.platform.compose.PlatformThemeEffect
 
 private val lightScheme = lightColorScheme(
     primary = primaryLight,

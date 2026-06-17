@@ -22,7 +22,7 @@ import by.tigre.music.player.presentation.background.BackgroundService
 import by.tigre.music.player.presentation.base.BaseComponentContextImpl
 import by.tigre.music.player.presentation.root.component.Root
 import by.tigre.music.player.presentation.root.view.RootView
-import by.tigre.music.player.tools.platform.compose.AppTheme
+import by.tigre.media.platform.tools.platform.compose.AppTheme
 import com.arkivanov.decompose.defaultComponentContext
 import com.google.common.util.concurrent.ListenableFuture
 

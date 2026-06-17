@@ -3,7 +3,7 @@ package by.tigre.audiobook.core.presentation.audiobook_catalog.di
 import by.tigre.audiobook.core.presentation.audiobook_catalog.component.BookListComponent
 import by.tigre.audiobook.core.presentation.audiobook_catalog.component.FolderSelectionComponent
 import by.tigre.audiobook.core.presentation.audiobook_catalog.component.RootAudiobookCatalogComponent
-import by.tigre.music.player.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.ComposableView
 
 interface AudiobookCatalogViewProvider {
 

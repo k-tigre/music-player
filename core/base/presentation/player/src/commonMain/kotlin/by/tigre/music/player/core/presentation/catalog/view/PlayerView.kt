@@ -57,8 +57,8 @@ import androidx.compose.ui.unit.dp
 import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
-import by.tigre.music.player.tools.platform.compose.ComposableView
-import by.tigre.music.player.tools.platform.compose.view.EmptyScreen
+import by.tigre.media.platform.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.view.EmptyScreen
 import coil3.compose.AsyncImage
 
 
