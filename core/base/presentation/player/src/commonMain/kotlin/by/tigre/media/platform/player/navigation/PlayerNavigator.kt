@@ -1,4 +1,4 @@
-package by.tigre.music.player.core.presentation.catalog.navigation
+package by.tigre.media.platform.player.navigation
 
 interface PlayerNavigator {
     fun showQueue()

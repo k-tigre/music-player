@@ -38,6 +38,6 @@ kotlin {
 }
 
 android {
-    namespace = "by.tigre.player"
+    namespace = "by.tigre.media.platform.player"
     buildFeatures.compose = true
 }

@@ -1,7 +1,7 @@
-package by.tigre.music.player.core.presentation.catalog.component
+package by.tigre.media.platform.player.component
 
-import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
-import by.tigre.music.player.core.presentation.catalog.navigation.PlayerNavigator
+import by.tigre.media.platform.player.di.PlayerDependency
+import by.tigre.media.platform.player.navigation.PlayerNavigator
 import by.tigre.media.platform.presentation.BaseComponentContext
 
 interface PlayerComponent : BasePlayerComponent {

@@ -1,11 +1,11 @@
-package by.tigre.music.player.core.presentation.catalog.component
+package by.tigre.media.platform.player.component
 
 import by.tigre.media.platform.playback.AppPlaybackVolume
 import by.tigre.media.platform.playback.PlaybackEqualizer
 import by.tigre.media.platform.playback.PlaybackPlayer
-import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent.Position
-import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent.State
-import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
+import by.tigre.media.platform.player.component.BasePlayerComponent.Position
+import by.tigre.media.platform.player.component.BasePlayerComponent.State
+import by.tigre.media.platform.player.di.PlayerDependency
 import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.media.platform.tools.analytics.common.CommonEventAnalytics
 import by.tigre.media.platform.tools.analytics.common.CommonEvents

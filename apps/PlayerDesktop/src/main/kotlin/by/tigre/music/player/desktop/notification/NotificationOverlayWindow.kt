@@ -45,9 +45,9 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberWindowState
 import by.tigre.media.platform.playback.PlaybackPlayer
-import by.tigre.music.player.core.presentation.catalog.component.BasePlaybackController
-import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
-import by.tigre.music.player.core.presentation.catalog.view.PlayerProgressSlider
+import by.tigre.media.platform.player.component.BasePlaybackController
+import by.tigre.media.platform.player.component.PlayerItem
+import by.tigre.media.platform.player.view.PlayerProgressSlider
 import by.tigre.music.player.desktop.presentation.theme.DesktopBorder
 import by.tigre.music.player.desktop.presentation.theme.DesktopGreen
 import by.tigre.music.player.desktop.presentation.theme.DesktopPanel

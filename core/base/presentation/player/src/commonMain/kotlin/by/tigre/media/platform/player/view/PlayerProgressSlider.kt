@@ -1,4 +1,4 @@
-package by.tigre.music.player.core.presentation.catalog.view
+package by.tigre.media.platform.player.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.hoverable

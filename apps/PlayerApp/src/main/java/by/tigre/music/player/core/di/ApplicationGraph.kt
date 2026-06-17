@@ -12,10 +12,10 @@ import by.tigre.media.platform.preferences.di.AndroidPreferencesModule
 import by.tigre.music.player.car.MusicCarMediaLibrary
 import by.tigre.music.player.core.presentation.backgound_player.car.CarMediaLibrary
 import by.tigre.music.player.core.presentation.backgound_player.di.PlayerBackgroundDependency
-import by.tigre.music.player.core.presentation.catalog.component.BasePlaybackController
-import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
+import by.tigre.media.platform.player.component.BasePlaybackController
+import by.tigre.media.platform.player.component.PlayerItem
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
-import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
+import by.tigre.media.platform.player.di.PlayerDependency
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueDependency
 import by.tigre.media.platform.tools.analytics.music.MusicAnalyticsModule
 import by.tigre.media.platform.tools.coroutines.CoroutineModule

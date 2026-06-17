@@ -18,9 +18,9 @@ import by.tigre.media.platform.playback.di.AndroidBasePlaybackModule
 import by.tigre.media.platform.playback.di.BasePlaybackModule
 import by.tigre.media.platform.preferences.di.AndroidPreferencesModule
 import by.tigre.music.player.core.presentation.backgound_player.di.PlayerBackgroundDependency
-import by.tigre.music.player.core.presentation.catalog.component.BasePlaybackController
-import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
-import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
+import by.tigre.media.platform.player.component.BasePlaybackController
+import by.tigre.media.platform.player.component.PlayerItem
+import by.tigre.media.platform.player.di.PlayerDependency
 import by.tigre.media.platform.tools.analytics.book.BookAnalyticsModule
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
 import kotlinx.coroutines.flow.combine

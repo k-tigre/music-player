@@ -1,8 +1,8 @@
-package by.tigre.music.player.core.presentation.catalog.di
+package by.tigre.media.platform.player.di
 
 import by.tigre.media.platform.playback.AppPlaybackVolume
 import by.tigre.media.platform.playback.PlaybackEqualizer
-import by.tigre.music.player.core.presentation.catalog.component.BasePlaybackController
+import by.tigre.media.platform.player.component.BasePlaybackController
 import by.tigre.media.platform.tools.analytics.common.CommonAnalyticsDependency
 
 interface PlayerDependency : CommonAnalyticsDependency {

@@ -1,12 +1,12 @@
-package by.tigre.music.player.core.presentation.catalog.di
+package by.tigre.media.platform.player.di
 
 import androidx.compose.runtime.Composable
-import by.tigre.music.player.core.presentation.catalog.component.EqualizerComponent
-import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
-import by.tigre.music.player.core.presentation.catalog.component.SmallPlayerComponent
-import by.tigre.music.player.core.presentation.catalog.view.EqualizerView
-import by.tigre.music.player.core.presentation.catalog.view.PlayerView
-import by.tigre.music.player.core.presentation.catalog.view.SmallPlayerView
+import by.tigre.media.platform.player.component.EqualizerComponent
+import by.tigre.media.platform.player.component.PlayerComponent
+import by.tigre.media.platform.player.component.SmallPlayerComponent
+import by.tigre.media.platform.player.view.EqualizerView
+import by.tigre.media.platform.player.view.PlayerView
+import by.tigre.media.platform.player.view.SmallPlayerView
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 
 interface PlayerViewProvider {

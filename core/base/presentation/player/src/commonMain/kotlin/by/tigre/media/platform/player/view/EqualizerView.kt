@@ -1,4 +1,4 @@
-package by.tigre.music.player.core.presentation.catalog.view
+package by.tigre.media.platform.player.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -49,7 +49,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
-import by.tigre.music.player.core.presentation.catalog.component.EqualizerComponent
+import by.tigre.media.platform.player.component.EqualizerComponent
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.resources.Res
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_app_volume

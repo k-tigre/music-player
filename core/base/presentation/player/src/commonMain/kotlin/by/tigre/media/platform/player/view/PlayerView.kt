@@ -1,4 +1,4 @@
-package by.tigre.music.player.core.presentation.catalog.view
+package by.tigre.media.platform.player.view
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
@@ -54,9 +54,9 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent
-import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
-import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
+import by.tigre.media.platform.player.component.BasePlayerComponent
+import by.tigre.media.platform.player.component.PlayerComponent
+import by.tigre.media.platform.player.component.PlayerItem
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.view.EmptyScreen
 import coil3.compose.AsyncImage

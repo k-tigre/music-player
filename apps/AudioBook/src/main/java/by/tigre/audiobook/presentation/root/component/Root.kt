@@ -3,11 +3,11 @@ package by.tigre.audiobook.presentation.root.component
 import by.tigre.audiobook.core.presentation.audiobook_catalog.component.RootAudiobookCatalogComponent
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogComponentProvider
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.OnBookSelectedListener
-import by.tigre.music.player.core.presentation.catalog.component.EqualizerComponent
-import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
-import by.tigre.music.player.core.presentation.catalog.component.SmallPlayerComponent
-import by.tigre.music.player.core.presentation.catalog.di.PlayerComponentProvider
-import by.tigre.music.player.core.presentation.catalog.navigation.PlayerNavigator
+import by.tigre.media.platform.player.component.EqualizerComponent
+import by.tigre.media.platform.player.component.PlayerComponent
+import by.tigre.media.platform.player.component.SmallPlayerComponent
+import by.tigre.media.platform.player.di.PlayerComponentProvider
+import by.tigre.media.platform.player.navigation.PlayerNavigator
 import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.media.platform.presentation.appChildContext
 import by.tigre.media.platform.presentation.appChildStack

@@ -1,4 +1,4 @@
-package by.tigre.music.player.core.presentation.catalog.component
+package by.tigre.media.platform.player.component
 
 data class PlayerItem(
     val title: String,

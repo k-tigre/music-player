@@ -1,12 +1,12 @@
 package by.tigre.music.player.desktop.presentation.root.component
 
-import by.tigre.music.player.core.presentation.catalog.component.EqualizerComponent
-import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
+import by.tigre.media.platform.player.component.EqualizerComponent
+import by.tigre.media.platform.player.component.PlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.RootCatalogComponent
-import by.tigre.music.player.core.presentation.catalog.component.SmallPlayerComponent
+import by.tigre.media.platform.player.component.SmallPlayerComponent
 import by.tigre.music.player.core.presentation.catalog.di.CatalogComponentProvider
-import by.tigre.music.player.core.presentation.catalog.di.PlayerComponentProvider
-import by.tigre.music.player.core.presentation.catalog.navigation.PlayerNavigator
+import by.tigre.media.platform.player.di.PlayerComponentProvider
+import by.tigre.media.platform.player.navigation.PlayerNavigator
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.presentation.playlist.current.component.CurrentQueueComponent
