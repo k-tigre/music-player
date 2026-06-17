@@ -28,8 +28,7 @@ kotlin {
             implementation(project(Project.Tools.Presentation.Decompose.name))
             implementation(project(Project.Tools.Coroutines.name))
             implementation(project(Project.Tools.Analytics.Common.name))
-            implementation(project(Project.Core.Music.Data.Playback.name))
-            implementation(project(Project.Core.Music.Entity.Catalog.name))
+            implementation(project(Project.Core.Base.Data.Playback.name))
             implementation(TigreLogger.Artifact.Core.notation)
         }
         androidMain.dependencies {

@@ -40,7 +40,6 @@ dependencies {
     implementation(project(Project.Core.Music.Entity.Playback.name))
     implementation(project(Project.Core.Music.Data.Catalog.name))
     implementation(project(Project.Core.Music.Data.Playback.name))
-    implementation(project(Project.Core.Base.Data.Playback.name))
     implementation(project(Project.Core.Data.Storage.Preferences.name))
     implementation(project(Project.Core.Music.Data.Storage.Database.name))
 
