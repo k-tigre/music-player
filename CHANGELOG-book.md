@@ -9,6 +9,15 @@
 
 ### EN
 
+## [0.4.0] - 2026-06-17
+### RU
+- Раздел «Продолжить слушать» в библиотеке — недавние книги с прогрессом
+- Можно свернуть раздел и убрать книгу из списка
+
+### EN
+- "Continue listening" section in the library — recent books with progress
+- Collapse the section or remove a book from the list
+
 ## [0.3.8] - 2026-06-17
 ### RU
 - Правка багов и улучшения

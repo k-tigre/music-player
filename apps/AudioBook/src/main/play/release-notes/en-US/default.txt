@@ -1,1 +1,2 @@
-• Bug fixes and improvements
+• "Continue listening" section in the library — recent books with progress
+• Collapse the section or remove a book from the list
