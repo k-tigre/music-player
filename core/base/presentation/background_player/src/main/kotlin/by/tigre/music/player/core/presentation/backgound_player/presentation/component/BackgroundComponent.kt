@@ -3,7 +3,7 @@ package by.tigre.music.player.core.presentation.backgound_player.presentation.co
 import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.music.player.core.presentation.backgound_player.car.CarMediaLibrary
 import by.tigre.music.player.core.presentation.backgound_player.di.PlayerBackgroundDependency
-import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
+import by.tigre.media.platform.player.component.PlayerItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

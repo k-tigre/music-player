@@ -1,8 +1,8 @@
-package by.tigre.music.player.core.presentation.catalog.component
+package by.tigre.media.platform.player.component
 
 import by.tigre.media.platform.playback.AppPlaybackVolume
 import by.tigre.media.platform.playback.PlaybackEqualizer
-import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
+import by.tigre.media.platform.player.di.PlayerDependency
 
 interface EqualizerComponent {
     val playbackEqualizer: PlaybackEqualizer

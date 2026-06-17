@@ -1,7 +1,7 @@
 package by.tigre.music.player.desktop
 
 import by.tigre.media.platform.playback.PlaybackPlayer
-import by.tigre.music.player.core.presentation.catalog.component.BasePlaybackController
+import by.tigre.media.platform.player.component.BasePlaybackController
 import by.tigre.logger.Log
 import com.github.kwhat.jnativehook.GlobalScreen
 import com.github.kwhat.jnativehook.NativeHookException

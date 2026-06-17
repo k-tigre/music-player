@@ -10,10 +10,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import by.tigre.music.player.core.presentation.catalog.di.CatalogComponentProvider
-import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
-import by.tigre.music.player.core.presentation.catalog.di.PlayerComponentProvider
-import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
+import by.tigre.media.platform.player.di.CatalogComponentProvider
+import by.tigre.media.platform.player.di.CatalogViewProvider
+import by.tigre.media.platform.player.di.PlayerComponentProvider
+import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueComponentProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
 import by.tigre.music.player.core.data.catalog.android.ActivityMediaDeleteHandler

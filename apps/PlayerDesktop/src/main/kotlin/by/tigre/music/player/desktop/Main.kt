@@ -15,10 +15,10 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import by.tigre.music.player.core.presentation.catalog.di.CatalogComponentProvider
-import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
-import by.tigre.music.player.core.presentation.catalog.di.PlayerComponentProvider
-import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
+import by.tigre.media.platform.player.di.CatalogComponentProvider
+import by.tigre.media.platform.player.di.CatalogViewProvider
+import by.tigre.media.platform.player.di.PlayerComponentProvider
+import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueComponentProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
 import by.tigre.music.player.desktop.di.DesktopApplicationGraph

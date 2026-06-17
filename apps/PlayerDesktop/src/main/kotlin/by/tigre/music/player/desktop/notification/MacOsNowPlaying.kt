@@ -1,8 +1,8 @@
 package by.tigre.music.player.desktop.notification
 
 import by.tigre.media.platform.playback.PlaybackPlayer
-import by.tigre.music.player.core.presentation.catalog.component.BasePlaybackController
-import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
+import by.tigre.media.platform.player.component.BasePlaybackController
+import by.tigre.media.platform.player.component.PlayerItem
 import by.tigre.logger.Log
 import com.sun.jna.Callback
 import com.sun.jna.CallbackReference

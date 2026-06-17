@@ -1,9 +1,9 @@
-package by.tigre.music.player.core.presentation.catalog.di
+package by.tigre.media.platform.player.di
 
-import by.tigre.music.player.core.presentation.catalog.component.EqualizerComponent
-import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
-import by.tigre.music.player.core.presentation.catalog.component.SmallPlayerComponent
-import by.tigre.music.player.core.presentation.catalog.navigation.PlayerNavigator
+import by.tigre.media.platform.player.component.EqualizerComponent
+import by.tigre.media.platform.player.component.PlayerComponent
+import by.tigre.media.platform.player.component.SmallPlayerComponent
+import by.tigre.media.platform.player.navigation.PlayerNavigator
 import by.tigre.media.platform.presentation.BaseComponentContext
 
 interface PlayerComponentProvider {

@@ -17,7 +17,7 @@ import androidx.media3.session.MediaSession
 import by.tigre.music.player.core.presentation.backgound_player.car.CarMediaLibrarySessionCallback
 import by.tigre.background_player.R
 import by.tigre.music.player.core.presentation.backgound_player.presentation.component.BackgroundComponent
-import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
+import by.tigre.media.platform.player.component.PlayerItem
 import by.tigre.logger.Log
 import by.tigre.media.platform.tools.platform.utils.getNotificationManager
 import kotlinx.coroutines.CoroutineScope

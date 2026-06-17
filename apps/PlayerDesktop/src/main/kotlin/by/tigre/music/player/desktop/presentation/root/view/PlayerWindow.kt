@@ -41,8 +41,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent
-import by.tigre.music.player.core.presentation.catalog.view.PlayerProgressSlider
+import by.tigre.media.platform.player.component.BasePlayerComponent
+import by.tigre.media.platform.player.view.PlayerProgressSlider
 import by.tigre.music.player.desktop.resources.Res
 import by.tigre.music.player.desktop.resources.desktop_no_track
 import by.tigre.music.player.desktop.resources.desktop_window_title_player

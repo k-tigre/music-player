@@ -9,8 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
-import by.tigre.music.player.core.presentation.catalog.component.EqualizerComponent
-import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
+import by.tigre.media.platform.player.component.EqualizerComponent
+import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.music.player.desktop.presentation.root.view.component.DesktopTitleBar
 import by.tigre.music.player.desktop.presentation.theme.DesktopBorder
 import by.tigre.music.player.desktop.resources.Res

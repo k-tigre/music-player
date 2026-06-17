@@ -6,10 +6,10 @@ import by.tigre.media.platform.playback.di.DesktopBasePlaybackModule
 import by.tigre.music.player.core.data.playback.di.PlaybackModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.DesktopPlaybackQueueModule
 import by.tigre.media.platform.preferences.di.DesktopPreferencesModule
-import by.tigre.music.player.core.presentation.catalog.component.BasePlaybackController
-import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
+import by.tigre.media.platform.player.component.BasePlaybackController
+import by.tigre.media.platform.player.component.PlayerItem
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
-import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
+import by.tigre.media.platform.player.di.PlayerDependency
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueDependency
 import by.tigre.media.platform.tools.analytics.LogTracker
 import by.tigre.media.platform.tools.analytics.music.MusicAnalyticsModuleImpl

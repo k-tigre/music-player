@@ -1,4 +1,4 @@
-package by.tigre.music.player.core.presentation.catalog.view
+package by.tigre.media.platform.player.view
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -31,10 +31,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import by.tigre.media.platform.playback.AppPlaybackVolume
 import by.tigre.media.platform.playback.PlaybackEqualizer
-import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent
-import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
-import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
-import by.tigre.music.player.core.presentation.catalog.component.SmallPlayerComponent
+import by.tigre.media.platform.player.component.BasePlayerComponent
+import by.tigre.media.platform.player.component.PlayerComponent
+import by.tigre.media.platform.player.component.PlayerItem
+import by.tigre.media.platform.player.component.SmallPlayerComponent
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
