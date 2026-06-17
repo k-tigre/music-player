@@ -17,5 +17,5 @@ kotlin {
 }
 
 android {
-    namespace = "by.tigre.tools.entity"
+    namespace = "by.tigre.media.platform.tools.entity"
 }
