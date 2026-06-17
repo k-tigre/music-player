@@ -16,10 +16,10 @@ import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.media.platform.presentation.appChildContext
 import by.tigre.media.platform.presentation.appChildStack
 import by.tigre.media.platform.presentation.trackScreens
-import by.tigre.music.player.tools.analytics.common.CommonEvents
-import by.tigre.music.player.tools.analytics.music.MusicEvents
-import by.tigre.music.player.tools.analytics.music.MusicEventAnalytics
-import by.tigre.music.player.tools.analytics.music.MusicScreenAnalytics
+import by.tigre.media.platform.tools.analytics.common.CommonEvents
+import by.tigre.media.platform.tools.analytics.music.MusicEvents
+import by.tigre.media.platform.tools.analytics.music.MusicEventAnalytics
+import by.tigre.media.platform.tools.analytics.music.MusicScreenAnalytics
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.bringToFront

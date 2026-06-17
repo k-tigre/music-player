@@ -2,7 +2,7 @@ package by.tigre.media.platform.presentation
 
 import by.tigre.logger.Log
 import by.tigre.logger.extensions.debugLog
-import by.tigre.music.player.tools.analytics.common.AnalyticsScreen
+import by.tigre.media.platform.tools.analytics.common.AnalyticsScreen
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.mapNotNull

@@ -21,7 +21,7 @@ import by.tigre.music.player.core.presentation.backgound_player.di.PlayerBackgro
 import by.tigre.music.player.core.presentation.catalog.component.BasePlaybackController
 import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
 import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
-import by.tigre.music.player.tools.analytics.book.BookAnalyticsModule
+import by.tigre.media.platform.tools.analytics.book.BookAnalyticsModule
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf

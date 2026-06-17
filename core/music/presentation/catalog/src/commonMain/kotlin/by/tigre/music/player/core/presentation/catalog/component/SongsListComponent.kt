@@ -8,8 +8,8 @@ import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigator
 import by.tigre.media.platform.presentation.BaseComponentContext
-import by.tigre.music.player.tools.analytics.music.MusicEventAnalytics
-import by.tigre.music.player.tools.analytics.music.MusicEvents
+import by.tigre.media.platform.tools.analytics.music.MusicEventAnalytics
+import by.tigre.media.platform.tools.analytics.music.MusicEvents
 import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.presentation.ScreenContentState.Content
 import by.tigre.media.platform.presentation.ScreenContentStateDelegate

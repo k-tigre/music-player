@@ -5,8 +5,8 @@ import by.tigre.music.player.core.entiry.playback.SongInQueueItem
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueDependency
 import by.tigre.music.player.core.presentation.playlist.current.navigation.QueueNavigator
 import by.tigre.media.platform.presentation.BaseComponentContext
-import by.tigre.music.player.tools.analytics.music.MusicEventAnalytics
-import by.tigre.music.player.tools.analytics.music.MusicEvents
+import by.tigre.media.platform.tools.analytics.music.MusicEventAnalytics
+import by.tigre.media.platform.tools.analytics.music.MusicEvents
 import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.presentation.ScreenContentState.Content
 import by.tigre.media.platform.presentation.ScreenContentStateDelegate

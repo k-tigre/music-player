@@ -8,10 +8,10 @@ import by.tigre.logger.Log
 import by.tigre.logger.LogDatabaseDriverFactory
 import by.tigre.logger.LogcatLogger
 import by.tigre.music.player.analytics.FirebaseTracker
-import by.tigre.music.player.tools.analytics.LogTracker
-import by.tigre.music.player.tools.analytics.MixpanelTracker
-import by.tigre.music.player.tools.analytics.music.MusicAnalyticsModuleImpl
-import by.tigre.music.player.tools.analytics.common.Tracker
+import by.tigre.media.platform.tools.analytics.LogTracker
+import by.tigre.media.platform.tools.analytics.MixpanelTracker
+import by.tigre.media.platform.tools.analytics.music.MusicAnalyticsModuleImpl
+import by.tigre.media.platform.tools.analytics.common.Tracker
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
 import com.google.firebase.FirebaseApp
 

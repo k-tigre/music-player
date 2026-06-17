@@ -12,11 +12,11 @@ import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.media.platform.presentation.appChildContext
 import by.tigre.media.platform.presentation.appChildStack
 import by.tigre.media.platform.presentation.trackScreens
-import by.tigre.music.player.tools.analytics.book.AudiobookEvents
-import by.tigre.music.player.tools.analytics.book.BookEventAnalytics
-import by.tigre.music.player.tools.analytics.book.BookScreenAnalytics
-import by.tigre.music.player.tools.analytics.common.AnalyticsScreen
-import by.tigre.music.player.tools.analytics.common.CommonEvents
+import by.tigre.media.platform.tools.analytics.book.AudiobookEvents
+import by.tigre.media.platform.tools.analytics.book.BookEventAnalytics
+import by.tigre.media.platform.tools.analytics.book.BookScreenAnalytics
+import by.tigre.media.platform.tools.analytics.common.AnalyticsScreen
+import by.tigre.media.platform.tools.analytics.common.CommonEvents
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop

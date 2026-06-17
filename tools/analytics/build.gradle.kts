@@ -23,7 +23,7 @@ kotlin {
 }
 
 android {
-    namespace = "by.tigre.music.player.tools.analytics"
+    namespace = "by.tigre.media.platform.tools.analytics"
 }
 
 val generateAnalyticsDocs = tasks.register<JavaExec>("generateAnalyticsDocs") {
@@ -32,7 +32,7 @@ val generateAnalyticsDocs = tasks.register<JavaExec>("generateAnalyticsDocs") {
     val desktopCompilation = kotlin.targets.getByName("desktop").compilations.getByName("main")
     dependsOn(desktopCompilation.compileAllTaskName)
     classpath(desktopCompilation.output.allOutputs, desktopCompilation.runtimeDependencyFiles)
-    mainClass.set("by.tigre.music.player.tools.analytics.doc.AnalyticsDocGeneratorKt")
+    mainClass.set("by.tigre.media.platform.tools.analytics.doc.AnalyticsDocGeneratorKt")
     args(
         rootProject.layout.projectDirectory.dir("tools/analytics").asFile.absolutePath,
         rootProject.layout.projectDirectory.dir("docs/analytics-events.md").asFile.absolutePath,

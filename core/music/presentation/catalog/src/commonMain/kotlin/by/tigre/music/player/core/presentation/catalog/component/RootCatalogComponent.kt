@@ -10,7 +10,7 @@ import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigat
 import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.media.platform.presentation.appChildStack
 import by.tigre.media.platform.presentation.trackScreens
-import by.tigre.music.player.tools.analytics.music.MusicEvents
+import by.tigre.media.platform.tools.analytics.music.MusicEvents
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop

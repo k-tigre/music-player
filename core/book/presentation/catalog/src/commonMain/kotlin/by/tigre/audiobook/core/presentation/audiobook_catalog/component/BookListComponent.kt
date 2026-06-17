@@ -7,8 +7,8 @@ import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalo
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.AudiobookCatalogNavigator
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.OnBookSelectedListener
 import by.tigre.media.platform.presentation.BaseComponentContext
-import by.tigre.music.player.tools.analytics.book.AudiobookEvents
-import by.tigre.music.player.tools.analytics.book.BookEventAnalytics
+import by.tigre.media.platform.tools.analytics.book.AudiobookEvents
+import by.tigre.media.platform.tools.analytics.book.BookEventAnalytics
 import by.tigre.media.platform.presentation.ScreenContentState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
