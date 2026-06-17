@@ -2,6 +2,7 @@ package by.tigre.audiobook.nighttimer
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,9 +18,13 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -75,7 +80,7 @@ private fun NightTimerFlipExtendDiagram(
                 )
             },
         )
-        StepArrow(color = outline, direction = StepArrowDirection.Forward)
+        StepArrow(color = outline, direction = StepArrowDirection.FlipOver)
         FlipStep(
             label = stringResource(R.string.night_timer_flip_step_flipped),
             content = {
@@ -87,7 +92,7 @@ private fun NightTimerFlipExtendDiagram(
                 )
             },
         )
-        StepArrow(color = outline, direction = StepArrowDirection.Back)
+        StepArrow(color = outline, direction = StepArrowDirection.FlipBack)
         FlipStep(
             label = stringResource(R.string.night_timer_flip_step_done),
             content = {
@@ -126,8 +131,8 @@ private fun FlipStep(
 }
 
 private enum class StepArrowDirection {
-    Forward,
-    Back,
+    FlipOver,
+    FlipBack,
 }
 
 @Composable
@@ -135,47 +140,23 @@ private fun StepArrow(
     color: androidx.compose.ui.graphics.Color,
     direction: StepArrowDirection,
 ) {
-    Canvas(modifier = Modifier.size(width = 20.dp, height = 40.dp)) {
+    Canvas(modifier = Modifier.size(width = 22.dp, height = 56.dp)) {
         val strokeWidth = 2.5f
-        val y = size.height * 0.42f
-        val left = size.width * 0.12f
-        val right = size.width * 0.88f
-
         when (direction) {
-            StepArrowDirection.Forward -> {
-                drawLine(color, Offset(left, y), Offset(right, y), strokeWidth, StrokeCap.Round)
-                drawLine(
-                    color,
-                    Offset(right, y),
-                    Offset(right - 7f, y - 5f),
-                    strokeWidth,
-                    StrokeCap.Round,
-                )
-                drawLine(
-                    color,
-                    Offset(right, y),
-                    Offset(right - 7f, y + 5f),
-                    strokeWidth,
-                    StrokeCap.Round,
-                )
-            }
-            StepArrowDirection.Back -> {
-                drawLine(color, Offset(right, y), Offset(left, y), strokeWidth, StrokeCap.Round)
-                drawLine(
-                    color,
-                    Offset(left, y),
-                    Offset(left + 7f, y - 5f),
-                    strokeWidth,
-                    StrokeCap.Round,
-                )
-                drawLine(
-                    color,
-                    Offset(left, y),
-                    Offset(left + 7f, y + 5f),
-                    strokeWidth,
-                    StrokeCap.Round,
-                )
-            }
+            StepArrowDirection.FlipOver -> drawFlipRotationArrow(
+                color = color,
+                from = Offset(size.width * 0.25f, size.height * 0.12f),
+                to = Offset(size.width * 0.25f, size.height * 0.88f),
+                control = Offset(size.width * 0.95f, size.height * 0.5f),
+                strokeWidth = strokeWidth,
+            )
+            StepArrowDirection.FlipBack -> drawFlipRotationArrow(
+                color = color,
+                from = Offset(size.width * 0.25f, size.height * 0.88f),
+                to = Offset(size.width * 0.25f, size.height * 0.12f),
+                control = Offset(size.width * 0.95f, size.height * 0.5f),
+                strokeWidth = strokeWidth,
+            )
         }
     }
 }
@@ -194,27 +175,40 @@ private fun PhoneFlipCanvas(
     badgeColor: androidx.compose.ui.graphics.Color = outlineColor,
     showPlusBadge: Boolean = false,
 ) {
-    Canvas(modifier = Modifier.size(width = 96.dp, height = 72.dp)) {
-        val tableY = size.height * 0.72f
-        drawTableSurface(surfaceColor, tableY)
+    val screenLabel = stringResource(R.string.night_timer_flip_screen_label)
+    Box(modifier = Modifier.size(width = 96.dp, height = 72.dp)) {
+        Canvas(modifier = Modifier.matchParentSize()) {
+            val tableY = size.height * 0.72f
+            drawTableSurface(surfaceColor, tableY)
 
-        when (pose) {
-            PhonePose.Resting -> drawPhoneLyingOnTable(
-                outlineColor = outlineColor,
-                screenColor = screenColor,
-                tableY = tableY,
-                faceUp = true,
-            )
-            PhonePose.FaceDown -> drawPhoneLyingOnTable(
-                outlineColor = outlineColor,
-                screenColor = screenColor,
-                tableY = tableY,
-                faceUp = false,
-            )
+            when (pose) {
+                PhonePose.Resting -> drawPhoneLyingOnTable(
+                    outlineColor = outlineColor,
+                    screenColor = screenColor,
+                    tableY = tableY,
+                    faceUp = true,
+                )
+                PhonePose.FaceDown -> drawPhoneLyingOnTable(
+                    outlineColor = outlineColor,
+                    screenColor = screenColor,
+                    tableY = tableY,
+                    faceUp = false,
+                )
+            }
+
+            if (showPlusBadge) {
+                drawPlusBadge(badgeColor)
+            }
         }
-
-        if (showPlusBadge) {
-            drawPlusBadge(badgeColor)
+        if (pose == PhonePose.Resting) {
+            Text(
+                text = screenLabel,
+                style = MaterialTheme.typography.labelSmall,
+                color = screenColor,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 38.dp),
+            )
         }
     }
 }
@@ -289,6 +283,13 @@ private fun DrawScope.drawPhoneLyingOnTable(
             strokeWidth = 2f,
             cap = StrokeCap.Round,
         )
+        drawFlipRotationArrow(
+            color = outlineColor.copy(alpha = 0.55f),
+            from = Offset(left + phoneWidth * 0.82f, top + phoneDepth * 0.15f),
+            to = Offset(left + phoneWidth * 0.82f, top + phoneDepth * 0.85f),
+            control = Offset(left + phoneWidth + phoneDepth * 0.55f, top + phoneDepth * 0.5f),
+            strokeWidth = 1.8f,
+        )
     } else {
         drawLine(
             color = outlineColor.copy(alpha = 0.35f),
@@ -305,6 +306,48 @@ private fun DrawScope.drawPhoneLyingOnTable(
             cap = StrokeCap.Round,
         )
     }
+}
+
+private fun DrawScope.drawFlipRotationArrow(
+    color: androidx.compose.ui.graphics.Color,
+    from: Offset,
+    to: Offset,
+    control: Offset,
+    strokeWidth: Float,
+) {
+    val path = Path().apply {
+        moveTo(from.x, from.y)
+        quadraticTo(control.x, control.y, to.x, to.y)
+    }
+    drawPath(
+        path = path,
+        color = color,
+        style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
+    )
+
+    val tangentAngle = atan2(to.y - control.y, to.x - control.x)
+    val headLength = strokeWidth * 3.2f
+    val headSpread = 0.55f
+    drawLine(
+        color = color,
+        start = to,
+        end = Offset(
+            x = to.x - headLength * cos(tangentAngle - headSpread),
+            y = to.y - headLength * sin(tangentAngle - headSpread),
+        ),
+        strokeWidth = strokeWidth,
+        cap = StrokeCap.Round,
+    )
+    drawLine(
+        color = color,
+        start = to,
+        end = Offset(
+            x = to.x - headLength * cos(tangentAngle + headSpread),
+            y = to.y - headLength * sin(tangentAngle + headSpread),
+        ),
+        strokeWidth = strokeWidth,
+        cap = StrokeCap.Round,
+    )
 }
 
 private fun DrawScope.drawPlusBadge(

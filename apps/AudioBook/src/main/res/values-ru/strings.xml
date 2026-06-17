@@ -29,6 +29,7 @@
     <string name="night_timer_flip_step_rest">Как лежит</string>
     <string name="night_timer_flip_step_flipped">Наизнанку</string>
     <string name="night_timer_flip_step_done">+5 мин</string>
+    <string name="night_timer_flip_screen_label">Экран</string>
     <string name="night_timer_start">Запустить таймер</string>
     <string name="night_timer_stop">Остановить таймер</string>
     <string name="night_timer_countdown">Сон · %1$d:%2$02d</string>

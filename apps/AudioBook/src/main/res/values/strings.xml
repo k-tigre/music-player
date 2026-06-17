@@ -29,6 +29,7 @@
     <string name="night_timer_flip_step_rest">As it lies</string>
     <string name="night_timer_flip_step_flipped">Face down</string>
     <string name="night_timer_flip_step_done">+5 min</string>
+    <string name="night_timer_flip_screen_label">Screen</string>
     <string name="night_timer_start">Start timer</string>
     <string name="night_timer_stop">Stop timer</string>
     <string name="night_timer_countdown">Sleep · %1$d:%2$02d</string>
