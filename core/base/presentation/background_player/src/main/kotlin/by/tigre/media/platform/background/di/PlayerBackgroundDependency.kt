@@ -1,7 +1,7 @@
-package by.tigre.music.player.core.presentation.backgound_player.di
+package by.tigre.media.platform.background.di
 
 import androidx.media3.common.MediaMetadata
-import by.tigre.music.player.core.presentation.backgound_player.car.CarMediaLibrary
+import by.tigre.media.platform.background.car.CarMediaLibrary
 import by.tigre.media.platform.player.component.BasePlaybackController
 
 interface PlayerBackgroundDependency {

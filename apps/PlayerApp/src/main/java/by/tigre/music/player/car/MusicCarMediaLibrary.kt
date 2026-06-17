@@ -3,15 +3,15 @@ package by.tigre.music.player.car
 import android.content.ContentUris
 import android.content.Context
 import android.provider.MediaStore
-import by.tigre.background_player.R
+import by.tigre.media.platform.background.R
 import by.tigre.music.player.core.data.catalog.CatalogSource
 import by.tigre.music.player.core.data.playback.PlaybackController
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.Song
-import by.tigre.music.player.core.presentation.backgound_player.car.CarBrowseItem
-import by.tigre.music.player.core.presentation.backgound_player.car.CarMediaIds
-import by.tigre.music.player.core.presentation.backgound_player.car.CarMediaLibrary
+import by.tigre.media.platform.background.car.CarBrowseItem
+import by.tigre.media.platform.background.car.CarMediaIds
+import by.tigre.media.platform.background.car.CarMediaLibrary
 import kotlinx.coroutines.flow.first
 
 class MusicCarMediaLibrary(

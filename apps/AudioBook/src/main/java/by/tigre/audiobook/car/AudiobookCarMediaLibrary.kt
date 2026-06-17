@@ -5,9 +5,9 @@ import by.tigre.audiobook.core.data.audiobook.AudiobookCatalogSource
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
 import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.entity.catalog.Chapter
-import by.tigre.music.player.core.presentation.backgound_player.car.CarBrowseItem
-import by.tigre.music.player.core.presentation.backgound_player.car.CarMediaIds
-import by.tigre.music.player.core.presentation.backgound_player.car.CarMediaLibrary
+import by.tigre.media.platform.background.car.CarBrowseItem
+import by.tigre.media.platform.background.car.CarMediaIds
+import by.tigre.media.platform.background.car.CarMediaLibrary
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 

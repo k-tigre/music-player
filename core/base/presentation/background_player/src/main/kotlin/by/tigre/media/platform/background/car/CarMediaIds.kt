@@ -1,4 +1,4 @@
-package by.tigre.music.player.core.presentation.backgound_player.car
+package by.tigre.media.platform.background.car
 
 object CarMediaIds {
     const val ROOT = "[ROOT]"
