@@ -15,8 +15,8 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import by.tigre.media.platform.player.di.CatalogComponentProvider
-import by.tigre.media.platform.player.di.CatalogViewProvider
+import by.tigre.music.player.core.presentation.catalog.di.CatalogComponentProvider
+import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.media.platform.player.di.PlayerComponentProvider
 import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueComponentProvider

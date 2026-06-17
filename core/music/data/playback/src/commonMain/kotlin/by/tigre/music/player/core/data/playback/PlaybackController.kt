@@ -1,5 +1,6 @@
 package by.tigre.music.player.core.data.playback
 
+import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.Song
