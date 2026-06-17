@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface AudiobookCatalogSource {
     val books: Flow<List<Book>>
+    val continueListeningBooks: Flow<List<Book>>
     val folderSources: Flow<List<FolderSource>>
     val catalogScanUi: StateFlow<CatalogScanUi>
 
@@ -21,4 +22,5 @@ interface AudiobookCatalogSource {
     suspend fun getBooks(): List<Book>
     suspend fun getBook(bookId: Book.Id): Book?
     suspend fun getChapters(bookId: Book.Id): List<Chapter>
+    suspend fun setHiddenFromContinueListening(bookId: Book.Id, hidden: Boolean)
 }

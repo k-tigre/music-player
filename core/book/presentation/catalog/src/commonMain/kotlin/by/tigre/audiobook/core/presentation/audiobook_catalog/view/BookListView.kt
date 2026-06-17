@@ -21,9 +21,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -57,8 +59,10 @@ import by.tigre.audiobook.core.presentation.catalog.resources.book_completed
 import by.tigre.audiobook.core.presentation.catalog.resources.book_currently_playing
 import by.tigre.audiobook.core.presentation.catalog.resources.book_progress_listened
 import by.tigre.audiobook.core.presentation.catalog.resources.cd_collapse_folder
+import by.tigre.audiobook.core.presentation.catalog.resources.cd_dismiss_continue_listening
 import by.tigre.audiobook.core.presentation.catalog.resources.cd_expand_folder
 import by.tigre.audiobook.core.presentation.catalog.resources.cd_manage_folders
+import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening_books_count
 import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening_title
 import by.tigre.audiobook.core.presentation.catalog.resources.folder_group_books_count
 import by.tigre.music.player.presentation.base.ScreenContentState
@@ -129,7 +133,11 @@ class BookListView(
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
     private fun DrawContent(state: BookListComponent.BookListUiState) {
-        if (state.continueListeningBook == null && state.rootBooks.isEmpty() && state.grouped.isEmpty()) {
+        LaunchedEffect(Unit) {
+            component.onScreenShown()
+        }
+
+        if (state.continueListeningBooks.isEmpty() && state.rootBooks.isEmpty() && state.grouped.isEmpty()) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -160,19 +168,27 @@ class BookListView(
                 state = listState,
                 contentPadding = bottomBarListContentPadding(),
             ) {
-                state.continueListeningBook?.let { book ->
-                    item(key = "continue_${book.id.value}") {
-                        Text(
-                            text = stringResource(Res.string.continue_listening_title),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(start = 4.dp, top = 4.dp, bottom = 8.dp),
+                if (state.continueListeningBooks.isNotEmpty()) {
+                    stickyHeader(key = "continue_header") {
+                        ContinueListeningHeader(
+                            bookCount = state.continueListeningBooks.size,
+                            isExpanded = state.continueListeningExpanded,
+                            onClick = component::toggleContinueListening,
                         )
-                        BookCard(
-                            book = book,
-                            isCurrent = true,
-                            showNowPlayingBadge = true,
-                        )
+                    }
+                    if (state.continueListeningExpanded) {
+                        items(
+                            items = state.continueListeningBooks,
+                            key = { book -> "continue_${book.id.value}" },
+                        ) { book ->
+                            CompactContinueBookCard(
+                                book = book,
+                                isCurrent = book.id == state.currentBookId,
+                                onDismiss = { component.dismissContinueListening(book) },
+                            )
+                        }
+                    }
+                    item(key = "continue_spacer") {
                         Spacer(modifier = Modifier.size(12.dp))
                     }
                 }
@@ -186,6 +202,11 @@ class BookListView(
 
                 state.grouped.forEach { (path, booksInGroup) ->
                     val isExpanded = state.expanded.contains(path)
+                    val booksToShow = if (isExpanded) {
+                        booksInGroup
+                    } else {
+                        booksInGroup.filter { book -> book.id == state.currentBookId }
+                    }
                     stickyHeader(key = "header_$path") {
                         FolderGroupHeader(
                             path = path,
@@ -194,14 +215,183 @@ class BookListView(
                             onClick = { component.toggleGroup(path) },
                         )
                     }
-                    if (isExpanded) {
-                        items(booksInGroup, key = { book -> "group_${path}_${book.id.value}" }) { book ->
+                    if (booksToShow.isNotEmpty()) {
+                        items(booksToShow, key = { book -> "group_${path}_${book.id.value}" }) { book ->
                             BookCard(
                                 book = book,
                                 isCurrent = book.id == state.currentBookId,
                             )
                         }
                     }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun ContinueListeningHeader(
+        bookCount: Int,
+        isExpanded: Boolean,
+        onClick: () -> Unit,
+    ) {
+        val shape = RoundedCornerShape(8.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(top = 4.dp, bottom = 2.dp),
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onClick),
+                shape = shape,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                ),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.History,
+                        contentDescription = null,
+                        modifier = Modifier.size(22.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(Res.string.continue_listening_title),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            text = stringResource(Res.string.continue_listening_books_count, bookCount),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Icon(
+                        imageVector = if (isExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                        contentDescription = stringResource(
+                            if (isExpanded) Res.string.cd_collapse_folder else Res.string.cd_expand_folder,
+                        ),
+                        modifier = Modifier.size(22.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun CompactContinueBookCard(
+        book: Book,
+        isCurrent: Boolean,
+        onDismiss: () -> Unit,
+    ) {
+        val shape = RoundedCornerShape(8.dp)
+        val borderColor = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+        val containerColor = if (isCurrent) {
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerLowest
+        }
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 2.dp)
+                .border(
+                    width = if (isCurrent) 1.dp else 0.5.dp,
+                    color = borderColor,
+                    shape = shape,
+                )
+                .clickable { component.onBookClicked(book) },
+            shape = shape,
+            colors = CardDefaults.cardColors(containerColor = containerColor),
+        ) {
+            Row(
+                modifier = Modifier.padding(start = 10.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                val cover = book.coverUri
+                if (cover != null) {
+                    AsyncImage(
+                        model = cover,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(RoundedCornerShape(6.dp)),
+                        contentScale = ContentScale.Crop,
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    if (isCurrent) {
+                        Text(
+                            text = stringResource(Res.string.book_currently_playing),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(bottom = 1.dp),
+                        )
+                    }
+                    Text(
+                        text = book.title,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = if (isCurrent) FontWeight.SemiBold else FontWeight.Normal,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(Res.string.book_chapters_count, book.chapterCount),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if (book.progressFraction > 0f) {
+                            Text(
+                                text = stringResource(
+                                    Res.string.book_progress_listened,
+                                    (book.progressFraction * 100).toInt(),
+                                ),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    if (book.progressFraction > 0f) {
+                        LinearProgressIndicator(
+                            progress = { book.progressFraction },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 4.dp)
+                                .clip(RoundedCornerShape(2.dp)),
+                            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        )
+                    }
+                }
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.size(36.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = stringResource(Res.string.cd_dismiss_continue_listening),
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         }
@@ -280,6 +470,7 @@ class BookListView(
         book: Book,
         isCurrent: Boolean,
         showNowPlayingBadge: Boolean = false,
+        onDismiss: (() -> Unit)? = null,
     ) {
         val shape = RoundedCornerShape(12.dp)
         val borderColor = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
@@ -370,6 +561,15 @@ class BookListView(
                                 .fillMaxWidth()
                                 .padding(top = 8.dp)
                                 .clip(RoundedCornerShape(4.dp)),
+                        )
+                    }
+                }
+                if (onDismiss != null) {
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = stringResource(Res.string.cd_dismiss_continue_listening),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }

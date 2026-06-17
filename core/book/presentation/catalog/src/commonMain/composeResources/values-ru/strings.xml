@@ -11,6 +11,8 @@
     <string name="book_completed">Завершено</string>
     <string name="book_progress_listened">Прослушано %1$d%%</string>
     <string name="continue_listening_title">Продолжить слушать</string>
+    <string name="continue_listening_books_count">%1$d книг</string>
+    <string name="cd_dismiss_continue_listening">Убрать из «Продолжить слушать»</string>
     <string name="book_currently_playing">Сейчас играет</string>
     <string name="chapters_sheet_title">Главы</string>
     <string name="chapter_fallback_title">Глава %1$d</string>

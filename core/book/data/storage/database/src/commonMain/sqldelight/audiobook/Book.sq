@@ -9,6 +9,7 @@ CREATE TABLE Book(
     listened_duration_ms INTEGER NOT NULL DEFAULT 0,
     is_completed INTEGER NOT NULL DEFAULT 0,
     cover_uri TEXT,
+    hidden_from_continue INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (folder_source_id) REFERENCES FolderSource(id) ON DELETE CASCADE
 );
 
@@ -16,7 +17,7 @@ insertBook:
 INSERT INTO Book(title, folder_uri, folder_source_id, sub_path, total_duration_ms, cover_uri) VALUES(?, ?, ?, ?, ?, ?);
 
 selectByFolderUriAndTitle:
-SELECT id, title, folder_uri, sub_path, total_duration_ms, listened_duration_ms, is_completed, cover_uri
+SELECT id, title, folder_uri, sub_path, total_duration_ms, listened_duration_ms, is_completed, cover_uri, hidden_from_continue
 FROM Book
 WHERE folder_uri = ? AND title = ?;
 
@@ -45,7 +46,8 @@ SELECT b.id, b.title, b.folder_uri,
     b.total_duration_ms,
     b.listened_duration_ms,
     b.is_completed,
-    b.cover_uri
+    b.cover_uri,
+    b.hidden_from_continue
 FROM Book b
 ORDER BY b.sub_path, b.title;
 
@@ -68,6 +70,26 @@ upsertProgress:
 UPDATE Book SET listened_duration_ms = ?, is_completed = ?
 WHERE id = ?;
 
+setHiddenFromContinue:
+UPDATE Book SET hidden_from_continue = ? WHERE id = ?;
+
+selectRecentContinueListening:
+SELECT b.id, b.title, b.folder_uri,
+    (SELECT COUNT(*) FROM Chapter c WHERE c.book_id = b.id) AS chapter_count,
+    b.sub_path,
+    b.total_duration_ms,
+    b.listened_duration_ms,
+    b.is_completed,
+    b.cover_uri,
+    b.hidden_from_continue
+FROM AudiobookRecentBook r
+INNER JOIN Book b ON b.id = r.book_id
+WHERE b.is_completed = 0
+  AND b.hidden_from_continue = 0
+  AND b.listened_duration_ms > 0
+ORDER BY r.last_started_at DESC
+LIMIT 5;
+
 selectById:
 SELECT b.id, b.title, b.folder_uri,
     (SELECT COUNT(*) FROM Chapter c WHERE c.book_id = b.id) AS chapter_count,
@@ -75,6 +97,7 @@ SELECT b.id, b.title, b.folder_uri,
     b.total_duration_ms,
     b.listened_duration_ms,
     b.is_completed,
-    b.cover_uri
+    b.cover_uri,
+    b.hidden_from_continue
 FROM Book b
 WHERE b.id = ?;

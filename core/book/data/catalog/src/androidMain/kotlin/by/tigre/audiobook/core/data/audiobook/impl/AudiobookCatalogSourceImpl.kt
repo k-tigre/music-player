@@ -29,6 +29,7 @@ class AudiobookCatalogSourceImpl(
 ) : AudiobookCatalogSource {
 
     override val books: Flow<List<Book>> = storage.books
+    override val continueListeningBooks: Flow<List<Book>> = storage.continueListeningBooks
     override val folderSources: Flow<List<FolderSource>> = storage.folderSources
 
     private val _catalogScanUi = MutableStateFlow(CatalogScanUi())
@@ -176,6 +177,11 @@ class AudiobookCatalogSourceImpl(
     override suspend fun getBook(bookId: Book.Id): Book? = storage.getBook(bookId)
 
     override suspend fun getChapters(bookId: Book.Id): List<Chapter> = storage.getChaptersByBook(bookId)
+
+    override suspend fun setHiddenFromContinueListening(bookId: Book.Id, hidden: Boolean) =
+        withContext(Dispatchers.IO) {
+            storage.setHiddenFromContinue(bookId, hidden)
+        }
 
     override suspend fun getFolderSourcesList(): List<FolderSource> = storage.getFolderSources()
 

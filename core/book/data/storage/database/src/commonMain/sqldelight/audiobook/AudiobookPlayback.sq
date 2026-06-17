@@ -23,3 +23,12 @@ INSERT OR REPLACE INTO AudiobookLastPlayed(id, book_id) VALUES(1, ?);
 
 getLastPlayed:
 SELECT book_id FROM AudiobookLastPlayed WHERE id = 1;
+
+CREATE TABLE AudiobookRecentBook (
+    book_id INTEGER NOT NULL PRIMARY KEY,
+    last_started_at INTEGER NOT NULL,
+    FOREIGN KEY (book_id) REFERENCES Book(id) ON DELETE CASCADE
+);
+
+upsertRecentBook:
+INSERT OR REPLACE INTO AudiobookRecentBook(book_id, last_started_at) VALUES(?, ?);

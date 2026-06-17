@@ -80,12 +80,16 @@ internal class AudiobookPlaybackControllerImpl(
 
     override fun loadBook(book: Book) {
         Log.d(TAG) { "loadBook: ${book.title}" }
-        scope.launch { loadBookInternal(book, autoPlay = false) }
+        scope.launch {
+            catalog.setHiddenFromContinueListening(book.id, hidden = false)
+            loadBookInternal(book, autoPlay = false)
+        }
     }
 
     override fun playBook(book: Book) {
         Log.d(TAG) { "playBook: ${book.title}" }
         scope.launch {
+            catalog.setHiddenFromContinueListening(book.id, hidden = false)
             loadBookInternal(book, autoPlay = true)
             saveCurrentPosition()
         }
@@ -97,6 +101,7 @@ internal class AudiobookPlaybackControllerImpl(
             val book = catalog.getBook(bookId) ?: return@launch
             val chapterList = catalog.getChapters(bookId)
             val chapter = chapterList.firstOrNull { it.id == chapterId } ?: return@launch
+            catalog.setHiddenFromContinueListening(book.id, hidden = false)
             dismissBookFinishedBanner()
             chapters.value = chapterList
             currentBook.value = book

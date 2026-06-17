@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface AudiobookCatalogStorage {
     val books: Flow<List<Book>>
+    val continueListeningBooks: Flow<List<Book>>
     val folderSources: Flow<List<FolderSource>>
 
     suspend fun addFolderSource(uri: String, name: String): FolderSource.Id
@@ -27,6 +28,7 @@ interface AudiobookCatalogStorage {
     suspend fun getBooks(): List<Book>
     suspend fun getBook(bookId: Book.Id): Book?
     suspend fun getChaptersByBook(bookId: Book.Id): List<Chapter>
+    suspend fun setHiddenFromContinue(bookId: Book.Id, hidden: Boolean)
 
     data class ScannedBook(
         val title: String,

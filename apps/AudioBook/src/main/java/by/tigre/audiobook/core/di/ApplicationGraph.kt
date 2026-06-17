@@ -128,7 +128,6 @@ class ApplicationGraph(
                 appPlaybackVolume = appPlaybackVolume,
                 scope = coroutineModule.scope,
             )
-
             return ApplicationGraph(
                 appContext = context.applicationContext,
                 coroutineScope = coroutineModule.scope,

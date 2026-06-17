@@ -1,0 +1,16 @@
+CREATE TABLE AudiobookRecentBook (
+    book_id INTEGER NOT NULL PRIMARY KEY,
+    last_started_at INTEGER NOT NULL,
+    FOREIGN KEY (book_id) REFERENCES Book(id) ON DELETE CASCADE
+);
+
+INSERT INTO AudiobookRecentBook (book_id, last_started_at)
+SELECT id, created_at * 1000
+FROM Book
+WHERE is_completed = 0 AND listened_duration_ms > 0 AND hidden_from_continue = 0;
+
+INSERT OR IGNORE INTO AudiobookRecentBook (book_id, last_started_at)
+SELECT lp.book_id, CAST(strftime('%s', 'now') AS INTEGER) * 1000
+FROM AudiobookLastPlayed lp
+INNER JOIN Book b ON b.id = lp.book_id
+WHERE b.is_completed = 0 AND b.hidden_from_continue = 0 AND b.listened_duration_ms > 0;

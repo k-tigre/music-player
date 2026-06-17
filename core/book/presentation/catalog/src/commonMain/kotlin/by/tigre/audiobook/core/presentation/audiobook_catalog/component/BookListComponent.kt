@@ -14,9 +14,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 interface BookListComponent {
 
@@ -26,10 +26,14 @@ interface BookListComponent {
     fun onManageFolders()
     fun retry()
     fun toggleGroup(path: String)
+    fun toggleContinueListening()
+    fun onScreenShown()
     fun focusCurrentBook()
+    fun dismissContinueListening(book: Book)
 
     data class BookListUiState(
-        val continueListeningBook: Book?,
+        val continueListeningBooks: List<Book>,
+        val continueListeningExpanded: Boolean,
         val rootBooks: List<Book>,
         val grouped: List<Pair<String, List<Book>>>,
         val expanded: Set<String>,
@@ -49,39 +53,37 @@ interface BookListComponent {
         private val eventAnalytics: BookEventAnalytics = dependency.eventAnalytics
 
         private val expandedState = MutableStateFlow(emptySet<String>())
+        private val continueListeningExpandedState = MutableStateFlow(true)
         private val scrollToBookNonce = MutableStateFlow(0L)
 
         override val screenState: StateFlow<ScreenContentState<BookListUiState>> = combine(
-            catalogSource.books,
-            playbackController.currentBook,
+            combine(
+                catalogSource.books,
+                catalogSource.continueListeningBooks,
+                playbackController.currentBook,
+            ) { books, continueListeningBooks, currentBook ->
+                Triple(books, continueListeningBooks, currentBook)
+            },
             expandedState,
+            continueListeningExpandedState,
             scrollToBookNonce,
-        ) { books, currentBook, expanded, scrollNonce ->
+        ) { catalog, expanded, continueExpanded, scrollNonce ->
+            val (books, continueListeningBooks, currentBook) = catalog
             val currentBookId = currentBook?.id
-            val continueListeningBook = currentBook?.takeUnless { it.isCompleted }
-            val otherBooks = if (currentBookId != null) {
-                books.filter { it.id != currentBookId }
-            } else {
-                books
-            }
-            val rootBooks = otherBooks.filter { it.subPath.isEmpty() }
-            val grouped = otherBooks
+            val rootBooks = books.filter { it.subPath.isEmpty() }
+            val grouped = books
                 .filter { it.subPath.isNotEmpty() }
                 .groupBy { it.subPath }
                 .entries
                 .sortedBy { it.key }
                 .map { it.key to it.value }
-            val expandedWithCurrent = if (currentBook?.subPath?.isNotEmpty() == true) {
-                expanded + currentBook.subPath
-            } else {
-                expanded
-            }
             ScreenContentState.Content(
                 BookListUiState(
-                    continueListeningBook = continueListeningBook,
+                    continueListeningBooks = continueListeningBooks,
+                    continueListeningExpanded = continueExpanded,
                     rootBooks = rootBooks,
                     grouped = grouped,
-                    expanded = expandedWithCurrent,
+                    expanded = expanded,
                     currentBookId = currentBookId,
                     scrollToBookNonce = scrollNonce,
                 )
@@ -110,8 +112,27 @@ interface BookListComponent {
             }
         }
 
+        override fun toggleContinueListening() {
+            continueListeningExpandedState.update { expanded -> !expanded }
+        }
+
+        override fun onScreenShown() {
+            continueListeningExpandedState.value = true
+            val subPath = playbackController.currentBook.value?.subPath.orEmpty()
+            if (subPath.isNotEmpty()) {
+                expandedState.update { it + subPath }
+            }
+        }
+
         override fun focusCurrentBook() {
+            onScreenShown()
             scrollToBookNonce.update { it + 1L }
+        }
+
+        override fun dismissContinueListening(book: Book) {
+            launch {
+                catalogSource.setHiddenFromContinueListening(book.id, hidden = true)
+            }
         }
     }
 }
