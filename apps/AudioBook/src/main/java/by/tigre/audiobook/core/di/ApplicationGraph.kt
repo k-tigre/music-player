@@ -14,11 +14,8 @@ import by.tigre.background_player.R
 import by.tigre.music.player.core.presentation.backgound_player.car.CarMediaLibrary
 import by.tigre.audiobook.nighttimer.NightTimerController
 import by.tigre.audiobook.nighttimer.createNightTimerController
-import by.tigre.music.player.core.data.catalog.di.AndroidCatalogModule
-import by.tigre.music.player.core.data.catalog.di.CatalogModule
 import by.tigre.music.player.core.data.playback.di.AndroidBasePlaybackModule
-import by.tigre.music.player.core.data.playback.di.PlaybackModule
-import by.tigre.music.player.core.data.storage.playback_queue.di.AndroidPlaybackQueueModule
+import by.tigre.music.player.core.data.playback.di.BasePlaybackModule
 import by.tigre.music.player.core.data.storage.preferences.di.AndroidPreferencesModule
 import by.tigre.music.player.core.presentation.backgound_player.di.PlayerBackgroundDependency
 import by.tigre.music.player.core.presentation.catalog.component.BasePlaybackController
@@ -32,8 +29,7 @@ import kotlinx.coroutines.flow.flowOf
 class ApplicationGraph(
     private val appContext: Context,
     private val coroutineScope: kotlinx.coroutines.CoroutineScope,
-    playbackModule: PlaybackModule,
-    catalogModule: CatalogModule,
+    private val basePlaybackModule: BasePlaybackModule,
     audiobookCatalogModule: AudiobookCatalogModule,
     audiobookPlaybackModule: AudiobookPlaybackModule,
     analyticsModule: BookAnalyticsModule,
@@ -42,12 +38,12 @@ class ApplicationGraph(
     PlayerBackgroundDependency,
     AudiobookCatalogDependency,
     BookAnalyticsModule by analyticsModule,
-    PlaybackModule by playbackModule,
-    CatalogModule by catalogModule,
     AudiobookCatalogModule by audiobookCatalogModule,
     AudiobookPlaybackModule by audiobookPlaybackModule {
 
-    override val appPlaybackVolume = playbackModule.appPlaybackVolume
+    override val playbackEqualizer = basePlaybackModule.playbackEqualizer
+
+    override val appPlaybackVolume = basePlaybackModule.appPlaybackVolume
 
     override val carSessionMediaType: Int = MediaMetadata.MEDIA_TYPE_AUDIO_BOOK
 
@@ -100,13 +96,9 @@ class ApplicationGraph(
             analyticsModule: BookAnalyticsModule,
         ): ApplicationGraph {
             val preferencesModule = AndroidPreferencesModule(context)
-            val catalogModule = AndroidCatalogModule(context, preferencesModule.preferences)
             val coroutineModule = CoroutineModule.Impl()
-            val playbackQueueModule = AndroidPlaybackQueueModule(context, coroutineModule, preferencesModule)
             val basePlaybackModule =
                 AndroidBasePlaybackModule(context, coroutineModule, preferencesModule.preferences)
-            val playbackModule =
-                PlaybackModule.Impl(coroutineModule, playbackQueueModule, catalogModule, basePlaybackModule)
 
             val audiobookStorageModule = AndroidAudiobookCatalogStorageModule(context, coroutineModule)
             val audiobookCatalogModule = AndroidAudiobookCatalogModule(context, audiobookStorageModule)
@@ -131,8 +123,7 @@ class ApplicationGraph(
             return ApplicationGraph(
                 appContext = context.applicationContext,
                 coroutineScope = coroutineModule.scope,
-                playbackModule = playbackModule,
-                catalogModule = catalogModule,
+                basePlaybackModule = basePlaybackModule,
                 audiobookCatalogModule = audiobookCatalogModule,
                 audiobookPlaybackModule = audiobookPlaybackModule,
                 analyticsModule = analyticsModule,
