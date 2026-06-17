@@ -1,10 +1,10 @@
 package by.tigre.audiobook.analytics
 
 import android.content.Context
-import by.tigre.music.player.tools.analytics.common.AnalyticsAction
-import by.tigre.music.player.tools.analytics.common.AnalyticsScreen
-import by.tigre.music.player.tools.analytics.common.Tracker
-import by.tigre.music.player.tools.analytics.common.WithPayload
+import by.tigre.media.platform.tools.analytics.common.AnalyticsAction
+import by.tigre.media.platform.tools.analytics.common.AnalyticsScreen
+import by.tigre.media.platform.tools.analytics.common.Tracker
+import by.tigre.media.platform.tools.analytics.common.WithPayload
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.logEvent
 

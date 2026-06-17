@@ -17,5 +17,5 @@ kotlin {
 }
 
 android {
-    namespace = "by.tigre.music.player.tools.analytics.book"
+    namespace = "by.tigre.media.platform.tools.analytics.book"
 }

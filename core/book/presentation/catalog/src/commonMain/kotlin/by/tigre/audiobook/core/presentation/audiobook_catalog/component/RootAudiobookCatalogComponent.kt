@@ -7,7 +7,7 @@ import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.OnBookS
 import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.media.platform.presentation.appChildStack
 import by.tigre.media.platform.presentation.trackScreens
-import by.tigre.music.player.tools.analytics.book.AudiobookEvents
+import by.tigre.media.platform.tools.analytics.book.AudiobookEvents
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.bringToFront
