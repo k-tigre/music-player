@@ -1,4 +1,4 @@
-package by.tigre.music.player.tools.entiry.common
+package by.tigre.media.platform.tools.entiry.common
 
 sealed class Optional<out T : Any> {
     abstract fun toNullable(): T?
