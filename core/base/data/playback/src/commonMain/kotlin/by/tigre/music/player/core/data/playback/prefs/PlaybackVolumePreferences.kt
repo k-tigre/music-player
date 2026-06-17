@@ -1,6 +1,6 @@
 package by.tigre.music.player.core.data.playback.prefs
 
-import by.tigre.music.player.core.data.storage.preferences.Preferences
+import by.tigre.media.platform.preferences.Preferences
 
 internal class PlaybackVolumePreferences(
     private val preferences: Preferences,

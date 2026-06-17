@@ -1,6 +1,6 @@
 package by.tigre.music.player.core.data.catalog.hidden
 
-import by.tigre.music.player.core.data.storage.preferences.Preferences
+import by.tigre.media.platform.preferences.Preferences
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.Song

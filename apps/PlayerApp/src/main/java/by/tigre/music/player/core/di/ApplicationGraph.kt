@@ -8,7 +8,7 @@ import by.tigre.music.player.core.data.catalog.di.CatalogModule
 import by.tigre.music.player.core.data.playback.di.AndroidBasePlaybackModule
 import by.tigre.music.player.core.data.playback.di.PlaybackModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.AndroidPlaybackQueueModule
-import by.tigre.music.player.core.data.storage.preferences.di.AndroidPreferencesModule
+import by.tigre.media.platform.preferences.di.AndroidPreferencesModule
 import by.tigre.music.player.car.MusicCarMediaLibrary
 import by.tigre.music.player.core.presentation.backgound_player.car.CarMediaLibrary
 import by.tigre.music.player.core.presentation.backgound_player.di.PlayerBackgroundDependency

@@ -4,7 +4,7 @@ import by.tigre.music.player.core.data.catalog.CatalogSource
 import by.tigre.music.player.core.data.catalog.desktop.DesktopCatalogSourceImpl
 import by.tigre.music.player.core.data.catalog.hidden.HiddenCatalogStorageImpl
 import by.tigre.music.player.core.data.catalog.impl.CatalogSourceImpl
-import by.tigre.music.player.core.data.storage.preferences.Preferences
+import by.tigre.media.platform.preferences.Preferences
 import java.io.File
 
 class DesktopCatalogModule(

@@ -7,7 +7,7 @@ import by.tigre.music.player.core.data.catalog.android.DbHelper
 import by.tigre.music.player.core.data.catalog.hidden.HiddenCatalogStorage
 import by.tigre.music.player.core.data.catalog.hidden.HiddenCatalogStorageImpl
 import by.tigre.music.player.core.data.catalog.impl.CatalogSourceImpl
-import by.tigre.music.player.core.data.storage.preferences.Preferences
+import by.tigre.media.platform.preferences.Preferences
 
 class AndroidCatalogModule(
     context: Context,

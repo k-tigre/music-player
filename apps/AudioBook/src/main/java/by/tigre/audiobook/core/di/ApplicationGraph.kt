@@ -16,7 +16,7 @@ import by.tigre.audiobook.nighttimer.NightTimerController
 import by.tigre.audiobook.nighttimer.createNightTimerController
 import by.tigre.music.player.core.data.playback.di.AndroidBasePlaybackModule
 import by.tigre.music.player.core.data.playback.di.BasePlaybackModule
-import by.tigre.music.player.core.data.storage.preferences.di.AndroidPreferencesModule
+import by.tigre.media.platform.preferences.di.AndroidPreferencesModule
 import by.tigre.music.player.core.presentation.backgound_player.di.PlayerBackgroundDependency
 import by.tigre.music.player.core.presentation.catalog.component.BasePlaybackController
 import by.tigre.music.player.core.presentation.catalog.component.PlayerItem

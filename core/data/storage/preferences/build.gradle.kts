@@ -17,5 +17,5 @@ kotlin {
 }
 
 android {
-    namespace = "by.tigre.music.player.core.data.storage.preferences"
+    namespace = "by.tigre.media.platform.preferences"
 }

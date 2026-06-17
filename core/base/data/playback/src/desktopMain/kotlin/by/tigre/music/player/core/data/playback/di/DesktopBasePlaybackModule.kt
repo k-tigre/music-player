@@ -8,7 +8,7 @@ import by.tigre.music.player.core.data.playback.impl.FfmpegDesktopPlaybackPlayer
 import by.tigre.music.player.core.data.playback.impl.JdkClipDesktopPlaybackPlayer
 import by.tigre.music.player.core.data.playback.prefs.EqualizerPreferences
 import by.tigre.music.player.core.data.playback.prefs.PlaybackVolumePreferences
-import by.tigre.music.player.core.data.storage.preferences.Preferences
+import by.tigre.media.platform.preferences.Preferences
 
 class DesktopBasePlaybackModule(
     preferences: Preferences,

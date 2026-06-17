@@ -1,4 +1,4 @@
-package by.tigre.music.player.core.data.storage.preferences
+package by.tigre.media.platform.preferences
 
 class DesktopPreferences(name: String) : Preferences {
     private val prefs = java.util.prefs.Preferences.userRoot().node(name)

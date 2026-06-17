@@ -7,7 +7,7 @@ import by.tigre.music.player.core.data.storage.music.DatabaseMusic
 import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
 import by.tigre.music.player.core.data.storage.playback_queue.impl.PlaybackQueueStorageImpl
 import by.tigre.music.player.core.data.storage.playback_queue.impl.QueueStateAdapter
-import by.tigre.music.player.core.data.storage.preferences.di.PreferencesModule
+import by.tigre.media.platform.preferences.di.PreferencesModule
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
 import music.Queue
 import java.io.File
