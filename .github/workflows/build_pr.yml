@@ -1,0 +1,27 @@
+name: PR
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  verify:
+    name: Verify builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Verify builds
+        run: |
+          ./gradlew \
+            :tools:analytics:checkAnalyticsDocs \
+            test \
+            :apps:PlayerApp:assembleDebug \
+            :apps:AudioBook:assembleDebug \
+            :apps:PlayerDesktop:compileKotlin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
