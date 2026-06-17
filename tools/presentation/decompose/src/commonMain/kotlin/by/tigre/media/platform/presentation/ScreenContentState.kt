@@ -1,4 +1,4 @@
-package by.tigre.music.player.presentation.base
+package by.tigre.media.platform.presentation
 
 sealed interface ScreenContentState<out T> {
     data object Loading : ScreenContentState<Nothing>

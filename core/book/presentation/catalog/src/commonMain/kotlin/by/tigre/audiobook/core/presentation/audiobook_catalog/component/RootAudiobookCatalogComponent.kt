@@ -4,9 +4,9 @@ import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalo
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogDependency
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.AudiobookCatalogNavigator
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.OnBookSelectedListener
-import by.tigre.music.player.presentation.base.BaseComponentContext
-import by.tigre.music.player.presentation.base.appChildStack
-import by.tigre.music.player.presentation.base.trackScreens
+import by.tigre.media.platform.presentation.BaseComponentContext
+import by.tigre.media.platform.presentation.appChildStack
+import by.tigre.media.platform.presentation.trackScreens
 import by.tigre.music.player.tools.analytics.book.AudiobookEvents
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation

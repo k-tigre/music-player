@@ -6,9 +6,9 @@ import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigator
-import by.tigre.music.player.presentation.base.BaseComponentContext
-import by.tigre.music.player.presentation.base.ScreenContentState
-import by.tigre.music.player.presentation.base.ScreenContentStateDelegate
+import by.tigre.media.platform.presentation.BaseComponentContext
+import by.tigre.media.platform.presentation.ScreenContentState
+import by.tigre.media.platform.presentation.ScreenContentStateDelegate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine

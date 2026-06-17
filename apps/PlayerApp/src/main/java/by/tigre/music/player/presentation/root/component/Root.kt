@@ -12,10 +12,10 @@ import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.presentation.playlist.current.component.CurrentQueueComponent
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueComponentProvider
 import by.tigre.music.player.core.presentation.playlist.current.navigation.QueueNavigator
-import by.tigre.music.player.presentation.base.BaseComponentContext
-import by.tigre.music.player.presentation.base.appChildContext
-import by.tigre.music.player.presentation.base.appChildStack
-import by.tigre.music.player.presentation.base.trackScreens
+import by.tigre.media.platform.presentation.BaseComponentContext
+import by.tigre.media.platform.presentation.appChildContext
+import by.tigre.media.platform.presentation.appChildStack
+import by.tigre.media.platform.presentation.trackScreens
 import by.tigre.music.player.tools.analytics.common.CommonEvents
 import by.tigre.music.player.tools.analytics.music.MusicEvents
 import by.tigre.music.player.tools.analytics.music.MusicEventAnalytics

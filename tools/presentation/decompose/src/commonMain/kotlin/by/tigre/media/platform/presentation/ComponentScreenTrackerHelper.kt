@@ -1,4 +1,4 @@
-package by.tigre.music.player.presentation.base
+package by.tigre.media.platform.presentation
 
 import by.tigre.logger.Log
 import by.tigre.logger.extensions.debugLog

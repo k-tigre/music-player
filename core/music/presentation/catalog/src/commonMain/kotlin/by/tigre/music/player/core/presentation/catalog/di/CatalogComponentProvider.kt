@@ -8,7 +8,7 @@ import by.tigre.music.player.core.presentation.catalog.component.RootCatalogComp
 import by.tigre.music.player.core.presentation.catalog.component.RootCatalogComponent.Impl
 import by.tigre.music.player.core.presentation.catalog.component.SongsListComponent
 import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigator
-import by.tigre.music.player.presentation.base.BaseComponentContext
+import by.tigre.media.platform.presentation.BaseComponentContext
 
 interface CatalogComponentProvider {
     fun createRootCatalogComponent(context: BaseComponentContext): RootCatalogComponent

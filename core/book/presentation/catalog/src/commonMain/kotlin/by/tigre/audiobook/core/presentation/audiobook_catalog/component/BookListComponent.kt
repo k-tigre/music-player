@@ -6,10 +6,10 @@ import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogDependency
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.AudiobookCatalogNavigator
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.OnBookSelectedListener
-import by.tigre.music.player.presentation.base.BaseComponentContext
+import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.music.player.tools.analytics.book.AudiobookEvents
 import by.tigre.music.player.tools.analytics.book.BookEventAnalytics
-import by.tigre.music.player.presentation.base.ScreenContentState
+import by.tigre.media.platform.presentation.ScreenContentState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

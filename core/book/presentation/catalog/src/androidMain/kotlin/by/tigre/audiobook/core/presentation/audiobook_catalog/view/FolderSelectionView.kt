@@ -53,7 +53,7 @@ import by.tigre.audiobook.core.data.audiobook.CatalogScanSummary
 import by.tigre.audiobook.core.data.audiobook.FolderSourceAccessHealth
 import by.tigre.audiobook.core.entity.catalog.FolderSource
 import by.tigre.audiobook.core.presentation.audiobook_catalog.component.FolderSelectionComponent
-import by.tigre.music.player.presentation.base.ScreenContentState
+import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.view.ErrorScreen
 import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicator

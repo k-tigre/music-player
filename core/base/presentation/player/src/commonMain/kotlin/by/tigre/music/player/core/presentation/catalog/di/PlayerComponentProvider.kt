@@ -4,7 +4,7 @@ import by.tigre.music.player.core.presentation.catalog.component.EqualizerCompon
 import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.SmallPlayerComponent
 import by.tigre.music.player.core.presentation.catalog.navigation.PlayerNavigator
-import by.tigre.music.player.presentation.base.BaseComponentContext
+import by.tigre.media.platform.presentation.BaseComponentContext
 
 interface PlayerComponentProvider {
     fun createSmallPlayerComponent(context: BaseComponentContext, navigator: PlayerNavigator): SmallPlayerComponent
