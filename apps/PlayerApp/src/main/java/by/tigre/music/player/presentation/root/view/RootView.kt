@@ -28,7 +28,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import by.tigre.music.player.R
-import by.tigre.media.platform.player.di.CatalogViewProvider
+import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.media.platform.player.view.PlayerView
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider

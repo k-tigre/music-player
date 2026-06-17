@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.WindowState
 import by.tigre.media.platform.player.component.EqualizerComponent
-import by.tigre.media.platform.player.di.CatalogViewProvider
+import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
 import by.tigre.music.player.desktop.presentation.root.component.Root
