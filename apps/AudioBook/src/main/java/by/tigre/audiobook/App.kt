@@ -12,7 +12,7 @@ import by.tigre.music.player.tools.analytics.book.BookAnalyticsModuleImpl
 import by.tigre.music.player.tools.analytics.LogTracker
 import by.tigre.music.player.tools.analytics.MixpanelTracker
 import by.tigre.music.player.tools.analytics.common.Tracker
-import by.tigre.music.player.tools.coroutines.CoroutineModule
+import by.tigre.media.platform.tools.coroutines.CoroutineModule
 import com.google.firebase.FirebaseApp
 
 class App : Application() {

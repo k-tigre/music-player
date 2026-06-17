@@ -1,4 +1,4 @@
-package by.tigre.music.player.tools.coroutines
+package by.tigre.media.platform.tools.coroutines
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers

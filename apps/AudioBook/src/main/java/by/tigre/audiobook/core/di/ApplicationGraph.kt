@@ -22,7 +22,7 @@ import by.tigre.music.player.core.presentation.catalog.component.BasePlaybackCon
 import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
 import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
 import by.tigre.music.player.tools.analytics.book.BookAnalyticsModule
-import by.tigre.music.player.tools.coroutines.CoroutineModule
+import by.tigre.media.platform.tools.coroutines.CoroutineModule
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 

@@ -7,7 +7,7 @@ import by.tigre.music.player.core.data.playback.PlaybackEqualizer
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
 import by.tigre.music.player.core.data.playback.impl.PlaybackControllerImpl
 import by.tigre.music.player.core.data.storage.playback_queue.di.PlaybackQueueModule
-import by.tigre.music.player.tools.coroutines.CoroutineModule
+import by.tigre.media.platform.tools.coroutines.CoroutineModule
 
 interface PlaybackModule {
 

@@ -9,7 +9,7 @@ import by.tigre.music.player.core.data.playback.AppPlaybackVolume
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
 import by.tigre.music.player.core.data.storage.preferences.Preferences
 import by.tigre.logger.Log
-import by.tigre.music.player.tools.coroutines.CoreScope
+import by.tigre.media.platform.tools.coroutines.CoreScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
