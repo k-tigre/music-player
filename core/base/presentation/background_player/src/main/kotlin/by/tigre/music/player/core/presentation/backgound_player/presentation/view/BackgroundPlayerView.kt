@@ -19,7 +19,7 @@ import by.tigre.background_player.R
 import by.tigre.music.player.core.presentation.backgound_player.presentation.component.BackgroundComponent
 import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
 import by.tigre.logger.Log
-import by.tigre.music.player.tools.platform.utils.getNotificationManager
+import by.tigre.media.platform.tools.platform.utils.getNotificationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
