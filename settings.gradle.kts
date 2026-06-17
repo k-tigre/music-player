@@ -24,7 +24,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MusicPlayer"
+rootProject.name = "TigreMedia"
 include(":apps:PlayerApp")
 include(":apps:AudioBook")
 include(":apps:PlayerDesktop")
