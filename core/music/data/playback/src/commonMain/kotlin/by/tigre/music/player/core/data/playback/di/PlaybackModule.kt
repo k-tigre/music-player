@@ -1,10 +1,11 @@
 package by.tigre.music.player.core.data.playback.di
 
 import by.tigre.music.player.core.data.catalog.di.CatalogModule
-import by.tigre.music.player.core.data.playback.AppPlaybackVolume
+import by.tigre.media.platform.playback.AppPlaybackVolume
 import by.tigre.music.player.core.data.playback.PlaybackController
-import by.tigre.music.player.core.data.playback.PlaybackEqualizer
-import by.tigre.music.player.core.data.playback.PlaybackPlayer
+import by.tigre.media.platform.playback.PlaybackEqualizer
+import by.tigre.media.platform.playback.PlaybackPlayer
+import by.tigre.media.platform.playback.di.BasePlaybackModule
 import by.tigre.music.player.core.data.playback.impl.PlaybackControllerImpl
 import by.tigre.music.player.core.data.storage.playback_queue.di.PlaybackQueueModule
 import by.tigre.media.platform.tools.coroutines.CoroutineModule

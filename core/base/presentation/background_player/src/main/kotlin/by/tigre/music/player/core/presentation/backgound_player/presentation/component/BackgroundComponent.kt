@@ -1,6 +1,6 @@
 package by.tigre.music.player.core.presentation.backgound_player.presentation.component
 
-import by.tigre.music.player.core.data.playback.PlaybackPlayer
+import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.music.player.core.presentation.backgound_player.car.CarMediaLibrary
 import by.tigre.music.player.core.presentation.backgound_player.di.PlayerBackgroundDependency
 import by.tigre.music.player.core.presentation.catalog.component.PlayerItem

@@ -2,7 +2,7 @@ package by.tigre.music.player.desktop.di
 
 import by.tigre.music.player.core.data.catalog.di.CatalogModule
 import by.tigre.music.player.core.data.catalog.di.DesktopCatalogModule
-import by.tigre.music.player.core.data.playback.di.DesktopBasePlaybackModule
+import by.tigre.media.platform.playback.di.DesktopBasePlaybackModule
 import by.tigre.music.player.core.data.playback.di.PlaybackModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.DesktopPlaybackQueueModule
 import by.tigre.media.platform.preferences.di.DesktopPreferencesModule

@@ -29,8 +29,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import by.tigre.music.player.core.data.playback.AppPlaybackVolume
-import by.tigre.music.player.core.data.playback.PlaybackEqualizer
+import by.tigre.media.platform.playback.AppPlaybackVolume
+import by.tigre.media.platform.playback.PlaybackEqualizer
 import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.PlayerItem

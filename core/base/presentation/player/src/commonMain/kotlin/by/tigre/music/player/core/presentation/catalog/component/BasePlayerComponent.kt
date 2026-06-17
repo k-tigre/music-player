@@ -1,8 +1,8 @@
 package by.tigre.music.player.core.presentation.catalog.component
 
-import by.tigre.music.player.core.data.playback.AppPlaybackVolume
-import by.tigre.music.player.core.data.playback.PlaybackEqualizer
-import by.tigre.music.player.core.data.playback.PlaybackPlayer
+import by.tigre.media.platform.playback.AppPlaybackVolume
+import by.tigre.media.platform.playback.PlaybackEqualizer
+import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent.Position
 import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent.State
 import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
