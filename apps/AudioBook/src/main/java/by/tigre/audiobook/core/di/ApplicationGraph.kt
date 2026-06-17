@@ -10,14 +10,14 @@ import by.tigre.audiobook.core.data.audiobook_playback.di.AudiobookPlaybackModul
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.di.AndroidAudiobookCatalogStorageModule
 import by.tigre.audiobook.car.AudiobookCarMediaLibrary
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogDependency
-import by.tigre.background_player.R
-import by.tigre.music.player.core.presentation.backgound_player.car.CarMediaLibrary
+import by.tigre.media.platform.background.R
+import by.tigre.media.platform.background.car.CarMediaLibrary
 import by.tigre.audiobook.nighttimer.NightTimerController
 import by.tigre.audiobook.nighttimer.createNightTimerController
 import by.tigre.media.platform.playback.di.AndroidBasePlaybackModule
 import by.tigre.media.platform.playback.di.BasePlaybackModule
 import by.tigre.media.platform.preferences.di.AndroidPreferencesModule
-import by.tigre.music.player.core.presentation.backgound_player.di.PlayerBackgroundDependency
+import by.tigre.media.platform.background.di.PlayerBackgroundDependency
 import by.tigre.media.platform.player.component.BasePlaybackController
 import by.tigre.media.platform.player.component.PlayerItem
 import by.tigre.media.platform.player.di.PlayerDependency

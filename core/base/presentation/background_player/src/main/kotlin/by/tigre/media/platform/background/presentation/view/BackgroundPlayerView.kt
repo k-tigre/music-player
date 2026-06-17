@@ -1,4 +1,4 @@
-package by.tigre.music.player.core.presentation.backgound_player.presentation.view
+package by.tigre.media.platform.background.presentation.view
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -14,9 +14,9 @@ import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
-import by.tigre.music.player.core.presentation.backgound_player.car.CarMediaLibrarySessionCallback
-import by.tigre.background_player.R
-import by.tigre.music.player.core.presentation.backgound_player.presentation.component.BackgroundComponent
+import by.tigre.media.platform.background.car.CarMediaLibrarySessionCallback
+import by.tigre.media.platform.background.R
+import by.tigre.media.platform.background.presentation.component.BackgroundComponent
 import by.tigre.media.platform.player.component.PlayerItem
 import by.tigre.logger.Log
 import by.tigre.media.platform.tools.platform.utils.getNotificationManager

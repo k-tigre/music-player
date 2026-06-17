@@ -1,8 +1,8 @@
-package by.tigre.music.player.core.presentation.backgound_player.presentation.component
+package by.tigre.media.platform.background.presentation.component
 
 import by.tigre.media.platform.playback.PlaybackPlayer
-import by.tigre.music.player.core.presentation.backgound_player.car.CarMediaLibrary
-import by.tigre.music.player.core.presentation.backgound_player.di.PlayerBackgroundDependency
+import by.tigre.media.platform.background.car.CarMediaLibrary
+import by.tigre.media.platform.background.di.PlayerBackgroundDependency
 import by.tigre.media.platform.player.component.PlayerItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

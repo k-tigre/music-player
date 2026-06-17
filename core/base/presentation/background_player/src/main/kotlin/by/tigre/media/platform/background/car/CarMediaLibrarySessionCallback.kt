@@ -1,4 +1,4 @@
-package by.tigre.music.player.core.presentation.backgound_player.car
+package by.tigre.media.platform.background.car
 
 import android.os.Bundle
 import androidx.annotation.OptIn

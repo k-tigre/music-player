@@ -6,6 +6,7 @@ plugins {
 
 android {
 
+    namespace = "by.tigre.media.platform.background"
 }
 
 dependencies {

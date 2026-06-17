@@ -1,13 +1,13 @@
-package by.tigre.music.player.core.presentation.backgound_player.presentation.platform
+package by.tigre.media.platform.background.presentation.platform
 
 import android.content.Intent
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
-import by.tigre.music.player.core.presentation.backgound_player.di.PlayerBackgroundDependency
-import by.tigre.music.player.core.presentation.backgound_player.presentation.component.BackgroundComponent
-import by.tigre.music.player.core.presentation.backgound_player.presentation.view.BackgroundPlayerView
+import by.tigre.media.platform.background.di.PlayerBackgroundDependency
+import by.tigre.media.platform.background.presentation.component.BackgroundComponent
+import by.tigre.media.platform.background.presentation.view.BackgroundPlayerView
 import by.tigre.logger.Log
 import kotlinx.coroutines.cancel
 

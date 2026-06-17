@@ -1,4 +1,4 @@
-package by.tigre.music.player.core.presentation.backgound_player.car
+package by.tigre.media.platform.background.car
 
 /**
  * Catalog tree for Android Auto / Android for Cars media browser.
