@@ -1,6 +1,6 @@
-package by.tigre.music.player.core.platform.permission.di
+package by.tigre.media.platform.permission.di
 
-import by.tigre.music.player.core.platform.permission.PermissionsHelper
+import by.tigre.media.platform.permission.PermissionsHelper
 
 class DesktopPermissionsDependency : PermissionsDependency {
     override val permissionsHelper: PermissionsHelper by lazy {

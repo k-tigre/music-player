@@ -1,4 +1,4 @@
-package by.tigre.music.player.tools.platform.utils
+package by.tigre.media.platform.tools.platform.utils
 
 import android.app.NotificationManager
 import android.content.BroadcastReceiver

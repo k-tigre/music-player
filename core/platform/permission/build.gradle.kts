@@ -20,5 +20,5 @@ kotlin {
 }
 
 android {
-    namespace = "by.tigre.core.platform.permission"
+    namespace = "by.tigre.media.platform.permission"
 }

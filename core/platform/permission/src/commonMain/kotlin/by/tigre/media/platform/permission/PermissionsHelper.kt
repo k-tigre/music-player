@@ -1,4 +1,4 @@
-package by.tigre.music.player.core.platform.permission
+package by.tigre.media.platform.permission
 
 interface PermissionsHelper {
 

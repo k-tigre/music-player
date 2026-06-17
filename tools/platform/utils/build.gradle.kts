@@ -5,3 +5,7 @@ plugins {
 
 dependencies {
 }
+
+android {
+    namespace = "by.tigre.media.platform.tools.platform.utils"
+}
