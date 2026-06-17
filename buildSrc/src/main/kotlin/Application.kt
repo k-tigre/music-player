@@ -10,7 +10,7 @@ object Application {
 
     object AudioBook {
         const val id: String = "by.tigre.audiobook"
-        val version: Version = Version(0, 3, 7)
+        val version: Version = Version(0, 3, 8)
         const val name: String = "AudioBook"
     }
 
