@@ -1,4 +1,4 @@
-package by.tigre.music.player.core.data.storage.preferences
+package by.tigre.media.platform.preferences
 
 interface Preferences {
     fun saveBoolean(key: String, value: Boolean)

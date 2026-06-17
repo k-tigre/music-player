@@ -5,7 +5,7 @@ import app.cash.sqldelight.coroutines.mapToList
 import by.tigre.music.player.core.data.storage.music.DatabaseMusic
 import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
 import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage.QueueItem
-import by.tigre.music.player.core.data.storage.preferences.Preferences
+import by.tigre.media.platform.preferences.Preferences
 import by.tigre.music.player.core.entiry.catalog.Song
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
