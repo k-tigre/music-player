@@ -1,8 +1,8 @@
 package by.tigre.music.player.tools.analytics.music
 
 import by.tigre.music.player.tools.analytics.common.Tracker
-import by.tigre.music.player.tools.coroutines.CoreDispatchers
-import by.tigre.music.player.tools.coroutines.CoroutineModule
+import by.tigre.media.platform.tools.coroutines.CoreDispatchers
+import by.tigre.media.platform.tools.coroutines.CoroutineModule
 
 class MusicAnalyticsModuleImpl private constructor(
     override val eventAnalytics: MusicEventAnalytics,

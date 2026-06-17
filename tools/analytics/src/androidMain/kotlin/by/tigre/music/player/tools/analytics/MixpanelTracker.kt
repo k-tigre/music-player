@@ -5,8 +5,8 @@ import by.tigre.music.player.tools.analytics.common.AnalyticsAction
 import by.tigre.music.player.tools.analytics.common.AnalyticsScreen
 import by.tigre.music.player.tools.analytics.common.Tracker
 import by.tigre.music.player.tools.analytics.common.WithPayload
-import by.tigre.music.player.tools.coroutines.CoreScope
-import by.tigre.music.player.tools.coroutines.extensions.tickerFlow
+import by.tigre.media.platform.tools.coroutines.CoreScope
+import by.tigre.media.platform.tools.coroutines.extensions.tickerFlow
 import com.mixpanel.android.mpmetrics.MixpanelAPI
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.minutes

@@ -9,8 +9,8 @@ import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
 import by.tigre.music.player.presentation.base.BaseComponentContext
 import by.tigre.music.player.tools.analytics.common.CommonEventAnalytics
 import by.tigre.music.player.tools.analytics.common.CommonEvents
-import by.tigre.music.player.tools.coroutines.extensions.throttleFirst
-import by.tigre.music.player.tools.coroutines.extensions.withLatestFrom
+import by.tigre.media.platform.tools.coroutines.extensions.throttleFirst
+import by.tigre.media.platform.tools.coroutines.extensions.withLatestFrom
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

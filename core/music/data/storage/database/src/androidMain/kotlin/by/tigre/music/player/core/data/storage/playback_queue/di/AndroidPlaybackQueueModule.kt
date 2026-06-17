@@ -9,7 +9,7 @@ import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStora
 import by.tigre.music.player.core.data.storage.playback_queue.impl.PlaybackQueueStorageImpl
 import by.tigre.music.player.core.data.storage.playback_queue.impl.QueueStateAdapter
 import by.tigre.music.player.core.data.storage.preferences.di.PreferencesModule
-import by.tigre.music.player.tools.coroutines.CoroutineModule
+import by.tigre.media.platform.tools.coroutines.CoroutineModule
 import music.Queue
 
 class AndroidPlaybackQueueModule(

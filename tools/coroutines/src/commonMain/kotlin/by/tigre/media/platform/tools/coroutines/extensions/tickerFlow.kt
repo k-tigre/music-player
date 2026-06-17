@@ -1,4 +1,4 @@
-package by.tigre.music.player.tools.coroutines.extensions
+package by.tigre.media.platform.tools.coroutines.extensions
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow

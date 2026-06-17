@@ -11,7 +11,7 @@ import by.tigre.music.player.core.data.playback.impl.AndroidPlaybackEqualizer
 import by.tigre.music.player.core.data.playback.impl.PlaybackPlayerImpl
 import by.tigre.music.player.core.data.playback.prefs.EqualizerPreferences
 import by.tigre.music.player.core.data.storage.preferences.Preferences
-import by.tigre.music.player.tools.coroutines.CoroutineModule
+import by.tigre.media.platform.tools.coroutines.CoroutineModule
 
 class AndroidBasePlaybackModule(
     context: Context,

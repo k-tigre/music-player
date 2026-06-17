@@ -9,8 +9,8 @@ import by.tigre.audiobook.core.entity.catalog.Chapter
 import by.tigre.music.player.core.data.playback.MediaItemWrapper
 import by.tigre.music.player.core.data.playback.PlaybackPlayer
 import by.tigre.logger.Log
-import by.tigre.music.player.tools.coroutines.CoreScope
-import by.tigre.music.player.tools.coroutines.extensions.tickerFlow
+import by.tigre.media.platform.tools.coroutines.CoreScope
+import by.tigre.media.platform.tools.coroutines.extensions.tickerFlow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

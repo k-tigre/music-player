@@ -9,7 +9,7 @@ import by.tigre.audiobook.core.data.storage.audiobook_catalog.AudiobookCatalogSt
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.impl.AudiobookCatalogStorageImpl
 import by.tigre.audiobook.core.data.storage.audiobook_playback.AudiobookPlaybackStorage
 import by.tigre.audiobook.core.data.storage.audiobook_playback.impl.AudiobookPlaybackStorageImpl
-import by.tigre.music.player.tools.coroutines.CoroutineModule
+import by.tigre.media.platform.tools.coroutines.CoroutineModule
 
 class AndroidAudiobookCatalogStorageModule(
     context: Context,

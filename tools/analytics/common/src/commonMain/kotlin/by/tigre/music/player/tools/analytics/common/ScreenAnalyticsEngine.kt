@@ -1,8 +1,8 @@
 package by.tigre.music.player.tools.analytics.common
 
 import by.tigre.logger.extensions.debugLog
-import by.tigre.music.player.tools.coroutines.CoreDispatchers
-import by.tigre.music.player.tools.coroutines.CoreScope
+import by.tigre.media.platform.tools.coroutines.CoreDispatchers
+import by.tigre.media.platform.tools.coroutines.CoreScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop

@@ -5,7 +5,7 @@ import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackControll
 import by.tigre.audiobook.core.data.audiobook_playback.impl.AudiobookPlaybackControllerImpl
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.di.AudiobookCatalogStorageModule
 import by.tigre.music.player.core.data.playback.di.BasePlaybackModule
-import by.tigre.music.player.tools.coroutines.CoroutineModule
+import by.tigre.media.platform.tools.coroutines.CoroutineModule
 
 interface AudiobookPlaybackModule {
 

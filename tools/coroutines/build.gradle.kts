@@ -27,5 +27,5 @@ kotlin {
 }
 
 android {
-    namespace = "by.tigre.tools.coroutines"
+    namespace = "by.tigre.media.platform.tools.coroutines"
 }

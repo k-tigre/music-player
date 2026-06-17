@@ -14,7 +14,7 @@ import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueD
 import by.tigre.music.player.tools.analytics.LogTracker
 import by.tigre.music.player.tools.analytics.music.MusicAnalyticsModuleImpl
 import by.tigre.music.player.tools.analytics.music.MusicAnalyticsModule
-import by.tigre.music.player.tools.coroutines.CoroutineModule
+import by.tigre.media.platform.tools.coroutines.CoroutineModule
 import kotlinx.coroutines.flow.map
 import java.io.File
 

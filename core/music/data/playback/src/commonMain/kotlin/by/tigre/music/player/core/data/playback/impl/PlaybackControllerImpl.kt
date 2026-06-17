@@ -11,8 +11,8 @@ import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.entiry.playback.SongInQueueItem
 import by.tigre.logger.Log
 import by.tigre.logger.extensions.debugLog
-import by.tigre.music.player.tools.coroutines.CoreScope
-import by.tigre.music.player.tools.coroutines.extensions.withLatestFrom
+import by.tigre.media.platform.tools.coroutines.CoreScope
+import by.tigre.media.platform.tools.coroutines.extensions.withLatestFrom
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
