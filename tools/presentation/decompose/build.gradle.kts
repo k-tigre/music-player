@@ -22,5 +22,5 @@ kotlin {
 }
 
 android {
-    namespace = "by.tigre.tools.presentation.decompose"
+    namespace = "by.tigre.media.platform.presentation"
 }

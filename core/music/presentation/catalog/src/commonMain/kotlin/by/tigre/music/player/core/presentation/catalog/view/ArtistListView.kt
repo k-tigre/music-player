@@ -28,7 +28,7 @@ import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.component.ArtistListComponent
 import by.tigre.music.player.core.presentation.catalog.component.ArtistListScreenData
-import by.tigre.music.player.presentation.base.ScreenContentState
+import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.view.CardWithPopup
 import by.tigre.media.platform.tools.platform.compose.view.bottomBarListContentPadding

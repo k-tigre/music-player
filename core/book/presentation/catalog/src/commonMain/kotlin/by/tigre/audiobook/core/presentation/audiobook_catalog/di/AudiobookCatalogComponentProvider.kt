@@ -5,7 +5,7 @@ import by.tigre.audiobook.core.presentation.audiobook_catalog.component.FolderSe
 import by.tigre.audiobook.core.presentation.audiobook_catalog.component.RootAudiobookCatalogComponent
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.AudiobookCatalogNavigator
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.OnBookSelectedListener
-import by.tigre.music.player.presentation.base.BaseComponentContext
+import by.tigre.media.platform.presentation.BaseComponentContext
 
 interface AudiobookCatalogComponentProvider {
 

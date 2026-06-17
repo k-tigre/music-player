@@ -65,7 +65,7 @@ import by.tigre.audiobook.core.presentation.catalog.resources.cd_manage_folders
 import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening_books_count
 import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening_title
 import by.tigre.audiobook.core.presentation.catalog.resources.folder_group_books_count
-import by.tigre.music.player.presentation.base.ScreenContentState
+import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.view.ErrorScreen
 import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicator

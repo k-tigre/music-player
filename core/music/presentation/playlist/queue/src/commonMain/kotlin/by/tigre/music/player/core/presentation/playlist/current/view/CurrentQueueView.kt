@@ -21,7 +21,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import by.tigre.music.player.core.entiry.playback.SongInQueueItem
 import by.tigre.music.player.core.presentation.playlist.current.component.CurrentQueueComponent
-import by.tigre.music.player.presentation.base.ScreenContentState
+import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.view.CardWithPopup
 import by.tigre.media.platform.tools.platform.compose.view.bottomBarListContentPadding

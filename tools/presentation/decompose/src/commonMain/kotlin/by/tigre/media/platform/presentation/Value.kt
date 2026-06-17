@@ -1,4 +1,4 @@
-package by.tigre.music.player.presentation.base
+package by.tigre.media.platform.presentation
 
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.channels.awaitClose

@@ -6,7 +6,7 @@ import by.tigre.music.player.core.data.playback.PlaybackPlayer
 import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent.Position
 import by.tigre.music.player.core.presentation.catalog.component.BasePlayerComponent.State
 import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
-import by.tigre.music.player.presentation.base.BaseComponentContext
+import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.music.player.tools.analytics.common.CommonEventAnalytics
 import by.tigre.music.player.tools.analytics.common.CommonEvents
 import by.tigre.media.platform.tools.coroutines.extensions.throttleFirst

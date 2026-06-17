@@ -6,9 +6,9 @@ import by.tigre.audiobook.core.data.audiobook.FolderSourceAccessHealth
 import by.tigre.audiobook.core.entity.catalog.FolderSource
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogDependency
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.AudiobookCatalogNavigator
-import by.tigre.music.player.presentation.base.BaseComponentContext
-import by.tigre.music.player.presentation.base.ScreenContentState
-import by.tigre.music.player.presentation.base.ScreenContentStateDelegate
+import by.tigre.media.platform.presentation.BaseComponentContext
+import by.tigre.media.platform.presentation.ScreenContentState
+import by.tigre.media.platform.presentation.ScreenContentStateDelegate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

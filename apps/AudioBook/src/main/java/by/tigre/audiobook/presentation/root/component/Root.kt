@@ -8,10 +8,10 @@ import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.SmallPlayerComponent
 import by.tigre.music.player.core.presentation.catalog.di.PlayerComponentProvider
 import by.tigre.music.player.core.presentation.catalog.navigation.PlayerNavigator
-import by.tigre.music.player.presentation.base.BaseComponentContext
-import by.tigre.music.player.presentation.base.appChildContext
-import by.tigre.music.player.presentation.base.appChildStack
-import by.tigre.music.player.presentation.base.trackScreens
+import by.tigre.media.platform.presentation.BaseComponentContext
+import by.tigre.media.platform.presentation.appChildContext
+import by.tigre.media.platform.presentation.appChildStack
+import by.tigre.media.platform.presentation.trackScreens
 import by.tigre.music.player.tools.analytics.book.AudiobookEvents
 import by.tigre.music.player.tools.analytics.book.BookEventAnalytics
 import by.tigre.music.player.tools.analytics.book.BookScreenAnalytics

@@ -2,7 +2,7 @@ package by.tigre.music.player.core.presentation.catalog.component
 
 import by.tigre.music.player.core.presentation.catalog.di.PlayerDependency
 import by.tigre.music.player.core.presentation.catalog.navigation.PlayerNavigator
-import by.tigre.music.player.presentation.base.BaseComponentContext
+import by.tigre.media.platform.presentation.BaseComponentContext
 
 interface PlayerComponent : BasePlayerComponent {
 

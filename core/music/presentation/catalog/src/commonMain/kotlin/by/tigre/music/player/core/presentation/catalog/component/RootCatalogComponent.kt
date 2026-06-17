@@ -7,9 +7,9 @@ import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.di.CatalogComponentProvider
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigator
-import by.tigre.music.player.presentation.base.BaseComponentContext
-import by.tigre.music.player.presentation.base.appChildStack
-import by.tigre.music.player.presentation.base.trackScreens
+import by.tigre.media.platform.presentation.BaseComponentContext
+import by.tigre.media.platform.presentation.appChildStack
+import by.tigre.media.platform.presentation.trackScreens
 import by.tigre.music.player.tools.analytics.music.MusicEvents
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation

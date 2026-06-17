@@ -1,8 +1,8 @@
 package by.tigre.debug_settings
 
 import by.tigre.logger.LogsProvider
-import by.tigre.music.player.presentation.base.BaseComponentContext
-import by.tigre.music.player.presentation.base.appChildContext
+import by.tigre.media.platform.presentation.BaseComponentContext
+import by.tigre.media.platform.presentation.appChildContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 

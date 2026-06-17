@@ -1,4 +1,4 @@
-package by.tigre.music.player.presentation.base
+package by.tigre.media.platform.presentation
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.lifecycle.doOnDestroy

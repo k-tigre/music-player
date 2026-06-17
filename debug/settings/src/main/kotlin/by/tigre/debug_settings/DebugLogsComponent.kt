@@ -1,7 +1,7 @@
 package by.tigre.debug_settings
 
 import by.tigre.logger.LogsProvider
-import by.tigre.music.player.presentation.base.BaseComponentContext
+import by.tigre.media.platform.presentation.BaseComponentContext
 import bytigreloggerdb.Logs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi

@@ -4,12 +4,12 @@ import by.tigre.music.player.core.data.playback.PlaybackController
 import by.tigre.music.player.core.entiry.playback.SongInQueueItem
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueDependency
 import by.tigre.music.player.core.presentation.playlist.current.navigation.QueueNavigator
-import by.tigre.music.player.presentation.base.BaseComponentContext
+import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.music.player.tools.analytics.music.MusicEventAnalytics
 import by.tigre.music.player.tools.analytics.music.MusicEvents
-import by.tigre.music.player.presentation.base.ScreenContentState
-import by.tigre.music.player.presentation.base.ScreenContentState.Content
-import by.tigre.music.player.presentation.base.ScreenContentStateDelegate
+import by.tigre.media.platform.presentation.ScreenContentState
+import by.tigre.media.platform.presentation.ScreenContentState.Content
+import by.tigre.media.platform.presentation.ScreenContentStateDelegate
 import kotlinx.coroutines.flow.StateFlow
 
 interface CurrentQueueComponent {

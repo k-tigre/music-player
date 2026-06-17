@@ -19,7 +19,7 @@ import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueV
 import by.tigre.music.player.core.data.catalog.android.ActivityMediaDeleteHandler
 import by.tigre.music.player.core.data.catalog.android.MediaDeleteHandlerRegistry
 import by.tigre.music.player.presentation.background.BackgroundService
-import by.tigre.music.player.presentation.base.BaseComponentContextImpl
+import by.tigre.media.platform.presentation.BaseComponentContextImpl
 import by.tigre.music.player.presentation.root.component.Root
 import by.tigre.music.player.presentation.root.view.RootView
 import by.tigre.media.platform.tools.platform.compose.AppTheme
