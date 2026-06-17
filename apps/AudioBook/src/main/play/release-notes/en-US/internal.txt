@@ -1,2 +1,1 @@
-• Night timer: more reliable flip-to-extend
-• Clearer help text and illustration in night timer settings
+• Night timer: flip illustration shows screen label and rotation arrows
