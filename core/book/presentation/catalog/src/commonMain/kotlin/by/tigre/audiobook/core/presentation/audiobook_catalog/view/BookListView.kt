@@ -66,11 +66,11 @@ import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening
 import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening_title
 import by.tigre.audiobook.core.presentation.catalog.resources.folder_group_books_count
 import by.tigre.music.player.presentation.base.ScreenContentState
-import by.tigre.music.player.tools.platform.compose.ComposableView
-import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
-import by.tigre.music.player.tools.platform.compose.view.ProgressIndicator
-import by.tigre.music.player.tools.platform.compose.view.ProgressIndicatorSize
-import by.tigre.music.player.tools.platform.compose.view.bottomBarListContentPadding
+import by.tigre.media.platform.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.view.ErrorScreen
+import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicator
+import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicatorSize
+import by.tigre.media.platform.tools.platform.compose.view.bottomBarListContentPadding
 import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.stringResource
 

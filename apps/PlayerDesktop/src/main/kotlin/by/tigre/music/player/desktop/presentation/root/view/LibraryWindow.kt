@@ -37,8 +37,8 @@ import by.tigre.music.player.desktop.resources.Res
 import by.tigre.music.player.desktop.resources.desktop_tab_library
 import by.tigre.music.player.desktop.resources.desktop_tab_queue
 import by.tigre.music.player.desktop.resources.desktop_window_title_library
-import by.tigre.music.player.tools.platform.compose.resources.Res as ToolsRes
-import by.tigre.music.player.tools.platform.compose.resources.cd_add_music_folder
+import by.tigre.media.platform.tools.platform.compose.resources.Res as ToolsRes
+import by.tigre.media.platform.tools.platform.compose.resources.cd_add_music_folder
 import org.jetbrains.compose.resources.stringResource
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.subscribeAsState

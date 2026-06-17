@@ -35,7 +35,7 @@ import by.tigre.music.player.core.presentation.catalog.component.BasePlayerCompo
 import by.tigre.music.player.core.presentation.catalog.component.PlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.PlayerItem
 import by.tigre.music.player.core.presentation.catalog.component.SmallPlayerComponent
-import by.tigre.music.player.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.ComposableView
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

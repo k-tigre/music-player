@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import by.tigre.music.player.core.presentation.catalog.component.RootCatalogComponent
 import by.tigre.music.player.core.presentation.catalog.component.RootCatalogComponent.CatalogChild
 import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
-import by.tigre.music.player.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.ComposableView
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade

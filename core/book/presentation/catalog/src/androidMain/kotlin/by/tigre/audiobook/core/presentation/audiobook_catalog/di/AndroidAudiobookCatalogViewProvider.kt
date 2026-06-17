@@ -6,7 +6,7 @@ import by.tigre.audiobook.core.presentation.audiobook_catalog.component.RootAudi
 import by.tigre.audiobook.core.presentation.audiobook_catalog.view.BookListView
 import by.tigre.audiobook.core.presentation.audiobook_catalog.view.FolderSelectionView
 import by.tigre.audiobook.core.presentation.audiobook_catalog.view.RootAudiobookCatalogView
-import by.tigre.music.player.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.ComposableView
 
 class AndroidAudiobookCatalogViewProvider : AudiobookCatalogViewProvider {
     override fun createRootView(component: RootAudiobookCatalogComponent): ComposableView =

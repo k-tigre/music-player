@@ -54,10 +54,10 @@ import by.tigre.audiobook.core.data.audiobook.FolderSourceAccessHealth
 import by.tigre.audiobook.core.entity.catalog.FolderSource
 import by.tigre.audiobook.core.presentation.audiobook_catalog.component.FolderSelectionComponent
 import by.tigre.music.player.presentation.base.ScreenContentState
-import by.tigre.music.player.tools.platform.compose.ComposableView
-import by.tigre.music.player.tools.platform.compose.view.ErrorScreen
-import by.tigre.music.player.tools.platform.compose.view.ProgressIndicator
-import by.tigre.music.player.tools.platform.compose.view.ProgressIndicatorSize
+import by.tigre.media.platform.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.view.ErrorScreen
+import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicator
+import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicatorSize
 import `by`.tigre.audiobook.core.presentation.catalog.resources.Res
 import `by`.tigre.audiobook.core.presentation.catalog.resources.*
 import kotlinx.coroutines.launch

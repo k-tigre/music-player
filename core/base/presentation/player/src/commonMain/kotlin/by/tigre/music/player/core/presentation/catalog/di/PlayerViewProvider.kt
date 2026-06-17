@@ -7,7 +7,7 @@ import by.tigre.music.player.core.presentation.catalog.component.SmallPlayerComp
 import by.tigre.music.player.core.presentation.catalog.view.EqualizerView
 import by.tigre.music.player.core.presentation.catalog.view.PlayerView
 import by.tigre.music.player.core.presentation.catalog.view.SmallPlayerView
-import by.tigre.music.player.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.ComposableView
 
 interface PlayerViewProvider {
     fun createSmallPlayerView(

@@ -1,4 +1,4 @@
-package by.tigre.music.player.tools.platform.compose
+package by.tigre.media.platform.tools.platform.compose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier

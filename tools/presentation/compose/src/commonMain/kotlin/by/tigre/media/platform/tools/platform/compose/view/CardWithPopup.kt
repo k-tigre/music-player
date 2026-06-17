@@ -1,4 +1,4 @@
-package by.tigre.music.player.tools.platform.compose.view
+package by.tigre.media.platform.tools.platform.compose.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -30,8 +30,8 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import `by`.tigre.music.player.tools.platform.compose.resources.Res
-import `by`.tigre.music.player.tools.platform.compose.resources.*
+import `by`.tigre.media.platform.tools.platform.compose.resources.Res
+import `by`.tigre.media.platform.tools.platform.compose.resources.*
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

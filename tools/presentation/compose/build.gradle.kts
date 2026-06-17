@@ -8,7 +8,7 @@ plugins {
 compose {
     resources {
         publicResClass = true
-        packageOfResClass = "by.tigre.music.player.tools.platform.compose.resources"
+        packageOfResClass = "by.tigre.media.platform.tools.platform.compose.resources"
     }
 }
 
@@ -35,6 +35,6 @@ kotlin {
 }
 
 android {
-    namespace = "by.tigre.compose"
+    namespace = "by.tigre.media.platform.tools.compose"
     buildFeatures.compose = true
 }

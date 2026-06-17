@@ -1,4 +1,4 @@
-package by.tigre.music.player.tools.platform.compose.view
+package by.tigre.media.platform.tools.platform.compose.view
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween

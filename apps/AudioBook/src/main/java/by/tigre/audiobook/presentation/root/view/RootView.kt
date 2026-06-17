@@ -42,9 +42,9 @@ import by.tigre.audiobook.nighttimer.NightTimerSettingsScreen
 import by.tigre.audiobook.presentation.root.component.Root
 import by.tigre.music.player.core.presentation.catalog.di.PlayerViewProvider
 import by.tigre.music.player.core.presentation.catalog.view.PlayerView
-import by.tigre.music.player.tools.platform.compose.ComposableView
-import by.tigre.music.player.tools.platform.compose.view.BottomBarContainer
-import by.tigre.music.player.tools.platform.compose.view.LocalBottomBarHeight
+import by.tigre.media.platform.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.view.BottomBarContainer
+import by.tigre.media.platform.tools.platform.compose.view.LocalBottomBarHeight
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation

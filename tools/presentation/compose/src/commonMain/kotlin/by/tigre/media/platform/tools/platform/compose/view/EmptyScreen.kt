@@ -1,4 +1,4 @@
-package by.tigre.music.player.tools.platform.compose.view
+package by.tigre.media.platform.tools.platform.compose.view
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,8 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import `by`.tigre.music.player.tools.platform.compose.resources.Res
-import `by`.tigre.music.player.tools.platform.compose.resources.*
+import `by`.tigre.media.platform.tools.platform.compose.resources.Res
+import `by`.tigre.media.platform.tools.platform.compose.resources.*
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

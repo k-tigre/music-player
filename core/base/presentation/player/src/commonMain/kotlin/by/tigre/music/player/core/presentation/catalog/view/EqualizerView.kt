@@ -50,14 +50,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 import by.tigre.music.player.core.presentation.catalog.component.EqualizerComponent
-import by.tigre.music.player.tools.platform.compose.ComposableView
-import by.tigre.music.player.tools.platform.compose.resources.Res
-import by.tigre.music.player.tools.platform.compose.resources.equalizer_app_volume
-import by.tigre.music.player.tools.platform.compose.resources.equalizer_app_volume_cd
-import by.tigre.music.player.tools.platform.compose.resources.equalizer_custom
-import by.tigre.music.player.tools.platform.compose.resources.equalizer_preset_picker
-import by.tigre.music.player.tools.platform.compose.resources.equalizer_title
-import by.tigre.music.player.tools.platform.compose.resources.equalizer_unavailable
+import by.tigre.media.platform.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.resources.Res
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_app_volume
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_app_volume_cd
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_custom
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_preset_picker
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_title
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_unavailable
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
