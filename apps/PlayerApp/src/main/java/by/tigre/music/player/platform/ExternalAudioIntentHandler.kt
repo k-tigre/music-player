@@ -16,6 +16,7 @@ class ExternalAudioIntentHandler(
     private val context: Context,
     private val scope: CoroutineScope,
     private val graph: ApplicationGraph,
+    private val onExternalAudioOpened: () -> Unit = {},
 ) {
 
     fun handle(intent: Intent?) {
@@ -51,6 +52,7 @@ class ExternalAudioIntentHandler(
                 )
             )
             playbackController.playSong(catalogSongId)
+            onExternalAudioOpened()
             return
         }
 
@@ -74,6 +76,7 @@ class ExternalAudioIntentHandler(
                 sourceLabel = sourceLabel,
             )
         )
+        onExternalAudioOpened()
     }
 
     private fun takePersistablePermission(intent: Intent, uri: Uri) {

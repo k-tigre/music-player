@@ -1,12 +1,7 @@
 package by.tigre.music.player.presentation.root.view
 
 import android.Manifest
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.os.Build
-import android.provider.Settings
-import androidx.core.net.toUri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,6 +35,7 @@ import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.media.platform.player.view.PlayerView
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
+import by.tigre.music.player.platform.DefaultMusicPlayerRole
 import by.tigre.music.player.presentation.root.component.Root
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.view.BottomBarContainer
@@ -186,20 +182,43 @@ class RootView(
     private fun DrawDefaultPlayerPrompt() {
         val showPrompt by component.showDefaultPlayerPrompt.collectAsState()
         val context = LocalContext.current
+        val canRequestRole = remember(context) { DefaultMusicPlayerRole.canRequestRole(context) }
 
         if (showPrompt) {
             AlertDialog(
                 onDismissRequest = component::dismissDefaultPlayerPrompt,
                 title = { Text(stringResource(R.string.default_player_title)) },
-                text = { Text(stringResource(R.string.default_player_message)) },
+                text = {
+                    Text(
+                        stringResource(
+                            if (canRequestRole) {
+                                R.string.default_player_message_role
+                            } else {
+                                R.string.default_player_message_manual
+                            },
+                        ),
+                    )
+                },
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            context.startActivity(createDefaultPlayerSettingsIntent(context))
                             component.confirmDefaultPlayerPrompt()
+                            val intent = when {
+                                canRequestRole -> DefaultMusicPlayerRole.createRequestIntent(context)
+                                else -> DefaultMusicPlayerRole.createOpenDownloadsIntent(context)
+                            } ?: DefaultMusicPlayerRole.createAppDetailsIntent(context)
+                            context.startActivity(intent)
                         },
                     ) {
-                        Text(stringResource(R.string.default_player_action))
+                        Text(
+                            stringResource(
+                                if (canRequestRole) {
+                                    R.string.default_player_action_role
+                                } else {
+                                    R.string.default_player_action_manual
+                                },
+                            ),
+                        )
                     }
                 },
                 dismissButton = {
@@ -210,17 +229,6 @@ class RootView(
             )
         }
     }
-
-    private fun createDefaultPlayerSettingsIntent(context: Context): Intent =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            Intent(Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS).apply {
-                data = "package:${context.packageName}".toUri()
-            }
-        } else {
-            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.fromParts("package", context.packageName, null)
-            }
-        }
 
     @OptIn(ExperimentalPermissionsApi::class)
     @Composable

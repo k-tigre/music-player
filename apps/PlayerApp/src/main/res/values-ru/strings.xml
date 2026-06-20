@@ -23,6 +23,8 @@
     <string name="external_audio_source_downloads">Загрузки</string>
 
     <string name="default_player_title">Плеер по умолчанию</string>
-    <string name="default_player_message">Открывайте аудиофайлы сразу в Music Player</string>
-    <string name="default_player_action">Сделать по умолчанию</string>
+    <string name="default_player_message_role">Выберите Music Player плеером по умолчанию, чтобы открывать аудиофайлы из «Загрузок», Telegram и других приложений.</string>
+    <string name="default_player_message_manual">Откройте любой аудиофайл в «Загрузках» или Telegram. В окне «Открыть с помощью» выберите Music Player и нажмите «Всегда».</string>
+    <string name="default_player_action_role">Выбрать плеер</string>
+    <string name="default_player_action_manual">Открыть «Загрузки»</string>
 </resources>

@@ -23,6 +23,8 @@
     <string name="external_audio_source_downloads">Downloads</string>
 
     <string name="default_player_title">Default music player</string>
-    <string name="default_player_message">Open audio files with Music Player automatically</string>
-    <string name="default_player_action">Set as default</string>
+    <string name="default_player_message_role">Choose Music Player as your default music app to open audio files from Downloads, Telegram, and other apps.</string>
+    <string name="default_player_message_manual">Open any audio file in Downloads or Telegram. In the \"Open with\" dialog, choose Music Player and tap Always.</string>
+    <string name="default_player_action_role">Choose player</string>
+    <string name="default_player_action_manual">Open Downloads</string>
 </resources>

@@ -45,7 +45,7 @@ class ApplicationGraph(
     override val appPlaybackVolume = playbackModule.appPlaybackVolume
 
     override val playerSettings: PlayerSettings by lazy {
-        PlayerSettingsImpl(preferences)
+        PlayerSettingsImpl(appContext, preferences)
     }
 
     override val carMediaLibrary: CarMediaLibrary by lazy {

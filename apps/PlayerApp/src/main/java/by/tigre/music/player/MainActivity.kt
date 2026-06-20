@@ -54,6 +54,7 @@ class MainActivity : AppCompatActivity() {
             context = this,
             scope = componentContext,
             graph = graph,
+            onExternalAudioOpened = root::dismissDefaultPlayerPrompt,
         )
 
         setContent {
