@@ -1,22 +1,22 @@
 package by.tigre.music.player.core.data.playback.impl
 
-import by.tigre.music.player.core.data.catalog.CatalogSource
+import by.tigre.logger.Log
+import by.tigre.logger.extensions.debugLog
 import by.tigre.media.platform.playback.MediaItemWrapper
+import by.tigre.media.platform.playback.PlaybackPlayer
+import by.tigre.media.platform.tools.coroutines.CoreScope
+import by.tigre.media.platform.tools.coroutines.extensions.withLatestFrom
+import by.tigre.music.player.core.data.catalog.CatalogSource
 import by.tigre.music.player.core.data.playback.ActivePlaybackSource
 import by.tigre.music.player.core.data.playback.PlaybackController
-import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.Song
-import by.tigre.music.player.core.entiry.playback.PlaybackInterruption
 import by.tigre.music.player.core.entiry.playback.PlayableItem
+import by.tigre.music.player.core.entiry.playback.PlaybackInterruption
 import by.tigre.music.player.core.entiry.playback.ResumePoint
 import by.tigre.music.player.core.entiry.playback.SongInQueueItem
-import by.tigre.logger.Log
-import by.tigre.logger.extensions.debugLog
-import by.tigre.media.platform.tools.coroutines.CoreScope
-import by.tigre.media.platform.tools.coroutines.extensions.withLatestFrom
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -41,7 +41,8 @@ internal class PlaybackControllerImpl(
     private val scope: CoreScope
 ) : PlaybackController {
 
-    private val playingState = MutableStateFlow(false)
+    /** Whether the app requested playback; the engine may pause independently (e.g. audio focus). */
+    private val shouldPlay = MutableStateFlow(false)
     private val action = MutableSharedFlow<Action>(extraBufferCapacity = 1)
     private val activeSource = MutableStateFlow<ActivePlaybackSource>(ActivePlaybackSource.Session)
     private val interruptionState = MutableStateFlow<PlaybackInterruption?>(null)
@@ -51,7 +52,10 @@ internal class PlaybackControllerImpl(
     override val activePlaybackSource: StateFlow<ActivePlaybackSource> = activeSource.asStateFlow()
     override val interruption: StateFlow<PlaybackInterruption?> = interruptionState.asStateFlow()
     override val nowPlayingOverlay: StateFlow<PlayableItem.ExternalAudio?> = overlayItem.asStateFlow()
-    override val isPlaying: StateFlow<Boolean> = playingState.asStateFlow()
+    override val isPlaying: StateFlow<Boolean> = player.state
+        .map { it == PlaybackPlayer.State.Playing }
+        .distinctUntilChanged()
+        .stateIn(scope, SharingStarted.WhileSubscribed(), initialValue = false)
 
     private val currentQueueItem: StateFlow<SongInQueueItem?> = storage.currentQueue
         .map { queue ->
@@ -158,18 +162,18 @@ internal class PlaybackControllerImpl(
             player.state
                 .debounce(10000)
                 .filter { it != PlaybackPlayer.State.Playing }
-                .withLatestFrom(playingState) { _, playing -> playing }
+                .withLatestFrom(shouldPlay) { _, requested -> requested }
                 .filter { it }
                 .debugLog("PlaybackController", "AAAA!!!! Wrong player state")
-                .collect { playingState.emit(false) }
+                .collect { shouldPlay.emit(false) }
         }
 
         scope.launch {
             var wasPlayerPlaying = player.state.value == PlaybackPlayer.State.Playing
             player.state.collect { state ->
                 val isPlayerPlaying = state == PlaybackPlayer.State.Playing
-                if (wasPlayerPlaying && !isPlayerPlaying && playingState.value) {
-                    playingState.emit(false)
+                if (wasPlayerPlaying && !isPlayerPlaying && shouldPlay.value) {
+                    shouldPlay.emit(false)
                 }
                 wasPlayerPlaying = isPlayerPlaying
             }
@@ -183,9 +187,7 @@ internal class PlaybackControllerImpl(
                     val seek = pendingSessionSeekMs ?: 0L
                     pendingSessionSeekMs = null
                     player.setMediaItem(songToMediaItem(item.song), seek)
-                    if (playingState.value) {
-                        player.resume()
-                    }
+                    applyPlayback()
                 } else if (activeSource.value is ActivePlaybackSource.Session) {
                     player.stop()
                 }
@@ -198,41 +200,16 @@ internal class PlaybackControllerImpl(
             }.collect { item ->
                 if (item != null) {
                     player.setMediaItem(externalToMediaItem(item), 0)
-                    if (playingState.value) {
-                        player.resume()
-                    }
+                    applyPlayback()
                 }
             }
         }
 
         scope.launch {
-            playingState
-                .withLatestFrom(activeSource, player.state)
-                .debugLog("PlaybackController", "isPlaying")
-                .collect { (playing, source, state) ->
-                    if (source == null || state == null) return@collect
-                    when (source) {
-                        is ActivePlaybackSource.Overlay -> when {
-                            !playing -> player.pause()
-                            playing && state != PlaybackPlayer.State.Idle -> player.resume()
-                            playing && state == PlaybackPlayer.State.Idle -> {
-                                player.setMediaItem(externalToMediaItem(source.item), 0)
-                                player.resume()
-                            }
-                        }
-
-                        is ActivePlaybackSource.Session -> when {
-                            !playing -> player.pause()
-                            playing && currentItem.value != null && state != PlaybackPlayer.State.Idle -> player.resume()
-                            playing && currentItem.value != null && state == PlaybackPlayer.State.Idle -> {
-                                currentItem.value?.let { song ->
-                                    player.setMediaItem(songToMediaItem(song), 0)
-                                    player.resume()
-                                }
-                            }
-                        }
-                    }
-                }
+            shouldPlay
+                .withLatestFrom(activeSource)
+                .debugLog("PlaybackController", "applyPlayback")
+                .collect { applyPlayback() }
         }
     }
 
@@ -252,9 +229,9 @@ internal class PlaybackControllerImpl(
             if (snapshot != null) {
                 pendingSessionSeekMs = snapshot.resumePoint.positionMs
                 storage.playSongInQueue(snapshot.resumePoint.queueEntryId)
-                playingState.emit(snapshot.wasPlaying)
+                setShouldPlay(snapshot.wasPlaying)
             } else {
-                playingState.emit(false)
+                setShouldPlay(false)
             }
         }
     }
@@ -282,19 +259,13 @@ internal class PlaybackControllerImpl(
     }
 
     override fun pause() {
-        Log.d("PlaybackController") { "pause -- ${playingState.value}" }
-        scope.launch {
-            playingState.emit(false)
-            player.pause()
-        }
+        Log.d("PlaybackController") { "pause -- ${shouldPlay.value}" }
+        scope.launch { setShouldPlay(false) }
     }
 
     override fun resume() {
-        Log.d("PlaybackController") { "resume -- ${playingState.value}" }
-        scope.launch {
-            playingState.emit(true)
-            player.resume()
-        }
+        Log.d("PlaybackController") { "resume -- ${shouldPlay.value}" }
+        scope.launch { setShouldPlay(true) }
     }
 
     override fun playSong(id: Song.Id) {
@@ -310,7 +281,7 @@ internal class PlaybackControllerImpl(
             scope.launch {
                 clearOverlayState()
                 storage.playSongInQueue(id)
-                playingState.emit(true)
+                setShouldPlay(true)
             }
         } else {
             action.tryEmit(Action.PlaySongInQueue(id))
@@ -353,7 +324,10 @@ internal class PlaybackControllerImpl(
 
     override fun stop() {
         Log.d("PlaybackController") { "stop" }
-        scope.launch { player.stop() }
+        scope.launch {
+            setShouldPlay(false)
+            player.stop()
+        }
     }
 
     private suspend fun enterOverlay(item: PlayableItem.ExternalAudio) {
@@ -365,14 +339,14 @@ internal class PlaybackControllerImpl(
         }
         overlayItem.value = item
         activeSource.value = ActivePlaybackSource.Overlay(item)
-        playingState.emit(true)
+        setShouldPlay(true)
     }
 
     private suspend fun captureInterruption(queue: List<PlaybackQueueStorage.QueueItem>) {
         val playingItem = queue.firstOrNull { it.state == PlaybackQueueStorage.QueueItem.State.Playing }
         val targetItem = playingItem ?: queue.first()
         val positionMs = player.progress.first().position
-        val wasPlaying = playingState.value && playingItem != null
+        val wasPlaying = player.state.value == PlaybackPlayer.State.Playing && playingItem != null
 
         interruptionState.value = PlaybackInterruption(
             resumePoint = ResumePoint(
@@ -381,6 +355,42 @@ internal class PlaybackControllerImpl(
             ),
             wasPlaying = wasPlaying,
         )
+    }
+
+    private suspend fun setShouldPlay(value: Boolean) {
+        shouldPlay.emit(value)
+        applyPlayback()
+    }
+
+    private suspend fun applyPlayback() {
+        if (!shouldPlay.value) {
+            player.pause()
+            return
+        }
+        when (val source = activeSource.value) {
+            is ActivePlaybackSource.Overlay -> {
+                when (player.state.value) {
+                    PlaybackPlayer.State.Idle -> {
+                        player.setMediaItem(externalToMediaItem(source.item), 0)
+                        player.resume()
+                    }
+                    else -> player.resume()
+                }
+            }
+            is ActivePlaybackSource.Session -> {
+                val song = currentItem.value ?: run {
+                    player.pause()
+                    return
+                }
+                when (player.state.value) {
+                    PlaybackPlayer.State.Idle -> {
+                        player.setMediaItem(songToMediaItem(song), 0)
+                        player.resume()
+                    }
+                    else -> player.resume()
+                }
+            }
+        }
     }
 
     private fun clearOverlayState() {

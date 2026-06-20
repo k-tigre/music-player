@@ -20,6 +20,7 @@ interface PlaybackController {
     val currentItem: StateFlow<Song?>
     val currentQueue: Flow<List<SongInQueueItem>>
     val orderMode: Flow<Boolean>
+    /** Whether the playback engine is actively playing (not paused or idle). */
     val isPlaying: StateFlow<Boolean>
     val activePlaybackSource: StateFlow<ActivePlaybackSource>
     val interruption: StateFlow<PlaybackInterruption?>
