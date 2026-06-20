@@ -185,7 +185,7 @@ internal class PlaybackControllerImpl(
             var wasPlayerPlaying = player.state.value == PlaybackPlayer.State.Playing
             player.state.collect { state ->
                 val isPlayerPlaying = state == PlaybackPlayer.State.Playing
-                if (wasPlayerPlaying && !isPlayerPlaying && shouldPlay.value) {
+                if (wasPlayerPlaying && !isPlayerPlaying && shouldPlay.value && state != PlaybackPlayer.State.Ended) {
                     shouldPlay.emit(false)
                 }
                 wasPlayerPlaying = isPlayerPlaying
@@ -428,7 +428,14 @@ internal class PlaybackControllerImpl(
 
             PlaybackQueueStorage.RepeatMode.All -> action.emit(Action.PlayNext)
 
-            PlaybackQueueStorage.RepeatMode.Off -> setShouldPlay(false)
+            PlaybackQueueStorage.RepeatMode.Off -> {
+                val hasNext = storage.currentQueue.first().any { it.state == PlaybackQueueStorage.QueueItem.State.Pending }
+                if (hasNext) {
+                    action.emit(Action.PlayNext)
+                } else {
+                    setShouldPlay(false)
+                }
+            }
         }
     }
 
