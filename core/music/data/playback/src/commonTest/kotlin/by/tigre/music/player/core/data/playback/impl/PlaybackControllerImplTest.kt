@@ -45,6 +45,48 @@ class PlaybackControllerImplTest {
         assertEquals(1, storage.playNextCalls)
     }
 
+    @Test
+    fun resumeWhenLastTrackStillPlayingRestartsQueueViaPlayNext() = runBlocking {
+        val storage = FakePlaybackQueueStorage(
+            queue = listOf(
+                queueItem(id = 1, songId = 1, state = PlaybackQueueStorage.QueueItem.State.Finish),
+                queueItem(id = 2, songId = 2, state = PlaybackQueueStorage.QueueItem.State.Playing),
+            )
+        )
+        val controller = PlaybackControllerImpl(
+            storage = storage,
+            catalog = FakeCatalogSource(),
+            player = FakePlaybackPlayer(state = PlaybackPlayer.State.Ended),
+            scope = TestCoreScope(),
+        )
+
+        controller.resume()
+        waitForCondition { storage.playNextCalls == 1 }
+
+        assertEquals(1, storage.playNextCalls)
+    }
+
+    @Test
+    fun resumeWhenPausedOnLastTrackDoesNotRestartQueue() = runBlocking {
+        val storage = FakePlaybackQueueStorage(
+            queue = listOf(
+                queueItem(id = 1, songId = 1, state = PlaybackQueueStorage.QueueItem.State.Finish),
+                queueItem(id = 2, songId = 2, state = PlaybackQueueStorage.QueueItem.State.Playing),
+            )
+        )
+        val controller = PlaybackControllerImpl(
+            storage = storage,
+            catalog = FakeCatalogSource(),
+            player = FakePlaybackPlayer(state = PlaybackPlayer.State.Paused),
+            scope = TestCoreScope(),
+        )
+
+        controller.resume()
+        delay(50)
+
+        assertEquals(0, storage.playNextCalls)
+    }
+
     private suspend fun waitForCondition(timeoutMs: Long = 500, condition: () -> Boolean) {
         val deadline = System.currentTimeMillis() + timeoutMs
         while (!condition() && System.currentTimeMillis() < deadline) {

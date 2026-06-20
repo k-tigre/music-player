@@ -290,11 +290,10 @@ internal class PlaybackControllerImpl(
     override fun resume() {
         Log.d("PlaybackController") { "resume -- ${shouldPlay.value}" }
         scope.launch {
-            if (activeSource.value is ActivePlaybackSource.Session &&
-                currentItem.value == null &&
-                storage.currentQueue.first().isNotEmpty()
-            ) {
-                storage.playNext()
+            if (activeSource.value is ActivePlaybackSource.Session && isQueueExhausted()) {
+                if (player.state.value == PlaybackPlayer.State.Ended) {
+                    storage.playNext()
+                }
             }
             setShouldPlay(true)
         }
@@ -421,10 +420,20 @@ internal class PlaybackControllerImpl(
                         player.setMediaItem(songToMediaItem(song), seek)
                         player.resume()
                     }
+                    PlaybackPlayer.State.Ended -> {
+                        player.seekTo(0)
+                        player.resume()
+                    }
                     else -> player.resume()
                 }
             }
         }
+    }
+
+    private suspend fun isQueueExhausted(): Boolean {
+        val queue = storage.currentQueue.first()
+        return queue.isNotEmpty() &&
+            queue.none { it.state == PlaybackQueueStorage.QueueItem.State.Pending }
     }
 
     private suspend fun handleSessionEnded() {
