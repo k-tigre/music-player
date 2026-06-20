@@ -22,6 +22,9 @@ kotlin {
             implementation(project(Project.Core.Music.Data.Catalog.name))
             api(project(Project.Core.Base.Data.Playback.name))
         }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
     }
 }
 

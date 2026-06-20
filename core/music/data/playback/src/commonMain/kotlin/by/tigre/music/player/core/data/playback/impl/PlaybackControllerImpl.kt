@@ -289,7 +289,15 @@ internal class PlaybackControllerImpl(
 
     override fun resume() {
         Log.d("PlaybackController") { "resume -- ${shouldPlay.value}" }
-        scope.launch { setShouldPlay(true) }
+        scope.launch {
+            if (activeSource.value is ActivePlaybackSource.Session &&
+                currentItem.value == null &&
+                storage.currentQueue.first().isNotEmpty()
+            ) {
+                storage.playNext()
+            }
+            setShouldPlay(true)
+        }
     }
 
     override fun playSong(id: Song.Id) {

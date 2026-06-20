@@ -51,6 +51,10 @@ class PlaybackQueueStorageImpl(
             database.queueQueries.transaction {
                 database.queueQueries.shuffleOrder()
             }
+        } else if (!enabled && shuffleEnabled.value) {
+            database.queueQueries.transaction {
+                normalizeStatusesForNaturalOrder()
+            }
         }
         shuffleEnabled.emit(enabled)
         preferences.saveBoolean(SHUFFLE_KEY, enabled)
@@ -139,6 +143,28 @@ class PlaybackQueueStorageImpl(
                 mapper = queueMapper
             )
         }.executeAsList()
+    }
+
+    private suspend fun normalizeStatusesForNaturalOrder() {
+        val queueById = database.queueQueries.selectAllById(
+            limit = 10000,
+            mapper = queueMapper
+        ).executeAsList()
+        val currentId = queueById.firstOrNull { it.state == QueueItem.State.Playing }?.id ?: return
+        var reachedCurrent = false
+        queueById.forEach { item ->
+            val newStatus = when {
+                item.id == currentId -> {
+                    reachedCurrent = true
+                    QueueItem.State.Playing
+                }
+                reachedCurrent -> QueueItem.State.Pending
+                else -> QueueItem.State.Finish
+            }
+            if (item.state != newStatus) {
+                database.queueQueries.updateStatus(status = newStatus, id = item.id)
+            }
+        }
     }
 
     private suspend fun resetAndPlayFirst() {

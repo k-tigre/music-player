@@ -20,10 +20,18 @@ kotlin {
             implementation(project(Project.Tools.Entity.name))
             implementation(project(Project.Tools.Coroutines.name))
         }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
         androidMain.dependencies {
             implementation(Library.SQLDelightAndroid.notation)
         }
         val desktopMain by getting {
+            dependencies {
+                implementation(Library.SQLDelightJvm.notation)
+            }
+        }
+        val desktopTest by getting {
             dependencies {
                 implementation(Library.SQLDelightJvm.notation)
             }
