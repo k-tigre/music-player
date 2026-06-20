@@ -17,4 +17,12 @@
 
     <string name="player_equalizer_menu">Equalizer</string>
     <string name="player_queue_menu">Queue</string>
+    <string name="cd_return_to_queue">Return to queue</string>
+
+    <string name="external_audio_access_denied">No access to this file</string>
+    <string name="external_audio_source_downloads">Downloads</string>
+
+    <string name="default_player_title">Default music player</string>
+    <string name="default_player_message">Open audio files with Music Player automatically</string>
+    <string name="default_player_action">Set as default</string>
 </resources>

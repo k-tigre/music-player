@@ -38,6 +38,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -159,7 +160,8 @@ class PlayerView(
                 .padding(horizontal = 16.dp),
         ) {
             AsyncImage(
-                model = item.coverUri, contentDescription = "",
+                model = if (item.isExternal) null else item.coverUri,
+                contentDescription = "",
                 modifier = Modifier
                     .padding(top = 48.dp)
                     .fillMaxWidth()
@@ -186,11 +188,17 @@ class PlayerView(
                     text = item.subtitle,
                     style = MaterialTheme.typography.titleLarge
                 )
+
+                if (item.canReturnToQueue && config.returnToQueueLabel != null) {
+                    TextButton(onClick = component::returnToQueue) {
+                        Text(text = config.returnToQueueLabel)
+                    }
+                }
             }
 
             DrawProgress(Modifier.padding(top = 16.dp))
             Spacer(modifier = Modifier.weight(0.5f))
-            DrawActions(Modifier)
+            DrawActions(Modifier, item)
             Spacer(modifier = Modifier.weight(1f))
         }
     }
@@ -225,11 +233,13 @@ class PlayerView(
     }
 
     @Composable
-    private fun DrawActions(modifier: Modifier) {
+    private fun DrawActions(modifier: Modifier, item: PlayerItem) {
         if (config.actionsMode == ActionsMode.SeekButtons) {
             DrawSeekActions(modifier)
             return
         }
+
+        val showOrderMode = config.showOrderModeButton && !item.isExternal
 
         Row(
             modifier.fillMaxWidth(),
@@ -287,7 +297,7 @@ class PlayerView(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            if (config.showOrderModeButton) {
+            if (showOrderMode) {
                 val isNormal = component.isNormal.collectAsState().value
 
                 IconButton(
@@ -443,6 +453,7 @@ class PlayerView(
         val seek1MinuteDurationCaption: String = "1m",
         val equalizerMenuLabel: String = "Equalizer",
         val queueMenuLabel: String = "Queue",
+        val returnToQueueLabel: String? = null,
     )
 
     enum class ActionsMode {

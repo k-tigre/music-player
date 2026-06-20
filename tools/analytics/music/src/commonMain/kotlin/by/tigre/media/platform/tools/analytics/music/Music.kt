@@ -46,6 +46,41 @@ object MusicEvents {
         @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
         @AnalyticsDoc("Open album from queue item")
         data object QueueOpenAlbum : Action("music_queue_open_album")
+
+        @AnalyticsScope(AnalyticsApp.PLAYER)
+        @AnalyticsDoc("External audio file opened from another app")
+        data class ExternalAudioOpened(
+            private val source: String,
+            private val resolvedToCatalog: Boolean,
+        ) : Action("music_external_audio_opened"), WithPayload {
+            override val payload: Map<String, String> = mapOf(
+                "source" to source,
+                "resolved_to_catalog" to resolvedToCatalog.toString(),
+            )
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER)
+        @AnalyticsDoc("External audio overlay ended")
+        data class ExternalAudioOverlayEnded(
+            private val reason: OverlayEndReason,
+        ) : Action("music_external_audio_overlay_ended"), WithPayload {
+            override val payload: Map<String, String> = mapOf("reason" to reason.analyticsValue)
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER)
+        @AnalyticsDoc("Default player onboarding prompt shown")
+        data object DefaultPlayerPromptShown : Action("music_default_player_prompt_shown")
+
+        @AnalyticsScope(AnalyticsApp.PLAYER)
+        @AnalyticsDoc("Default player onboarding prompt action clicked")
+        data object DefaultPlayerPromptClicked : Action("music_default_player_prompt_clicked")
+    }
+
+    enum class OverlayEndReason(val analyticsValue: String) {
+        ReturnButton("return_button"),
+        Next("next"),
+        Ended("ended"),
+        PlayCatalog("play_catalog"),
     }
 
     sealed class Screen(

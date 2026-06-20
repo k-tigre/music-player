@@ -5,5 +5,7 @@ data class PlayerItem(
     val subtitle: String,
     val artist: String? = null,
     val album: String? = null,
-    val coverUri: Any? = null
+    val coverUri: Any? = null,
+    val isExternal: Boolean = false,
+    val canReturnToQueue: Boolean = false,
 )

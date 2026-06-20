@@ -16,6 +16,7 @@ interface BasePlaybackController {
     fun resume()
     fun stop()
     fun setOrderMode(isNormal: Boolean)
+    fun resumeInterruptedSession() = Unit
 
     /** Called when the user releases the seek slider; [positionMs] is the intended time in the current item. */
     fun onSeekPositionCommitted(positionMs: Long) = Unit

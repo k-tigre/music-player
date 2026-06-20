@@ -1,21 +1,28 @@
 package by.tigre.music.player.presentation.root.view
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
+import androidx.core.net.toUri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
-import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -52,7 +60,7 @@ class RootView(
     private val component: Root,
     private val catalogViewProvider: CatalogViewProvider,
     private val playerViewProvider: PlayerViewProvider,
-    private val currentQueueViewProvider: CurrentQueueViewProvider
+    private val currentQueueViewProvider: CurrentQueueViewProvider,
 ) : ComposableView {
 
     @OptIn(ExperimentalPermissionsApi::class)
@@ -68,6 +76,7 @@ class RootView(
 
         if (permissionState.status.isGranted) {
             DrawMain()
+            DrawDefaultPlayerPrompt()
         } else {
             DrawPermissionsRequest(permissionState)
         }
@@ -91,6 +100,7 @@ class RootView(
                         coverFallbackIcon = R.drawable.ic_launcher_foreground,
                         equalizerMenuLabel = stringResource(R.string.player_equalizer_menu),
                         queueMenuLabel = stringResource(R.string.player_queue_menu),
+                        returnToQueueLabel = stringResource(R.string.cd_return_to_queue),
                     )
                 ).Draw(Modifier.fillMaxSize())
 
@@ -128,7 +138,7 @@ class RootView(
                 playerViewProvider.createSmallPlayerView(component.playerComponent).Draw(Modifier)
 
                 NavigationBar(
-                    containerColor = Color.Transparent,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                     tonalElevation = 0.dp,
                     windowInsets = BottomBarNavigationBarInsets,
                 ) {
@@ -171,6 +181,46 @@ class RootView(
             }
         }
     }
+
+    @Composable
+    private fun DrawDefaultPlayerPrompt() {
+        val showPrompt by component.showDefaultPlayerPrompt.collectAsState()
+        val context = LocalContext.current
+
+        if (showPrompt) {
+            AlertDialog(
+                onDismissRequest = component::dismissDefaultPlayerPrompt,
+                title = { Text(stringResource(R.string.default_player_title)) },
+                text = { Text(stringResource(R.string.default_player_message)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            context.startActivity(createDefaultPlayerSettingsIntent(context))
+                            component.confirmDefaultPlayerPrompt()
+                        },
+                    ) {
+                        Text(stringResource(R.string.default_player_action))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = component::dismissDefaultPlayerPrompt) {
+                        Text(stringResource(R.string.button_got_it))
+                    }
+                },
+            )
+        }
+    }
+
+    private fun createDefaultPlayerSettingsIntent(context: Context): Intent =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Intent(Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS).apply {
+                data = "package:${context.packageName}".toUri()
+            }
+        } else {
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", context.packageName, null)
+            }
+        }
 
     @OptIn(ExperimentalPermissionsApi::class)
     @Composable

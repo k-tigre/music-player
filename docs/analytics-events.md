@@ -34,6 +34,10 @@ Auto-generated from `@AnalyticsScope` annotations. Regenerate:
 | music | action | `music_catalog_add_song_to_queue` | CatalogAddSongToQueue | ✓ |  | ✓ |  | Add song to queue from album song list |
 | music | action | `music_catalog_play_album` | CatalogPlayAlbum | ✓ |  | ✓ |  | Play entire album from album list |
 | music | action | `music_catalog_play_song` | CatalogPlaySong | ✓ |  | ✓ |  | Play song from album song list |
+| music | action | `music_default_player_prompt_clicked` | DefaultPlayerPromptClicked | ✓ |  |  |  | Default player onboarding prompt action clicked |
+| music | action | `music_default_player_prompt_shown` | DefaultPlayerPromptShown | ✓ |  |  |  | Default player onboarding prompt shown |
+| music | action | `music_external_audio_opened` | ExternalAudioOpened | ✓ |  |  |  | External audio file opened from another app |
+| music | action | `music_external_audio_overlay_ended` | ExternalAudioOverlayEnded | ✓ |  |  |  | External audio overlay ended |
 | music | action | `music_nav_open_catalog` | NavOpenCatalog | ✓ |  | ✓ |  | Open music catalog tab |
 | music | action | `music_nav_open_queue` | NavOpenQueue | ✓ |  | ✓ |  | Open playback queue |
 | music | action | `music_queue_open_album` | QueueOpenAlbum | ✓ |  | ✓ |  | Open album from queue item |

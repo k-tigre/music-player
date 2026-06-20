@@ -18,8 +18,7 @@ import by.tigre.media.platform.presentation.appChildStack
 import by.tigre.media.platform.presentation.trackScreens
 import by.tigre.media.platform.tools.analytics.common.CommonEvents
 import by.tigre.media.platform.tools.analytics.music.MusicEvents
-import by.tigre.media.platform.tools.analytics.music.MusicEventAnalytics
-import by.tigre.media.platform.tools.analytics.music.MusicScreenAnalytics
+import by.tigre.music.player.presentation.root.di.RootDependency
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.bringToFront
@@ -28,6 +27,9 @@ import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
@@ -37,10 +39,16 @@ interface Root {
 
     val onStartServiceEvent: Flow<Unit>
 
+    val showDefaultPlayerPrompt: StateFlow<Boolean>
+
     val pages: Value<ChildStack<*, PageComponentChild>>
     val mainComponent: Value<ChildStack<*, MainComponentChild>>
 
     fun selectPage(index: Int)
+
+    fun dismissDefaultPlayerPrompt()
+
+    fun confirmDefaultPlayerPrompt()
 
     sealed interface PageComponentChild {
         class Queue(val component: CurrentQueueComponent) : PageComponentChild
@@ -55,12 +63,18 @@ interface Root {
 
     class Impl(
         context: BaseComponentContext,
+        dependency: RootDependency,
         catalogComponentProvider: CatalogComponentProvider,
         playerComponentProvider: PlayerComponentProvider,
         currentQueueComponent: CurrentQueueComponentProvider,
-        screenAnalytics: MusicScreenAnalytics,
-        private val eventAnalytics: MusicEventAnalytics,
     ) : Root, BaseComponentContext by context {
+
+        private val eventAnalytics = dependency.eventAnalytics
+        private val screenAnalytics = dependency.screenAnalytics
+        private val playerSettings = dependency.playerSettings
+
+        private val showDefaultPlayerPromptState = MutableStateFlow(playerSettings.shouldShowPrompt())
+        override val showDefaultPlayerPrompt: StateFlow<Boolean> = showDefaultPlayerPromptState.asStateFlow()
 
         private val pagesNavigation = StackNavigation<PagesConfig>()
         private val mainNavigation = StackNavigation<MainConfig>()
@@ -168,7 +182,21 @@ interface Root {
             }
         }
 
+        override fun dismissDefaultPlayerPrompt() {
+            playerSettings.markPromptShown()
+            showDefaultPlayerPromptState.value = false
+        }
+
+        override fun confirmDefaultPlayerPrompt() {
+            eventAnalytics.trackEvent(MusicEvents.Action.DefaultPlayerPromptClicked)
+            playerSettings.markPromptShown()
+            showDefaultPlayerPromptState.value = false
+        }
+
         init {
+            if (showDefaultPlayerPromptState.value) {
+                eventAnalytics.trackEvent(MusicEvents.Action.DefaultPlayerPromptShown)
+            }
             launch {
                 pages.trackScreens<PagesConfig, MusicEvents.Screen>(
                     trackScreen = screenAnalytics::trackScreen,

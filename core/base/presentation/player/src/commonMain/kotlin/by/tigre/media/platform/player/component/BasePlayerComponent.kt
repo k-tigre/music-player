@@ -43,6 +43,7 @@ interface BasePlayerComponent {
     fun switchMode(isNormal: Boolean)
     fun seekTo(fraction: Float)
     fun onSeekCommitted(fraction: Float) = Unit
+    fun returnToQueue() = Unit
 
     enum class State {
         Playing, Paused
@@ -178,6 +179,10 @@ internal class BasePlayerComponentImpl(
     override fun switchMode(isNormal: Boolean) {
         eventAnalytics.trackEvent(CommonEvents.Action.PlayerShuffleToggle)
         basePlaybackController.setOrderMode(isNormal)
+    }
+
+    override fun returnToQueue() {
+        basePlaybackController.resumeInterruptedSession()
     }
 
     private fun seekBy(deltaMs: Long) {

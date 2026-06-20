@@ -4,15 +4,26 @@ import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.Song
+import by.tigre.music.player.core.entiry.playback.PlaybackInterruption
+import by.tigre.music.player.core.entiry.playback.PlayableItem
 import by.tigre.music.player.core.entiry.playback.SongInQueueItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+
+sealed interface ActivePlaybackSource {
+    data object Session : ActivePlaybackSource
+    data class Overlay(val item: PlayableItem.ExternalAudio) : ActivePlaybackSource
+}
 
 interface PlaybackController {
     val player: PlaybackPlayer
     val currentItem: StateFlow<Song?>
     val currentQueue: Flow<List<SongInQueueItem>>
     val orderMode: Flow<Boolean>
+    val isPlaying: StateFlow<Boolean>
+    val activePlaybackSource: StateFlow<ActivePlaybackSource>
+    val interruption: StateFlow<PlaybackInterruption?>
+    val nowPlayingOverlay: StateFlow<PlayableItem.ExternalAudio?>
 
     fun playNext()
     fun playPrev()
@@ -28,4 +39,6 @@ interface PlaybackController {
     fun addArtistToPlay(id: Artist.Id)
     fun setOrderMode(isNormal: Boolean)
     fun removeSongsFromQueue(ids: List<Song.Id>)
+    fun playExternal(item: PlayableItem.ExternalAudio)
+    fun resumeInterruptedSession()
 }

@@ -1,7 +1,9 @@
 package by.tigre.music.player.core.presentation.playlist.current.component
 
 import by.tigre.music.player.core.data.playback.PlaybackController
-import by.tigre.music.player.core.entiry.playback.SongInQueueItem
+import by.tigre.music.player.core.entiry.playback.NowPlayingQueueEntry
+import by.tigre.music.player.core.entiry.playback.NowPlayingScreenModel
+import by.tigre.music.player.core.entiry.playback.OverlayQueueEntry
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueDependency
 import by.tigre.music.player.core.presentation.playlist.current.navigation.QueueNavigator
 import by.tigre.media.platform.presentation.BaseComponentContext
@@ -11,16 +13,19 @@ import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.presentation.ScreenContentState.Content
 import by.tigre.media.platform.presentation.ScreenContentStateDelegate
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 
 interface CurrentQueueComponent {
 
-    val screenState: StateFlow<ScreenContentState<List<SongInQueueItem>>>
+    val screenState: StateFlow<ScreenContentState<NowPlayingScreenModel>>
 
     fun retry()
-    fun onSongClicked(song: SongInQueueItem)
+    fun onSongClicked(entry: NowPlayingQueueEntry)
+    fun onOverlayReturnToQueueClicked()
+    fun onOverlayRowClicked()
     fun onAddToQueueClicked()
-    fun onOpenArtistClicked(song: SongInQueueItem)
-    fun onOpenAlbumClicked(song: SongInQueueItem)
+    fun onOpenArtistClicked(entry: NowPlayingQueueEntry)
+    fun onOpenAlbumClicked(entry: NowPlayingQueueEntry)
 
     class Impl(
         context: BaseComponentContext,
@@ -34,34 +39,78 @@ interface CurrentQueueComponent {
         private val stateDelegate = ScreenContentStateDelegate(
             scope = this,
             loadData = {
-                playbackController.currentQueue
+                combine(
+                    playbackController.currentQueue,
+                    playbackController.nowPlayingOverlay,
+                    playbackController.interruption,
+                    playbackController.isPlaying,
+                ) { queue, overlay, interruption, isPlaying ->
+                    NowPlayingScreenModel(
+                        overlay = overlay?.let {
+                            OverlayQueueEntry(item = it, isPlaying = isPlaying)
+                        },
+                        queue = queue.map { item ->
+                            NowPlayingQueueEntry(
+                                id = item.id,
+                                song = item.song,
+                                isPlaying = item.isPlaying,
+                                isInterruptedActive = interruption?.resumePoint?.queueEntryId == item.id,
+                                interruptedPositionMs = if (interruption?.resumePoint?.queueEntryId == item.id) {
+                                    interruption.resumePoint.positionMs
+                                } else {
+                                    null
+                                },
+                            )
+                        },
+                    )
+                }
             },
-            mapDataToState = { songs -> Content(songs) }
+            mapDataToState = { model -> Content(model) }
         )
 
-        override val screenState: StateFlow<ScreenContentState<List<SongInQueueItem>>> = stateDelegate.screenState
+        override val screenState: StateFlow<ScreenContentState<NowPlayingScreenModel>> = stateDelegate.screenState
 
         override fun retry() {
             stateDelegate.reload()
         }
 
-        override fun onSongClicked(song: SongInQueueItem) {
+        override fun onSongClicked(entry: NowPlayingQueueEntry) {
             eventAnalytics.trackEvent(MusicEvents.Action.QueueSongSelected)
-            playbackController.playSongInQueue(song.id)
+            if (playbackController.nowPlayingOverlay.value != null) {
+                eventAnalytics.trackEvent(
+                    MusicEvents.Action.ExternalAudioOverlayEnded(MusicEvents.OverlayEndReason.PlayCatalog)
+                )
+            }
+            playbackController.playSongInQueue(entry.id)
+        }
+
+        override fun onOverlayReturnToQueueClicked() {
+            eventAnalytics.trackEvent(
+                MusicEvents.Action.ExternalAudioOverlayEnded(MusicEvents.OverlayEndReason.ReturnButton)
+            )
+            playbackController.resumeInterruptedSession()
+        }
+
+        override fun onOverlayRowClicked() {
+            if (playbackController.isPlaying.value) {
+                playbackController.pause()
+            } else {
+                playbackController.resume()
+            }
         }
 
         override fun onAddToQueueClicked() {
             navigator.onOpenCatalog()
         }
 
-        override fun onOpenArtistClicked(song: SongInQueueItem) {
+        override fun onOpenArtistClicked(entry: NowPlayingQueueEntry) {
             eventAnalytics.trackEvent(MusicEvents.Action.QueueOpenArtist)
-            navigator.onOpenArtist(song.song.artistId)
+            navigator.onOpenArtist(entry.song.artistId)
         }
 
-        override fun onOpenAlbumClicked(song: SongInQueueItem) {
+        override fun onOpenAlbumClicked(entry: NowPlayingQueueEntry) {
             eventAnalytics.trackEvent(MusicEvents.Action.QueueOpenAlbum)
-            navigator.onOpenAlbum(song.song.artistId, song.song.albumId)
+            navigator.onOpenAlbum(entry.song.artistId, entry.song.albumId)
         }
     }
 }

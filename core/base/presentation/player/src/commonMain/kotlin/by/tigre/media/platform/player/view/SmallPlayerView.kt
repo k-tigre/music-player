@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
@@ -75,7 +76,7 @@ class SmallPlayerView(
                                 .animateContentSize(tween(250)),
                             item = current
                         )
-                        DrawActions()
+                        DrawActions(current)
                     }
                 }
 
@@ -86,21 +87,33 @@ class SmallPlayerView(
 
     @Composable
     private fun DrawItem(modifier: Modifier, item: PlayerItem) {
-        Column(
+        Row(
             modifier = modifier
                 .fillMaxWidth()
                 .clickable { component.showPlayerView() },
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                modifier = Modifier.padding(top = 16.dp),
-                text = item.title,
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    modifier = Modifier.padding(top = 16.dp),
+                    text = item.title,
+                )
 
-            Text(
-                modifier = Modifier.padding(top = 2.dp, bottom = 4.dp),
-                text = item.subtitle,
-                style = MaterialTheme.typography.bodySmall
-            )
+                Text(
+                    modifier = Modifier.padding(top = 2.dp, bottom = 4.dp),
+                    text = item.subtitle,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            if (item.canReturnToQueue) {
+                IconButton(onClick = component::returnToQueue) {
+                    Icon(
+                        contentDescription = "Return to queue",
+                        imageVector = Icons.AutoMirrored.Filled.Reply,
+                    )
+                }
+            }
         }
     }
 
@@ -121,13 +134,14 @@ class SmallPlayerView(
     }
 
     @Composable
-    private fun DrawActions() {
+    private fun DrawActions(current: PlayerItem) {
         Row(
             modifier = Modifier.padding(bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val state = component.state.collectAsState()
             val position = component.position.collectAsState().value
+            val showOrderMode = showOrderModeButton && !current.isExternal
 
             Text(
                 modifier = Modifier.padding(horizontal = 4.dp),
@@ -136,7 +150,7 @@ class SmallPlayerView(
 
             Spacer(Modifier.weight(1f))
 
-            if (showOrderModeButton) {
+            if (showOrderMode) {
                 val isNormal = component.isNormal.collectAsState().value
                 IconButton(
                     onClick = { component.switchMode(isNormal.not()) }

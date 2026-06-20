@@ -17,4 +17,12 @@
 
     <string name="player_equalizer_menu">Эквалайзер</string>
     <string name="player_queue_menu">Очередь</string>
+    <string name="cd_return_to_queue">Вернуться к очереди</string>
+
+    <string name="external_audio_access_denied">Нет доступа к файлу</string>
+    <string name="external_audio_source_downloads">Загрузки</string>
+
+    <string name="default_player_title">Плеер по умолчанию</string>
+    <string name="default_player_message">Открывайте аудиофайлы сразу в Music Player</string>
+    <string name="default_player_action">Сделать по умолчанию</string>
 </resources>

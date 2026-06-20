@@ -8,7 +8,10 @@ import by.tigre.music.player.core.data.catalog.di.CatalogModule
 import by.tigre.media.platform.playback.di.AndroidBasePlaybackModule
 import by.tigre.music.player.core.data.playback.di.PlaybackModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.AndroidPlaybackQueueModule
+import by.tigre.media.platform.preferences.Preferences
 import by.tigre.media.platform.preferences.di.AndroidPreferencesModule
+import by.tigre.music.player.platform.PlayerSettings
+import by.tigre.music.player.platform.PlayerSettingsImpl
 import by.tigre.music.player.car.MusicCarMediaLibrary
 import by.tigre.media.platform.background.car.CarMediaLibrary
 import by.tigre.media.platform.background.di.PlayerBackgroundDependency
@@ -16,25 +19,34 @@ import by.tigre.media.platform.player.component.BasePlaybackController
 import by.tigre.media.platform.player.component.PlayerItem
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.media.platform.player.di.PlayerDependency
+import by.tigre.music.player.core.data.playback.ActivePlaybackSource
+import by.tigre.music.player.presentation.root.di.RootDependency
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueDependency
 import by.tigre.media.platform.tools.analytics.music.MusicAnalyticsModule
+import by.tigre.media.platform.tools.analytics.music.MusicEvents
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 
 class ApplicationGraph(
-    private val appContext: Context,
+    val appContext: Context,
     playbackModule: PlaybackModule,
     catalogModule: CatalogModule,
     analyticsModule: MusicAnalyticsModule,
+    private val preferences: Preferences,
 ) : CatalogDependency,
     PlayerDependency,
     PlayerBackgroundDependency,
     CurrentQueueDependency,
+    RootDependency,
     MusicAnalyticsModule by analyticsModule,
     PlaybackModule by playbackModule,
     CatalogModule by catalogModule {
 
     override val appPlaybackVolume = playbackModule.appPlaybackVolume
+
+    override val playerSettings: PlayerSettings by lazy {
+        PlayerSettingsImpl(preferences)
+    }
 
     override val carMediaLibrary: CarMediaLibrary by lazy {
         MusicCarMediaLibrary(
@@ -48,27 +60,55 @@ class ApplicationGraph(
         val controller = playbackController
         object : BasePlaybackController {
             override val player = controller.player
-            override val currentItem = controller.currentItem.map { song ->
-                song?.let {
-                    PlayerItem(
-                        title = it.name,
-                        subtitle = "${it.artist}/${it.album}",
-                        artist = it.artist,
-                        album = it.album,
+            override val currentItem = combine(
+                controller.nowPlayingOverlay,
+                controller.currentItem,
+                controller.interruption,
+            ) { overlay, song, interruption ->
+                when {
+                    overlay != null -> PlayerItem(
+                        title = overlay.title,
+                        subtitle = overlay.sourceLabel ?: "",
+                        isExternal = true,
+                        canReturnToQueue = interruption != null,
+                    )
+
+                    song != null -> PlayerItem(
+                        title = song.name,
+                        subtitle = "${song.artist}/${song.album}",
+                        artist = song.artist,
+                        album = song.album,
                         coverUri = ContentUris.withAppendedId(
                             MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-                            it.albumId.value
+                            song.albumId.value
                         )
                     )
+
+                    else -> null
                 }
             }
             override val orderMode = controller.orderMode
-            override fun playNext() = controller.playNext()
+            override fun playNext() {
+                if (controller.activePlaybackSource.value is ActivePlaybackSource.Overlay) {
+                    eventAnalytics.trackEvent(
+                        MusicEvents.Action.ExternalAudioOverlayEnded(MusicEvents.OverlayEndReason.Next)
+                    )
+                }
+                controller.playNext()
+            }
             override fun playPrev() = controller.playPrev()
             override fun pause() = controller.pause()
             override fun resume() = controller.resume()
             override fun stop() = controller.stop()
             override fun setOrderMode(isNormal: Boolean) = controller.setOrderMode(isNormal)
+            override fun resumeInterruptedSession() {
+                if (controller.interruption.value != null) {
+                    eventAnalytics.trackEvent(
+                        MusicEvents.Action.ExternalAudioOverlayEnded(MusicEvents.OverlayEndReason.ReturnButton)
+                    )
+                }
+                controller.resumeInterruptedSession()
+            }
         }
     }
 
@@ -91,6 +131,7 @@ class ApplicationGraph(
                 playbackModule = playbackModule,
                 catalogModule = catalogModule,
                 analyticsModule = analyticsModule,
+                preferences = preferencesModule.preferences,
             )
         }
     }
