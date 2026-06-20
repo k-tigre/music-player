@@ -8,6 +8,7 @@ import by.tigre.music.player.core.data.catalog.di.CatalogModule
 import by.tigre.media.platform.playback.di.AndroidBasePlaybackModule
 import by.tigre.music.player.core.data.playback.di.PlaybackModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.AndroidPlaybackQueueModule
+import by.tigre.music.player.core.data.storage.playback_queue.di.PlaybackQueueModule
 import by.tigre.media.platform.preferences.Preferences
 import by.tigre.media.platform.preferences.di.AndroidPreferencesModule
 import by.tigre.music.player.platform.PlayerSettings
@@ -33,6 +34,7 @@ import kotlinx.coroutines.flow.map
 class ApplicationGraph(
     val appContext: Context,
     playbackModule: PlaybackModule,
+    playbackQueueModule: PlaybackQueueModule,
     catalogModule: CatalogModule,
     analyticsModule: MusicAnalyticsModule,
     private val preferences: Preferences,
@@ -43,6 +45,7 @@ class ApplicationGraph(
     RootDependency,
     MusicAnalyticsModule by analyticsModule,
     PlaybackModule by playbackModule,
+    PlaybackQueueModule by playbackQueueModule,
     CatalogModule by catalogModule {
 
     override val appPlaybackVolume = playbackModule.appPlaybackVolume
@@ -140,6 +143,7 @@ class ApplicationGraph(
             return ApplicationGraph(
                 appContext = context.applicationContext,
                 playbackModule = playbackModule,
+                playbackQueueModule = playbackQueueModule,
                 catalogModule = catalogModule,
                 analyticsModule = analyticsModule,
                 preferences = preferencesModule.preferences,

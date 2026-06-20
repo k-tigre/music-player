@@ -8,6 +8,9 @@ interface PlaybackQueueStorage {
     val shuffleEnabled: Flow<Boolean>
     val repeatMode: Flow<RepeatMode>
 
+    /** Sync snapshot for startup UI; updated whenever the queue table changes. */
+    fun hasPersistedQueueItems(): Boolean
+
     suspend fun playSongs(items: List<Song.Id>)
     suspend fun addSongs(items: List<Song.Id>)
     suspend fun setShuffleEnabled(enabled: Boolean)

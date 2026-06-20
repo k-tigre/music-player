@@ -121,6 +121,8 @@ class PlaybackControllerImplTest {
         override val shuffleEnabled: Flow<Boolean> = shuffleState
         override val repeatMode: Flow<PlaybackQueueStorage.RepeatMode> = repeatState
 
+        override fun hasPersistedQueueItems(): Boolean = queueState.value.isNotEmpty()
+
         override suspend fun playSongs(items: List<Song.Id>) = Unit
         override suspend fun addSongs(items: List<Song.Id>) = Unit
         override suspend fun setShuffleEnabled(enabled: Boolean) {

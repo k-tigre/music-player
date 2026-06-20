@@ -25,6 +25,13 @@ class PlaybackQueueStorageImpl(
 
     private val idMapper = { id: Long, _: QueueItem.State, _: Long -> id }
 
+    init {
+        refreshHasQueueItemsPref()
+    }
+
+    override fun hasPersistedQueueItems(): Boolean =
+        preferences.loadBoolean(HAS_QUEUE_ITEMS_KEY, default = false)
+
     override val shuffleEnabled = MutableStateFlow(readShuffleEnabled())
     override val repeatMode = MutableStateFlow(readRepeatMode())
 
@@ -44,6 +51,7 @@ class PlaybackQueueStorageImpl(
                 database.queueQueries.updateStatusBySongId(status = QueueItem.State.Playing, song_id = it.value)
             }
         }
+        refreshHasQueueItemsPref()
     }
 
     override suspend fun setShuffleEnabled(enabled: Boolean) {
@@ -72,6 +80,7 @@ class PlaybackQueueStorageImpl(
                 database.queueQueries.insertNew(id.value)
             }
         }
+        refreshHasQueueItemsPref()
     }
 
     override suspend fun playNext() {
@@ -129,6 +138,15 @@ class PlaybackQueueStorageImpl(
                 database.queueQueries.deleteBySongId(song_id = id.value)
             }
         }
+        refreshHasQueueItemsPref()
+    }
+
+    private fun refreshHasQueueItemsPref() {
+        val hasItems = database.queueQueries.selectAllById(
+            limit = 1,
+            mapper = idMapper,
+        ).executeAsList().isNotEmpty()
+        preferences.saveBoolean(HAS_QUEUE_ITEMS_KEY, hasItems)
     }
 
     private fun getPlaybackOrderedQueue(): List<QueueItem> {
@@ -234,5 +252,6 @@ class PlaybackQueueStorageImpl(
         const val SHUFFLE_KEY = "playback_shuffle"
         const val SHUFFLE_MIGRATED_KEY = "playback_shuffle_migrated"
         const val REPEAT_KEY = "playback_repeat"
+        const val HAS_QUEUE_ITEMS_KEY = "playback_queue_has_items"
     }
 }

@@ -7,6 +7,7 @@ import by.tigre.media.platform.player.component.SmallPlayerComponent
 import by.tigre.music.player.core.presentation.catalog.di.CatalogComponentProvider
 import by.tigre.media.platform.player.di.PlayerComponentProvider
 import by.tigre.media.platform.player.navigation.PlayerNavigator
+import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.presentation.playlist.current.component.CurrentQueueComponent
@@ -71,6 +72,7 @@ interface Root {
 
         private val eventAnalytics = dependency.eventAnalytics
         private val screenAnalytics = dependency.screenAnalytics
+        private val playbackQueueStorage: PlaybackQueueStorage = dependency.playbackQueueStorage
         private val playerSettings = dependency.playerSettings
 
         private val showDefaultPlayerPromptState = MutableStateFlow(playerSettings.shouldShowPrompt())
@@ -129,7 +131,12 @@ interface Root {
         override val pages: Value<ChildStack<*, PageComponentChild>> =
             appChildStack(
                 source = pagesNavigation,
-                initialStack = { listOf(PagesConfig.Catalog) },
+                initialStack = {
+                    listOf(
+                        if (playbackQueueStorage.hasPersistedQueueItems()) PagesConfig.Queue
+                        else PagesConfig.Catalog,
+                    )
+                },
                 key = "pages",
                 handleBackButton = false
             ) { config, componentContext ->
