@@ -129,13 +129,20 @@ class SongsListView(
         ) {
             songs.forEach { song ->
                 item {
+                    val playAction = PopupAction(stringResource(Res.string.action_play)) {
+                        component.onPlaySongClicked(song)
+                    }
+                    val addToQueueAction = PopupAction(stringResource(Res.string.action_add_to_queue)) {
+                        component.onAddSongClicked(song)
+                    }
                     CardWithPopup(
                         modifier = Modifier,
                         title = "${song.index} - ${song.name}",
                         onCardClicked = { },
+                        cardClickPopupActions = listOf(playAction, addToQueueAction),
                         popupActions = listOf(
-                            PopupAction(stringResource(Res.string.action_play)) { component.onPlaySongClicked(song) },
-                            PopupAction(stringResource(Res.string.action_add_to_queue)) { component.onAddSongClicked(song) },
+                            playAction,
+                            addToQueueAction,
                             PopupAction(stringResource(Res.string.action_delete)) { component.onRemoveSongClicked(song) },
                         ),
                         descriptions = listOf(

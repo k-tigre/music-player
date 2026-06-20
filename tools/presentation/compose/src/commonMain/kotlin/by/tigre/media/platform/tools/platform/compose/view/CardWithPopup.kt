@@ -39,15 +39,24 @@ fun CardWithPopup(
     modifier: Modifier,
     title: String,
     popupActions: List<PopupAction>? = null,
+    cardClickPopupActions: List<PopupAction>? = null,
     onCardClicked: () -> Unit,
     descriptions: List<String>,
 ) {
     var popupControl by remember { mutableStateOf(false) }
+    var activePopupActions by remember { mutableStateOf<List<PopupAction>?>(null) }
 
     Card(
         modifier = modifier
             .fillMaxWidth(),
-        onClick = onCardClicked,
+        onClick = {
+            if (cardClickPopupActions != null) {
+                activePopupActions = cardClickPopupActions
+                popupControl = true
+            } else {
+                onCardClicked()
+            }
+        },
         colors = CardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
             contentColor = MaterialTheme.colorScheme.onSurface,
@@ -67,7 +76,10 @@ fun CardWithPopup(
             if (popupActions != null) {
                 IconButton(
                     modifier = Modifier.align(Alignment.CenterVertically),
-                    onClick = { popupControl = true }) {
+                    onClick = {
+                        activePopupActions = popupActions
+                        popupControl = true
+                    }) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
                         contentDescription = stringResource(Res.string.cd_more_options)
@@ -85,35 +97,37 @@ fun CardWithPopup(
 
         Spacer(modifier = Modifier.size(8.dp))
 
-        if (popupControl && popupActions != null) {
-            Popup(
-                alignment = Alignment.CenterEnd,
-                onDismissRequest = { popupControl = false },
-                offset = IntOffset(-20, 0),
-                properties = PopupProperties()
-            ) {
-                Column(
-                    modifier = Modifier
-                        .width(IntrinsicSize.Max)
-                        .shadow(elevation = 4.dp, shape = MaterialTheme.shapes.medium)
-                        .background(
-                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            shape = MaterialTheme.shapes.medium
-                        ),
-                )
-                {
-                    popupActions.forEach { (title, action) ->
-                        TextButton(
-                            modifier = Modifier.fillMaxWidth(),
-                            onClick = {
-                                popupControl = false
-                                action()
-                            },
-                        ) {
-                            Text(
-                                text = title,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
+        if (popupControl) {
+            activePopupActions?.let { actions ->
+                Popup(
+                    alignment = Alignment.CenterEnd,
+                    onDismissRequest = { popupControl = false },
+                    offset = IntOffset(-20, 0),
+                    properties = PopupProperties()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .width(IntrinsicSize.Max)
+                            .shadow(elevation = 4.dp, shape = MaterialTheme.shapes.medium)
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                shape = MaterialTheme.shapes.medium
+                            ),
+                    )
+                    {
+                        actions.forEach { (title, action) ->
+                            TextButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = {
+                                    popupControl = false
+                                    action()
+                                },
+                            ) {
+                                Text(
+                                    text = title,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            }
                         }
                     }
                 }
