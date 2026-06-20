@@ -93,7 +93,6 @@ class RootView(
                         emptyScreenTitle = stringResource(R.string.player_queue_empty_title),
                         emptyScreenMessage = stringResource(R.string.player_queue_empty_message),
                         emptyScreenActionTitle = stringResource(R.string.player_queue_empty_action),
-                        coverFallbackIcon = R.drawable.ic_launcher_foreground,
                         equalizerMenuLabel = stringResource(R.string.player_equalizer_menu),
                         queueMenuLabel = stringResource(R.string.player_queue_menu),
                         returnToQueueLabel = stringResource(R.string.cd_return_to_queue),

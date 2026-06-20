@@ -20,6 +20,7 @@ import by.tigre.media.platform.preferences.di.AndroidPreferencesModule
 import by.tigre.media.platform.background.di.PlayerBackgroundDependency
 import by.tigre.media.platform.player.component.BasePlaybackController
 import by.tigre.media.platform.player.component.PlayerItem
+import by.tigre.media.platform.player.component.RepeatMode
 import by.tigre.media.platform.player.di.PlayerDependency
 import by.tigre.media.platform.tools.analytics.book.BookAnalyticsModule
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
@@ -72,7 +73,8 @@ class ApplicationGraph(
                     )
                 } else null
             }
-            override val orderMode = flowOf(true)
+            override val shuffleEnabled = flowOf(false)
+            override val repeatMode = flowOf(RepeatMode.Off)
             override fun playNext() = controller.playNextChapter()
             override fun playPrev() = controller.playPrevChapter()
             override fun playNextRemote() = controller.seekBy(60_000L)
@@ -80,7 +82,8 @@ class ApplicationGraph(
             override fun pause() = controller.pause()
             override fun resume() = controller.resume()
             override fun stop() = controller.stop()
-            override fun setOrderMode(isNormal: Boolean) = Unit
+            override fun toggleShuffle() = Unit
+            override fun cycleRepeat() = Unit
             override fun onSeekPositionCommitted(positionMs: Long) =
                 controller.persistPlaybackPositionAfterSeek(positionMs)
             override fun seekBy(deltaMs: Long): Boolean {

@@ -37,8 +37,12 @@ object CommonEvents {
         data object PlayerSeekForward60 : Action("common_player_seek_forward_60")
 
         @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
-        @AnalyticsDoc("Toggle shuffle / repeat order mode")
+        @AnalyticsDoc("Toggle shuffle mode")
         data object PlayerShuffleToggle : Action("common_player_shuffle_toggle")
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("Cycle repeat mode (off / all / one)")
+        data object PlayerRepeatCycle : Action("common_player_repeat_cycle")
 
         @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK, AnalyticsApp.DESKTOP)
         @AnalyticsDoc("Open full player screen")

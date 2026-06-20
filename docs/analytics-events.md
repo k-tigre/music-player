@@ -22,11 +22,12 @@ Auto-generated from `@AnalyticsScope` annotations. Regenerate:
 | common | action | `common_player_pause` | PlayerPause | ✓ | ✓ | ✓ |  | Pause playback |
 | common | action | `common_player_play` | PlayerPlay | ✓ | ✓ | ✓ |  | Play / resume playback |
 | common | action | `common_player_prev` | PlayerPrev | ✓ | ✓ | ✓ |  | Skip to previous track or chapter |
+| common | action | `common_player_repeat_cycle` | PlayerRepeatCycle | ✓ |  | ✓ |  | Cycle repeat mode (off / all / one) |
 | common | action | `common_player_seek_back_15` | PlayerSeekBack15 | ✓ | ✓ | ✓ |  | Seek backward 15 seconds |
 | common | action | `common_player_seek_back_60` | PlayerSeekBack60 | ✓ | ✓ | ✓ |  | Seek backward 60 seconds |
 | common | action | `common_player_seek_forward_15` | PlayerSeekForward15 | ✓ | ✓ | ✓ |  | Seek forward 15 seconds |
 | common | action | `common_player_seek_forward_60` | PlayerSeekForward60 | ✓ | ✓ | ✓ |  | Seek forward 60 seconds |
-| common | action | `common_player_shuffle_toggle` | PlayerShuffleToggle | ✓ |  | ✓ |  | Toggle shuffle / repeat order mode |
+| common | action | `common_player_shuffle_toggle` | PlayerShuffleToggle | ✓ |  | ✓ |  | Toggle shuffle mode |
 | common | screen | `common_screen_equalizer` | Equalizer | ✓ | ✓ | ✓ |  | Equalizer screen |
 | common | screen | `common_screen_player` | Player | ✓ | ✓ | ✓ |  | Full player screen |
 | common | screen | `common_screen_root_overlay` | RootOverlay | ✓ |  | ✓ | yes | Root overlay without a dedicated screen (not sent to analytics) |

@@ -18,6 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import by.tigre.media.platform.playback.AppPlaybackVolume
 import by.tigre.media.platform.playback.PlaybackEqualizer
 import by.tigre.media.platform.player.component.BasePlayerComponent
+import by.tigre.media.platform.player.component.RepeatMode
 import by.tigre.media.platform.player.component.PlayerComponent
 import by.tigre.media.platform.player.component.PlayerItem
 import by.tigre.media.platform.player.component.SmallPlayerComponent
@@ -142,118 +144,59 @@ class SmallPlayerView(
             val state = component.state.collectAsState()
             val position = component.position.collectAsState().value
             val showOrderMode = showOrderModeButton && !current.isExternal
+            val shuffleEnabled = component.shuffleEnabled.collectAsState().value
+            val repeatMode = component.repeatMode.collectAsState().value
+            val repeatActive = repeatMode != RepeatMode.Off
 
             Text(
                 modifier = Modifier.padding(horizontal = 4.dp),
                 text = "${position.current}/${position.total}",
             )
 
-            Spacer(Modifier.weight(1f))
-
             if (showOrderMode) {
-                val isNormal = component.isNormal.collectAsState().value
-                IconButton(
-                    onClick = { component.switchMode(isNormal.not()) }
-                ) {
-                    Icon(
-                        contentDescription = null,
-                        imageVector = if (isNormal) Icons.Default.Repeat else Icons.Default.Shuffle,
-                        modifier = Modifier.padding(4.dp)
-                    )
-                }
-
-                Spacer(Modifier.weight(1f))
+                PlaybackModeIconButton(
+                    onClick = component::toggleShuffle,
+                    active = shuffleEnabled,
+                    imageVector = Icons.Default.Shuffle,
+                    iconSize = 22.dp,
+                    containerSize = 36.dp,
+                )
             }
 
-            IconButton(
-                onClick = component::prev
-            ) {
+            Spacer(Modifier.weight(1f))
+
+            IconButton(onClick = component::prev) {
                 Icon(contentDescription = null, imageVector = Icons.Default.SkipPrevious)
             }
 
             if (state.value == BasePlayerComponent.State.Playing) {
-                IconButton(
-                    onClick = component::pause
-                ) {
+                IconButton(onClick = component::pause) {
                     Icon(contentDescription = null, imageVector = Icons.Default.Pause)
                 }
             } else {
-                IconButton(
-                    onClick = component::play
-                ) {
+                IconButton(onClick = component::play) {
                     Icon(contentDescription = null, imageVector = Icons.Default.PlayArrow)
                 }
             }
 
-            IconButton(
-                onClick = component::next
-            ) {
+            IconButton(onClick = component::next) {
                 Icon(contentDescription = null, imageVector = Icons.Default.SkipNext)
             }
 
+            Spacer(Modifier.weight(1f))
+
+            if (showOrderMode) {
+                PlaybackModeIconButton(
+                    onClick = component::cycleRepeat,
+                    active = repeatActive,
+                    imageVector = when (repeatMode) {
+                        RepeatMode.One -> Icons.Default.RepeatOne
+                        RepeatMode.All, RepeatMode.Off -> Icons.Default.Repeat
+                    },
+                    iconSize = 22.dp,
+                    containerSize = 36.dp,
+                )
+            }
         }
     }
-}
-
-internal object PreviewStub {
-    val playerItem: PlayerItem = PlayerItem(
-        title = "Song name",
-        subtitle = "Test Artist/Test Album"
-    )
-
-    private val previewEqualizer: PlaybackEqualizer = object : PlaybackEqualizer {
-        override val isAvailable = MutableStateFlow(false).asStateFlow()
-        override val presetNames = MutableStateFlow<List<String>>(emptyList()).asStateFlow()
-        override val selectedPresetIndex = MutableStateFlow(0).asStateFlow()
-        override val bandCenterHz = MutableStateFlow<List<Float>>(emptyList()).asStateFlow()
-        override val bandGainDb = MutableStateFlow<List<Float>>(emptyList()).asStateFlow()
-        override val builtInPresetBandGainsDb = MutableStateFlow<List<List<Float>>>(emptyList()).asStateFlow()
-        override val customPresetIndex = MutableStateFlow(-1).asStateFlow()
-        override val bandGainRangeDb = MutableStateFlow(-12f to 12f).asStateFlow()
-        override fun selectPreset(index: Int) = Unit
-        override fun setBandGainDb(bandIndex: Int, gainDb: Float) = Unit
-    }
-
-    private fun baseComponent(item: PlayerItem?, isNormalMode: Boolean) = object : BasePlayerComponent {
-        override val currentItem = MutableStateFlow(item)
-        override val fraction = MutableStateFlow(0.5f)
-        override val position = MutableStateFlow(BasePlayerComponent.Position("10:10", "-10:19", "10:19"))
-        override val state = MutableStateFlow(BasePlayerComponent.State.Paused)
-        override val isNormal: StateFlow<Boolean> = MutableStateFlow(isNormalMode)
-
-        override val playbackEqualizer: PlaybackEqualizer = previewEqualizer
-
-        override val appPlaybackVolume: AppPlaybackVolume? = null
-
-        override fun pause() {
-            state.tryEmit(BasePlayerComponent.State.Paused)
-        }
-
-        override fun play() {
-            state.tryEmit(BasePlayerComponent.State.Playing)
-        }
-
-        override fun next() = Unit
-        override fun prev() = Unit
-        override fun seekBack15Seconds() = Unit
-        override fun seekBack1Minute() = Unit
-        override fun seekForward15Seconds() = Unit
-        override fun seekForward1Minute() = Unit
-        override fun switchMode(isNormal: Boolean) = Unit
-
-        override fun seekTo(fraction: Float) {
-            this.fraction.tryEmit(fraction)
-        }
-    }
-
-    fun smallPlayerComponent(item: PlayerItem? = null, isNormalMode: Boolean = false): SmallPlayerComponent =
-        object : SmallPlayerComponent, BasePlayerComponent by baseComponent(item, isNormalMode) {
-            override fun showPlayerView() = Unit
-        }
-
-    fun playerComponent(item: PlayerItem? = null, isNormalMode: Boolean = false): PlayerComponent =
-        object : PlayerComponent, BasePlayerComponent by baseComponent(item, isNormalMode) {
-            override fun showQueue() = Unit
-            override fun showEqualizer() = Unit
-        }
 }

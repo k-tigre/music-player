@@ -19,13 +19,16 @@ import by.tigre.media.platform.player.component.BasePlaybackController
 import by.tigre.media.platform.player.component.PlayerItem
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.media.platform.player.di.PlayerDependency
-import by.tigre.music.player.core.data.playback.ActivePlaybackSource
+import by.tigre.media.platform.player.component.RepeatMode
+import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
 import by.tigre.music.player.presentation.root.di.RootDependency
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueDependency
 import by.tigre.media.platform.tools.analytics.music.MusicAnalyticsModule
 import by.tigre.media.platform.tools.analytics.music.MusicEvents
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
+import by.tigre.music.player.core.data.playback.ActivePlaybackSource
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 
 class ApplicationGraph(
     val appContext: Context,
@@ -87,7 +90,8 @@ class ApplicationGraph(
                     else -> null
                 }
             }
-            override val orderMode = controller.orderMode
+            override val shuffleEnabled = controller.shuffleEnabled
+            override val repeatMode = controller.repeatMode.map { it.toUiRepeatMode() }
             override fun playNext() {
                 if (controller.activePlaybackSource.value is ActivePlaybackSource.Overlay) {
                     eventAnalytics.trackEvent(
@@ -100,7 +104,8 @@ class ApplicationGraph(
             override fun pause() = controller.pause()
             override fun resume() = controller.resume()
             override fun stop() = controller.stop()
-            override fun setOrderMode(isNormal: Boolean) = controller.setOrderMode(isNormal)
+            override fun toggleShuffle() = controller.toggleShuffle()
+            override fun cycleRepeat() = controller.cycleRepeat()
             override fun resumeInterruptedSession() {
                 if (controller.interruption.value != null) {
                     eventAnalytics.trackEvent(
@@ -110,6 +115,12 @@ class ApplicationGraph(
                 controller.resumeInterruptedSession()
             }
         }
+    }
+
+    private fun PlaybackQueueStorage.RepeatMode.toUiRepeatMode(): RepeatMode = when (this) {
+        PlaybackQueueStorage.RepeatMode.Off -> RepeatMode.Off
+        PlaybackQueueStorage.RepeatMode.All -> RepeatMode.All
+        PlaybackQueueStorage.RepeatMode.One -> RepeatMode.One
     }
 
     companion object {

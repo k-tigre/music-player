@@ -5,11 +5,13 @@ import kotlinx.coroutines.flow.Flow
 
 interface PlaybackQueueStorage {
     val currentQueue: Flow<List<QueueItem>>
-    val orderMode: Flow<OrderMode>
+    val shuffleEnabled: Flow<Boolean>
+    val repeatMode: Flow<RepeatMode>
 
     suspend fun playSongs(items: List<Song.Id>)
     suspend fun addSongs(items: List<Song.Id>)
-    suspend fun setOrderMode(mode: OrderMode)
+    suspend fun setShuffleEnabled(enabled: Boolean)
+    suspend fun setRepeatMode(mode: RepeatMode)
 
     suspend fun playNext()
     suspend fun playPrev()
@@ -22,7 +24,7 @@ interface PlaybackQueueStorage {
         }
     }
 
-    enum class OrderMode {
-        Normal, Random
+    enum class RepeatMode {
+        Off, All, One
     }
 }

@@ -6,7 +6,8 @@ import kotlinx.coroutines.flow.Flow
 interface BasePlaybackController {
     val player: PlaybackPlayer
     val currentItem: Flow<PlayerItem?>
-    val orderMode: Flow<Boolean>
+    val shuffleEnabled: Flow<Boolean>
+    val repeatMode: Flow<RepeatMode>
 
     fun playNext()
     fun playPrev()
@@ -15,7 +16,8 @@ interface BasePlaybackController {
     fun pause()
     fun resume()
     fun stop()
-    fun setOrderMode(isNormal: Boolean)
+    fun toggleShuffle()
+    fun cycleRepeat()
     fun resumeInterruptedSession() = Unit
 
     /** Called when the user releases the seek slider; [positionMs] is the intended time in the current item. */

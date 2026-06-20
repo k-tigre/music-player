@@ -129,7 +129,7 @@ interface Root {
         override val pages: Value<ChildStack<*, PageComponentChild>> =
             appChildStack(
                 source = pagesNavigation,
-                initialStack = { listOf(PagesConfig.Queue) },
+                initialStack = { listOf(PagesConfig.Catalog) },
                 key = "pages",
                 handleBackButton = false
             ) { config, componentContext ->

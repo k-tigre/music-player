@@ -25,7 +25,8 @@ class PlaybackQueueStorageImpl(
 
     private val idMapper = { id: Long, _: QueueItem.State, _: Long -> id }
 
-    override val orderMode = MutableStateFlow(getOrder())
+    override val shuffleEnabled = MutableStateFlow(readShuffleEnabled())
+    override val repeatMode = MutableStateFlow(readRepeatMode())
 
     override val currentQueue: Flow<List<QueueItem>> = database.queueQueries.selectAllById(
         limit = 10000,
@@ -45,14 +46,20 @@ class PlaybackQueueStorageImpl(
         }
     }
 
-    override suspend fun setOrderMode(mode: PlaybackQueueStorage.OrderMode) {
-        if (mode == PlaybackQueueStorage.OrderMode.Random) {
+    override suspend fun setShuffleEnabled(enabled: Boolean) {
+        if (enabled && !shuffleEnabled.value) {
             database.queueQueries.transaction {
                 database.queueQueries.shuffleOrder()
             }
         }
-        orderMode.emit(mode)
-        saveOrder(mode)
+        shuffleEnabled.emit(enabled)
+        preferences.saveBoolean(SHUFFLE_KEY, enabled)
+        preferences.saveBoolean(SHUFFLE_MIGRATED_KEY, true)
+    }
+
+    override suspend fun setRepeatMode(mode: PlaybackQueueStorage.RepeatMode) {
+        repeatMode.emit(mode)
+        preferences.saveInt(REPEAT_KEY, mode.toInt())
     }
 
     override suspend fun addSongs(items: List<Song.Id>) {
@@ -121,12 +128,13 @@ class PlaybackQueueStorageImpl(
     }
 
     private fun getPlaybackOrderedQueue(): List<QueueItem> {
-        return when (orderMode.value) {
-            PlaybackQueueStorage.OrderMode.Normal -> database.queueQueries.selectAllById(
+        return if (shuffleEnabled.value) {
+            database.queueQueries.selectAllByOrder(
                 limit = 10000,
                 mapper = queueMapper
             )
-            PlaybackQueueStorage.OrderMode.Random -> database.queueQueries.selectAllByOrder(
+        } else {
+            database.queueQueries.selectAllById(
                 limit = 10000,
                 mapper = queueMapper
             )
@@ -134,56 +142,71 @@ class PlaybackQueueStorageImpl(
     }
 
     private suspend fun resetAndPlayFirst() {
-        database.queueQueries.shuffleOrder()
-        database.queueQueries.updateStatusForAll(QueueItem.State.Pending)
-        when (orderMode.value) {
-            PlaybackQueueStorage.OrderMode.Normal -> database.queueQueries.selectAllById(
-                limit = 1,
-                mapper = idMapper
-            )
-            PlaybackQueueStorage.OrderMode.Random -> database.queueQueries.selectAllByOrder(
-                limit = 1,
-                mapper = idMapper
-            )
-        }.executeAsOneOrNull()?.let { id ->
-            database.queueQueries.updateStatus(status = QueueItem.State.Playing, id = id)
+        database.queueQueries.transaction {
+            if (shuffleEnabled.value) {
+                database.queueQueries.shuffleOrder()
+            }
+            database.queueQueries.updateStatusForAll(QueueItem.State.Pending)
+            val firstId = if (shuffleEnabled.value) {
+                database.queueQueries.selectAllByOrder(limit = 1, mapper = idMapper)
+            } else {
+                database.queueQueries.selectAllById(limit = 1, mapper = idMapper)
+            }.executeAsOneOrNull()
+            firstId?.let { id ->
+                database.queueQueries.updateStatus(status = QueueItem.State.Playing, id = id)
+            }
         }
     }
 
     private suspend fun resetAndPlayLast() {
-        database.queueQueries.shuffleOrder()
-        database.queueQueries.updateStatusForAll(QueueItem.State.Finish)
-        when (orderMode.value) {
-            PlaybackQueueStorage.OrderMode.Normal -> database.queueQueries.selectAllByIdLast(
-                limit = 1,
-                mapper = idMapper
-            )
-            PlaybackQueueStorage.OrderMode.Random -> database.queueQueries.selectAllByOrderLast(
-                limit = 1,
-                mapper = idMapper
-            )
-        }.executeAsOneOrNull()?.let { id ->
-            database.queueQueries.updateStatus(status = QueueItem.State.Playing, id = id)
+        database.queueQueries.transaction {
+            if (shuffleEnabled.value) {
+                database.queueQueries.shuffleOrder()
+            }
+            database.queueQueries.updateStatusForAll(QueueItem.State.Finish)
+            val lastId = if (shuffleEnabled.value) {
+                database.queueQueries.selectAllByOrderLast(limit = 1, mapper = idMapper)
+            } else {
+                database.queueQueries.selectAllByIdLast(limit = 1, mapper = idMapper)
+            }.executeAsOneOrNull()
+            lastId?.let { id ->
+                database.queueQueries.updateStatus(status = QueueItem.State.Playing, id = id)
+            }
         }
     }
 
-    private fun getOrder(): PlaybackQueueStorage.OrderMode = preferences.loadInt(ORDER_KEY, -1).toOrderMode()
-
-    private fun saveOrder(orderMode: PlaybackQueueStorage.OrderMode) {
-        preferences.saveInt(ORDER_KEY, orderMode.toInt())
+    private fun readShuffleEnabled(): Boolean {
+        if (!preferences.loadBoolean(SHUFFLE_MIGRATED_KEY, false)) {
+            val legacyShuffle = preferences.loadInt(LEGACY_ORDER_KEY, LEGACY_ORDER_NORMAL) == LEGACY_ORDER_RANDOM
+            preferences.saveBoolean(SHUFFLE_KEY, legacyShuffle)
+            preferences.saveBoolean(SHUFFLE_MIGRATED_KEY, true)
+            return legacyShuffle
+        }
+        return preferences.loadBoolean(SHUFFLE_KEY, false)
     }
 
-    private fun PlaybackQueueStorage.OrderMode.toInt() = when (this) {
-        PlaybackQueueStorage.OrderMode.Normal -> 10
-        PlaybackQueueStorage.OrderMode.Random -> 20
+    private fun readRepeatMode(): PlaybackQueueStorage.RepeatMode {
+        return preferences.loadInt(REPEAT_KEY, PlaybackQueueStorage.RepeatMode.Off.toInt()).toRepeatMode()
     }
 
-    private fun Int.toOrderMode() = when (this) {
-        20 -> PlaybackQueueStorage.OrderMode.Random
-        else -> PlaybackQueueStorage.OrderMode.Normal
+    private fun PlaybackQueueStorage.RepeatMode.toInt() = when (this) {
+        PlaybackQueueStorage.RepeatMode.Off -> 0
+        PlaybackQueueStorage.RepeatMode.All -> 1
+        PlaybackQueueStorage.RepeatMode.One -> 2
+    }
+
+    private fun Int.toRepeatMode() = when (this) {
+        1 -> PlaybackQueueStorage.RepeatMode.All
+        2 -> PlaybackQueueStorage.RepeatMode.One
+        else -> PlaybackQueueStorage.RepeatMode.Off
     }
 
     private companion object {
-        const val ORDER_KEY = "payback_order"
+        const val LEGACY_ORDER_KEY = "payback_order"
+        const val LEGACY_ORDER_NORMAL = 10
+        const val LEGACY_ORDER_RANDOM = 20
+        const val SHUFFLE_KEY = "playback_shuffle"
+        const val SHUFFLE_MIGRATED_KEY = "playback_shuffle_migrated"
+        const val REPEAT_KEY = "playback_repeat"
     }
 }

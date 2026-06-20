@@ -28,7 +28,8 @@ interface BasePlayerComponent {
     val position: StateFlow<Position>
     val fraction: StateFlow<Float>
     val state: StateFlow<State>
-    val isNormal: StateFlow<Boolean>
+    val shuffleEnabled: StateFlow<Boolean>
+    val repeatMode: StateFlow<RepeatMode>
     val playbackEqualizer: PlaybackEqualizer
     val appPlaybackVolume: AppPlaybackVolume?
 
@@ -40,7 +41,8 @@ interface BasePlayerComponent {
     fun seekBack1Minute()
     fun seekForward15Seconds()
     fun seekForward1Minute()
-    fun switchMode(isNormal: Boolean)
+    fun toggleShuffle()
+    fun cycleRepeat()
     fun seekTo(fraction: Float)
     fun onSeekCommitted(fraction: Float) = Unit
     fun returnToQueue() = Unit
@@ -70,8 +72,10 @@ internal class BasePlayerComponentImpl(
     override val state = MutableStateFlow(State.Paused)
     override val position = MutableStateFlow(Position("", "", ""))
     override val fraction = MutableStateFlow(0f)
-    override val isNormal: StateFlow<Boolean> = basePlaybackController.orderMode
-        .stateIn(this, started = SharingStarted.WhileSubscribed(), initialValue = true)
+    override val shuffleEnabled: StateFlow<Boolean> = basePlaybackController.shuffleEnabled
+        .stateIn(this, started = SharingStarted.WhileSubscribed(), initialValue = false)
+    override val repeatMode: StateFlow<RepeatMode> = basePlaybackController.repeatMode
+        .stateIn(this, started = SharingStarted.WhileSubscribed(), initialValue = RepeatMode.Off)
 
     init {
         launch {
@@ -176,9 +180,14 @@ internal class BasePlayerComponentImpl(
         seekBy(60_000L)
     }
 
-    override fun switchMode(isNormal: Boolean) {
+    override fun toggleShuffle() {
         eventAnalytics.trackEvent(CommonEvents.Action.PlayerShuffleToggle)
-        basePlaybackController.setOrderMode(isNormal)
+        basePlaybackController.toggleShuffle()
+    }
+
+    override fun cycleRepeat() {
+        eventAnalytics.trackEvent(CommonEvents.Action.PlayerRepeatCycle)
+        basePlaybackController.cycleRepeat()
     }
 
     override fun returnToQueue() {

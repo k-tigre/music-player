@@ -8,6 +8,8 @@ import by.tigre.music.player.core.data.storage.playback_queue.di.DesktopPlayback
 import by.tigre.media.platform.preferences.di.DesktopPreferencesModule
 import by.tigre.media.platform.player.component.BasePlaybackController
 import by.tigre.media.platform.player.component.PlayerItem
+import by.tigre.media.platform.player.component.RepeatMode
+import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.media.platform.player.di.PlayerDependency
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueDependency
@@ -46,14 +48,22 @@ class DesktopApplicationGraph(
                     )
                 }
             }
-            override val orderMode = controller.orderMode
+            override val shuffleEnabled = controller.shuffleEnabled
+            override val repeatMode = controller.repeatMode.map { it.toUiRepeatMode() }
             override fun playNext() = controller.playNext()
             override fun playPrev() = controller.playPrev()
             override fun pause() = controller.pause()
             override fun resume() = controller.resume()
             override fun stop() = controller.stop()
-            override fun setOrderMode(isNormal: Boolean) = controller.setOrderMode(isNormal)
+            override fun toggleShuffle() = controller.toggleShuffle()
+            override fun cycleRepeat() = controller.cycleRepeat()
         }
+    }
+
+    private fun PlaybackQueueStorage.RepeatMode.toUiRepeatMode(): RepeatMode = when (this) {
+        PlaybackQueueStorage.RepeatMode.Off -> RepeatMode.Off
+        PlaybackQueueStorage.RepeatMode.All -> RepeatMode.All
+        PlaybackQueueStorage.RepeatMode.One -> RepeatMode.One
     }
 
     suspend fun addCatalogFolder(folder: File) = desktopCatalogModule.addFolder(folder)

@@ -28,7 +28,9 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.outlined.LibraryMusic
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.DropdownMenu
@@ -48,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -56,6 +59,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import by.tigre.media.platform.player.component.BasePlayerComponent
+import by.tigre.media.platform.player.component.RepeatMode
 import by.tigre.media.platform.player.component.PlayerComponent
 import by.tigre.media.platform.player.component.PlayerItem
 import by.tigre.media.platform.tools.platform.compose.ComposableView
@@ -159,9 +163,13 @@ class PlayerView(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
         ) {
+            val coverPlaceholder = rememberVectorPainter(config.coverFallbackIcon)
             AsyncImage(
                 model = if (item.isExternal) null else item.coverUri,
                 contentDescription = "",
+                placeholder = coverPlaceholder,
+                error = coverPlaceholder,
+                fallback = coverPlaceholder,
                 modifier = Modifier
                     .padding(top = 48.dp)
                     .fillMaxWidth()
@@ -247,6 +255,22 @@ class PlayerView(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             val state = component.state.collectAsState()
+            val shuffleEnabled = component.shuffleEnabled.collectAsState().value
+            val repeatMode = component.repeatMode.collectAsState().value
+            val repeatActive = repeatMode != RepeatMode.Off
+
+            if (showOrderMode) {
+                PlaybackModeIconButton(
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    onClick = component::toggleShuffle,
+                    active = shuffleEnabled,
+                    imageVector = Icons.Default.Shuffle,
+                    iconSize = 28.dp,
+                    containerSize = 48.dp,
+                )
+            } else {
+                Spacer(modifier = Modifier.size(56.dp))
+            }
 
             Spacer(modifier = Modifier.weight(1f))
             IconButton(
@@ -298,20 +322,19 @@ class PlayerView(
             Spacer(modifier = Modifier.weight(1f))
 
             if (showOrderMode) {
-                val isNormal = component.isNormal.collectAsState().value
-
-                IconButton(
+                PlaybackModeIconButton(
                     modifier = Modifier.align(Alignment.CenterVertically),
-                    onClick = { component.switchMode(isNormal.not()) }
-                ) {
-                    Icon(
-                        contentDescription = null,
-                        imageVector = if (isNormal) Icons.Default.Repeat else Icons.Default.Shuffle,
-                        modifier = Modifier
-                            .size(56.dp)
-                            .padding(4.dp)
-                    )
-                }
+                    onClick = component::cycleRepeat,
+                    active = repeatActive,
+                    imageVector = when (repeatMode) {
+                        RepeatMode.One -> Icons.Default.RepeatOne
+                        RepeatMode.All, RepeatMode.Off -> Icons.Default.Repeat
+                    },
+                    iconSize = 28.dp,
+                    containerSize = 48.dp,
+                )
+            } else {
+                Spacer(modifier = Modifier.size(56.dp))
             }
         }
     }
@@ -442,7 +465,7 @@ class PlayerView(
         val emptyScreenTitle: String,
         val emptyScreenMessage: String,
         val emptyScreenActionTitle: String,
-        val coverFallbackIcon: Int,
+        val coverFallbackIcon: ImageVector = Icons.Outlined.LibraryMusic,
         val showOrderModeButton: Boolean = true,
         val actionsMode: ActionsMode = ActionsMode.ChapterButtons,
         val seekBack1MinuteLabel: String = "-1m",

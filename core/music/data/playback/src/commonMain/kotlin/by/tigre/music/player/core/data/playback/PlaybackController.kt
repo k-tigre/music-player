@@ -4,6 +4,7 @@ import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.Song
+import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
 import by.tigre.music.player.core.entiry.playback.PlaybackInterruption
 import by.tigre.music.player.core.entiry.playback.PlayableItem
 import by.tigre.music.player.core.entiry.playback.SongInQueueItem
@@ -19,7 +20,8 @@ interface PlaybackController {
     val player: PlaybackPlayer
     val currentItem: StateFlow<Song?>
     val currentQueue: Flow<List<SongInQueueItem>>
-    val orderMode: Flow<Boolean>
+    val shuffleEnabled: Flow<Boolean>
+    val repeatMode: Flow<PlaybackQueueStorage.RepeatMode>
     /** Whether the playback engine is actively playing (not paused or idle). */
     val isPlaying: StateFlow<Boolean>
     val activePlaybackSource: StateFlow<ActivePlaybackSource>
@@ -38,7 +40,8 @@ interface PlaybackController {
     fun addSongToPlay(id: Song.Id)
     fun playArtist(id: Artist.Id)
     fun addArtistToPlay(id: Artist.Id)
-    fun setOrderMode(isNormal: Boolean)
+    fun toggleShuffle()
+    fun cycleRepeat()
     fun removeSongsFromQueue(ids: List<Song.Id>)
     fun playExternal(item: PlayableItem.ExternalAudio)
     fun resumeInterruptedSession()

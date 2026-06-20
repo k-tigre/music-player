@@ -99,7 +99,8 @@ internal class PlaybackControllerImpl(
             }
         }.stateIn(scope, SharingStarted.WhileSubscribed(), initialValue = emptyList())
 
-    override val orderMode: Flow<Boolean> = storage.orderMode.map { it == PlaybackQueueStorage.OrderMode.Normal }
+    override val shuffleEnabled: Flow<Boolean> = storage.shuffleEnabled
+    override val repeatMode: Flow<PlaybackQueueStorage.RepeatMode> = storage.repeatMode
 
     init {
         scope.launch {
@@ -134,8 +135,19 @@ internal class PlaybackControllerImpl(
                             storage.playSongs(catalog.getSongsByArtist(action.artistId).map(Song::id))
                         }
 
-                        is Action.ChangeOrderMode -> {
-                            storage.setOrderMode(if (action.isNormal) PlaybackQueueStorage.OrderMode.Normal else PlaybackQueueStorage.OrderMode.Random)
+                        is Action.ToggleShuffle -> {
+                            val enabled = storage.shuffleEnabled.first()
+                            storage.setShuffleEnabled(!enabled)
+                        }
+
+                        is Action.CycleRepeat -> {
+                            val current = storage.repeatMode.first()
+                            val next = when (current) {
+                                PlaybackQueueStorage.RepeatMode.Off -> PlaybackQueueStorage.RepeatMode.All
+                                PlaybackQueueStorage.RepeatMode.All -> PlaybackQueueStorage.RepeatMode.One
+                                PlaybackQueueStorage.RepeatMode.One -> PlaybackQueueStorage.RepeatMode.Off
+                            }
+                            storage.setRepeatMode(next)
                         }
 
                         Action.PlayNext -> storage.playNext()
@@ -154,7 +166,7 @@ internal class PlaybackControllerImpl(
                 .collect {
                     when (activeSource.value) {
                         is ActivePlaybackSource.Overlay -> resumeInterruptedSession()
-                        is ActivePlaybackSource.Session -> playNext()
+                        is ActivePlaybackSource.Session -> handleSessionEnded()
                     }
                 }
         }
@@ -244,8 +256,12 @@ internal class PlaybackControllerImpl(
         }
     }
 
-    override fun setOrderMode(isNormal: Boolean) {
-        action.tryEmit(Action.ChangeOrderMode(isNormal))
+    override fun toggleShuffle() {
+        action.tryEmit(Action.ToggleShuffle)
+    }
+
+    override fun cycleRepeat() {
+        action.tryEmit(Action.CycleRepeat)
     }
 
     override fun playNext() {
@@ -403,6 +419,19 @@ internal class PlaybackControllerImpl(
         }
     }
 
+    private suspend fun handleSessionEnded() {
+        when (storage.repeatMode.first()) {
+            PlaybackQueueStorage.RepeatMode.One -> {
+                player.seekTo(0)
+                setShouldPlay(true)
+            }
+
+            PlaybackQueueStorage.RepeatMode.All -> action.emit(Action.PlayNext)
+
+            PlaybackQueueStorage.RepeatMode.Off -> setShouldPlay(false)
+        }
+    }
+
     private fun clearOverlayState() {
         overlayItem.value = null
         interruptionState.value = null
@@ -436,6 +465,7 @@ internal class PlaybackControllerImpl(
         data class AddSongToQueue(val songId: Song.Id) : Action
         data class PlayArtist(val artistId: Artist.Id) : Action
         data class AddArtistToQueue(val artistId: Artist.Id) : Action
-        data class ChangeOrderMode(val isNormal: Boolean) : Action
+        data object ToggleShuffle : Action
+        data object CycleRepeat : Action
     }
 }

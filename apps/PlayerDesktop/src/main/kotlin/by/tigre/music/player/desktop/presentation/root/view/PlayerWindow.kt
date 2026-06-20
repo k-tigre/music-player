@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
@@ -42,6 +43,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import by.tigre.media.platform.player.component.BasePlayerComponent
+import by.tigre.media.platform.player.component.RepeatMode
+import by.tigre.media.platform.player.view.PlaybackModeIconButton
 import by.tigre.media.platform.player.view.PlayerProgressSlider
 import by.tigre.music.player.desktop.resources.Res
 import by.tigre.music.player.desktop.resources.desktop_no_track
@@ -71,7 +74,9 @@ internal fun PlayerWindowContent(
     val state by player.state.collectAsState()
     val fraction by player.fraction.collectAsState()
     val position by player.position.collectAsState()
-    val isNormal by player.isNormal.collectAsState()
+    val shuffleEnabled by player.shuffleEnabled.collectAsState()
+    val repeatMode by player.repeatMode.collectAsState()
+    val repeatActive = repeatMode != RepeatMode.Off
     val eqAvailable by player.playbackEqualizer.isAvailable.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -178,17 +183,16 @@ internal fun PlayerWindowContent(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
-                onClick = { player.switchMode(!isNormal) },
-                modifier = Modifier.size(36.dp)
-            ) {
-                Icon(
-                    imageVector = if (isNormal) Icons.Default.Repeat else Icons.Default.Shuffle,
-                    contentDescription = null,
-                    tint = if (isNormal) DesktopSubText else DesktopGreen,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
+            PlaybackModeIconButton(
+                onClick = player::toggleShuffle,
+                active = shuffleEnabled,
+                imageVector = Icons.Default.Shuffle,
+                iconSize = 18.dp,
+                containerSize = 32.dp,
+                activeIconTint = DesktopGreen,
+                activeBackground = DesktopGreen.copy(alpha = 0.22f),
+                inactiveIconTint = DesktopSubText.copy(alpha = 0.35f),
+            )
 
             Spacer(Modifier.width(4.dp))
 
@@ -237,6 +241,22 @@ internal fun PlayerWindowContent(
                     modifier = Modifier.size(24.dp)
                 )
             }
+
+            Spacer(Modifier.width(4.dp))
+
+            PlaybackModeIconButton(
+                onClick = player::cycleRepeat,
+                active = repeatActive,
+                imageVector = when (repeatMode) {
+                    RepeatMode.One -> Icons.Default.RepeatOne
+                    RepeatMode.All, RepeatMode.Off -> Icons.Default.Repeat
+                },
+                iconSize = 18.dp,
+                containerSize = 32.dp,
+                activeIconTint = DesktopGreen,
+                activeBackground = DesktopGreen.copy(alpha = 0.22f),
+                inactiveIconTint = DesktopSubText.copy(alpha = 0.35f),
+            )
 
             Spacer(Modifier.width(4.dp))
 

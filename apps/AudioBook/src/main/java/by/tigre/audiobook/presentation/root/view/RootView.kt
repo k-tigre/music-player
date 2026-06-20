@@ -80,7 +80,6 @@ class RootView(
                                 emptyScreenTitle = "No book selected",
                                 emptyScreenMessage = "Select a book to listen to",
                                 emptyScreenActionTitle = "Select from catalog",
-                                coverFallbackIcon = R.drawable.ic_launcher_foreground,
                                 showOrderModeButton = false,
                                 actionsMode = PlayerView.ActionsMode.SeekButtons,
                                 seekBack1MinuteLabel = stringResource(R.string.player_seek_back_1_minute),
