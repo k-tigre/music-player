@@ -48,6 +48,7 @@ internal class PlaybackControllerImpl(
     private val interruptionState = MutableStateFlow<PlaybackInterruption?>(null)
     private val overlayItem = MutableStateFlow<PlayableItem.ExternalAudio?>(null)
     private var pendingSessionSeekMs: Long? = null
+    private var sessionMediaLoadedForQueueEntryId: Long? = null
 
     override val activePlaybackSource: StateFlow<ActivePlaybackSource> = activeSource.asStateFlow()
     override val interruption: StateFlow<PlaybackInterruption?> = interruptionState.asStateFlow()
@@ -185,10 +186,15 @@ internal class PlaybackControllerImpl(
             }.collect { item ->
                 if (item != null) {
                     val seek = pendingSessionSeekMs ?: 0L
-                    pendingSessionSeekMs = null
-                    player.setMediaItem(songToMediaItem(item.song), seek)
+                    val needsMediaLoad = sessionMediaLoadedForQueueEntryId != item.id || seek > 0L
+                    if (needsMediaLoad) {
+                        pendingSessionSeekMs = null
+                        sessionMediaLoadedForQueueEntryId = item.id
+                        player.setMediaItem(songToMediaItem(item.song), seek)
+                    }
                     applyPlayback()
                 } else if (activeSource.value is ActivePlaybackSource.Session) {
+                    sessionMediaLoadedForQueueEntryId = null
                     player.stop()
                 }
             }
@@ -222,13 +228,15 @@ internal class PlaybackControllerImpl(
         Log.d("PlaybackController") { "resumeInterruptedSession" }
         scope.launch {
             val snapshot = interruptionState.value
+            if (snapshot != null) {
+                pendingSessionSeekMs = snapshot.resumePoint.positionMs
+                storage.playSongInQueue(snapshot.resumePoint.queueEntryId)
+            }
             overlayItem.value = null
             activeSource.value = ActivePlaybackSource.Session
             interruptionState.value = null
 
             if (snapshot != null) {
-                pendingSessionSeekMs = snapshot.resumePoint.positionMs
-                storage.playSongInQueue(snapshot.resumePoint.queueEntryId)
                 setShouldPlay(snapshot.wasPlaying)
             } else {
                 setShouldPlay(false)
@@ -384,7 +392,9 @@ internal class PlaybackControllerImpl(
                 }
                 when (player.state.value) {
                     PlaybackPlayer.State.Idle -> {
-                        player.setMediaItem(songToMediaItem(song), 0)
+                        val seek = pendingSessionSeekMs ?: 0L
+                        pendingSessionSeekMs = null
+                        player.setMediaItem(songToMediaItem(song), seek)
                         player.resume()
                     }
                     else -> player.resume()
