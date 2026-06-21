@@ -13,6 +13,8 @@ import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStora
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.media.platform.player.di.PlayerDependency
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueDependency
+import by.tigre.music.player.core.data.playlist.di.PlaylistModule
+import by.tigre.music.player.core.presentation.playlist.library.di.PlaylistsDependency
 import by.tigre.media.platform.tools.analytics.LogTracker
 import by.tigre.media.platform.tools.analytics.music.MusicAnalyticsModuleImpl
 import by.tigre.media.platform.tools.analytics.music.MusicAnalyticsModule
@@ -22,14 +24,25 @@ import java.io.File
 
 class DesktopApplicationGraph(
     playbackModule: PlaybackModule,
+    playbackQueueModule: DesktopPlaybackQueueModule,
     private val desktopCatalogModule: DesktopCatalogModule,
     analyticsModule: MusicAnalyticsModule,
 ) : CatalogDependency,
     PlayerDependency,
     CurrentQueueDependency,
+    PlaylistsDependency,
+    PlaylistModule,
     MusicAnalyticsModule by analyticsModule,
     PlaybackModule by playbackModule,
     CatalogModule by desktopCatalogModule {
+
+    private val playlistModule = PlaylistModule.Impl(playbackQueueModule, desktopCatalogModule)
+
+    override val playlistRepository
+        get() = playlistModule.playlistRepository
+
+    override val addToPlaylistCoordinator
+        get() = playlistModule.addToPlaylistCoordinator
 
     override val appPlaybackVolume = playbackModule.appPlaybackVolume
 
@@ -83,7 +96,12 @@ class DesktopApplicationGraph(
                 coroutineModule = coroutineModule,
             )
 
-            return DesktopApplicationGraph(playbackModule, desktopCatalogModule, analyticsModule)
+            return DesktopApplicationGraph(
+                playbackModule = playbackModule,
+                playbackQueueModule = playbackQueueModule,
+                desktopCatalogModule = desktopCatalogModule,
+                analyticsModule = analyticsModule
+            )
         }
     }
 }

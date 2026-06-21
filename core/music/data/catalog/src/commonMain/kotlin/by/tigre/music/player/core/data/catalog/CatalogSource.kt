@@ -17,6 +17,8 @@ interface CatalogSource {
     suspend fun getSongsByArtist(artistId: Artist.Id): List<Song>
     suspend fun getSongsByAlbum(artistId: Artist.Id, albumId: Album.Id): List<Song>
     suspend fun getSongsByIds(ids: List<Song.Id>): List<Song>
+    /** For playlist resolution; includes hidden-but-existing tracks. Preserves input order. */
+    suspend fun resolveSongsByIds(ids: List<Song.Id>): List<Song>
     suspend fun getSongById(id: Song.Id): Song?
     suspend fun search(query: String): CatalogSearchResult
     suspend fun hideSong(id: Song.Id)

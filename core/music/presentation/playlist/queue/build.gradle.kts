@@ -36,6 +36,7 @@ kotlin {
             implementation(project(Project.Tools.Coroutines.name))
             implementation(project(Project.Tools.Analytics.Music.name))
             implementation(project(Project.Core.Music.Data.Playback.name))
+            implementation(project(Project.Core.Music.Data.Playlist.name))
             implementation(project(Project.Core.Music.Data.Catalog.name))
             implementation(project(Project.Core.Music.Entity.Catalog.name))
             implementation(project(Project.Core.Music.Entity.Playback.name))

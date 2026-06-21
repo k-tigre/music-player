@@ -40,12 +40,15 @@ dependencies {
     implementation(project(Project.Core.Music.Entity.Playback.name))
     implementation(project(Project.Core.Music.Data.Catalog.name))
     implementation(project(Project.Core.Music.Data.Playback.name))
+    implementation(project(Project.Core.Music.Entity.Playlist.name))
     implementation(project(Project.Core.Data.Storage.Preferences.name))
     implementation(project(Project.Core.Music.Data.Storage.Database.name))
 
     implementation(project(Project.Core.Base.Presentation.Player.name))
     implementation(project(Project.Core.Music.Presentation.Catalog.name))
     implementation(project(Project.Core.Music.Presentation.PlaylistCurrentQueue.name))
+    implementation(project(Project.Core.Music.Presentation.PlaylistLibrary.name))
+    implementation(project(Project.Core.Music.Data.Playlist.name))
 }
 
 compose {

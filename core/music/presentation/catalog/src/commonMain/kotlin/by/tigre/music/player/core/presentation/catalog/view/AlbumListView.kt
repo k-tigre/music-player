@@ -145,6 +145,9 @@ class AlbumListView(
                         popupActions = listOf(
                             PopupAction(stringResource(Res.string.action_play)) { component.onPlayAlbumClicked(album) },
                             PopupAction(stringResource(Res.string.action_add_to_queue)) { component.onAddToPlayAlbumClicked(album) },
+                            PopupAction(stringResource(Res.string.action_add_to_playlist)) {
+                                component.onAddAlbumToPlaylistClicked(album)
+                            },
                             PopupAction(stringResource(Res.string.action_delete)) { component.onRemoveAlbumClicked(album) },
                         ),
                         descriptions = listOf(

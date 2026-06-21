@@ -7,6 +7,8 @@
     <string name="queue_track_meta">%1$s / %2$s</string>
     <string name="queue_action_open_artist">К исполнителю</string>
     <string name="queue_action_open_album">К альбому</string>
+    <string name="action_add_to_playlist">В плейлист</string>
+    <string name="queue_add_tracks_to_playlist_count">Добавить %1$d трек в плейлист</string>
     <string name="queue_section_now_playing">Сейчас</string>
     <string name="queue_section_on_hold">На паузе</string>
     <string name="queue_overlay_external_fallback">Внешний файл</string>

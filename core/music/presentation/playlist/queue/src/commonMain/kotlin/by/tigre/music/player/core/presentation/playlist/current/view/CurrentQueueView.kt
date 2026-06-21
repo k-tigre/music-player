@@ -41,6 +41,7 @@ import by.tigre.music.player.core.data.catalog.AlbumArtProvider
 import by.tigre.music.player.core.entiry.playback.NowPlayingQueueEntry
 import by.tigre.music.player.core.entiry.playback.NowPlayingScreenModel
 import by.tigre.music.player.core.entiry.playback.OverlayQueueEntry
+import by.tigre.music.player.core.entiry.playback.SongInQueueItem
 import by.tigre.music.player.core.presentation.playlist.current.component.CurrentQueueComponent
 import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.tools.platform.compose.ComposableView
@@ -277,6 +278,15 @@ class CurrentQueueView(
                 },
                 PopupAction(stringResource(Res.string.queue_action_open_album)) {
                     component.onOpenAlbumClicked(entry)
+                },
+                PopupAction(stringResource(Res.string.action_add_to_playlist)) {
+                    component.onAddToPlaylistClicked(
+                        SongInQueueItem(
+                            id = entry.id,
+                            song = entry.song,
+                            isPlaying = entry.isPlaying,
+                        )
+                    )
                 },
             ),
             descriptions = buildList {

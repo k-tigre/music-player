@@ -187,6 +187,9 @@ class ArtistListView(
             popupActions = listOf(
                 PopupAction(stringResource(Res.string.action_play)) { component.onPlayArtistClicked(artist) },
                 PopupAction(stringResource(Res.string.action_add_to_queue)) { component.onAddToPlayArtistClicked(artist) },
+                PopupAction(stringResource(Res.string.action_add_to_playlist)) {
+                    component.onAddArtistToPlaylistClicked(artist)
+                },
             ),
             descriptions = listOf(
                 stringResource(Res.string.catalog_artist_albums_count, artist.albumCount),

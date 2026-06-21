@@ -1,11 +1,16 @@
 package by.tigre.music.player.core.presentation.playlist.current.component
 
 import by.tigre.music.player.core.data.playback.PlaybackController
+import by.tigre.music.player.core.data.playlist.AddToPlaylistCoordinator
+import by.tigre.music.player.core.data.playlist.AddToPlaylistRequest
 import by.tigre.music.player.core.entiry.playback.NowPlayingQueueEntry
 import by.tigre.music.player.core.entiry.playback.NowPlayingScreenModel
 import by.tigre.music.player.core.entiry.playback.OverlayQueueEntry
+import by.tigre.music.player.core.entiry.playback.SongInQueueItem
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueDependency
 import by.tigre.music.player.core.presentation.playlist.current.navigation.QueueNavigator
+import `by`.tigre.music.player.core.presentation.queue.resources.Res
+import `by`.tigre.music.player.core.presentation.queue.resources.*
 import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.media.platform.tools.analytics.music.MusicEventAnalytics
 import by.tigre.media.platform.tools.analytics.music.MusicEvents
@@ -19,6 +24,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 
 interface CurrentQueueComponent {
 
@@ -32,6 +38,7 @@ interface CurrentQueueComponent {
     fun onAddToQueueClicked()
     fun onOpenArtistClicked(entry: NowPlayingQueueEntry)
     fun onOpenAlbumClicked(entry: NowPlayingQueueEntry)
+    fun onAddToPlaylistClicked(entry: SongInQueueItem)
 
     class Impl(
         context: BaseComponentContext,
@@ -40,6 +47,7 @@ interface CurrentQueueComponent {
     ) : CurrentQueueComponent, BaseComponentContext by context {
 
         private val playbackController: PlaybackController = dependency.playbackController
+        private val addToPlaylistCoordinator: AddToPlaylistCoordinator = dependency.addToPlaylistCoordinator
         private val eventAnalytics: MusicEventAnalytics = dependency.eventAnalytics
 
         private val _scrollToPlayingTrackEvents = MutableSharedFlow<Int>(extraBufferCapacity = 1)
@@ -148,6 +156,17 @@ interface CurrentQueueComponent {
         override fun onOpenAlbumClicked(entry: NowPlayingQueueEntry) {
             eventAnalytics.trackEvent(MusicEvents.Action.QueueOpenAlbum)
             navigator.onOpenAlbum(entry.song.artistId, entry.song.albumId)
+        }
+
+        override fun onAddToPlaylistClicked(entry: SongInQueueItem) {
+            launch {
+                addToPlaylistCoordinator.show(
+                    AddToPlaylistRequest(
+                        songIds = listOf(entry.song.id),
+                        previewText = getString(Res.string.queue_add_tracks_to_playlist_count, 1),
+                    )
+                )
+            }
         }
     }
 }

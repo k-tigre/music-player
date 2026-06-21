@@ -10,9 +10,13 @@ import by.tigre.media.platform.player.navigation.PlayerNavigator
 import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
+import by.tigre.music.player.core.entiry.playlist.Playlist
 import by.tigre.music.player.core.presentation.playlist.current.component.CurrentQueueComponent
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueComponentProvider
 import by.tigre.music.player.core.presentation.playlist.current.navigation.QueueNavigator
+import by.tigre.music.player.core.presentation.playlist.library.component.RootPlaylistsComponent
+import by.tigre.music.player.core.presentation.playlist.library.di.PlaylistsComponentProvider
+import by.tigre.music.player.core.presentation.playlist.library.navigation.PlaylistsNavigator
 import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.media.platform.presentation.appChildContext
 import by.tigre.media.platform.presentation.appChildStack
@@ -55,6 +59,7 @@ interface Root {
     sealed interface PageComponentChild {
         class Queue(val component: CurrentQueueComponent) : PageComponentChild
         class Catalog(val component: RootCatalogComponent) : PageComponentChild
+        class Playlists(val component: RootPlaylistsComponent) : PageComponentChild
     }
 
     sealed interface MainComponentChild {
@@ -70,6 +75,7 @@ interface Root {
         catalogComponentProvider: CatalogComponentProvider,
         playerComponentProvider: PlayerComponentProvider,
         currentQueueComponent: CurrentQueueComponentProvider,
+        playlistsComponentProvider: PlaylistsComponentProvider,
     ) : Root, BaseComponentContext by context {
 
         private val eventAnalytics = dependency.eventAnalytics
@@ -143,6 +149,28 @@ interface Root {
             }
         }
 
+        private val playlistsNavigator = object : PlaylistsNavigator {
+            override fun openDetail(id: Playlist.Id) = Unit
+
+            override fun showPreviousScreen() = Unit
+
+            override fun openArtist(id: Artist.Id) {
+                selectPage(1)
+                catalogComponent.navigateToArtist(id)
+            }
+
+            override fun openAlbum(artistId: Artist.Id, albumId: Album.Id) {
+                selectPage(1)
+                catalogComponent.navigateToAlbum(artistId, albumId)
+            }
+        }
+
+        private val playlistsComponent: RootPlaylistsComponent =
+            playlistsComponentProvider.createRootPlaylistsComponent(
+                context = appChildContext("playlists"),
+                navigator = playlistsNavigator,
+            )
+
         override val pages: Value<ChildStack<*, PageComponentChild>> =
             appChildStack(
                 source = pagesNavigation,
@@ -157,6 +185,7 @@ interface Root {
             ) { config, componentContext ->
                 when (config) {
                     PagesConfig.Catalog -> PageComponentChild.Catalog(catalogComponent)
+                    PagesConfig.Playlists -> PageComponentChild.Playlists(playlistsComponent)
 
                     PagesConfig.Queue -> PageComponentChild.Queue(
                         currentQueueComponent.createCurrentQueueComponent(
@@ -208,6 +237,13 @@ interface Root {
                     }
                     pagesNavigation.bringToFront(PagesConfig.Catalog)
                 }
+
+                2 -> {
+                    if (pages.value.active.configuration != PagesConfig.Playlists) {
+                        eventAnalytics.trackEvent(MusicEvents.Action.NavOpenPlaylists)
+                    }
+                    pagesNavigation.bringToFront(PagesConfig.Playlists)
+                }
             }
         }
 
@@ -234,6 +270,7 @@ interface Root {
                     when (it) {
                         PagesConfig.Queue -> MusicEvents.Screen.Queue
                         PagesConfig.Catalog -> MusicEvents.Screen.CatalogTab
+                        PagesConfig.Playlists -> MusicEvents.Screen.PlaylistsList
                     }
                 }
             }
@@ -259,6 +296,9 @@ interface Root {
 
             @Serializable
             data object Catalog : PagesConfig
+
+            @Serializable
+            data object Playlists : PagesConfig
         }
 
         @Serializable

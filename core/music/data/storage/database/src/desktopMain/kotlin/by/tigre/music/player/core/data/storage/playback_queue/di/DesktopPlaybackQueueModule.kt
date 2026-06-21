@@ -4,11 +4,15 @@ import app.cash.sqldelight.async.coroutines.synchronous
 import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import by.tigre.music.player.core.data.storage.music.DatabaseMusic
+import by.tigre.music.player.core.data.storage.playlist.PlaylistStorage
+import by.tigre.music.player.core.data.storage.playlist.impl.PlaylistKindAdapter
+import by.tigre.music.player.core.data.storage.playlist.impl.PlaylistStorageImpl
 import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
 import by.tigre.music.player.core.data.storage.playback_queue.impl.PlaybackQueueStorageImpl
 import by.tigre.music.player.core.data.storage.playback_queue.impl.QueueStateAdapter
 import by.tigre.media.platform.preferences.di.PreferencesModule
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
+import music.Playlist
 import music.Queue
 import java.io.File
 
@@ -55,7 +59,8 @@ class DesktopPlaybackQueueModule(
         }
         DatabaseMusic(
             driver = driver,
-            QueueAdapter = Queue.Adapter(QueueStateAdapter)
+            QueueAdapter = Queue.Adapter(QueueStateAdapter),
+            PlaylistAdapter = Playlist.Adapter(PlaylistKindAdapter),
         )
     }
 
@@ -64,6 +69,13 @@ class DesktopPlaybackQueueModule(
             database = database,
             scope = coroutineModule.scope,
             preferences = preferencesModule.preferences
+        )
+    }
+
+    override val playlistStorage: PlaylistStorage by lazy {
+        PlaylistStorageImpl(
+            database = database,
+            scope = coroutineModule.scope,
         )
     }
 }

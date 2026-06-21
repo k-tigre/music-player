@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_playlists">Playlists</string>
+    <string name="playlists_empty">No playlists yet</string>
+    <string name="playlist_create">Create playlist</string>
+    <string name="playlist_rename">Rename playlist</string>
+    <string name="playlist_delete_confirm">Delete playlist</string>
+    <string name="playlist_track_unavailable">Track unavailable</string>
+    <string name="playlist_play_all">Play all</string>
+    <string name="playlist_add_all_to_queue">Add all to queue</string>
+    <string name="playlist_remove_track">Remove track</string>
+    <string name="playlist_no_playable_tracks">No playable tracks</string>
+    <string name="playlist_open_artist">Open artist</string>
+    <string name="playlist_open_album">Open album</string>
+    <string name="action_add_to_playlist">Add to playlist</string>
+    <string name="add_to_playlist_preview">Add %1$d tracks</string>
+    <string name="add_to_playlist_create_new">Create new playlist</string>
+    <string name="add_to_playlist_added_snackbar">Added to playlist</string>
+</resources>

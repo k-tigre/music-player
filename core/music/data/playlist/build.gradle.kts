@@ -1,0 +1,34 @@
+plugins {
+    id(Plugin.Id.KotlinMultiplatform.value)
+    id(Plugin.Id.AndroidLibrary.value)
+    id(Plugin.Id.KotlinSerialization.value)
+}
+
+kotlin {
+    androidTarget()
+    jvm("desktop")
+    jvmToolchain(21)
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(Library.KotlinStd.notation)
+            implementation(Library.CoroutinesCore.notation)
+            implementation(project(Project.Tools.Entity.name))
+            implementation(project(Project.Tools.Coroutines.name))
+            implementation(TigreLogger.Artifact.Core.notation)
+            implementation(project(Project.Core.Music.Entity.Catalog.name))
+            implementation(project(Project.Core.Music.Entity.Playlist.name))
+            implementation(project(Project.Core.Music.Data.Storage.Database.name))
+            implementation(project(Project.Core.Music.Data.Catalog.name))
+            implementation(project(Project.Core.Music.Data.Playback.name))
+            api(project(Project.Core.Base.Data.Playback.name))
+        }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
+    }
+}
+
+android {
+    namespace = "by.tigre.music.player.core.music.data.playlist"
+}

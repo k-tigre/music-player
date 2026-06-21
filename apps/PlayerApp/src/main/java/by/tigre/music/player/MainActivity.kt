@@ -21,6 +21,8 @@ import by.tigre.media.platform.player.di.PlayerComponentProvider
 import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueComponentProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
+import by.tigre.music.player.core.presentation.playlist.library.di.PlaylistsComponentProvider
+import by.tigre.music.player.core.presentation.playlist.library.di.PlaylistsViewProvider
 import by.tigre.music.player.core.data.catalog.android.ActivityMediaDeleteHandler
 import by.tigre.music.player.core.data.catalog.android.MediaDeleteHandlerRegistry
 import by.tigre.music.player.platform.ExternalAudioIntentHandler
@@ -51,6 +53,7 @@ class MainActivity : AppCompatActivity() {
             catalogComponentProvider = CatalogComponentProvider.Impl(graph),
             playerComponentProvider = PlayerComponentProvider.Impl(graph),
             currentQueueComponent = CurrentQueueComponentProvider.Impl(graph),
+            playlistsComponentProvider = PlaylistsComponentProvider.Impl(graph),
         )
 
         externalAudioIntentHandler = ExternalAudioIntentHandler(
@@ -80,6 +83,10 @@ class MainActivity : AppCompatActivity() {
                         catalogViewProvider = CatalogViewProvider.Impl(graph.albumArtProvider),
                         playerViewProvider = PlayerViewProvider.Impl(),
                         currentQueueViewProvider = CurrentQueueViewProvider.Impl(graph.albumArtProvider),
+                        playlistsViewProvider = PlaylistsViewProvider.Impl(),
+                        playlistRepository = graph.playlistRepository,
+                        addToPlaylistCoordinator = graph.addToPlaylistCoordinator,
+                        eventAnalytics = graph.eventAnalytics,
                     ).Draw(Modifier)
                 }
             }

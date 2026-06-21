@@ -6,6 +6,7 @@
 
     <string name="desktop_tab_queue">ОЧЕРЕДЬ</string>
     <string name="desktop_tab_library">БИБЛИОТЕКА</string>
+    <string name="desktop_tab_playlists">ПЛЕЙЛИСТЫ</string>
 
     <string name="desktop_no_track">Нет трека</string>
 </resources>

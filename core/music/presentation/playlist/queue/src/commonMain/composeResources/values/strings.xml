@@ -7,6 +7,8 @@
     <string name="queue_track_meta">%1$s / %2$s</string>
     <string name="queue_action_open_artist">Go to artist</string>
     <string name="queue_action_open_album">Go to album</string>
+    <string name="action_add_to_playlist">Add to Playlist</string>
+    <string name="queue_add_tracks_to_playlist_count">Add %1$d track to playlist</string>
     <string name="queue_section_now_playing">Now</string>
     <string name="queue_section_on_hold">On hold</string>
     <string name="queue_overlay_external_fallback">External file</string>

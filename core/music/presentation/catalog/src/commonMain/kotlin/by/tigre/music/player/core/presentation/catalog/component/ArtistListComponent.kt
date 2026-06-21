@@ -1,11 +1,15 @@
 package by.tigre.music.player.core.presentation.catalog.component
 
 import by.tigre.music.player.core.data.catalog.CatalogSource
+import by.tigre.music.player.core.data.playlist.AddToPlaylistCoordinator
+import by.tigre.music.player.core.data.playlist.AddToPlaylistRequest
 import by.tigre.music.player.core.data.playback.PlaybackController
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigator
+import `by`.tigre.music.player.core.presentation.catalog.resources.Res
+import `by`.tigre.music.player.core.presentation.catalog.resources.*
 import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.presentation.ScreenContentStateDelegate
@@ -18,6 +22,8 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 
 interface ArtistListComponent {
 
@@ -30,6 +36,7 @@ interface ArtistListComponent {
     fun onSearchQueryChanged(query: String)
     fun onArtistClicked(artist: Artist)
     fun onAddToPlayArtistClicked(artist: Artist)
+    fun onAddArtistToPlaylistClicked(artist: Artist)
     fun onPlayArtistClicked(artist: Artist)
     fun onSearchSongClicked(song: Song)
     fun onPlaySearchSongClicked(song: Song)
@@ -46,6 +53,7 @@ interface ArtistListComponent {
 
         private val catalogSource: CatalogSource = dependency.catalogSource
         private val playbackController: PlaybackController = dependency.playbackController
+        private val addToPlaylistCoordinator: AddToPlaylistCoordinator = dependency.addToPlaylistCoordinator
         private val eventAnalytics: MusicEventAnalytics = dependency.eventAnalytics
 
         private val _searchQuery = MutableStateFlow("")
@@ -116,6 +124,23 @@ interface ArtistListComponent {
 
         override fun onAddToPlayArtistClicked(artist: Artist) {
             playbackController.addArtistToPlay(artist.id)
+        }
+
+        override fun onAddArtistToPlaylistClicked(artist: Artist) {
+            launch {
+                val songIds = catalogSource.getSongsByArtist(artist.id).map(Song::id)
+                if (songIds.isEmpty()) return@launch
+                addToPlaylistCoordinator.show(
+                    AddToPlaylistRequest(
+                        songIds = songIds,
+                        previewText = getString(
+                            Res.string.catalog_add_tracks_from_artist_preview,
+                            songIds.size,
+                            artist.name
+                        )
+                    )
+                )
+            }
         }
 
         override fun onPlayArtistClicked(artist: Artist) {

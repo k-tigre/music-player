@@ -8,6 +8,7 @@
     <string name="cd_settings">Настройки</string>
     <string name="action_play">Играть</string>
     <string name="action_add_to_queue">В очередь</string>
+    <string name="action_add_to_playlist">В плейлист</string>
     <string name="action_delete">Убрать</string>
     <string name="action_cancel">Отмена</string>
     <string name="action_hide">Спрятать</string>
@@ -22,6 +23,9 @@
     <string name="catalog_album_songs_count">Треков: %1$d</string>
     <string name="catalog_artist_albums_count">Альбомов: %1$d</string>
     <string name="catalog_artist_songs_count">Треков: %1$d</string>
+    <string name="catalog_add_tracks_to_playlist_count">Добавить %1$d трек в плейлист</string>
+    <string name="catalog_add_tracks_from_album_preview">Добавить %1$d треков из «%2$s»</string>
+    <string name="catalog_add_tracks_from_artist_preview">Добавить %1$d треков исполнителя %2$s</string>
     <string name="catalog_track_meta">%1$s / %2$s</string>
     <string name="catalog_empty_artists_message">Треки не найдены. Добавьте mp3 в память устройства, например в папку «Музыка»</string>
 </resources>

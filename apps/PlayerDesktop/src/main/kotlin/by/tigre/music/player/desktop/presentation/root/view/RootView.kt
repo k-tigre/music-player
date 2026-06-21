@@ -6,10 +6,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.WindowState
 import by.tigre.media.platform.player.component.EqualizerComponent
+import by.tigre.music.player.core.data.playlist.AddToPlaylistCoordinator
+import by.tigre.music.player.core.data.playlist.PlaylistRepository
 import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
+import by.tigre.music.player.core.presentation.playlist.library.di.PlaylistsViewProvider
 import by.tigre.music.player.desktop.presentation.root.component.Root
+import by.tigre.media.platform.tools.analytics.music.MusicEventAnalytics
 import by.tigre.music.player.desktop.presentation.theme.DesktopBg
 import by.tigre.music.player.desktop.presentation.theme.DesktopTheme
 import by.tigre.media.platform.tools.platform.compose.ComposableView
@@ -18,6 +22,10 @@ class RootView(
     private val component: Root,
     private val catalogViewProvider: CatalogViewProvider,
     private val currentQueueViewProvider: CurrentQueueViewProvider,
+    private val playlistsViewProvider: PlaylistsViewProvider,
+    private val playlistRepository: PlaylistRepository,
+    private val addToPlaylistCoordinator: AddToPlaylistCoordinator,
+    private val eventAnalytics: MusicEventAnalytics,
     private val playerViewProvider: PlayerViewProvider,
 ) : ComposableView {
 
@@ -63,6 +71,10 @@ class RootView(
                     component = component,
                     catalogViewProvider = catalogViewProvider,
                     currentQueueViewProvider = currentQueueViewProvider,
+                    playlistsViewProvider = playlistsViewProvider,
+                    playlistRepository = playlistRepository,
+                    addToPlaylistCoordinator = addToPlaylistCoordinator,
+                    eventAnalytics = eventAnalytics,
                     windowState = windowState,
                     onClose = onClose,
                 )

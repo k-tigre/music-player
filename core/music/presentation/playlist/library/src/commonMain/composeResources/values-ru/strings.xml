@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_playlists">Плейлисты</string>
+    <string name="playlists_empty">Плейлистов пока нет</string>
+    <string name="playlist_create">Создать плейлист</string>
+    <string name="playlist_rename">Переименовать плейлист</string>
+    <string name="playlist_delete_confirm">Удалить плейлист</string>
+    <string name="playlist_track_unavailable">Трек недоступен</string>
+    <string name="playlist_play_all">Играть всё</string>
+    <string name="playlist_add_all_to_queue">Добавить всё в очередь</string>
+    <string name="playlist_remove_track">Убрать трек</string>
+    <string name="playlist_no_playable_tracks">Нет доступных треков</string>
+    <string name="playlist_open_artist">К исполнителю</string>
+    <string name="playlist_open_album">К альбому</string>
+    <string name="action_add_to_playlist">Добавить в плейлист</string>
+    <string name="add_to_playlist_preview">Добавить %1$d треков</string>
+    <string name="add_to_playlist_create_new">Создать новый плейлист</string>
+    <string name="add_to_playlist_added_snackbar">Добавлено в плейлист</string>
+</resources>

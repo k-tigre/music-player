@@ -50,6 +50,28 @@ object MusicEvents {
         data object CatalogAddAlbumToQueue : Action("music_catalog_add_album_to_queue")
 
         @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("Open playlists tab")
+        data object NavOpenPlaylists : Action("music_nav_open_playlists")
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("Create a new playlist")
+        data object PlaylistCreate : Action("music_playlist_create")
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("Delete a playlist")
+        data object PlaylistDelete : Action("music_playlist_delete")
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("Add tracks to a playlist")
+        data class PlaylistAddTracks(private val count: Int) : Action("music_playlist_add_tracks"), WithPayload {
+            override val payload: Map<String, String> = mapOf("count" to count.toString())
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("Play all tracks in a playlist")
+        data object PlaylistPlayAll : Action("music_playlist_play_all")
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
         @AnalyticsDoc("Select song in current queue")
         data object QueueSongSelected : Action("music_queue_song_selected")
 
@@ -149,6 +171,16 @@ object MusicEvents {
                     "artist_id" to artistId.toString(),
                 )
             }
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("Playlists list tab")
+        data object PlaylistsList : Screen("music_screen_playlists_list")
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("Playlist detail screen")
+        data class PlaylistDetail(private val playlistId: Long) : Screen("music_screen_playlist_detail"), WithPayload {
+            override val payload: Map<String, String> by lazy { mapOf("playlist_id" to playlistId.toString()) }
         }
     }
 }

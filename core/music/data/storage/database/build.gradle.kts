@@ -16,6 +16,7 @@ kotlin {
             implementation(Library.SQLDelightCoroutines.notation)
             implementation(project(Project.Core.Music.Entity.Catalog.name))
             implementation(project(Project.Core.Music.Entity.Playback.name))
+            implementation(project(Project.Core.Music.Entity.Playlist.name))
             implementation(project(Project.Core.Data.Storage.Preferences.name))
             implementation(project(Project.Tools.Entity.name))
             implementation(project(Project.Tools.Coroutines.name))

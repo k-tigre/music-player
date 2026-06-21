@@ -1,0 +1,64 @@
+import by.tigre.music.player.core.entiry.playlist.PlaylistKind;
+
+CREATE TABLE Playlist (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    kind INTEGER AS PlaylistKind NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+);
+
+CREATE TABLE PlaylistSong (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    playlist_id INTEGER NOT NULL REFERENCES Playlist(id) ON DELETE CASCADE,
+    song_id INTEGER NOT NULL,
+    sort_order INTEGER NOT NULL
+);
+
+selectAllPlaylists:
+SELECT
+    p.id,
+    p.name,
+    p.kind,
+    p.created_at,
+    p.updated_at,
+    COUNT(ps.id) AS track_count
+FROM Playlist p
+LEFT JOIN PlaylistSong ps ON ps.playlist_id = p.id
+WHERE p.kind = 0
+GROUP BY p.id
+ORDER BY p.updated_at DESC;
+
+selectPlaylistById:
+SELECT id, name, kind, created_at, updated_at FROM Playlist WHERE id = ?;
+
+insertPlaylist:
+INSERT INTO Playlist(name, kind, created_at, updated_at)
+VALUES(?, ?, ?, ?);
+
+updatePlaylistName:
+UPDATE Playlist SET name = ?, updated_at = ? WHERE id = ?;
+
+deletePlaylist:
+DELETE FROM Playlist WHERE id = ?;
+
+selectSongsByPlaylistId:
+SELECT id, song_id, sort_order FROM PlaylistSong
+WHERE playlist_id = ?
+ORDER BY sort_order ASC;
+
+selectMaxSortOrder:
+SELECT COALESCE(MAX(sort_order), 0) FROM PlaylistSong WHERE playlist_id = ?;
+
+insertPlaylistSong:
+INSERT INTO PlaylistSong(playlist_id, song_id, sort_order)
+VALUES(?, ?, ?);
+
+deletePlaylistSongByEntryId:
+DELETE FROM PlaylistSong WHERE id = ?;
+
+updateSortOrder:
+UPDATE PlaylistSong SET sort_order = ? WHERE id = ?;
+
+lastInsertRowId:
+SELECT last_insert_rowid();

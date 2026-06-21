@@ -1,12 +1,16 @@
 package by.tigre.music.player.core.presentation.catalog.component
 
 import by.tigre.music.player.core.data.catalog.CatalogSource
+import by.tigre.music.player.core.data.playlist.AddToPlaylistCoordinator
+import by.tigre.music.player.core.data.playlist.AddToPlaylistRequest
 import by.tigre.music.player.core.data.playback.PlaybackController
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigator
+import `by`.tigre.music.player.core.presentation.catalog.resources.Res
+import `by`.tigre.music.player.core.presentation.catalog.resources.*
 import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.media.platform.tools.analytics.music.MusicEventAnalytics
 import by.tigre.media.platform.tools.analytics.music.MusicEvents
@@ -18,6 +22,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 
 interface SongsListComponent {
 
@@ -28,6 +33,7 @@ interface SongsListComponent {
     fun retry()
     fun onPlaySongClicked(song: Song)
     fun onAddSongClicked(song: Song)
+    fun onAddSongToPlaylistClicked(song: Song)
     fun onRemoveSongClicked(song: Song)
     fun confirmHide()
     fun confirmDeleteForever()
@@ -44,6 +50,7 @@ interface SongsListComponent {
 
         private val catalogSource: CatalogSource = dependency.catalogSource
         private val playbackController: PlaybackController = dependency.playbackController
+        private val addToPlaylistCoordinator: AddToPlaylistCoordinator = dependency.addToPlaylistCoordinator
         private val eventAnalytics: MusicEventAnalytics = dependency.eventAnalytics
 
         private val _removePrompt = MutableStateFlow<RemovePrompt?>(null)
@@ -77,6 +84,17 @@ interface SongsListComponent {
         override fun onAddSongClicked(song: Song) {
             eventAnalytics.trackEvent(MusicEvents.Action.CatalogAddSongToQueue)
             playbackController.addSongToPlay(song.id)
+        }
+
+        override fun onAddSongToPlaylistClicked(song: Song) {
+            launch {
+                addToPlaylistCoordinator.show(
+                    AddToPlaylistRequest(
+                        songIds = listOf(song.id),
+                        previewText = getString(Res.string.catalog_add_tracks_to_playlist_count, 1),
+                    )
+                )
+            }
         }
 
         override fun onRemoveSongClicked(song: Song) {

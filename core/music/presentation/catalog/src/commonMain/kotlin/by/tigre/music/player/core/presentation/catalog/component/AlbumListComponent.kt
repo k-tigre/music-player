@@ -1,12 +1,16 @@
 package by.tigre.music.player.core.presentation.catalog.component
 
 import by.tigre.music.player.core.data.catalog.CatalogSource
+import by.tigre.music.player.core.data.playlist.AddToPlaylistCoordinator
+import by.tigre.music.player.core.data.playlist.AddToPlaylistRequest
 import by.tigre.music.player.core.data.playback.PlaybackController
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.di.CatalogDependency
 import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigator
+import `by`.tigre.music.player.core.presentation.catalog.resources.Res
+import `by`.tigre.music.player.core.presentation.catalog.resources.*
 import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.media.platform.tools.analytics.music.MusicEventAnalytics
 import by.tigre.media.platform.tools.analytics.music.MusicEvents
@@ -18,6 +22,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 
 interface AlbumListComponent {
 
@@ -30,6 +35,7 @@ interface AlbumListComponent {
     fun onBackClicked()
     fun onPlayAlbumClicked(album: Album)
     fun onAddToPlayAlbumClicked(album: Album)
+    fun onAddAlbumToPlaylistClicked(album: Album)
     fun onRemoveAlbumClicked(album: Album)
     fun confirmHide()
     fun confirmDeleteForever()
@@ -44,6 +50,7 @@ interface AlbumListComponent {
 
         private val catalogSource: CatalogSource = dependency.catalogSource
         private val playbackController: PlaybackController = dependency.playbackController
+        private val addToPlaylistCoordinator: AddToPlaylistCoordinator = dependency.addToPlaylistCoordinator
         private val eventAnalytics: MusicEventAnalytics = dependency.eventAnalytics
 
         private val _removePrompt = MutableStateFlow<RemovePrompt?>(null)
@@ -85,6 +92,26 @@ interface AlbumListComponent {
         override fun onAddToPlayAlbumClicked(album: Album) {
             eventAnalytics.trackEvent(MusicEvents.Action.CatalogAddAlbumToQueue)
             playbackController.addAlbumToPlay(album.id, artist.id)
+        }
+
+        override fun onAddAlbumToPlaylistClicked(album: Album) {
+            launch {
+                val songIds = catalogSource.getSongsByAlbum(
+                    artistId = artist.id,
+                    albumId = album.id
+                ).map(Song::id)
+                if (songIds.isEmpty()) return@launch
+                addToPlaylistCoordinator.show(
+                    AddToPlaylistRequest(
+                        songIds = songIds,
+                        previewText = getString(
+                            Res.string.catalog_add_tracks_from_album_preview,
+                            songIds.size,
+                            album.name
+                        )
+                    )
+                )
+            }
         }
 
         override fun onRemoveAlbumClicked(album: Album) {

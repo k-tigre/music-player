@@ -14,6 +14,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -21,22 +23,29 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import by.tigre.music.player.R
+import by.tigre.music.player.core.data.playlist.AddToPlaylistCoordinator
+import by.tigre.music.player.core.data.playlist.PlaylistRepository
 import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.media.platform.player.view.PlayerView
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
+import by.tigre.music.player.core.presentation.playlist.library.di.PlaylistsViewProvider
+import by.tigre.music.player.core.presentation.playlist.library.view.AddToPlaylistBottomSheet
 import by.tigre.music.player.platform.DefaultMusicPlayerRole
 import by.tigre.music.player.presentation.root.component.Root
+import by.tigre.media.platform.tools.analytics.music.MusicEventAnalytics
+import by.tigre.media.platform.tools.analytics.music.MusicEvents
 import by.tigre.music.player.presentation.settings.view.SettingsView
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.view.BottomBarContainer
@@ -52,12 +61,17 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import kotlinx.coroutines.launch
 
 class RootView(
     private val component: Root,
     private val catalogViewProvider: CatalogViewProvider,
     private val playerViewProvider: PlayerViewProvider,
     private val currentQueueViewProvider: CurrentQueueViewProvider,
+    private val playlistsViewProvider: PlaylistsViewProvider,
+    private val playlistRepository: PlaylistRepository,
+    private val addToPlaylistCoordinator: AddToPlaylistCoordinator,
+    private val eventAnalytics: MusicEventAnalytics,
 ) : ComposableView {
 
     @OptIn(ExperimentalPermissionsApi::class)
@@ -81,6 +95,12 @@ class RootView(
 
     @Composable
     private fun DrawMain() {
+        val addToPlaylistRequest by addToPlaylistCoordinator.request.collectAsState()
+        val playlists by playlistRepository.allPlaylists.collectAsState(initial = emptyList())
+        val snackbarHostState = remember { SnackbarHostState() }
+        val scope = rememberCoroutineScope()
+        val addToPlaylistAddedMessage = stringResource(R.string.add_to_playlist_added_snackbar)
+
         Children(
             stack = component.mainComponent,
             animation = stackAnimation(animator = fade())
@@ -107,6 +127,33 @@ class RootView(
                     SettingsView(child.component).Draw(Modifier.fillMaxSize())
             }
         }
+
+        SnackbarHost(hostState = snackbarHostState)
+
+        AddToPlaylistBottomSheet(
+            request = addToPlaylistRequest,
+            playlists = playlists,
+            onDismiss = addToPlaylistCoordinator::dismiss,
+            onSelectPlaylist = { playlistId ->
+                val request = addToPlaylistRequest ?: return@AddToPlaylistBottomSheet
+                scope.launch {
+                    playlistRepository.addSongs(playlistId, request.songIds)
+                    eventAnalytics.trackEvent(MusicEvents.Action.PlaylistAddTracks(request.songIds.size))
+                    addToPlaylistCoordinator.dismiss()
+                    snackbarHostState.showSnackbar(addToPlaylistAddedMessage)
+                }
+            },
+            onCreateAndAdd = { playlistName ->
+                val request = addToPlaylistRequest ?: return@AddToPlaylistBottomSheet
+                scope.launch {
+                    val playlistId = playlistRepository.createPlaylist(playlistName)
+                    playlistRepository.addSongs(playlistId, request.songIds)
+                    eventAnalytics.trackEvent(MusicEvents.Action.PlaylistAddTracks(request.songIds.size))
+                    addToPlaylistCoordinator.dismiss()
+                    snackbarHostState.showSnackbar(addToPlaylistAddedMessage)
+                }
+            },
+        )
     }
 
     @Composable
@@ -122,6 +169,7 @@ class RootView(
                 ) {
                     when (val child = it.instance) {
                         is Root.PageComponentChild.Catalog -> catalogViewProvider.createRootView(child.component)
+                        is Root.PageComponentChild.Playlists -> playlistsViewProvider.createRootView(child.component)
                         is Root.PageComponentChild.Queue -> currentQueueViewProvider.createCurrentQueueView(child.component)
                     }.Draw(Modifier.fillMaxSize())
                 }
@@ -172,6 +220,23 @@ class RootView(
                         label = {
                             Text(
                                 text = stringResource(R.string.nav_library),
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                        },
+                    )
+
+                    NavigationBarItem(
+                        selected = pages.value.active.instance is Root.PageComponentChild.Playlists,
+                        onClick = { component.selectPage(2) },
+                        icon = {
+                            Icon(
+                                painter = painterResource(R.drawable.baseline_format_list_numbered_24),
+                                contentDescription = stringResource(R.string.cd_nav_playlists)
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = stringResource(R.string.nav_playlists),
                                 style = MaterialTheme.typography.titleSmall,
                             )
                         },

@@ -146,6 +146,9 @@ class SongsListView(
                         popupActions = listOf(
                             playAction,
                             addToQueueAction,
+                            PopupAction(stringResource(Res.string.action_add_to_playlist)) {
+                                component.onAddSongToPlaylistClicked(song)
+                            },
                             PopupAction(stringResource(Res.string.action_delete)) { component.onRemoveSongClicked(song) },
                         ),
                         descriptions = listOf(

@@ -6,6 +6,7 @@
 
     <string name="desktop_tab_queue">QUEUE</string>
     <string name="desktop_tab_library">LIBRARY</string>
+    <string name="desktop_tab_playlists">PLAYLISTS</string>
 
     <string name="desktop_no_track">No track</string>
 </resources>

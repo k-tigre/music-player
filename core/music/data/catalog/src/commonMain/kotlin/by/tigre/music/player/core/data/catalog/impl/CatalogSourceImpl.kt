@@ -51,6 +51,12 @@ internal class CatalogSourceImpl(
     override suspend fun getSongsByIds(ids: List<Song.Id>): List<Song> =
         backend.getSongsByIds(ids).filterVisible()
 
+    override suspend fun resolveSongsByIds(ids: List<Song.Id>): List<Song> {
+        if (ids.isEmpty()) return emptyList()
+        val byId = backend.getSongsByIds(ids).associateBy { it.id }
+        return ids.mapNotNull { byId[it] }
+    }
+
     override suspend fun search(query: String): CatalogSearchResult {
         val raw = backend.search(query)
         return CatalogSearchResult(

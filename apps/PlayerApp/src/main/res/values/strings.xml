@@ -9,8 +9,10 @@
 
     <string name="nav_playlist">Playlist</string>
     <string name="nav_library">Library</string>
+    <string name="nav_playlists">Playlists</string>
     <string name="cd_nav_playlist">Playlist</string>
     <string name="cd_nav_library">Library</string>
+    <string name="cd_nav_playlists">Playlists</string>
     <string name="player_queue_empty_title">No songs in current playlist</string>
     <string name="player_queue_empty_message">Select some track for playing</string>
     <string name="player_queue_empty_action">Select from catalog</string>
@@ -29,4 +31,5 @@
     <string name="default_player_message_manual">Open any audio file in Downloads or Telegram. In the \"Open with\" dialog, choose Music Player and tap Always.</string>
     <string name="default_player_action_role">Choose player</string>
     <string name="default_player_action_manual">Open Downloads</string>
+    <string name="add_to_playlist_added_snackbar">Added to playlist</string>
 </resources>

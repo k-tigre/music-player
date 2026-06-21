@@ -8,6 +8,7 @@
     <string name="cd_settings">Settings</string>
     <string name="action_play">Play</string>
     <string name="action_add_to_queue">Add to Queue</string>
+    <string name="action_add_to_playlist">Add to Playlist</string>
     <string name="action_delete">Remove</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_hide">Hide</string>
@@ -22,6 +23,9 @@
     <string name="catalog_album_songs_count">Songs: %1$d</string>
     <string name="catalog_artist_albums_count">Albums: %1$d</string>
     <string name="catalog_artist_songs_count">Songs: %1$d</string>
+    <string name="catalog_add_tracks_to_playlist_count">Add %1$d track to playlist</string>
+    <string name="catalog_add_tracks_from_album_preview">Add %1$d tracks from %2$s</string>
+    <string name="catalog_add_tracks_from_artist_preview">Add %1$d tracks from %2$s</string>
     <string name="catalog_track_meta">%1$s / %2$s</string>
     <string name="catalog_empty_artists_message">No songs found. Try put some mp3 media files on your device storage, for example into folder &quot;Music&quot;</string>
 </resources>

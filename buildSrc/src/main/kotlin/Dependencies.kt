@@ -232,11 +232,13 @@ sealed class Project(id: String) {
         sealed class Music(id: String) : Core("music:$id") {
             sealed class Entity(id: String) : Music("entity:$id") {
                 object Catalog : Entity("catalog")
+                object Playlist : Entity("playlist")
                 object Playback : Entity("playback")
             }
 
             sealed class Data(id: String) : Music("data:$id") {
                 object Playback : Data("playback")
+                object Playlist : Data("playlist")
                 object Catalog : Data("catalog")
                 sealed class Storage(id: String) : Data("storage:$id") {
                     sealed class Database(id: String) : Storage("database") {
@@ -248,6 +250,7 @@ sealed class Project(id: String) {
             sealed class Presentation(id: String) : Music("presentation:$id") {
                 object Catalog : Presentation("catalog")
                 object PlaylistCurrentQueue : Presentation("playlist:queue")
+                object PlaylistLibrary : Presentation("playlist:library")
             }
         }
 
