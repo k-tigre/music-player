@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -64,6 +65,33 @@ class PlaybackControllerImplTest {
         waitForCondition { storage.playNextCalls == 1 }
 
         assertEquals(1, storage.playNextCalls)
+    }
+
+    @Test
+    fun externalPauseDoesNotClearPlaybackIntent() = runBlocking {
+        val storage = FakePlaybackQueueStorage(
+            queue = listOf(
+                queueItem(id = 1, songId = 1, state = PlaybackQueueStorage.QueueItem.State.Playing),
+            )
+        )
+        val player = FakePlaybackPlayer(state = PlaybackPlayer.State.Playing)
+        val scope = TestCoreScope()
+        val controller = PlaybackControllerImpl(
+            storage = storage,
+            catalog = FakeCatalogSource(),
+            player = player,
+            scope = scope,
+        )
+        scope.launch { controller.currentItem.collect { } }
+
+        controller.resume()
+        waitForCondition { player.resumeCalls > 0 }
+        player.resetCallCounts()
+
+        player.setState(PlaybackPlayer.State.Paused)
+        delay(50)
+
+        assertEquals(0, player.pauseCalls)
     }
 
     @Test
@@ -149,9 +177,27 @@ class PlaybackControllerImplTest {
         private val stateFlow = MutableStateFlow(state)
         override val state: StateFlow<PlaybackPlayer.State> = stateFlow.asStateFlow()
 
+        var pauseCalls: Int = 0
+            private set
+        var resumeCalls: Int = 0
+            private set
+
+        fun resetCallCounts() {
+            pauseCalls = 0
+            resumeCalls = 0
+        }
+
+        fun setState(state: PlaybackPlayer.State) {
+            stateFlow.value = state
+        }
+
         override suspend fun stop() = Unit
-        override suspend fun pause() = Unit
-        override suspend fun resume() = Unit
+        override suspend fun pause() {
+            pauseCalls++
+        }
+        override suspend fun resume() {
+            resumeCalls++
+        }
         override suspend fun seekTo(position: Long) = Unit
         override suspend fun setMediaItem(item: MediaItemWrapper, position: Long) = Unit
     }
@@ -162,8 +208,17 @@ class PlaybackControllerImplTest {
         override suspend fun getAlbums(artistId: Artist.Id): List<Album> = emptyList()
         override suspend fun getSongsByArtist(artistId: Artist.Id): List<Song> = emptyList()
         override suspend fun getSongsByAlbum(artistId: Artist.Id, albumId: Album.Id): List<Song> = emptyList()
-        override suspend fun getSongsByIds(ids: List<Song.Id>): List<Song> = emptyList()
-        override suspend fun getSongById(id: Song.Id): Song? = null
+        override suspend fun getSongsByIds(ids: List<Song.Id>): List<Song> = ids.mapNotNull { getSongById(it) }
+        override suspend fun getSongById(id: Song.Id): Song? = Song(
+            id = id,
+            name = "Song ${id.value}",
+            index = "1",
+            artist = "Artist",
+            album = "Album",
+            artistId = Artist.Id(1),
+            albumId = Album.Id(1),
+            path = "file:///song-${id.value}.mp3",
+        )
         override suspend fun search(query: String): CatalogSearchResult = CatalogSearchResult(
             artists = emptyList(),
             songs = emptyList(),

@@ -174,22 +174,14 @@ internal class PlaybackControllerImpl(
         scope.launch {
             player.state
                 .debounce(10000)
-                .filter { it != PlaybackPlayer.State.Playing }
+                .filter {
+                    it != PlaybackPlayer.State.Playing &&
+                        it != PlaybackPlayer.State.Paused
+                }
                 .withLatestFrom(shouldPlay) { _, requested -> requested }
                 .filter { it }
                 .debugLog("PlaybackController", "AAAA!!!! Wrong player state")
                 .collect { shouldPlay.emit(false) }
-        }
-
-        scope.launch {
-            var wasPlayerPlaying = player.state.value == PlaybackPlayer.State.Playing
-            player.state.collect { state ->
-                val isPlayerPlaying = state == PlaybackPlayer.State.Playing
-                if (wasPlayerPlaying && !isPlayerPlaying && shouldPlay.value && state != PlaybackPlayer.State.Ended) {
-                    shouldPlay.emit(false)
-                }
-                wasPlayerPlaying = isPlayerPlaying
-            }
         }
 
         scope.launch {
