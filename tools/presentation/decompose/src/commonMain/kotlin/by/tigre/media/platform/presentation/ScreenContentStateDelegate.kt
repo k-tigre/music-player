@@ -27,13 +27,11 @@ class ScreenContentStateDelegate<T, Data>(
         .onStart { emit(Unit) }
         .flatMapLatest { loadData() }
         .shareIn(scope, SharingStarted.WhileSubscribed())
-        .onEach { Log.d("TIGRE") { " - dataFlow - $it" } }
 
     val screenState: StateFlow<ScreenContentState<T>> = merge(
         reloadSignal.map { ScreenContentState.Loading },
         dataFlow.map(mapDataToState)
-    ).onEach { Log.d("TIGRE") { " - screenState - $it" } }
-        .stateIn(scope, SharingStarted.WhileSubscribed(), ScreenContentState.Loading)
+    ).stateIn(scope, SharingStarted.WhileSubscribed(), ScreenContentState.Loading)
 
 
     fun reload() {
