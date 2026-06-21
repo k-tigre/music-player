@@ -12,12 +12,18 @@ import by.tigre.media.platform.tools.analytics.music.MusicEvents
 import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.presentation.ScreenContentState.Content
 import by.tigre.media.platform.presentation.ScreenContentStateDelegate
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 
 interface CurrentQueueComponent {
 
     val screenState: StateFlow<ScreenContentState<NowPlayingScreenModel>>
+    val scrollToPlayingTrackEvents: SharedFlow<Int>
 
     fun retry()
     fun onSongClicked(entry: NowPlayingQueueEntry)
@@ -35,6 +41,9 @@ interface CurrentQueueComponent {
 
         private val playbackController: PlaybackController = dependency.playbackController
         private val eventAnalytics: MusicEventAnalytics = dependency.eventAnalytics
+
+        private val _scrollToPlayingTrackEvents = MutableSharedFlow<Int>(extraBufferCapacity = 1)
+        override val scrollToPlayingTrackEvents = _scrollToPlayingTrackEvents.asSharedFlow()
 
         private val stateDelegate = ScreenContentStateDelegate(
             scope = this,
@@ -69,6 +78,34 @@ interface CurrentQueueComponent {
         )
 
         override val screenState: StateFlow<ScreenContentState<NowPlayingScreenModel>> = stateDelegate.screenState
+
+        init {
+            launch {
+                var previousPlayingIndex: Int? = null
+                combine(
+                    playbackController.currentQueue,
+                    playbackController.nowPlayingOverlay,
+                ) { queue, overlay ->
+                    if (overlay != null) {
+                        null
+                    } else {
+                        queue.indexOfFirst { it.isPlaying }.takeIf { it >= 0 }
+                    }
+                }
+                    .distinctUntilChanged()
+                    .collect { queueIndex ->
+                        if (queueIndex != null &&
+                            previousPlayingIndex != null &&
+                            queueIndex != previousPlayingIndex
+                        ) {
+                            _scrollToPlayingTrackEvents.emit(queueIndex)
+                        }
+                        if (queueIndex != null) {
+                            previousPlayingIndex = queueIndex
+                        }
+                    }
+            }
+        }
 
         override fun retry() {
             stateDelegate.reload()

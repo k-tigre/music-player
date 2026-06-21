@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
@@ -27,11 +26,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import by.tigre.music.player.core.entiry.playback.NowPlayingQueueEntry
@@ -42,6 +45,7 @@ import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.view.CardWithPopup
 import by.tigre.media.platform.tools.platform.compose.view.bottomBarListContentPadding
+import by.tigre.media.platform.tools.platform.compose.view.smartScrollToItem
 import by.tigre.media.platform.tools.platform.compose.view.EmptyScreen
 import by.tigre.media.platform.tools.platform.compose.view.ErrorScreen
 import by.tigre.media.platform.tools.platform.compose.view.PopupAction
@@ -50,6 +54,7 @@ import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicatorSize
 import `by`.tigre.music.player.core.presentation.queue.resources.Res
 import `by`.tigre.music.player.core.presentation.queue.resources.*
 import org.jetbrains.compose.resources.stringResource
+import kotlinx.coroutines.flow.first
 import kotlin.math.abs
 
 class CurrentQueueView(
@@ -112,9 +117,43 @@ class CurrentQueueView(
             )
         } else {
             val listState = rememberLazyListState()
+            val nearMarginPx = with(LocalDensity.current) { 50.dp.toPx() }
+            val currentModel by rememberUpdatedState(model)
             LaunchedEffect(model.overlay?.item?.uri) {
                 if (model.overlay != null) {
                     listState.scrollToItem(0)
+                } else {
+                    val playingIndex = model.queue.indexOfFirst { it.isPlaying }
+                    if (playingIndex >= 0) {
+                        listState.smartScrollToItem(
+                            targetIndex = lazyListIndexForQueueItem(playingIndex, model),
+                            nearMarginPx = nearMarginPx,
+                            instant = true,
+                        )
+                    }
+                }
+            }
+            LaunchedEffect(Unit) {
+                snapshotFlow {
+                    val playingIndex = currentModel.queue.indexOfFirst { it.isPlaying }
+                    listState.layoutInfo.totalItemsCount to playingIndex
+                }.first { (itemCount, playingIndex) ->
+                    itemCount > 0 && playingIndex >= 0 && currentModel.overlay == null
+                }
+                val playingIndex = currentModel.queue.indexOfFirst { it.isPlaying }
+                listState.smartScrollToItem(
+                    targetIndex = lazyListIndexForQueueItem(playingIndex, currentModel),
+                    nearMarginPx = nearMarginPx,
+                    instant = true,
+                )
+            }
+            LaunchedEffect(Unit) {
+                component.scrollToPlayingTrackEvents.collect { queueIndex ->
+                    listState.smartScrollToItem(
+                        targetIndex = lazyListIndexForQueueItem(queueIndex, currentModel),
+                        nearMarginPx = nearMarginPx,
+                        smoothDurationMillis = 1200,
+                    )
                 }
             }
             LazyColumn(
@@ -258,6 +297,13 @@ class CurrentQueueView(
             },
         )
     }
+}
+
+private fun lazyListIndexForQueueItem(queueIndex: Int, model: NowPlayingScreenModel): Int {
+    var offset = 0
+    if (model.overlay != null) offset += 2
+    if (model.overlay != null && model.queue.isNotEmpty()) offset += 1
+    return offset + queueIndex
 }
 
 private fun formatQueueRowTitle(queuePositionOneBased: Int, entry: NowPlayingQueueEntry): String {
