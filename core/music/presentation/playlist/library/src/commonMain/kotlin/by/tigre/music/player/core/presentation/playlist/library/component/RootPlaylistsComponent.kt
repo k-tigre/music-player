@@ -16,7 +16,9 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.value.Value
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 
 interface RootPlaylistsComponent {
@@ -42,22 +44,38 @@ interface RootPlaylistsComponent {
 
         private val navigator = object : PlaylistsNavigator {
             override fun openDetail(id: Playlist.Id) {
-                navigation.push(PlaylistsConfig.Detail(id.value))
+                launch {
+                    withContext(Dispatchers.Main.immediate) {
+                        navigation.push(PlaylistsConfig.Detail(id.value))
+                    }
+                }
             }
 
             override fun showPreviousScreen() {
-                navigation.pop()
+                launch {
+                    withContext(Dispatchers.Main.immediate) {
+                        navigation.pop()
+                    }
+                }
             }
 
             override fun openArtist(id: Artist.Id) {
-                externalNavigator.openArtist(id)
+                launch {
+                    withContext(Dispatchers.Main.immediate) {
+                        externalNavigator.openArtist(id)
+                    }
+                }
             }
 
             override fun openAlbum(
                 artistId: Artist.Id,
                 albumId: Album.Id
             ) {
-                externalNavigator.openAlbum(artistId, albumId)
+                launch {
+                    withContext(Dispatchers.Main.immediate) {
+                        externalNavigator.openAlbum(artistId, albumId)
+                    }
+                }
             }
         }
 

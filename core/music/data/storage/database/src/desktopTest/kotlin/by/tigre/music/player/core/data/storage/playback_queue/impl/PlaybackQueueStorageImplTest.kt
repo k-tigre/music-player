@@ -5,11 +5,13 @@ import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import by.tigre.media.platform.preferences.Preferences
 import by.tigre.music.player.core.data.storage.music.DatabaseMusic
 import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
+import by.tigre.music.player.core.data.storage.playlist.impl.PlaylistKindAdapter
 import by.tigre.music.player.core.entiry.catalog.Song
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
+import music.Playlist
 import music.Queue
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -23,6 +25,7 @@ class PlaybackQueueStorageImplTest {
         val database = DatabaseMusic(
             driver = driver,
             QueueAdapter = Queue.Adapter(QueueStateAdapter),
+            PlaylistAdapter = Playlist.Adapter(PlaylistKindAdapter),
         )
         val storage = PlaybackQueueStorageImpl(
             database = database,
