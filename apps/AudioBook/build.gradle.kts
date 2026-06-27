@@ -76,6 +76,7 @@ android {
 
                 applicationIdSuffix = env.suffix
                 manifestPlaceholders["appName"] = "${Application.AudioBook.name}${env.appNameSuffix}"
+                resValue("string", "app_name", "${Application.AudioBook.name}${env.appNameSuffix}")
                 buildConfigField("Boolean", "REMOTE_ANALYTICS_ENABLED", env.remoteAnalytics.toString())
                 if (env.useProguard) {
                     proguardFiles(

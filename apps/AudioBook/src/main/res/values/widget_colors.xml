@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="widget_background">#FF3D2800</color>
+    <color name="widget_surface">#FF554010</color>
+</resources>

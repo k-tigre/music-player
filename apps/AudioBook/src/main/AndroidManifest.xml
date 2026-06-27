@@ -51,5 +51,21 @@
             </intent-filter>
         </service>
 
+        <receiver
+            android:name=".widget.AudiobookPlaybackWidget"
+            android:exported="true"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="by.tigre.media.platform.background.widget.ACTION_UPDATE" />
+                <action android:name="by.tigre.media.platform.background.widget.ACTION_PLAY_PAUSE" />
+                <action android:name="by.tigre.media.platform.background.widget.ACTION_SKIP_PREV" />
+                <action android:name="by.tigre.media.platform.background.widget.ACTION_SKIP_NEXT" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/playback_widget_info" />
+        </receiver>
+
     </application>
 </manifest> 

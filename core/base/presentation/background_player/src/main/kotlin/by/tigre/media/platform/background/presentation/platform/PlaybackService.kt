@@ -1,5 +1,6 @@
 package by.tigre.media.platform.background.presentation.platform
 
+import android.appwidget.AppWidgetProvider
 import android.content.Intent
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
@@ -21,7 +22,8 @@ abstract class PlaybackService : MediaLibraryService() {
         BackgroundPlayerView(
             service = this,
             component = component,
-            onIntentProvider = ::onProviderMainIntent
+            onIntentProvider = ::onProviderMainIntent,
+            widgetProviderClass = playbackWidgetProviderClass(),
         )
     }
 
@@ -50,4 +52,5 @@ abstract class PlaybackService : MediaLibraryService() {
     abstract fun onProviderMainIntent(): Intent
     abstract fun onProviderDependency(): PlayerBackgroundDependency
 
+    open fun playbackWidgetProviderClass(): Class<out AppWidgetProvider>? = null
 }

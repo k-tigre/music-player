@@ -77,6 +77,7 @@ android {
 
                 applicationIdSuffix = env.suffix
                 manifestPlaceholders["appName"] = "${Application.MusicPlayer.name}${env.appNameSuffix}"
+                resValue("string", "app_name", "${Application.MusicPlayer.name}${env.appNameSuffix}")
                 buildConfigField("Boolean", "REMOTE_ANALYTICS_ENABLED", env.remoteAnalytics.toString())
                 if (env.useProguard) {
                     proguardFiles(

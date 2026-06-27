@@ -4,4 +4,12 @@
     <string name="car_tab_artists">Исполнители</string>
     <string name="car_tab_queue">Очередь</string>
     <string name="car_tab_books">Книги</string>
+    <string name="widget_description">Управление воспроизведением</string>
+    <string name="widget_idle_title">Ничего не играет</string>
+    <string name="widget_idle_subtitle">Откройте приложение для воспроизведения</string>
+    <string name="widget_cover_description">Обложка</string>
+    <string name="widget_play">Воспроизвести</string>
+    <string name="widget_pause">Пауза</string>
+    <string name="widget_skip_prev">Назад</string>
+    <string name="widget_skip_next">Вперёд</string>
 </resources>

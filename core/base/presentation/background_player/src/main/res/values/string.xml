@@ -4,4 +4,12 @@
     <string name="car_tab_artists">Artists</string>
     <string name="car_tab_queue">Queue</string>
     <string name="car_tab_books">Books</string>
+    <string name="widget_description">Now playing controls</string>
+    <string name="widget_idle_title">Nothing playing</string>
+    <string name="widget_idle_subtitle">Open the app to start playback</string>
+    <string name="widget_cover_description">Cover art</string>
+    <string name="widget_play">Play</string>
+    <string name="widget_pause">Pause</string>
+    <string name="widget_skip_prev">Previous</string>
+    <string name="widget_skip_next">Next</string>
 </resources>
