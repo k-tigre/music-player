@@ -9,6 +9,21 @@
 
 ### EN
 
+## [0.20.0] - 2026-06-27
+### RU
+- Пользовательские плейлисты: создание, управление и добавление треков из каталога и очереди
+- Вкладка «Избранное» — любимые треки, альбомы и исполнители
+- Сердечко в списках и плеере для быстрого добавления в избранное
+- Улучшения очереди: сохранение сессии и перестановка треков
+- Улучшения режима перемешивания
+
+### EN
+- User playlists: create, manage, and add tracks from catalog and queue
+- Favorites tab — liked tracks, albums, and artists
+- Heart toggle in lists and player for quick favorites
+- Queue improvements: session persistence and track reordering
+- Shuffle mode improvements
+
 ## [0.19.0] - 2026-06-27
 ### RU
 - Воспроизведение аудиофайлов, открытых из других приложений

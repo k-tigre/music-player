@@ -1,9 +1,5 @@
-• Play audio files opened from other apps
-• Repeat and shuffle queue modes
-• Album artwork in library lists
-• Settings screen
-• Home screen playback widget
-• Queue scrolls to the currently playing track
-• Smoother resume and track transitions
-• Haptic feedback on seek and animated play/pause button
-• Clearer prompts when setting the app as default player
+• User playlists: create, manage, and add tracks from catalog and queue
+• Favorites tab — liked tracks, albums, and artists
+• Heart toggle in lists and player for quick favorites
+• Queue improvements: session persistence and track reordering
+• Shuffle mode improvements

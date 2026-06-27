@@ -1,5 +1,2 @@
-• Home screen playback widget
-• Settings screen
-• Queue scrolls to the currently playing chapter
-• Haptic feedback on seek and animated play/pause button
-• Playback stability improvements
+• Fixed percentage display in library progress
+• Minor UI improvements
