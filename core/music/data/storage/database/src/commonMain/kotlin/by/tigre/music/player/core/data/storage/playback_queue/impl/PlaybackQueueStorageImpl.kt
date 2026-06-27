@@ -73,9 +73,11 @@ class PlaybackQueueStorageImpl(
         database.queueQueries.transaction {
             database.queueQueries.deleteAll()
             items.forEachIndexed { index, id ->
+                val order = index.toLong()
                 database.queueQueries.insertNewWithSortOrder(
                     song_id = id.value,
-                    sort_order = index.toLong(),
+                    sort_order = order,
+                    playback_order = order,
                 )
             }
             items.firstOrNull()?.let {
@@ -88,10 +90,11 @@ class PlaybackQueueStorageImpl(
     override suspend fun setShuffleEnabled(enabled: Boolean) {
         if (enabled && !shuffleEnabled.value) {
             database.queueQueries.transaction {
-                database.queueQueries.shuffleOrder()
+                shufflePlaybackOrderPreservingProgress()
             }
         } else if (!enabled && shuffleEnabled.value) {
             database.queueQueries.transaction {
+                database.queueQueries.syncPlaybackOrderToSortOrder()
                 normalizeStatusesForNaturalOrder()
             }
         }
@@ -113,9 +116,11 @@ class PlaybackQueueStorageImpl(
                 .toInt()
             items.forEach { id ->
                 sortOrder += 1
+                val order = sortOrder.toLong()
                 database.queueQueries.insertNewWithSortOrder(
                     song_id = id.value,
-                    sort_order = sortOrder.toLong(),
+                    sort_order = order,
+                    playback_order = order,
                 )
             }
         }
@@ -194,10 +199,17 @@ class PlaybackQueueStorageImpl(
         if (queueEntryIdsInOrder.isEmpty()) return
         database.queueQueries.transaction {
             queueEntryIdsInOrder.forEachIndexed { index, id ->
+                val order = index.toLong()
                 database.queueQueries.updateQueueSortOrder(
-                    sort_order = index.toLong(),
+                    sort_order = order,
                     id = id,
                 )
+                if (!shuffleEnabled.value) {
+                    database.queueQueries.updateQueuePlaybackOrder(
+                        playback_order = order,
+                        id = id,
+                    )
+                }
             }
         }
     }
@@ -217,10 +229,53 @@ class PlaybackQueueStorageImpl(
     }
 
     private fun getPlaybackOrderedQueue(): List<QueueItem> =
-        database.queueQueries.selectAllByOrder(
+        if (shuffleEnabled.value) {
+            database.queueQueries.selectAllByPlaybackOrder(
+                limit = 10000,
+                mapper = queueMapper,
+            )
+        } else {
+            database.queueQueries.selectAllByOrder(
+                limit = 10000,
+                mapper = queueMapper,
+            )
+        }.executeAsList()
+
+    private suspend fun shufflePlaybackOrderPreservingProgress() {
+        val queue = database.queueQueries.selectAllByOrder(
             limit = 10000,
-            mapper = queueMapper
+            mapper = queueMapper,
         ).executeAsList()
+        if (queue.isEmpty()) return
+
+        val current = queue.firstOrNull { it.state == QueueItem.State.Playing }
+        val finished = queue.filter { it.state == QueueItem.State.Finish }
+        val pending = queue.filter { it.state == QueueItem.State.Pending }
+        val shuffledPending = pending.shuffled()
+
+        var playbackOrder = 0L
+        finished.forEach { item ->
+            database.queueQueries.updateQueuePlaybackOrder(
+                playback_order = playbackOrder,
+                id = item.id,
+            )
+            playbackOrder += 1
+        }
+        current?.let { item ->
+            database.queueQueries.updateQueuePlaybackOrder(
+                playback_order = playbackOrder,
+                id = item.id,
+            )
+            playbackOrder += 1
+        }
+        shuffledPending.forEach { item ->
+            database.queueQueries.updateQueuePlaybackOrder(
+                playback_order = playbackOrder,
+                id = item.id,
+            )
+            playbackOrder += 1
+        }
+    }
 
     private suspend fun normalizeStatusesForNaturalOrder() {
         val queueByOrder = database.queueQueries.selectAllByOrder(
@@ -247,11 +302,14 @@ class PlaybackQueueStorageImpl(
     private suspend fun resetAndPlayFirst() {
         database.queueQueries.transaction {
             if (shuffleEnabled.value) {
-                database.queueQueries.shuffleOrder()
+                database.queueQueries.shufflePlaybackOrder()
             }
             database.queueQueries.updateStatusForAll(QueueItem.State.Pending)
-            val firstId = database.queueQueries.selectAllByOrder(limit = 1, mapper = idMapper)
-                .executeAsOneOrNull()
+            val firstId = if (shuffleEnabled.value) {
+                database.queueQueries.selectAllByPlaybackOrder(limit = 1, mapper = idMapper)
+            } else {
+                database.queueQueries.selectAllByOrder(limit = 1, mapper = idMapper)
+            }.executeAsOneOrNull()
             firstId?.let { id ->
                 database.queueQueries.updateStatus(status = QueueItem.State.Playing, id = id)
             }
@@ -261,11 +319,14 @@ class PlaybackQueueStorageImpl(
     private suspend fun resetAndPlayLast() {
         database.queueQueries.transaction {
             if (shuffleEnabled.value) {
-                database.queueQueries.shuffleOrder()
+                database.queueQueries.shufflePlaybackOrder()
             }
             database.queueQueries.updateStatusForAll(QueueItem.State.Finish)
-            val lastId = database.queueQueries.selectAllByOrderLast(limit = 1, mapper = idMapper)
-                .executeAsOneOrNull()
+            val lastId = if (shuffleEnabled.value) {
+                database.queueQueries.selectAllByPlaybackOrderLast(limit = 1, mapper = idMapper)
+            } else {
+                database.queueQueries.selectAllByOrderLast(limit = 1, mapper = idMapper)
+            }.executeAsOneOrNull()
             lastId?.let { id ->
                 database.queueQueries.updateStatus(status = QueueItem.State.Playing, id = id)
             }

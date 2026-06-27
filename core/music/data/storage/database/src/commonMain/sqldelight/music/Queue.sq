@@ -4,7 +4,8 @@ CREATE TABLE Queue(
 id INTEGER PRIMARY KEY AUTOINCREMENT,
 status INTEGER AS PlaybackQueueStorage.QueueItem.State NOT NULL DEFAULT 0,
 song_id INTEGER NOT NULL,
-sort_order INTEGER NOT NULL DEFAULT (RANDOM())
+sort_order INTEGER NOT NULL DEFAULT (RANDOM()),
+playback_order INTEGER NOT NULL DEFAULT (RANDOM())
 );
 
 insertNew:
@@ -12,8 +13,8 @@ INSERT INTO Queue(song_id)
 VALUES(?);
 
 insertNewWithSortOrder:
-INSERT INTO Queue(song_id, sort_order)
-VALUES(?, ?);
+INSERT INTO Queue(song_id, sort_order, playback_order)
+VALUES(?, ?, ?);
 
 insertNewWithStatus:
 INSERT INTO Queue(song_id, status)
@@ -40,11 +41,17 @@ SELECT id, status, song_id FROM Queue ORDER BY id LIMIT :limit;
 selectAllByOrder:
 SELECT id, status, song_id FROM Queue ORDER BY sort_order LIMIT :limit;
 
+selectAllByPlaybackOrder:
+SELECT id, status, song_id FROM Queue ORDER BY playback_order LIMIT :limit;
+
 selectAllByIdLast:
 SELECT id, status, song_id FROM Queue ORDER BY id DESC LIMIT :limit;
 
 selectAllByOrderLast:
 SELECT id, status, song_id FROM Queue ORDER BY sort_order DESC LIMIT :limit;
+
+selectAllByPlaybackOrderLast:
+SELECT id, status, song_id FROM Queue ORDER BY playback_order DESC LIMIT :limit;
 
 
 deleteById:
@@ -62,5 +69,11 @@ SELECT COALESCE(MAX(sort_order), -1) FROM Queue;
 updateQueueSortOrder:
 UPDATE Queue SET sort_order = ? WHERE id = ?;
 
-shuffleOrder:
-UPDATE Queue SET sort_order = RANDOM();
+updateQueuePlaybackOrder:
+UPDATE Queue SET playback_order = ? WHERE id = ?;
+
+syncPlaybackOrderToSortOrder:
+UPDATE Queue SET playback_order = sort_order;
+
+shufflePlaybackOrder:
+UPDATE Queue SET playback_order = RANDOM();

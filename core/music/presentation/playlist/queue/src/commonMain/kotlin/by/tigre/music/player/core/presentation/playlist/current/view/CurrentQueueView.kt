@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.layout.Row
@@ -37,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -172,12 +174,24 @@ class CurrentQueueView(
             val nearMarginPx = with(LocalDensity.current) { 50.dp.toPx() }
             val currentModel by rememberUpdatedState(model)
 
-            var localQueue by remember(model.queue) { mutableStateOf(model.queue) }
+            val queueIds = model.queue.map { it.id }
+
+            var localQueue by remember { mutableStateOf(model.queue) }
+            LaunchedEffect(queueIds) {
+                if (localQueue.map { it.id } != queueIds) {
+                    localQueue = model.queue
+                }
+            }
             LaunchedEffect(model.queue) {
-                localQueue = model.queue
+                val currentIds = localQueue.map { it.id }
+                val newIds = model.queue.map { it.id }
+                if (currentIds == newIds) {
+                    val byId = model.queue.associateBy { it.id }
+                    localQueue = localQueue.map { entry -> byId[entry.id] ?: entry }
+                }
             }
 
-            val originalOrder = remember(model.queue) { model.queue.map { it.id } }
+            val originalOrder = remember(queueIds) { queueIds }
 
             fun commitReorderIfNeeded() {
                 val newOrder = localQueue.map { it.id }
@@ -196,18 +210,29 @@ class CurrentQueueView(
                 }
             }
 
+            suspend fun scrollToPlayingTrack(
+                queueIndex: Int,
+                screenModel: NowPlayingScreenModel,
+                instant: Boolean,
+                smoothDurationMillis: Int = 1200,
+            ) {
+                if (queueIndex < 0 || screenModel.overlay != null) return
+                val targetIndex = lazyListIndexForQueueItem(queueIndex, screenModel)
+                listState.awaitReadyForScroll(targetIndex)
+                listState.smartScrollToItem(
+                    targetIndex = targetIndex,
+                    nearMarginPx = nearMarginPx,
+                    instant = instant,
+                    smoothDurationMillis = smoothDurationMillis,
+                )
+            }
+
             LaunchedEffect(model.overlay?.item?.uri) {
                 if (model.overlay != null) {
                     listState.scrollToItem(0)
                 } else {
                     val playingIndex = model.queue.indexOfFirst { it.isPlaying }
-                    if (playingIndex >= 0) {
-                        listState.smartScrollToItem(
-                            targetIndex = lazyListIndexForQueueItem(playingIndex, model),
-                            nearMarginPx = nearMarginPx,
-                            instant = true,
-                        )
-                    }
+                    scrollToPlayingTrack(playingIndex, model, instant = true)
                 }
             }
             LaunchedEffect(Unit) {
@@ -218,19 +243,11 @@ class CurrentQueueView(
                     itemCount > 0 && playingIndex >= 0 && currentModel.overlay == null
                 }
                 val playingIndex = currentModel.queue.indexOfFirst { it.isPlaying }
-                listState.smartScrollToItem(
-                    targetIndex = lazyListIndexForQueueItem(playingIndex, currentModel),
-                    nearMarginPx = nearMarginPx,
-                    instant = true,
-                )
+                scrollToPlayingTrack(playingIndex, currentModel, instant = true)
             }
             LaunchedEffect(Unit) {
                 component.scrollToPlayingTrackEvents.collect { queueIndex ->
-                    listState.smartScrollToItem(
-                        targetIndex = lazyListIndexForQueueItem(queueIndex, currentModel),
-                        nearMarginPx = nearMarginPx,
-                        smoothDurationMillis = 1200,
-                    )
+                    scrollToPlayingTrack(queueIndex, currentModel, instant = false)
                 }
             }
             LazyColumn(
@@ -480,6 +497,15 @@ private fun queueLazyOffset(model: NowPlayingScreenModel): Int {
 
 private fun lazyListIndexForQueueItem(queueIndex: Int, model: NowPlayingScreenModel): Int =
     queueLazyOffset(model) + queueIndex
+
+private suspend fun LazyListState.awaitReadyForScroll(targetIndex: Int) {
+    snapshotFlow {
+        val info = layoutInfo
+        val hasViewport = info.viewportEndOffset > info.viewportStartOffset
+        info.totalItemsCount > targetIndex && hasViewport
+    }.first { it }
+    withFrameMillis { }
+}
 
 private fun formatQueueRowTitle(queuePositionOneBased: Int, entry: NowPlayingQueueEntry): String {
     val trackInAlbum = entry.song.index.trim()

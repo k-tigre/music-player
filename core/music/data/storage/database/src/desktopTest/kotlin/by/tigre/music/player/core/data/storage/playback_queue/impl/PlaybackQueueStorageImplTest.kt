@@ -1,6 +1,7 @@
 package by.tigre.music.player.core.data.storage.playback_queue.impl
 
 import app.cash.sqldelight.async.coroutines.synchronous
+import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import by.tigre.media.platform.preferences.Preferences
 import by.tigre.music.player.core.data.storage.music.DatabaseMusic
@@ -17,6 +18,8 @@ import music.Playlist
 import music.Queue
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
 
 class PlaybackQueueStorageImplTest {
 
@@ -48,6 +51,40 @@ class PlaybackQueueStorageImplTest {
     }
 
     @Test
+    fun enablingShuffleKeepsDisplayOrderButChangesPlaybackOrder() = runBlocking {
+        val context = createStorageContext(FakePreferences())
+        val storage = context.storage
+
+        storage.playSongs((1L..5L).map(::songId))
+        context.driver.execute(
+            identifier = null,
+            sql = "UPDATE Queue SET sort_order = song_id",
+            parameters = 0,
+        )
+        context.driver.execute(
+            identifier = null,
+            sql = "UPDATE Queue SET playback_order = song_id",
+            parameters = 0,
+        )
+
+        val sortOrderBefore = context.driver.queueOrdersBySongId("sort_order")
+        storage.setShuffleEnabled(true)
+        val sortOrderAfter = context.driver.queueOrdersBySongId("sort_order")
+        val playbackOrderAfter = context.driver.queueOrdersBySongId("playback_order")
+
+        assertEquals(sortOrderBefore, sortOrderAfter)
+        assertTrue(
+            playbackOrderAfter.any { (songId, playbackOrder) ->
+                playbackOrder != sortOrderAfter.getValue(songId)
+            }
+        )
+        assertNotEquals(
+            sortOrderAfter.entries.sortedBy { it.value }.map { it.key },
+            playbackOrderAfter.entries.sortedBy { it.value }.map { it.key },
+        )
+    }
+
+    @Test
     fun disablingShuffleNormalizesStatusesToNaturalOrder() = runBlocking {
         val context = createStorageContext(FakePreferences())
         val storage = context.storage
@@ -57,6 +94,11 @@ class PlaybackQueueStorageImplTest {
         context.driver.execute(
             identifier = null,
             sql = "UPDATE Queue SET sort_order = song_id",
+            parameters = 0,
+        )
+        context.driver.execute(
+            identifier = null,
+            sql = "UPDATE Queue SET playback_order = song_id",
             parameters = 0,
         )
         context.driver.execute(
@@ -123,6 +165,27 @@ class PlaybackQueueStorageImplTest {
         queueQueries.selectAllByOrder(limit = 10000) { _, status, songId ->
             PlaybackQueueStorage.QueueItem(id = 0, songsId = Song.Id(songId), state = status)
         }.executeAsList().first { it.state == PlaybackQueueStorage.QueueItem.State.Playing }.songsId.value
+
+    private fun JdbcSqliteDriver.queueOrdersBySongId(column: String): Map<Long, Long> {
+        val orders = mutableMapOf<Long, Long>()
+        executeQuery(
+            identifier = null,
+            sql = "SELECT song_id, $column FROM Queue ORDER BY song_id",
+            mapper = { cursor ->
+                QueryResult.Value(
+                    buildList {
+                        while (cursor.next().value) {
+                            add(cursor.getLong(0)!! to cursor.getLong(1)!!)
+                        }
+                    }
+                )
+            },
+            parameters = 0,
+        ).value.forEach { (songId, order) ->
+            orders[songId] = order
+        }
+        return orders
+    }
 
     private fun songId(value: Long) = Song.Id(value)
 

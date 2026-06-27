@@ -1,0 +1,2 @@
+ALTER TABLE Queue ADD COLUMN playback_order INTEGER NOT NULL DEFAULT 0;
+UPDATE Queue SET playback_order = sort_order;
