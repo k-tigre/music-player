@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="screen_current_queue_title">Текущая очередь</string>
+    <string name="screen_current_queue_title">Очередь</string>
+    <string name="queue_title_with_playlist">Очередь «%1$s»</string>
     <string name="queue_empty_title">В очереди нет треков</string>
     <string name="queue_empty_message">Выберите трек для воспроизведения</string>
     <string name="queue_empty_action">Выбрать в каталоге</string>
@@ -15,4 +16,13 @@
     <string name="queue_overlay_return_to_queue">Вернуться к очереди</string>
     <string name="queue_interrupted_at">Было на %1$s</string>
     <string name="queue_source_downloads">Загрузки</string>
+    <string name="queue_save_playlist">Сохранить плейлист</string>
+    <string name="queue_save_playlist_dialog_title">Сохранить как плейлист</string>
+    <string name="queue_save_playlist_default_name">Плейлист %1$s</string>
+    <string name="queue_name_taken">Плейлист с таким названием уже существует</string>
+    <string name="queue_remove_track">Удалить из очереди</string>
+    <string name="queue_move_up">Выше</string>
+    <string name="queue_move_down">Ниже</string>
+    <string name="queue_move_to_top">В начало</string>
+    <string name="queue_move_to_bottom">В конец</string>
 </resources>

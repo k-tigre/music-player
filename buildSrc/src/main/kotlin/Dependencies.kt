@@ -53,6 +53,8 @@ enum class Library(group: String, artifact: String, version: Version) {
     Decompose("com.arkivanov.decompose", "decompose", Version.Decompose),
     DecomposeExtensions("com.arkivanov.decompose", "extensions-compose", Version.Decompose),
 
+    Reorderable("sh.calvin.reorderable", "reorderable", Version.Reorderable),
+
     Jnativehook("com.github.kwhat", "jnativehook", Version.Jnativehook),
 
     Mixpanel("com.mixpanel.android", "mixpanel-android", Version.Mixpanel),
@@ -93,6 +95,7 @@ enum class Library(group: String, artifact: String, version: Version) {
         JavaCv("1.5.11"),
         FfmpegPlatform("7.1-1.5.11"),
         Decompose("3.4.0"),
+        Reorderable("3.1.0"),
         Jnativehook("2.2.2"),
         Mixpanel("8.2.0"),
 

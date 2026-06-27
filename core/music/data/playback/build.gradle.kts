@@ -18,6 +18,7 @@ kotlin {
             implementation(TigreLogger.Artifact.Core.notation)
             implementation(project(Project.Core.Music.Entity.Catalog.name))
             implementation(project(Project.Core.Music.Entity.Playback.name))
+            implementation(project(Project.Core.Music.Entity.Playlist.name))
             implementation(project(Project.Core.Music.Data.Storage.Database.name))
             implementation(project(Project.Core.Music.Data.Catalog.name))
             api(project(Project.Core.Base.Data.Playback.name))

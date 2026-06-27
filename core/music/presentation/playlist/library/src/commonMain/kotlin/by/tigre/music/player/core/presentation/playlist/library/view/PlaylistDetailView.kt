@@ -1,6 +1,5 @@
 package by.tigre.music.player.core.presentation.playlist.library.view
 
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,14 +28,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -57,7 +52,8 @@ import by.tigre.music.player.core.presentation.playlist.library.component.Playli
 import `by`.tigre.music.player.core.presentation.playlist.library.resources.Res
 import `by`.tigre.music.player.core.presentation.playlist.library.resources.*
 import org.jetbrains.compose.resources.stringResource
-import kotlin.math.roundToInt
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 class PlaylistDetailView(
     private val component: PlaylistDetailComponent,
@@ -216,22 +212,24 @@ class PlaylistDetailView(
         }
 
         val listState = rememberLazyListState()
-        val density = LocalDensity.current
-        val estimatedItemHeightPx = with(density) { 64.dp.toPx() }
 
         var localTracks by remember(tracks) { mutableStateOf(tracks) }
         LaunchedEffect(tracks) {
             localTracks = tracks
         }
 
-        var draggedIndex by remember { mutableStateOf<Int?>(null) }
-        var dragOffset by remember { mutableFloatStateOf(0f) }
         val originalOrder = remember(tracks) { tracks.map { it.entryId } }
 
         fun commitReorderIfNeeded() {
             val newOrder = localTracks.map { it.entryId }
             if (newOrder != originalOrder) {
                 component.onTracksReordered(newOrder)
+            }
+        }
+
+        val reorderableState = rememberReorderableLazyListState(listState) { from, to ->
+            localTracks = localTracks.toMutableList().apply {
+                add(to.index, removeAt(from.index))
             }
         }
 
@@ -242,7 +240,6 @@ class PlaylistDetailView(
             verticalArrangement = Arrangement.spacedBy(1.dp),
         ) {
             itemsIndexed(localTracks, key = { _, track -> track.entryId }) { index, track ->
-                val isDragging = draggedIndex == index
                 val song = track.song
                 val title = if (song == null) {
                     "${index + 1}. ${stringResource(Res.string.playlist_track_unavailable)}"
@@ -256,106 +253,67 @@ class PlaylistDetailView(
                 } else {
                     listOf(stringResource(Res.string.playlist_track_meta, song.artist, song.album))
                 }
-                val menuDragModifier = Modifier.pointerInput(track.entryId, localTracks.size) {
-                    detectDragGesturesAfterLongPress(
-                        onDragStart = {
-                            draggedIndex = index
-                            dragOffset = 0f
-                        },
-                        onDrag = { change, dragAmount ->
-                            change.consume()
-                            dragOffset += dragAmount.y
-
-                            val currentIndex = draggedIndex ?: return@detectDragGesturesAfterLongPress
-                            val targetIndex = (currentIndex + (dragOffset / estimatedItemHeightPx).roundToInt())
-                                .coerceIn(0, localTracks.lastIndex)
-
-                            if (targetIndex != currentIndex) {
-                                localTracks = localTracks.toMutableList().apply {
-                                    add(targetIndex, removeAt(currentIndex))
-                                }
-                                draggedIndex = targetIndex
-                                dragOffset -= (targetIndex - currentIndex) * estimatedItemHeightPx
+                ReorderableItem(reorderableState, key = track.entryId) { isDragging ->
+                    CardWithPopup(
+                        modifier = Modifier.zIndex(if (isDragging) 1f else 0f),
+                        title = title,
+                        onCardClicked = { },
+                        descriptions = descriptions,
+                        popupActions = buildList {
+                            if (song != null) {
+                                add(
+                                    PopupAction(stringResource(Res.string.playlist_open_artist)) {
+                                        component.onOpenArtist(track)
+                                    }
+                                )
+                                add(
+                                    PopupAction(stringResource(Res.string.playlist_open_album)) {
+                                        component.onOpenAlbum(track)
+                                    }
+                                )
                             }
+                            if (index > 0) {
+                                add(
+                                    PopupAction(stringResource(Res.string.playlist_move_up)) {
+                                        component.onMoveTrackUp(track.entryId)
+                                    }
+                                )
+                                add(
+                                    PopupAction(stringResource(Res.string.playlist_move_to_top)) {
+                                        component.onMoveTrackToTop(track.entryId)
+                                    }
+                                )
+                            }
+                            if (index < localTracks.lastIndex) {
+                                add(
+                                    PopupAction(stringResource(Res.string.playlist_move_down)) {
+                                        component.onMoveTrackDown(track.entryId)
+                                    }
+                                )
+                                add(
+                                    PopupAction(stringResource(Res.string.playlist_move_to_bottom)) {
+                                        component.onMoveTrackToBottom(track.entryId)
+                                    }
+                                )
+                            }
+                            add(
+                                PopupAction(stringResource(Res.string.playlist_remove_track)) {
+                                    component.onRemoveTrack(track)
+                                }
+                            )
                         },
-                        onDragEnd = {
-                            draggedIndex = null
-                            dragOffset = 0f
-                            commitReorderIfNeeded()
+                        leadingContent = if (song != null) {
+                            {
+                                CoverThumbnail(model = albumArtProvider.albumArtUri(song.albumId))
+                            }
+                        } else {
+                            null
                         },
-                        onDragCancel = {
-                            draggedIndex = null
-                            dragOffset = 0f
-                            localTracks = tracks
-                        },
+                        menuModifier = Modifier.longPressDraggableHandle(
+                            onDragStopped = { commitReorderIfNeeded() },
+                        ),
                     )
                 }
-
-                CardWithPopup(
-                    modifier = Modifier
-                        .zIndex(if (isDragging) 1f else 0f)
-                        .graphicsLayer {
-                            translationY = if (isDragging) dragOffset else 0f
-                        },
-                    title = title,
-                    onCardClicked = {
-                        if (song != null) {
-                            component.onPlayTrack(track)
-                        }
-                    },
-                    descriptions = descriptions,
-                    popupActions = buildList {
-                        if (song != null) {
-                            add(
-                                PopupAction(stringResource(Res.string.playlist_open_artist)) {
-                                    component.onOpenArtist(track)
-                                }
-                            )
-                            add(
-                                PopupAction(stringResource(Res.string.playlist_open_album)) {
-                                    component.onOpenAlbum(track)
-                                }
-                            )
-                        }
-                        if (index > 0) {
-                            add(
-                                PopupAction(stringResource(Res.string.playlist_move_up)) {
-                                    component.onMoveTrackUp(track.entryId)
-                                }
-                            )
-                            add(
-                                PopupAction(stringResource(Res.string.playlist_move_to_top)) {
-                                    component.onMoveTrackToTop(track.entryId)
-                                }
-                            )
-                        }
-                        if (index < localTracks.lastIndex) {
-                            add(
-                                PopupAction(stringResource(Res.string.playlist_move_down)) {
-                                    component.onMoveTrackDown(track.entryId)
-                                }
-                            )
-                            add(
-                                PopupAction(stringResource(Res.string.playlist_move_to_bottom)) {
-                                    component.onMoveTrackToBottom(track.entryId)
-                                }
-                            )
-                        }
-                        add(
-                            PopupAction(stringResource(Res.string.playlist_remove_track)) {
-                                component.onRemoveTrack(track)
-                            }
-                        )
-                    },
-                    leadingContent = if (song != null) {
-                        {
-                            CoverThumbnail(model = albumArtProvider.albumArtUri(song.albumId))
-                        }
-                    } else {
-                        null
-                    },
-                    menuModifier = menuDragModifier,
-                )
             }
         }
     }

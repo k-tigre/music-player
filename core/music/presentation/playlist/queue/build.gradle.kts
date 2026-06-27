@@ -31,6 +31,7 @@ kotlin {
             implementation(Library.CoilCompose.notation)
             implementation(Library.Decompose.notation)
             implementation(Library.DecomposeExtensions.notation)
+            implementation(Library.Reorderable.notation)
             implementation(project(Project.Tools.Presentation.Compose.name))
             implementation(project(Project.Tools.Presentation.Decompose.name))
             implementation(project(Project.Tools.Coroutines.name))
@@ -40,6 +41,7 @@ kotlin {
             implementation(project(Project.Core.Music.Data.Catalog.name))
             implementation(project(Project.Core.Music.Entity.Catalog.name))
             implementation(project(Project.Core.Music.Entity.Playback.name))
+            implementation(project(Project.Core.Music.Entity.Playlist.name))
         }
     }
 }

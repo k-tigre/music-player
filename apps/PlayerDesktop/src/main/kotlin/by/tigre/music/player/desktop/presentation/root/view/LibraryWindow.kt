@@ -80,7 +80,6 @@ internal fun LibraryWindowContent(
     val scope = rememberCoroutineScope()
     val addToPlaylistAddedMessage = stringResource(PlaylistRes.string.add_to_playlist_added_snackbar)
     val playlistNameTakenMessage = stringResource(PlaylistRes.string.playlist_name_taken)
-    val playlistNameTakenMessage = stringResource(PlaylistRes.string.playlist_name_taken)
 
     val pages = component.pages.subscribeAsState()
     val activePage = pages.value.active.instance

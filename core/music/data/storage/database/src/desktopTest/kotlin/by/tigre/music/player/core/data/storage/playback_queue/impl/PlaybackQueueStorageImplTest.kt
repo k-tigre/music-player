@@ -7,6 +7,8 @@ import by.tigre.music.player.core.data.storage.music.DatabaseMusic
 import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
 import by.tigre.music.player.core.data.storage.playlist.impl.PlaylistKindAdapter
 import by.tigre.music.player.core.entiry.catalog.Song
+import by.tigre.music.player.core.entiry.playback.QueueSession
+import by.tigre.music.player.core.entiry.playlist.Playlist as PlaylistEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -19,23 +21,45 @@ import kotlin.test.assertEquals
 class PlaybackQueueStorageImplTest {
 
     @Test
+    fun queueSessionRoundTripsThroughPreferences() = runBlocking {
+        val preferences = FakePreferences()
+        val storage = createStorage(preferences)
+
+        storage.saveQueueSession(
+            QueueSession.FromPlaylist(
+                playlistId = PlaylistEntity.Id(7),
+                name = "Evening",
+                isDirty = true,
+            )
+        )
+
+        assertEquals(
+            QueueSession.FromPlaylist(
+                playlistId = PlaylistEntity.Id(7),
+                name = "Evening",
+                isDirty = true,
+            ),
+            storage.loadQueueSession(),
+        )
+
+        storage.saveQueueSession(QueueSession.Plain)
+
+        assertEquals(QueueSession.Plain, storage.loadQueueSession())
+    }
+
+    @Test
     fun disablingShuffleNormalizesStatusesToNaturalOrder() = runBlocking {
-        val driver = JdbcSqliteDriver("jdbc:sqlite::memory:")
-        DatabaseMusic.Schema.synchronous().create(driver)
-        val database = DatabaseMusic(
-            driver = driver,
-            QueueAdapter = Queue.Adapter(QueueStateAdapter),
-            PlaylistAdapter = Playlist.Adapter(PlaylistKindAdapter),
-        )
-        val storage = PlaybackQueueStorageImpl(
-            database = database,
-            preferences = FakePreferences(),
-            scope = CoroutineScope(Job() + Dispatchers.Unconfined),
-        )
+        val context = createStorageContext(FakePreferences())
+        val storage = context.storage
 
         storage.playSongs((1L..11L).map(::songId))
         storage.setShuffleEnabled(true)
-        driver.execute(
+        context.driver.execute(
+            identifier = null,
+            sql = "UPDATE Queue SET sort_order = song_id",
+            parameters = 0,
+        )
+        context.driver.execute(
             identifier = null,
             sql = """
                 UPDATE Queue
@@ -62,13 +86,41 @@ class PlaybackQueueStorageImplTest {
         assertEquals(listOf(6L, 7L, 8L, 9L, 10L, 11L), buildList {
             repeat(6) {
                 storage.playNext()
-                add(database.currentPlayingSongId())
+                add(context.database.currentPlayingSongId())
             }
         })
     }
 
+    private data class StorageTestContext(
+        val storage: PlaybackQueueStorageImpl,
+        val database: DatabaseMusic,
+        val driver: JdbcSqliteDriver,
+    )
+
+    private fun createStorage(preferences: FakePreferences): PlaybackQueueStorageImpl =
+        createStorageContext(preferences).storage
+
+    private fun createStorageContext(preferences: FakePreferences): StorageTestContext {
+        val driver = JdbcSqliteDriver("jdbc:sqlite::memory:")
+        DatabaseMusic.Schema.synchronous().create(driver)
+        val database = DatabaseMusic(
+            driver = driver,
+            QueueAdapter = Queue.Adapter(QueueStateAdapter),
+            PlaylistAdapter = Playlist.Adapter(PlaylistKindAdapter),
+        )
+        return StorageTestContext(
+            storage = PlaybackQueueStorageImpl(
+                database = database,
+                preferences = preferences,
+                scope = CoroutineScope(Job() + Dispatchers.Unconfined),
+            ),
+            database = database,
+            driver = driver,
+        )
+    }
+
     private fun DatabaseMusic.currentPlayingSongId(): Long =
-        queueQueries.selectAllById(limit = 10000) { _, status, songId ->
+        queueQueries.selectAllByOrder(limit = 10000) { _, status, songId ->
             PlaybackQueueStorage.QueueItem(id = 0, songsId = Song.Id(songId), state = status)
         }.executeAsList().first { it.state == PlaybackQueueStorage.QueueItem.State.Playing }.songsId.value
 

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="screen_current_queue_title">Current Queue</string>
+    <string name="screen_current_queue_title">Queue</string>
+    <string name="queue_title_with_playlist">Queue «%1$s»</string>
     <string name="queue_empty_title">No songs in current playlist</string>
     <string name="queue_empty_message">Select some track for playing</string>
     <string name="queue_empty_action">Select from catalog</string>
@@ -15,4 +16,13 @@
     <string name="queue_overlay_return_to_queue">Return to queue</string>
     <string name="queue_interrupted_at">Paused at %1$s</string>
     <string name="queue_source_downloads">Downloads</string>
+    <string name="queue_save_playlist">Save playlist</string>
+    <string name="queue_save_playlist_dialog_title">Save as playlist</string>
+    <string name="queue_save_playlist_default_name">Playlist %1$s</string>
+    <string name="queue_name_taken">A playlist with this name already exists</string>
+    <string name="queue_remove_track">Remove from queue</string>
+    <string name="queue_move_up">Move up</string>
+    <string name="queue_move_down">Move down</string>
+    <string name="queue_move_to_top">Move to top</string>
+    <string name="queue_move_to_bottom">Move to bottom</string>
 </resources>

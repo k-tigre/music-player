@@ -11,6 +11,10 @@ insertNew:
 INSERT INTO Queue(song_id)
 VALUES(?);
 
+insertNewWithSortOrder:
+INSERT INTO Queue(song_id, sort_order)
+VALUES(?, ?);
+
 insertNewWithStatus:
 INSERT INTO Queue(song_id, status)
 VALUES(?, ?);
@@ -51,6 +55,12 @@ DELETE FROM Queue WHERE song_id = ?;
 
 deleteAll:
 DELETE FROM Queue;
+
+selectMaxSortOrder:
+SELECT COALESCE(MAX(sort_order), -1) FROM Queue;
+
+updateQueueSortOrder:
+UPDATE Queue SET sort_order = ? WHERE id = ?;
 
 shuffleOrder:
 UPDATE Queue SET sort_order = RANDOM();

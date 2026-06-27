@@ -16,7 +16,9 @@ import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.entiry.playback.PlayableItem
 import by.tigre.music.player.core.entiry.playback.PlaybackInterruption
 import by.tigre.music.player.core.entiry.playback.ResumePoint
+import by.tigre.music.player.core.entiry.playback.QueueSession
 import by.tigre.music.player.core.entiry.playback.SongInQueueItem
+import by.tigre.music.player.core.entiry.playlist.Playlist
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -47,12 +49,14 @@ internal class PlaybackControllerImpl(
     private val activeSource = MutableStateFlow<ActivePlaybackSource>(ActivePlaybackSource.Session)
     private val interruptionState = MutableStateFlow<PlaybackInterruption?>(null)
     private val overlayItem = MutableStateFlow<PlayableItem.ExternalAudio?>(null)
+    private val queueSessionState = MutableStateFlow(restoreQueueSession())
     private var pendingSessionSeekMs: Long? = null
     private var sessionMediaLoadedForQueueEntryId: Long? = null
 
     override val activePlaybackSource: StateFlow<ActivePlaybackSource> = activeSource.asStateFlow()
     override val interruption: StateFlow<PlaybackInterruption?> = interruptionState.asStateFlow()
     override val nowPlayingOverlay: StateFlow<PlayableItem.ExternalAudio?> = overlayItem.asStateFlow()
+    override val queueSession: StateFlow<QueueSession> = queueSessionState.asStateFlow()
     override val isPlaying: StateFlow<Boolean> = player.state
         .map { it == PlaybackPlayer.State.Playing }
         .distinctUntilChanged()
@@ -120,14 +124,17 @@ internal class PlaybackControllerImpl(
 
                         is Action.AddAlbumToQueue -> {
                             storage.addSongs(catalog.getSongsByAlbum(action.artistId, action.albumId).map(Song::id))
+                            markPlaylistDirtyIfNeeded()
                         }
 
                         is Action.AddSongToQueue -> {
                             storage.addSongs(listOf(action.songId))
+                            markPlaylistDirtyIfNeeded()
                         }
 
                         is Action.AddSongsToQueue -> {
                             storage.addSongs(action.songIds)
+                            markPlaylistDirtyIfNeeded()
                         }
 
                         is Action.PlaySongs -> {
@@ -137,6 +144,7 @@ internal class PlaybackControllerImpl(
 
                         is Action.AddArtistToQueue -> {
                             storage.addSongs(catalog.getSongsByArtist(action.artistId).map(Song::id))
+                            markPlaylistDirtyIfNeeded()
                         }
 
                         is Action.PlayArtist -> {
@@ -303,6 +311,7 @@ internal class PlaybackControllerImpl(
     override fun playSong(id: Song.Id) {
         Log.d("PlaybackController") { "playSong" }
         clearOverlayState()
+        clearPlaylistSession()
         action.tryEmit(Action.PlaySong(id))
         resume()
     }
@@ -311,7 +320,17 @@ internal class PlaybackControllerImpl(
         Log.d("PlaybackController") { "playSongs" }
         if (ids.isEmpty()) return
         clearOverlayState()
+        clearPlaylistSession()
         action.tryEmit(Action.PlaySongs(ids))
+        resume()
+    }
+
+    override fun playPlaylist(playlistId: Playlist.Id, name: String, songIds: List<Song.Id>) {
+        Log.d("PlaybackController") { "playPlaylist" }
+        if (songIds.isEmpty()) return
+        clearOverlayState()
+        setPlaylistSession(playlistId = playlistId, name = name, isDirty = false)
+        action.tryEmit(Action.PlaySongs(songIds))
         resume()
     }
 
@@ -332,6 +351,7 @@ internal class PlaybackControllerImpl(
     override fun playAlbum(albumId: Album.Id, artistId: Artist.Id) {
         Log.d("PlaybackController") { "playAlbum" }
         clearOverlayState()
+        clearPlaylistSession()
         action.tryEmit(Action.PlayAlbum(albumId, artistId))
         resume()
     }
@@ -355,6 +375,7 @@ internal class PlaybackControllerImpl(
     override fun playArtist(id: Artist.Id) {
         Log.d("PlaybackController") { "playArtist" }
         clearOverlayState()
+        clearPlaylistSession()
         action.tryEmit(Action.PlayArtist(id))
         resume()
     }
@@ -365,7 +386,44 @@ internal class PlaybackControllerImpl(
     }
 
     override fun removeSongsFromQueue(ids: List<Song.Id>) {
-        scope.launch { storage.removeSongsByIds(ids) }
+        scope.launch {
+            storage.removeSongsByIds(ids)
+            markPlaylistDirtyIfNeeded()
+        }
+    }
+
+    override fun removeFromQueue(queueEntryIds: List<Long>) {
+        scope.launch {
+            storage.removeQueueEntries(queueEntryIds)
+            markPlaylistDirtyIfNeeded()
+        }
+    }
+
+    override fun reorderQueue(queueEntryIdsInOrder: List<Long>) {
+        scope.launch {
+            storage.reorderQueue(queueEntryIdsInOrder)
+            markPlaylistDirtyIfNeeded()
+        }
+    }
+
+    override suspend fun queueSongIdsInListOrder(): List<Song.Id> =
+        storage.queueSongIdsInListOrder()
+
+    override fun markPlaylistSaved() {
+        val session = queueSessionState.value
+        if (session is QueueSession.FromPlaylist) {
+            updateQueueSession(session.copy(isDirty = false))
+        }
+    }
+
+    override fun activatePlaylistSession(playlistId: Playlist.Id, name: String) {
+        updateQueueSession(
+            QueueSession.FromPlaylist(
+                playlistId = playlistId,
+                name = name,
+                isDirty = false,
+            )
+        )
     }
 
     override fun stop() {
@@ -468,6 +526,37 @@ internal class PlaybackControllerImpl(
                     setShouldPlay(false)
                 }
             }
+        }
+    }
+
+    private fun restoreQueueSession(): QueueSession {
+        if (!storage.hasPersistedQueueItems()) return QueueSession.Plain
+        return storage.loadQueueSession()
+    }
+
+    private fun updateQueueSession(session: QueueSession) {
+        queueSessionState.value = session
+        storage.saveQueueSession(session)
+    }
+
+    private fun clearPlaylistSession() {
+        updateQueueSession(QueueSession.Plain)
+    }
+
+    private fun setPlaylistSession(playlistId: Playlist.Id, name: String, isDirty: Boolean) {
+        updateQueueSession(
+            QueueSession.FromPlaylist(
+                playlistId = playlistId,
+                name = name,
+                isDirty = isDirty,
+            )
+        )
+    }
+
+    private fun markPlaylistDirtyIfNeeded() {
+        val session = queueSessionState.value
+        if (session is QueueSession.FromPlaylist && !session.isDirty) {
+            updateQueueSession(session.copy(isDirty = true))
         }
     }
 

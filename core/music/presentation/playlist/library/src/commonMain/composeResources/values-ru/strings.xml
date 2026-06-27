@@ -7,7 +7,7 @@
     <string name="playlist_delete_confirm">Удалить плейлист</string>
     <string name="playlist_track_unavailable">Трек недоступен</string>
     <string name="playlist_play_all">Играть всё</string>
-    <string name="playlist_play">Играть</string>
+    <string name="playlist_play">Играть плейлист</string>
     <string name="playlist_add_all_to_queue">Добавить всё в очередь</string>
     <string name="playlist_remove_track">Убрать трек</string>
     <string name="playlist_no_playable_tracks">Нет доступных треков</string>

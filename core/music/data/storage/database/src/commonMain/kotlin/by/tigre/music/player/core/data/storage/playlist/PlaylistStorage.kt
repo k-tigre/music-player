@@ -14,6 +14,7 @@ interface PlaylistStorage {
     suspend fun addSongs(playlistId: Playlist.Id, songIds: List<Song.Id>)
     suspend fun removeSong(entryId: Long)
     suspend fun updateSortOrders(updates: List<Pair<Long, Int>>)
+    suspend fun replaceTracks(playlistId: Playlist.Id, songIds: List<Song.Id>)
 
     data class PlaylistSongRow(
         val entryId: Long,

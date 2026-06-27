@@ -13,8 +13,8 @@ import by.tigre.music.player.core.presentation.playlist.library.navigation.Playl
 import com.arkivanov.decompose.DelicateDecomposeApi
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.bringToFront
 import com.arkivanov.decompose.router.stack.pop
-import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -48,7 +48,7 @@ interface RootPlaylistsComponent {
             override fun openDetail(id: Playlist.Id) {
                 launch {
                     withContext(Dispatchers.Main.immediate) {
-                        navigation.push(PlaylistsConfig.Detail(id.value))
+                        navigation.bringToFront(PlaylistsConfig.Detail(id.value))
                     }
                 }
             }

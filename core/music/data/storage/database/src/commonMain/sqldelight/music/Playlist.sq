@@ -39,6 +39,9 @@ VALUES(?, ?, ?, ?);
 updatePlaylistName:
 UPDATE Playlist SET name = ?, updated_at = ? WHERE id = ?;
 
+touchPlaylistUpdatedAt:
+UPDATE Playlist SET updated_at = ? WHERE id = ?;
+
 deletePlaylist:
 DELETE FROM Playlist WHERE id = ?;
 
@@ -56,6 +59,9 @@ VALUES(?, ?, ?);
 
 deletePlaylistSongByEntryId:
 DELETE FROM PlaylistSong WHERE id = ?;
+
+deletePlaylistSongsByPlaylistId:
+DELETE FROM PlaylistSong WHERE playlist_id = ?;
 
 updateSortOrder:
 UPDATE PlaylistSong SET sort_order = ? WHERE id = ?;

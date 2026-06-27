@@ -16,6 +16,7 @@ data class OverlayQueueEntry(
 )
 
 data class NowPlayingScreenModel(
+    val session: QueueSession,
     val overlay: OverlayQueueEntry?,
     val queue: List<NowPlayingQueueEntry>,
 )

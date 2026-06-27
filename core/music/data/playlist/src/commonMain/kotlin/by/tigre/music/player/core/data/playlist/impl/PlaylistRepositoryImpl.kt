@@ -71,6 +71,10 @@ class PlaylistRepositoryImpl(
         playlistStorage.updateSortOrders(updates = updates)
     }
 
+    override suspend fun replaceTracks(playlistId: Playlist.Id, songIds: List<Song.Id>) {
+        playlistStorage.replaceTracks(playlistId = playlistId, songIds = songIds)
+    }
+
     override suspend fun resolvePlayableSongIds(playlistId: Playlist.Id): List<Song.Id> {
         val orderedSongIds = playlistStorage.playlistTracks(playlistId)
             .first()

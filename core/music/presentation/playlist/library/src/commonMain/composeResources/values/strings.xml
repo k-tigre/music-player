@@ -7,7 +7,7 @@
     <string name="playlist_delete_confirm">Delete playlist</string>
     <string name="playlist_track_unavailable">Track unavailable</string>
     <string name="playlist_play_all">Play all</string>
-    <string name="playlist_play">Play</string>
+    <string name="playlist_play">Play playlist</string>
     <string name="playlist_add_all_to_queue">Add all to queue</string>
     <string name="playlist_remove_track">Remove track</string>
     <string name="playlist_no_playable_tracks">No playable tracks</string>

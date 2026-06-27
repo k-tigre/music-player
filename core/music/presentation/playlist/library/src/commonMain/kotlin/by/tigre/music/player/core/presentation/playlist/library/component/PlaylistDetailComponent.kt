@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 interface PlaylistDetailComponent {
@@ -28,9 +29,6 @@ interface PlaylistDetailComponent {
     fun onBackClicked()
     fun onAddTracksClicked()
     fun onPlayAll()
-    fun onAddAllToQueue()
-    fun onPlayTrack(track: PlaylistTrackEntry)
-    fun onAddTrackToQueue(track: PlaylistTrackEntry)
     fun onMoveTrackUp(entryId: Long)
     fun onMoveTrackDown(entryId: Long)
     fun onMoveTrackToTop(entryId: Long)
@@ -97,29 +95,14 @@ interface PlaylistDetailComponent {
                     _messages.emit(Message.NoPlayableTracks)
                     return@launch
                 }
+                val name = playlistName.value.ifBlank {
+                    playlistRepository.allPlaylists.first()
+                        .firstOrNull { it.id == playlistId }?.name.orEmpty()
+                }
                 eventAnalytics.trackEvent(MusicEvents.Action.PlaylistPlayAll)
-                playbackController.playSongs(ids)
+                playbackController.playPlaylist(playlistId, name, ids)
                 navigator.openQueue()
             }
-        }
-
-        override fun onAddAllToQueue() {
-            launch {
-                val ids = playlistRepository.resolvePlayableSongIds(playlistId)
-                if (ids.isEmpty()) {
-                    _messages.emit(Message.NoPlayableTracks)
-                    return@launch
-                }
-                playbackController.addSongsToPlay(ids)
-            }
-        }
-
-        override fun onPlayTrack(track: PlaylistTrackEntry) {
-            track.song?.let { playbackController.playSong(it.id) }
-        }
-
-        override fun onAddTrackToQueue(track: PlaylistTrackEntry) {
-            track.song?.let { playbackController.addSongToPlay(it.id) }
         }
 
         override fun onMoveTrackUp(entryId: Long) {

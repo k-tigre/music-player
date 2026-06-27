@@ -95,4 +95,21 @@ class PlaylistStorageImpl(
             }
         }
     }
+
+    override suspend fun replaceTracks(playlistId: Playlist.Id, songIds: List<Song.Id>) {
+        database.playlistQueries.transaction {
+            database.playlistQueries.deletePlaylistSongsByPlaylistId(playlist_id = playlistId.value)
+            songIds.forEachIndexed { index, songId ->
+                database.playlistQueries.insertPlaylistSong(
+                    playlist_id = playlistId.value,
+                    song_id = songId.value,
+                    sort_order = index.toLong(),
+                )
+            }
+            database.playlistQueries.touchPlaylistUpdatedAt(
+                updated_at = System.currentTimeMillis(),
+                id = playlistId.value,
+            )
+        }
+    }
 }

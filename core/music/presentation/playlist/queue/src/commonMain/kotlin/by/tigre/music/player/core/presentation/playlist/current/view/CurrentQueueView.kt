@@ -14,13 +14,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AudioFile
+import androidx.compose.material.icons.outlined.Save
 import androidx.compose.foundation.clickable
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -28,7 +32,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,10 +44,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import by.tigre.music.player.core.data.catalog.AlbumArtProvider
 import by.tigre.music.player.core.entiry.playback.NowPlayingQueueEntry
 import by.tigre.music.player.core.entiry.playback.NowPlayingScreenModel
 import by.tigre.music.player.core.entiry.playback.OverlayQueueEntry
+import by.tigre.music.player.core.entiry.playback.QueueSession
 import by.tigre.music.player.core.entiry.playback.SongInQueueItem
 import by.tigre.music.player.core.presentation.playlist.current.component.CurrentQueueComponent
 import by.tigre.media.platform.presentation.ScreenContentState
@@ -59,6 +68,8 @@ import `by`.tigre.music.player.core.presentation.queue.resources.*
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.first
 import kotlin.math.abs
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 class CurrentQueueView(
     private val component: CurrentQueueComponent,
@@ -68,6 +79,20 @@ class CurrentQueueView(
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Draw(modifier: Modifier) {
+        val screenState by component.screenState.collectAsState()
+        val saveDialogState by component.saveDialogState.collectAsState()
+        val nameError by component.nameError.collectAsState()
+        val contentModel = (screenState as? ScreenContentState.Content<NowPlayingScreenModel>)?.value
+
+        saveDialogState?.let { dialogState ->
+            SavePlaylistDialog(
+                initialName = dialogState.defaultName,
+                nameError = nameError,
+                onDismiss = component::dismissSaveDialog,
+                onConfirm = component::onSaveNewPlaylistConfirmed,
+            )
+        }
+
         Scaffold(
             modifier = modifier,
             topBar = {
@@ -75,23 +100,30 @@ class CurrentQueueView(
                     title = {
                         Column(Modifier.padding(horizontal = 48.dp)) {
                             Text(
-                                text = stringResource(Res.string.screen_current_queue_title),
+                                text = queueTitleText(contentModel),
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                overflow = TextOverflow.Ellipsis,
                             )
+                        }
+                    },
+                    actions = {
+                        if (contentModel != null && showSaveButton(contentModel)) {
+                            IconButton(onClick = component::onSaveClicked) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Save,
+                                    contentDescription = stringResource(Res.string.queue_save_playlist),
+                                )
+                            }
                         }
                     },
                 )
             },
             content = { paddingValues ->
-                val screenState by component.screenState.collectAsState()
-
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
                 ) {
-
                     when (screenState) {
                         is ScreenContentState.Loading -> {
                             ProgressIndicator(Modifier.fillMaxSize(), ProgressIndicatorSize.LARGE)
@@ -111,6 +143,22 @@ class CurrentQueueView(
     }
 
     @Composable
+    private fun queueTitleText(model: NowPlayingScreenModel?): String =
+        when (val session = model?.session) {
+            null, QueueSession.Plain -> stringResource(Res.string.screen_current_queue_title)
+            is QueueSession.FromPlaylist -> {
+                val playlistName = if (session.isDirty) "${session.name}*" else session.name
+                stringResource(Res.string.queue_title_with_playlist, playlistName)
+            }
+        }
+
+    private fun showSaveButton(model: NowPlayingScreenModel): Boolean =
+        when (val session = model.session) {
+            QueueSession.Plain -> model.queue.isNotEmpty()
+            is QueueSession.FromPlaylist -> session.isDirty
+        }
+
+    @Composable
     private fun DrawContent(model: NowPlayingScreenModel) {
         if (model.overlay == null && model.queue.isEmpty()) {
             EmptyScreen(
@@ -123,6 +171,31 @@ class CurrentQueueView(
             val listState = rememberLazyListState()
             val nearMarginPx = with(LocalDensity.current) { 50.dp.toPx() }
             val currentModel by rememberUpdatedState(model)
+
+            var localQueue by remember(model.queue) { mutableStateOf(model.queue) }
+            LaunchedEffect(model.queue) {
+                localQueue = model.queue
+            }
+
+            val originalOrder = remember(model.queue) { model.queue.map { it.id } }
+
+            fun commitReorderIfNeeded() {
+                val newOrder = localQueue.map { it.id }
+                if (newOrder != originalOrder) {
+                    component.onTracksReordered(newOrder)
+                }
+            }
+
+            val reorderableState = rememberReorderableLazyListState(listState) { from, to ->
+                val offset = queueLazyOffset(currentModel)
+                val fromIndex = from.index - offset
+                val toIndex = to.index - offset
+                if (fromIndex !in localQueue.indices || toIndex !in localQueue.indices) return@rememberReorderableLazyListState
+                localQueue = localQueue.toMutableList().apply {
+                    add(toIndex, removeAt(fromIndex))
+                }
+            }
+
             LaunchedEffect(model.overlay?.item?.uri) {
                 if (model.overlay != null) {
                     listState.scrollToItem(0)
@@ -174,18 +247,26 @@ class CurrentQueueView(
                     }
                 }
 
-                if (model.queue.isNotEmpty()) {
+                if (localQueue.isNotEmpty()) {
                     if (model.overlay != null) {
                         item(key = "section_hold") {
                             SectionHeader(stringResource(Res.string.queue_section_on_hold))
                         }
                     }
-                    itemsIndexed(model.queue, key = { _, entry -> entry.id }) { index, entry ->
-                        DrawQueueRow(
-                            queuePositionOneBased = index + 1,
-                            entry = entry,
-                            overlayActive = model.overlay != null,
-                        )
+                    itemsIndexed(localQueue, key = { _, entry -> entry.id }) { index, entry ->
+                        ReorderableItem(reorderableState, key = entry.id) { isDragging ->
+                            DrawQueueRow(
+                                queuePositionOneBased = index + 1,
+                                entry = entry,
+                                overlayActive = model.overlay != null,
+                                isDragging = isDragging,
+                                canMoveUp = index > 0,
+                                canMoveDown = index < localQueue.lastIndex,
+                                menuDragModifier = Modifier.longPressDraggableHandle(
+                                    onDragStopped = { commitReorderIfNeeded() },
+                                ),
+                            )
+                        }
                     }
                 }
             }
@@ -262,33 +343,73 @@ class CurrentQueueView(
         queuePositionOneBased: Int,
         entry: NowPlayingQueueEntry,
         overlayActive: Boolean,
+        isDragging: Boolean,
+        canMoveUp: Boolean,
+        canMoveDown: Boolean,
+        menuDragModifier: Modifier,
     ) {
         val isNowPlaying = entry.isPlaying && !overlayActive
         val rowAlpha = if (overlayActive) 0.7f else 1f
         CardWithPopup(
             modifier = Modifier
                 .fillMaxWidth()
-                .alpha(rowAlpha),
+                .alpha(rowAlpha)
+                .zIndex(if (isDragging) 1f else 0f),
             title = formatQueueRowTitle(queuePositionOneBased = queuePositionOneBased, entry = entry),
             onCardClicked = { component.onSongClicked(entry) },
             containerColor = if (isNowPlaying) nowPlayingHighlightColor() else null,
-            popupActions = listOf(
-                PopupAction(stringResource(Res.string.queue_action_open_artist)) {
-                    component.onOpenArtistClicked(entry)
-                },
-                PopupAction(stringResource(Res.string.queue_action_open_album)) {
-                    component.onOpenAlbumClicked(entry)
-                },
-                PopupAction(stringResource(Res.string.action_add_to_playlist)) {
-                    component.onAddToPlaylistClicked(
-                        SongInQueueItem(
-                            id = entry.id,
-                            song = entry.song,
-                            isPlaying = entry.isPlaying,
+            popupActions = buildList {
+                add(
+                    PopupAction(stringResource(Res.string.queue_action_open_artist)) {
+                        component.onOpenArtistClicked(entry)
+                    }
+                )
+                add(
+                    PopupAction(stringResource(Res.string.queue_action_open_album)) {
+                        component.onOpenAlbumClicked(entry)
+                    }
+                )
+                add(
+                    PopupAction(stringResource(Res.string.action_add_to_playlist)) {
+                        component.onAddToPlaylistClicked(
+                            SongInQueueItem(
+                                id = entry.id,
+                                song = entry.song,
+                                isPlaying = entry.isPlaying,
+                            )
                         )
+                    }
+                )
+                if (canMoveUp) {
+                    add(
+                        PopupAction(stringResource(Res.string.queue_move_up)) {
+                            component.onMoveTrackUp(entry.id)
+                        }
                     )
-                },
-            ),
+                    add(
+                        PopupAction(stringResource(Res.string.queue_move_to_top)) {
+                            component.onMoveTrackToTop(entry.id)
+                        }
+                    )
+                }
+                if (canMoveDown) {
+                    add(
+                        PopupAction(stringResource(Res.string.queue_move_down)) {
+                            component.onMoveTrackDown(entry.id)
+                        }
+                    )
+                    add(
+                        PopupAction(stringResource(Res.string.queue_move_to_bottom)) {
+                            component.onMoveTrackToBottom(entry.id)
+                        }
+                    )
+                }
+                add(
+                    PopupAction(stringResource(Res.string.queue_remove_track)) {
+                        component.onRemoveTrack(entry)
+                    }
+                )
+            },
             descriptions = buildList {
                 add(stringResource(Res.string.queue_track_meta, entry.song.artist, entry.song.album))
                 entry.interruptedPositionMs?.takeIf { overlayActive }?.let { positionMs ->
@@ -303,6 +424,45 @@ class CurrentQueueView(
             leadingContent = {
                 CoverThumbnail(model = albumArtProvider.albumArtUri(entry.song.albumId))
             },
+            menuModifier = menuDragModifier,
+        )
+    }
+
+    @Composable
+    private fun SavePlaylistDialog(
+        initialName: String,
+        nameError: Boolean,
+        onDismiss: () -> Unit,
+        onConfirm: (String) -> Unit,
+    ) {
+        var value by remember(initialName) { mutableStateOf(initialName) }
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(stringResource(Res.string.queue_save_playlist_dialog_title)) },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = value,
+                        onValueChange = { value = it },
+                        singleLine = true,
+                        isError = nameError,
+                    )
+                    if (nameError) {
+                        Text(
+                            text = stringResource(Res.string.queue_name_taken),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { onConfirm(value) }) {
+                    Text(stringResource(Res.string.queue_save_playlist))
+                }
+            },
+            dismissButton = {},
         )
     }
 }
@@ -311,12 +471,15 @@ class CurrentQueueView(
 private fun nowPlayingHighlightColor(): Color =
     MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.38f)
 
-private fun lazyListIndexForQueueItem(queueIndex: Int, model: NowPlayingScreenModel): Int {
-    var offset = 0
-    if (model.overlay != null) offset += 2
-    if (model.overlay != null && model.queue.isNotEmpty()) offset += 1
-    return offset + queueIndex
+private fun queueLazyOffset(model: NowPlayingScreenModel): Int {
+    if (model.overlay == null) return 0
+    var offset = 2
+    if (model.queue.isNotEmpty()) offset += 1
+    return offset
 }
+
+private fun lazyListIndexForQueueItem(queueIndex: Int, model: NowPlayingScreenModel): Int =
+    queueLazyOffset(model) + queueIndex
 
 private fun formatQueueRowTitle(queuePositionOneBased: Int, entry: NowPlayingQueueEntry): String {
     val trackInAlbum = entry.song.index.trim()

@@ -9,6 +9,8 @@ import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.CatalogSearchResult
 import by.tigre.music.player.core.entiry.catalog.Song
+import by.tigre.music.player.core.entiry.playback.QueueSession
+import by.tigre.music.player.core.entiry.playlist.Playlist
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -115,6 +117,61 @@ class PlaybackControllerImplTest {
         assertEquals(0, storage.playNextCalls)
     }
 
+    @Test
+    fun restoresPlaylistSessionFromStorageOnInit() = runBlocking {
+        val storage = FakePlaybackQueueStorage(
+            queue = listOf(
+                queueItem(id = 1, songId = 1, state = PlaybackQueueStorage.QueueItem.State.Playing),
+            ),
+            persistedSession = QueueSession.FromPlaylist(
+                playlistId = Playlist.Id(5),
+                name = "Road mix",
+                isDirty = false,
+            ),
+        )
+        val controller = PlaybackControllerImpl(
+            storage = storage,
+            catalog = FakeCatalogSource(),
+            player = FakePlaybackPlayer(state = PlaybackPlayer.State.Paused),
+            scope = TestCoreScope(),
+        )
+
+        assertEquals(
+            QueueSession.FromPlaylist(
+                playlistId = Playlist.Id(5),
+                name = "Road mix",
+                isDirty = false,
+            ),
+            controller.queueSession.value,
+        )
+    }
+
+    @Test
+    fun playSongClearsPersistedPlaylistSession() = runBlocking {
+        val storage = FakePlaybackQueueStorage(
+            queue = listOf(
+                queueItem(id = 1, songId = 1, state = PlaybackQueueStorage.QueueItem.State.Playing),
+            ),
+            persistedSession = QueueSession.FromPlaylist(
+                playlistId = Playlist.Id(5),
+                name = "Road mix",
+                isDirty = false,
+            ),
+        )
+        val controller = PlaybackControllerImpl(
+            storage = storage,
+            catalog = FakeCatalogSource(),
+            player = FakePlaybackPlayer(state = PlaybackPlayer.State.Paused),
+            scope = TestCoreScope(),
+        )
+
+        controller.playSong(Song.Id(2))
+        delay(50)
+
+        assertEquals(QueueSession.Plain, controller.queueSession.value)
+        assertEquals(QueueSession.Plain, storage.savedSession)
+    }
+
     private suspend fun waitForCondition(timeoutMs: Long = 500, condition: () -> Boolean) {
         val deadline = System.currentTimeMillis() + timeoutMs
         while (!condition() && System.currentTimeMillis() < deadline) {
@@ -136,11 +193,16 @@ class PlaybackControllerImplTest {
     private class TestCoreScope : CoreScope, CoroutineScope by CoroutineScope(Job() + Dispatchers.Unconfined)
 
     private class FakePlaybackQueueStorage(
-        queue: List<PlaybackQueueStorage.QueueItem>
+        queue: List<PlaybackQueueStorage.QueueItem>,
+        persistedSession: QueueSession = QueueSession.Plain,
     ) : PlaybackQueueStorage {
         private val queueState = MutableStateFlow(queue)
         private val shuffleState = MutableStateFlow(false)
         private val repeatState = MutableStateFlow(PlaybackQueueStorage.RepeatMode.Off)
+        private var sessionState = persistedSession
+
+        var savedSession: QueueSession = persistedSession
+            private set
 
         var playNextCalls: Int = 0
             private set
@@ -150,6 +212,13 @@ class PlaybackControllerImplTest {
         override val repeatMode: Flow<PlaybackQueueStorage.RepeatMode> = repeatState
 
         override fun hasPersistedQueueItems(): Boolean = queueState.value.isNotEmpty()
+
+        override fun loadQueueSession(): QueueSession = sessionState
+
+        override fun saveQueueSession(session: QueueSession) {
+            sessionState = session
+            savedSession = session
+        }
 
         override suspend fun playSongs(items: List<Song.Id>) = Unit
         override suspend fun addSongs(items: List<Song.Id>) = Unit
@@ -168,6 +237,9 @@ class PlaybackControllerImplTest {
         override suspend fun playPrev() = Unit
         override suspend fun playSongInQueue(queueId: Long) = Unit
         override suspend fun removeSongsByIds(ids: List<Song.Id>) = Unit
+        override suspend fun removeQueueEntries(queueEntryIds: List<Long>) = Unit
+        override suspend fun reorderQueue(queueEntryIdsInOrder: List<Long>) = Unit
+        override suspend fun queueSongIdsInListOrder(): List<Song.Id> = emptyList()
     }
 
     private class FakePlaybackPlayer(
@@ -209,6 +281,7 @@ class PlaybackControllerImplTest {
         override suspend fun getSongsByArtist(artistId: Artist.Id): List<Song> = emptyList()
         override suspend fun getSongsByAlbum(artistId: Artist.Id, albumId: Album.Id): List<Song> = emptyList()
         override suspend fun getSongsByIds(ids: List<Song.Id>): List<Song> = ids.mapNotNull { getSongById(it) }
+        override suspend fun resolveSongsByIds(ids: List<Song.Id>): List<Song> = getSongsByIds(ids)
         override suspend fun getSongById(id: Song.Id): Song? = Song(
             id = id,
             name = "Song ${id.value}",

@@ -13,6 +13,7 @@ kotlin {
         commonMain.dependencies {
             implementation(Library.KotlinStd.notation)
             implementation(project(Project.Core.Music.Entity.Catalog.name))
+            implementation(project(Project.Core.Music.Entity.Playlist.name))
         }
     }
 }
