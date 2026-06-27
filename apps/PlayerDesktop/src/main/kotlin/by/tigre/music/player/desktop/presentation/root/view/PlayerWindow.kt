@@ -19,8 +19,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.Shuffle
@@ -44,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import by.tigre.media.platform.player.component.BasePlayerComponent
 import by.tigre.media.platform.player.component.RepeatMode
+import by.tigre.media.platform.player.view.AnimatedPlayPauseIcon
 import by.tigre.media.platform.player.view.PlaybackModeIconButton
 import by.tigre.media.platform.player.view.PlayerProgressSlider
 import by.tigre.music.player.desktop.resources.Res
@@ -221,12 +220,10 @@ internal fun PlayerWindowContent(
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = if (state == BasePlayerComponent.State.Playing)
-                        Icons.Default.Pause else Icons.Default.PlayArrow,
-                    contentDescription = null,
+                AnimatedPlayPauseIcon(
+                    isPlaying = state == BasePlayerComponent.State.Playing,
+                    iconSize = 26.dp,
                     tint = Color.Black,
-                    modifier = Modifier.size(26.dp)
                 )
             }
 

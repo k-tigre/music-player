@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Reply
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.Shuffle
@@ -169,15 +167,15 @@ class SmallPlayerView(
                 Icon(contentDescription = null, imageVector = Icons.Default.SkipPrevious)
             }
 
-            if (state.value == BasePlayerComponent.State.Playing) {
-                IconButton(onClick = component::pause) {
-                    Icon(contentDescription = null, imageVector = Icons.Default.Pause)
-                }
-            } else {
-                IconButton(onClick = component::play) {
-                    Icon(contentDescription = null, imageVector = Icons.Default.PlayArrow)
-                }
-            }
+            PlayPauseIconButton(
+                isPlaying = state.value == BasePlayerComponent.State.Playing,
+                onClick = if (state.value == BasePlayerComponent.State.Playing) {
+                    component::pause
+                } else {
+                    component::play
+                },
+                iconSize = 24.dp,
+            )
 
             IconButton(onClick = component::next) {
                 Icon(contentDescription = null, imageVector = Icons.Default.SkipNext)

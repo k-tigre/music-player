@@ -18,6 +18,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,6 +33,7 @@ fun PlayerProgressSlider(
     var sliderPosition by remember { mutableFloatStateOf(0f) }
     var sliderEnabled by remember { mutableStateOf(false) }
     var gestureChangedValue by remember { mutableStateOf(false) }
+    val haptic = LocalHapticFeedback.current
     val interactionSource = remember { MutableInteractionSource() }
     val colors = SliderDefaults.colors(
         activeTickColor = MaterialTheme.colorScheme.secondary,
@@ -50,6 +53,7 @@ fun PlayerProgressSlider(
         },
         onValueChangeFinished = {
             if (gestureChangedValue) {
+                haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
                 onSeekCommitted(sliderPosition)
                 gestureChangedValue = false
             }

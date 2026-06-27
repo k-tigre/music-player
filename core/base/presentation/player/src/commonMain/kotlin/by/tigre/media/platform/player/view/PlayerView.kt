@@ -25,8 +25,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.Shuffle
@@ -314,29 +312,16 @@ class PlayerView(
                 )
             }
 
-            if (state.value == BasePlayerComponent.State.Playing) {
-                IconButton(
-                    modifier = Modifier.align(Alignment.CenterVertically),
-                    onClick = component::pause
-                ) {
-                    Icon(
-                        contentDescription = null,
-                        imageVector = Icons.Default.Pause,
-                        modifier = Modifier.size(56.dp)
-                    )
-                }
-            } else {
-                IconButton(
-                    modifier = Modifier.align(Alignment.CenterVertically),
-                    onClick = component::play
-                ) {
-                    Icon(
-                        contentDescription = null,
-                        imageVector = Icons.Default.PlayArrow,
-                        modifier = Modifier.size(56.dp)
-                    )
-                }
-            }
+            PlayPauseIconButton(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                isPlaying = state.value == BasePlayerComponent.State.Playing,
+                onClick = if (state.value == BasePlayerComponent.State.Playing) {
+                    component::pause
+                } else {
+                    component::play
+                },
+                iconSize = 56.dp,
+            )
 
             IconButton(
                 modifier = Modifier.align(Alignment.CenterVertically),
@@ -372,16 +357,7 @@ class PlayerView(
     @Composable
     private fun DrawSeekActions(modifier: Modifier) {
         val state = component.state.collectAsState()
-        val playPauseIcon = if (state.value == BasePlayerComponent.State.Playing) {
-            Icons.Default.Pause
-        } else {
-            Icons.Default.PlayArrow
-        }
-        val playPauseAction = if (state.value == BasePlayerComponent.State.Playing) {
-            component::pause
-        } else {
-            component::play
-        }
+        val isPlaying = state.value == BasePlayerComponent.State.Playing
 
         Row(
             modifier = modifier.fillMaxWidth(),
@@ -402,15 +378,16 @@ class PlayerView(
                 contentDescription = config.seekBack15SecondsLabel,
             )
             SeekControlSlot(
-                onClick = playPauseAction,
-                imageVector = playPauseIcon,
+                onClick = if (isPlaying) component::pause else component::play,
+                contentDescription = if (isPlaying) "Pause" else "Play",
                 caption = null,
-                contentDescription = if (state.value == BasePlayerComponent.State.Playing) {
-                    "Pause"
-                } else {
-                    "Play"
-                },
-            )
+            ) {
+                AnimatedPlayPauseIcon(
+                    isPlaying = isPlaying,
+                    iconSize = SeekControlIconSize,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                )
+            }
             SeekControlSlot(
                 onClick = component::seekForward15Seconds,
                 imageVector = Icons.Filled.FastForward,
@@ -443,6 +420,28 @@ class PlayerView(
         caption: String?,
     ) {
         val color = MaterialTheme.colorScheme.onSurface
+        SeekControlSlot(
+            onClick = onClick,
+            contentDescription = contentDescription,
+            caption = caption,
+        ) {
+            Icon(
+                imageVector = imageVector,
+                contentDescription = null,
+                modifier = Modifier.size(SeekControlIconSize),
+                tint = color,
+            )
+        }
+    }
+
+    @Composable
+    private fun SeekControlSlot(
+        onClick: () -> Unit,
+        contentDescription: String,
+        caption: String?,
+        icon: @Composable () -> Unit,
+    ) {
+        val color = MaterialTheme.colorScheme.onSurface
         Column(
             modifier = Modifier
                 .defaultMinSize(minWidth = SeekControlSlotMinWidth)
@@ -458,12 +457,7 @@ class PlayerView(
                 modifier = Modifier.size(SeekControlIconAreaSize),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(
-                    imageVector = imageVector,
-                    contentDescription = null,
-                    modifier = Modifier.size(SeekControlIconSize),
-                    tint = color,
-                )
+                icon()
             }
             Box(
                 modifier = Modifier
