@@ -19,6 +19,7 @@ jobs:
         run: |
           ./gradlew \
             :tools:analytics:checkAnalyticsDocs \
+            verifySqlDelightMigration \
             test \
             :apps:PlayerApp:assembleDebug \
             :apps:AudioBook:assembleDebug \

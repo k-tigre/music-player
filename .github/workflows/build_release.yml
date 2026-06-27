@@ -23,6 +23,7 @@ jobs:
       - name: Build Music release APK & AAB
         run: |
           ./gradlew \
+            verifySqlDelightMigration \
             :apps:PlayerApp:testReleaseUnitTest \
             :apps:PlayerApp:assembleRelease \
             :apps:PlayerApp:bundleRelease \
@@ -58,6 +59,7 @@ jobs:
       - name: Build Book release APK & AAB
         run: |
           ./gradlew \
+            verifySqlDelightMigration \
             :apps:AudioBook:testReleaseUnitTest \
             :apps:AudioBook:assembleRelease \
             :apps:AudioBook:bundleRelease \

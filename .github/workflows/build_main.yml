@@ -17,7 +17,9 @@ jobs:
           java-version: "21"
       - name: Build and verify
         run: |
-          ./gradlew :tools:analytics:checkAnalyticsDocs
+          ./gradlew \
+            :tools:analytics:checkAnalyticsDocs \
+            verifySqlDelightMigration
           ./gradlew testQaUnitTest assembleQa
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
