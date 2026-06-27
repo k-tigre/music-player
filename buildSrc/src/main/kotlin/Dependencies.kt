@@ -242,6 +242,7 @@ sealed class Project(id: String) {
             sealed class Data(id: String) : Music("data:$id") {
                 object Playback : Data("playback")
                 object Playlist : Data("playlist")
+                object Favorites : Data("favorites")
                 object Catalog : Data("catalog")
                 sealed class Storage(id: String) : Data("storage:$id") {
                     sealed class Database(id: String) : Storage("database") {
@@ -254,6 +255,7 @@ sealed class Project(id: String) {
                 object Catalog : Presentation("catalog")
                 object PlaylistCurrentQueue : Presentation("playlist:queue")
                 object PlaylistLibrary : Presentation("playlist:library")
+                object Favorites : Presentation("favorites")
             }
         }
 

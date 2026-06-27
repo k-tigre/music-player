@@ -37,6 +37,7 @@ kotlin {
             implementation(project(Project.Tools.Analytics.Music.name))
             implementation(project(Project.Core.Music.Data.Catalog.name))
             implementation(project(Project.Core.Music.Data.Playlist.name))
+            implementation(project(Project.Core.Music.Data.Favorites.name))
             implementation(project(Project.Core.Music.Data.Playback.name))
             implementation(project(Project.Core.Data.Storage.Preferences.name))
             implementation(project(Project.Core.Platform.Permission.name))

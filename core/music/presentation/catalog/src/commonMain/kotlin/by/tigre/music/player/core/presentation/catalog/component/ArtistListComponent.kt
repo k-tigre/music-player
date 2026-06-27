@@ -1,6 +1,7 @@
 package by.tigre.music.player.core.presentation.catalog.component
 
 import by.tigre.music.player.core.data.catalog.CatalogSource
+import by.tigre.music.player.core.data.favorites.FavoritesRepository
 import by.tigre.music.player.core.data.playlist.AddToPlaylistCoordinator
 import by.tigre.music.player.core.data.playlist.AddToPlaylistRequest
 import by.tigre.music.player.core.data.playback.PlaybackController
@@ -21,6 +22,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -41,6 +44,9 @@ interface ArtistListComponent {
     fun onSearchSongClicked(song: Song)
     fun onPlaySearchSongClicked(song: Song)
     fun onAddSearchSongClicked(song: Song)
+    fun onToggleSearchSongFavorite(song: Song)
+
+    val favoriteIds: StateFlow<Set<Song.Id>>
 
     class Impl(
         context: BaseComponentContext,
@@ -54,7 +60,15 @@ interface ArtistListComponent {
         private val catalogSource: CatalogSource = dependency.catalogSource
         private val playbackController: PlaybackController = dependency.playbackController
         private val addToPlaylistCoordinator: AddToPlaylistCoordinator = dependency.addToPlaylistCoordinator
+        private val favoritesRepository: FavoritesRepository = dependency.favoritesRepository
         private val eventAnalytics: MusicEventAnalytics = dependency.eventAnalytics
+
+        override val favoriteIds: StateFlow<Set<Song.Id>> = favoritesRepository.favoriteIds
+            .stateIn(
+                scope = this,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptySet(),
+            )
 
         private val _searchQuery = MutableStateFlow("")
         override val searchQuery: StateFlow<String> = _searchQuery
@@ -157,6 +171,13 @@ interface ArtistListComponent {
 
         override fun onAddSearchSongClicked(song: Song) {
             playbackController.addSongToPlay(song.id)
+        }
+
+        override fun onToggleSearchSongFavorite(song: Song) {
+            launch {
+                val isFavorite = favoritesRepository.toggle(song.id)
+                eventAnalytics.trackEvent(MusicEvents.Action.FavoriteToggle(isFavorite))
+            }
         }
 
         private companion object {

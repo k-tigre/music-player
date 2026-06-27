@@ -2,6 +2,7 @@ package by.tigre.music.player.core.presentation.catalog.di
 
 import by.tigre.music.player.core.data.catalog.AlbumArtProvider
 import by.tigre.music.player.core.data.catalog.CatalogSource
+import by.tigre.music.player.core.data.favorites.FavoritesRepository
 import by.tigre.music.player.core.data.playlist.AddToPlaylistCoordinator
 import by.tigre.music.player.core.data.playlist.PlaylistRepository
 import by.tigre.music.player.core.data.playback.PlaybackController
@@ -12,5 +13,6 @@ interface CatalogDependency : MusicAnalyticsDependency {
     val playbackController: PlaybackController
     val addToPlaylistCoordinator: AddToPlaylistCoordinator
     val playlistRepository: PlaylistRepository
+    val favoritesRepository: FavoritesRepository
     val albumArtProvider: AlbumArtProvider
 }

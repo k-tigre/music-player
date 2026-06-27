@@ -7,12 +7,14 @@
     <string name="permission_audio_rationale">Access to audio files is required for this app. Please grant the permission.</string>
     <string name="permission_request">Grant permission</string>
 
-    <string name="nav_playlist">Playlist</string>
+    <string name="nav_playlist">Queue</string>
     <string name="nav_library">Library</string>
     <string name="nav_playlists">Playlists</string>
-    <string name="cd_nav_playlist">Playlist</string>
+    <string name="nav_favorites">Favorites</string>
+    <string name="cd_nav_playlist">Queue</string>
     <string name="cd_nav_library">Library</string>
     <string name="cd_nav_playlists">Playlists</string>
+    <string name="cd_nav_favorites">Favorites</string>
     <string name="player_queue_empty_title">No songs in current playlist</string>
     <string name="player_queue_empty_message">Select some track for playing</string>
     <string name="player_queue_empty_action">Select from catalog</string>

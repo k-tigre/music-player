@@ -31,7 +31,12 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.painterResource
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.LibraryMusic
+import androidx.compose.material.icons.outlined.PlaylistPlay
+import androidx.compose.material.icons.outlined.QueueMusic
 import androidx.compose.ui.unit.dp
 import by.tigre.music.player.R
 import by.tigre.music.player.core.data.playlist.AddToPlaylistCoordinator
@@ -41,6 +46,10 @@ import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.media.platform.player.view.PlayerView
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
 import by.tigre.music.player.core.presentation.playlist.library.di.PlaylistsViewProvider
+import by.tigre.music.player.core.presentation.favorites.di.FavoritesViewProvider
+import by.tigre.music.player.core.presentation.favorites.view.MusicPlayerFavoriteTopBar
+import by.tigre.music.player.core.data.playback.PlaybackController
+import by.tigre.music.player.core.data.favorites.FavoritesRepository
 import by.tigre.music.player.core.presentation.playlist.library.view.AddToPlaylistBottomSheet
 import by.tigre.music.player.platform.DefaultMusicPlayerRole
 import by.tigre.music.player.presentation.root.component.Root
@@ -69,7 +78,10 @@ class RootView(
     private val playerViewProvider: PlayerViewProvider,
     private val currentQueueViewProvider: CurrentQueueViewProvider,
     private val playlistsViewProvider: PlaylistsViewProvider,
+    private val favoritesViewProvider: FavoritesViewProvider,
     private val playlistRepository: PlaylistRepository,
+    private val favoritesRepository: FavoritesRepository,
+    private val playbackController: PlaybackController,
     private val addToPlaylistCoordinator: AddToPlaylistCoordinator,
     private val eventAnalytics: MusicEventAnalytics,
 ) : ComposableView {
@@ -108,9 +120,8 @@ class RootView(
         ) {
             when (val child = it.instance) {
                 is Root.MainComponentChild.Main -> DrawPages()
-                is Root.MainComponentChild.Player -> playerViewProvider.createPlayerView(
-                    component = child.component,
-                    config = PlayerView.Config(
+                is Root.MainComponentChild.Player -> {
+                    val playerConfig = PlayerView.Config(
                         emptyScreenAction = {},
                         emptyScreenTitle = stringResource(R.string.player_queue_empty_title),
                         emptyScreenMessage = stringResource(R.string.player_queue_empty_message),
@@ -118,8 +129,22 @@ class RootView(
                         equalizerMenuLabel = stringResource(R.string.player_equalizer_menu),
                         queueMenuLabel = stringResource(R.string.player_queue_menu),
                         returnToQueueLabel = stringResource(R.string.cd_return_to_queue),
+                        settingsMenuLabel = stringResource(R.string.player_settings_menu),
                     )
-                ).Draw(Modifier.fillMaxSize())
+                    playerViewProvider.createPlayerView(
+                        component = child.component,
+                        config = playerConfig,
+                        topBarContent = {
+                            MusicPlayerFavoriteTopBar(
+                                component = child.component,
+                                config = playerConfig,
+                                playbackController = playbackController,
+                                favoritesRepository = favoritesRepository,
+                                eventAnalytics = eventAnalytics,
+                            )
+                        },
+                    ).Draw(Modifier.fillMaxSize())
+                }
 
                 is Root.MainComponentChild.Equalizer ->
                     playerViewProvider.createEqualizerView(child.component).Draw(Modifier.fillMaxSize())
@@ -178,6 +203,7 @@ class RootView(
                     when (val child = it.instance) {
                         is Root.PageComponentChild.Catalog -> catalogViewProvider.createRootView(child.component)
                         is Root.PageComponentChild.Playlists -> playlistsViewProvider.createRootView(child.component)
+                        is Root.PageComponentChild.Favorites -> favoritesViewProvider.createFavoritesView(child.component)
                         is Root.PageComponentChild.Queue -> currentQueueViewProvider.createCurrentQueueView(child.component)
                     }.Draw(Modifier.fillMaxSize())
                 }
@@ -204,7 +230,7 @@ class RootView(
                         onClick = { component.selectPage(0) },
                         icon = {
                             Icon(
-                                painter = painterResource(R.drawable.baseline_format_list_numbered_24),
+                                imageVector = Icons.Outlined.QueueMusic,
                                 contentDescription = stringResource(R.string.cd_nav_playlist)
                             )
                         },
@@ -217,34 +243,55 @@ class RootView(
                     )
 
                     NavigationBarItem(
-                        selected = pages.value.active.instance is Root.PageComponentChild.Catalog,
+                        selected = pages.value.active.instance is Root.PageComponentChild.Playlists,
                         onClick = { component.selectPage(1) },
                         icon = {
                             Icon(
-                                painter = painterResource(R.drawable.outline_library_music_24),
-                                contentDescription = stringResource(R.string.cd_nav_library)
-                            )
-                        },
-                        label = {
-                            Text(
-                                text = stringResource(R.string.nav_library),
-                                style = MaterialTheme.typography.titleSmall,
-                            )
-                        },
-                    )
-
-                    NavigationBarItem(
-                        selected = pages.value.active.instance is Root.PageComponentChild.Playlists,
-                        onClick = { component.selectPage(2) },
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.baseline_format_list_numbered_24),
+                                imageVector = Icons.Outlined.PlaylistPlay,
                                 contentDescription = stringResource(R.string.cd_nav_playlists)
                             )
                         },
                         label = {
                             Text(
                                 text = stringResource(R.string.nav_playlists),
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                        },
+                    )
+
+                    NavigationBarItem(
+                        selected = pages.value.active.instance is Root.PageComponentChild.Favorites,
+                        onClick = { component.selectPage(2) },
+                        icon = {
+                            Icon(
+                                imageVector = if (pages.value.active.instance is Root.PageComponentChild.Favorites) {
+                                    Icons.Filled.Favorite
+                                } else {
+                                    Icons.Outlined.FavoriteBorder
+                                },
+                                contentDescription = stringResource(R.string.cd_nav_favorites)
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = stringResource(R.string.nav_favorites),
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                        },
+                    )
+
+                    NavigationBarItem(
+                        selected = pages.value.active.instance is Root.PageComponentChild.Catalog,
+                        onClick = { component.selectPage(3) },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.LibraryMusic,
+                                contentDescription = stringResource(R.string.cd_nav_library)
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = stringResource(R.string.nav_library),
                                 style = MaterialTheme.typography.titleSmall,
                             )
                         },

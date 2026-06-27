@@ -1,9 +1,11 @@
 package by.tigre.music.player.core.presentation.playlist.current.component
 
 import by.tigre.music.player.core.data.playback.PlaybackController
+import by.tigre.music.player.core.data.favorites.FavoritesRepository
 import by.tigre.music.player.core.data.playlist.AddToPlaylistCoordinator
 import by.tigre.music.player.core.data.playlist.AddToPlaylistRequest
 import by.tigre.music.player.core.data.playlist.PlaylistRepository
+import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.entiry.playback.NowPlayingQueueEntry
 import by.tigre.music.player.core.entiry.playback.NowPlayingScreenModel
 import by.tigre.music.player.core.entiry.playback.OverlayQueueEntry
@@ -28,7 +30,9 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
@@ -38,6 +42,7 @@ interface CurrentQueueComponent {
     val scrollToPlayingTrackEvents: SharedFlow<Int>
     val saveDialogState: StateFlow<SaveDialogState?>
     val nameError: StateFlow<Boolean>
+    val favoriteIds: StateFlow<Set<Song.Id>>
 
     fun retry()
     fun onSongClicked(entry: NowPlayingQueueEntry)
@@ -53,6 +58,7 @@ interface CurrentQueueComponent {
     fun onMoveTrackToBottom(entryId: Long)
     fun onTracksReordered(entryIdsInOrder: List<Long>)
     fun onRemoveTrack(entry: NowPlayingQueueEntry)
+    fun onToggleFavorite(entry: NowPlayingQueueEntry)
     fun onSaveClicked()
     fun onSaveNewPlaylistConfirmed(name: String)
     fun dismissSaveDialog()
@@ -70,7 +76,15 @@ interface CurrentQueueComponent {
         private val playbackController: PlaybackController = dependency.playbackController
         private val playlistRepository: PlaylistRepository = dependency.playlistRepository
         private val addToPlaylistCoordinator: AddToPlaylistCoordinator = dependency.addToPlaylistCoordinator
+        private val favoritesRepository: FavoritesRepository = dependency.favoritesRepository
         private val eventAnalytics: MusicEventAnalytics = dependency.eventAnalytics
+
+        override val favoriteIds: StateFlow<Set<Song.Id>> = favoritesRepository.favoriteIds
+            .stateIn(
+                scope = this,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptySet(),
+            )
 
         private val _scrollToPlayingTrackEvents = MutableSharedFlow<Int>(extraBufferCapacity = 1)
         override val scrollToPlayingTrackEvents = _scrollToPlayingTrackEvents.asSharedFlow()
@@ -225,6 +239,14 @@ interface CurrentQueueComponent {
 
         override fun onRemoveTrack(entry: NowPlayingQueueEntry) {
             playbackController.removeFromQueue(listOf(entry.id))
+        }
+
+        override fun onToggleFavorite(entry: NowPlayingQueueEntry) {
+            val song = entry.song ?: return
+            launch {
+                val isFavorite = favoritesRepository.toggle(song.id)
+                eventAnalytics.trackEvent(MusicEvents.Action.FavoriteToggle(isFavorite))
+            }
         }
 
         override fun onSaveClicked() {

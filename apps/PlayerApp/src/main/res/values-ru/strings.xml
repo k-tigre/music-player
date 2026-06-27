@@ -9,8 +9,12 @@
 
     <string name="nav_playlist">Очередь</string>
     <string name="nav_library">Библиотека</string>
+    <string name="nav_playlists">Плейлисты</string>
+    <string name="nav_favorites">Избранное</string>
     <string name="cd_nav_playlist">Очередь</string>
     <string name="cd_nav_library">Библиотека</string>
+    <string name="cd_nav_playlists">Плейлисты</string>
+    <string name="cd_nav_favorites">Избранное</string>
     <string name="player_queue_empty_title">В очереди нет треков</string>
     <string name="player_queue_empty_message">Выберите трек для воспроизведения</string>
     <string name="player_queue_empty_action">Выбрать в каталоге</string>

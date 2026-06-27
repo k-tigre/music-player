@@ -54,6 +54,16 @@ object MusicEvents {
         data object NavOpenPlaylists : Action("music_nav_open_playlists")
 
         @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("Open favorites tab")
+        data object NavOpenFavorites : Action("music_nav_open_favorites")
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("Toggle track favorite state")
+        data class FavoriteToggle(private val isFavorite: Boolean) : Action("music_favorite_toggle"), WithPayload {
+            override val payload: Map<String, String> = mapOf("is_favorite" to isFavorite.toString())
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
         @AnalyticsDoc("Create a new playlist")
         data object PlaylistCreate : Action("music_playlist_create")
 
@@ -176,6 +186,10 @@ object MusicEvents {
         @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
         @AnalyticsDoc("Playlists list tab")
         data object PlaylistsList : Screen("music_screen_playlists_list")
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("Favorites tab")
+        data object FavoritesTab : Screen("music_screen_favorites")
 
         @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
         @AnalyticsDoc("Playlist detail screen")

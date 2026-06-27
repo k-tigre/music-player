@@ -11,6 +11,7 @@ import by.tigre.music.player.core.data.playlist.PlaylistRepository
 import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
+import by.tigre.music.player.core.presentation.favorites.di.FavoritesViewProvider
 import by.tigre.music.player.core.presentation.playlist.library.di.PlaylistsViewProvider
 import by.tigre.music.player.desktop.presentation.root.component.Root
 import by.tigre.media.platform.tools.analytics.music.MusicEventAnalytics
@@ -23,6 +24,7 @@ class RootView(
     private val catalogViewProvider: CatalogViewProvider,
     private val currentQueueViewProvider: CurrentQueueViewProvider,
     private val playlistsViewProvider: PlaylistsViewProvider,
+    private val favoritesViewProvider: FavoritesViewProvider,
     private val playlistRepository: PlaylistRepository,
     private val addToPlaylistCoordinator: AddToPlaylistCoordinator,
     private val eventAnalytics: MusicEventAnalytics,
@@ -72,6 +74,7 @@ class RootView(
                     catalogViewProvider = catalogViewProvider,
                     currentQueueViewProvider = currentQueueViewProvider,
                     playlistsViewProvider = playlistsViewProvider,
+                    favoritesViewProvider = favoritesViewProvider,
                     playlistRepository = playlistRepository,
                     addToPlaylistCoordinator = addToPlaylistCoordinator,
                     eventAnalytics = eventAnalytics,

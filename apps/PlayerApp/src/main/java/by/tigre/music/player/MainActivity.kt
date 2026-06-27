@@ -21,6 +21,8 @@ import by.tigre.media.platform.player.di.PlayerComponentProvider
 import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueComponentProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
+import by.tigre.music.player.core.presentation.favorites.di.FavoritesComponentProvider
+import by.tigre.music.player.core.presentation.favorites.di.FavoritesViewProvider
 import by.tigre.music.player.core.presentation.playlist.library.di.PlaylistsComponentProvider
 import by.tigre.music.player.core.presentation.playlist.library.di.PlaylistsViewProvider
 import by.tigre.music.player.core.data.catalog.android.ActivityMediaDeleteHandler
@@ -54,6 +56,7 @@ class MainActivity : AppCompatActivity() {
             playerComponentProvider = PlayerComponentProvider.Impl(graph),
             currentQueueComponent = CurrentQueueComponentProvider.Impl(graph),
             playlistsComponentProvider = PlaylistsComponentProvider.Impl(graph),
+            favoritesComponentProvider = FavoritesComponentProvider.Impl(graph),
         )
 
         externalAudioIntentHandler = ExternalAudioIntentHandler(
@@ -84,7 +87,10 @@ class MainActivity : AppCompatActivity() {
                         playerViewProvider = PlayerViewProvider.Impl(),
                         currentQueueViewProvider = CurrentQueueViewProvider.Impl(graph.albumArtProvider),
                         playlistsViewProvider = PlaylistsViewProvider.Impl(graph.albumArtProvider),
+                        favoritesViewProvider = FavoritesViewProvider.Impl(graph.albumArtProvider),
                         playlistRepository = graph.playlistRepository,
+                        favoritesRepository = graph.favoritesRepository,
+                        playbackController = graph.playbackController,
                         addToPlaylistCoordinator = graph.addToPlaylistCoordinator,
                         eventAnalytics = graph.eventAnalytics,
                     ).Draw(Modifier)

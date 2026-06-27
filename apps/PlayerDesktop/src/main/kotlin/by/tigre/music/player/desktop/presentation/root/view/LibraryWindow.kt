@@ -32,6 +32,7 @@ import by.tigre.music.player.core.data.playlist.AddToPlaylistCoordinator
 import by.tigre.music.player.core.data.playlist.PlaylistRepository
 import by.tigre.music.player.core.presentation.catalog.di.CatalogViewProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
+import by.tigre.music.player.core.presentation.favorites.di.FavoritesViewProvider
 import by.tigre.music.player.core.presentation.playlist.library.di.PlaylistsViewProvider
 import by.tigre.music.player.core.presentation.playlist.library.view.AddToPlaylistBottomSheet
 import by.tigre.music.player.desktop.presentation.root.component.Root
@@ -49,6 +50,8 @@ import by.tigre.music.player.desktop.resources.desktop_window_title_library
 import by.tigre.media.platform.tools.platform.compose.resources.Res as ToolsRes
 import by.tigre.media.platform.tools.platform.compose.resources.cd_add_music_folder
 import by.tigre.music.player.core.presentation.playlist.library.resources.Res as PlaylistRes
+import by.tigre.music.player.core.presentation.favorites.resources.Res as FavoritesRes
+import by.tigre.music.player.core.presentation.favorites.resources.desktop_tab_favorites
 import by.tigre.music.player.core.presentation.playlist.library.resources.add_to_playlist_added_snackbar
 import by.tigre.music.player.core.presentation.playlist.library.resources.playlist_name_taken
 import by.tigre.media.platform.tools.analytics.music.MusicEventAnalytics
@@ -65,6 +68,7 @@ internal fun LibraryWindowContent(
     catalogViewProvider: CatalogViewProvider,
     currentQueueViewProvider: CurrentQueueViewProvider,
     playlistsViewProvider: PlaylistsViewProvider,
+    favoritesViewProvider: FavoritesViewProvider,
     playlistRepository: PlaylistRepository,
     addToPlaylistCoordinator: AddToPlaylistCoordinator,
     eventAnalytics: MusicEventAnalytics,
@@ -85,8 +89,9 @@ internal fun LibraryWindowContent(
     val activePage = pages.value.active.instance
     val activePageIndex = when (activePage) {
         is Root.PageComponentChild.Queue -> 0
-        is Root.PageComponentChild.Catalog -> 1
-        is Root.PageComponentChild.Playlists -> 2
+        is Root.PageComponentChild.Playlists -> 1
+        is Root.PageComponentChild.Favorites -> 2
+        is Root.PageComponentChild.Catalog -> 3
     }
     val isScanning by component.isScanning.collectAsState()
 
@@ -123,19 +128,24 @@ internal fun LibraryWindowContent(
                     onClick = { component.selectPage(0) }
                 )
                 DesktopTab(
-                    title = stringResource(Res.string.desktop_tab_library),
+                    title = stringResource(Res.string.desktop_tab_playlists),
                     selected = activePageIndex == 1,
                     onClick = { component.selectPage(1) }
                 )
                 DesktopTab(
-                    title = stringResource(Res.string.desktop_tab_playlists),
+                    title = stringResource(FavoritesRes.string.desktop_tab_favorites),
                     selected = activePageIndex == 2,
                     onClick = { component.selectPage(2) }
+                )
+                DesktopTab(
+                    title = stringResource(Res.string.desktop_tab_library),
+                    selected = activePageIndex == 3,
+                    onClick = { component.selectPage(3) }
                 )
 
                 Spacer(Modifier.weight(1f))
 
-                if (activePageIndex == 1) {
+                if (activePageIndex == 3) {
                     if (isScanning) {
                         CircularProgressIndicator(
                             modifier = Modifier
@@ -178,6 +188,9 @@ internal fun LibraryWindowContent(
 
                     is Root.PageComponentChild.Playlists ->
                         playlistsViewProvider.createRootView(child.component)
+
+                    is Root.PageComponentChild.Favorites ->
+                        favoritesViewProvider.createFavoritesView(child.component)
 
                     is Root.PageComponentChild.Queue ->
                         currentQueueViewProvider.createCurrentQueueView(child.component)

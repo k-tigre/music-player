@@ -37,6 +37,7 @@ import by.tigre.media.platform.tools.platform.compose.view.CoverThumbnail
 import by.tigre.media.platform.tools.platform.compose.view.bottomBarListContentPadding
 import by.tigre.media.platform.tools.platform.compose.view.EmptyScreen
 import by.tigre.media.platform.tools.platform.compose.view.ErrorScreen
+import by.tigre.media.platform.tools.platform.compose.view.FavoriteHeartButton
 import by.tigre.media.platform.tools.platform.compose.view.PopupAction
 import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicator
 import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicatorSize
@@ -203,6 +204,7 @@ class ArtistListView(
 
     @Composable
     private fun SearchSongCard(song: Song) {
+        val favoriteIds by component.favoriteIds.collectAsState()
         CardWithPopup(
             modifier = Modifier,
             title = song.name,
@@ -216,6 +218,12 @@ class ArtistListView(
             ),
             leadingContent = {
                 CoverThumbnail(model = albumArtProvider.albumArtUri(song.albumId))
+            },
+            trailingContent = {
+                FavoriteHeartButton(
+                    isFavorite = song.id in favoriteIds,
+                    onClick = { component.onToggleSearchSongFavorite(song) },
+                )
             },
         )
     }

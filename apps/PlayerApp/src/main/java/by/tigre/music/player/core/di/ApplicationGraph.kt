@@ -24,6 +24,8 @@ import by.tigre.media.platform.player.component.RepeatMode
 import by.tigre.music.player.core.data.storage.playback_queue.PlaybackQueueStorage
 import by.tigre.music.player.presentation.root.di.RootDependency
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueDependency
+import by.tigre.music.player.core.data.favorites.di.FavoritesModule
+import by.tigre.music.player.core.presentation.favorites.di.FavoritesDependency
 import by.tigre.music.player.core.data.playlist.di.PlaylistModule
 import by.tigre.music.player.core.presentation.playlist.library.di.PlaylistsDependency
 import by.tigre.media.platform.tools.analytics.music.MusicAnalyticsModule
@@ -45,7 +47,9 @@ class ApplicationGraph(
     PlayerBackgroundDependency,
     CurrentQueueDependency,
     PlaylistsDependency,
+    FavoritesDependency,
     PlaylistModule,
+    FavoritesModule,
     RootDependency,
     MusicAnalyticsModule by analyticsModule,
     PlaybackModule by playbackModule,
@@ -53,9 +57,13 @@ class ApplicationGraph(
     CatalogModule by catalogModule {
 
     private val playlistModule = PlaylistModule.Impl(playbackQueueModule, catalogModule)
+    private val favoritesModule = FavoritesModule.Impl(playbackQueueModule, catalogModule)
 
     override val playlistRepository
         get() = playlistModule.playlistRepository
+
+    override val favoritesRepository
+        get() = favoritesModule.favoritesRepository
 
     override val addToPlaylistCoordinator
         get() = playlistModule.addToPlaylistCoordinator

@@ -56,6 +56,7 @@ fun CardWithPopup(
     showDivider: Boolean = true,
     containerColor: Color? = null,
     menuModifier: Modifier = Modifier,
+    trailingContent: (@Composable () -> Unit)? = null,
 ) {
     var popupControl by remember { mutableStateOf(false) }
     var activePopupActions by remember { mutableStateOf<List<PopupAction>?>(null) }
@@ -98,6 +99,7 @@ fun CardWithPopup(
                     onDismissPopup = { popupControl = false },
                     onMenuClick = onMenuClick,
                     menuModifier = menuModifier,
+                    trailingContent = trailingContent,
                 )
             }
         }
@@ -124,6 +126,7 @@ fun CardWithPopup(
                     onDismissPopup = { popupControl = false },
                     onMenuClick = onMenuClick,
                     menuModifier = menuModifier,
+                    trailingContent = trailingContent,
                 )
                 if (showDivider) {
                     ListRowDivider(
@@ -146,6 +149,7 @@ private fun ListRowContent(
     onDismissPopup: () -> Unit,
     onMenuClick: () -> Unit,
     menuModifier: Modifier = Modifier,
+    trailingContent: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -175,6 +179,8 @@ private fun ListRowContent(
                 )
             }
         }
+
+        trailingContent?.invoke()
 
         if (popupActions != null) {
             Box {

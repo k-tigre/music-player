@@ -1,6 +1,7 @@
 package by.tigre.music.player.core.presentation.catalog.component
 
 import by.tigre.music.player.core.data.catalog.CatalogSource
+import by.tigre.music.player.core.data.favorites.FavoritesRepository
 import by.tigre.music.player.core.data.playlist.AddToPlaylistCoordinator
 import by.tigre.music.player.core.data.playlist.AddToPlaylistRequest
 import by.tigre.music.player.core.data.playback.PlaybackController
@@ -18,7 +19,9 @@ import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.presentation.ScreenContentState.Content
 import by.tigre.media.platform.presentation.ScreenContentStateDelegate
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
@@ -29,11 +32,13 @@ interface SongsListComponent {
     val screenState: StateFlow<ScreenContentState<List<Song>>>
     val album: Album
     val removePrompt: StateFlow<RemovePrompt?>
+    val favoriteIds: StateFlow<Set<Song.Id>>
 
     fun retry()
     fun onPlaySongClicked(song: Song)
     fun onAddSongClicked(song: Song)
     fun onAddSongToPlaylistClicked(song: Song)
+    fun onToggleFavorite(song: Song)
     fun onRemoveSongClicked(song: Song)
     fun confirmHide()
     fun confirmDeleteForever()
@@ -51,7 +56,15 @@ interface SongsListComponent {
         private val catalogSource: CatalogSource = dependency.catalogSource
         private val playbackController: PlaybackController = dependency.playbackController
         private val addToPlaylistCoordinator: AddToPlaylistCoordinator = dependency.addToPlaylistCoordinator
+        private val favoritesRepository: FavoritesRepository = dependency.favoritesRepository
         private val eventAnalytics: MusicEventAnalytics = dependency.eventAnalytics
+
+        override val favoriteIds: StateFlow<Set<Song.Id>> = favoritesRepository.favoriteIds
+            .stateIn(
+                scope = this,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptySet(),
+            )
 
         private val _removePrompt = MutableStateFlow<RemovePrompt?>(null)
         override val removePrompt: StateFlow<RemovePrompt?> = _removePrompt
@@ -94,6 +107,13 @@ interface SongsListComponent {
                         previewText = getString(Res.string.catalog_add_tracks_to_playlist_count, 1),
                     )
                 )
+            }
+        }
+
+        override fun onToggleFavorite(song: Song) {
+            launch {
+                val isFavorite = favoritesRepository.toggle(song.id)
+                eventAnalytics.trackEvent(MusicEvents.Action.FavoriteToggle(isFavorite))
             }
         }
 

@@ -48,7 +48,9 @@ dependencies {
     implementation(project(Project.Core.Music.Presentation.Catalog.name))
     implementation(project(Project.Core.Music.Presentation.PlaylistCurrentQueue.name))
     implementation(project(Project.Core.Music.Presentation.PlaylistLibrary.name))
+    implementation(project(Project.Core.Music.Presentation.Favorites.name))
     implementation(project(Project.Core.Music.Data.Playlist.name))
+    implementation(project(Project.Core.Music.Data.Favorites.name))
 }
 
 compose {

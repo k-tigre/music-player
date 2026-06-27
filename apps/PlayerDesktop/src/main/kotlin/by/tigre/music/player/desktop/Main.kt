@@ -21,6 +21,8 @@ import by.tigre.media.platform.player.di.PlayerComponentProvider
 import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueComponentProvider
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
+import by.tigre.music.player.core.presentation.favorites.di.FavoritesComponentProvider
+import by.tigre.music.player.core.presentation.favorites.di.FavoritesViewProvider
 import by.tigre.music.player.core.presentation.playlist.library.di.PlaylistsComponentProvider
 import by.tigre.music.player.core.presentation.playlist.library.di.PlaylistsViewProvider
 import by.tigre.music.player.desktop.di.DesktopApplicationGraph
@@ -132,6 +134,7 @@ fun main() {
             playerComponentProvider = PlayerComponentProvider.Impl(graph),
             currentQueueComponent = CurrentQueueComponentProvider.Impl(graph),
             playlistsComponentProvider = PlaylistsComponentProvider.Impl(graph),
+            favoritesComponentProvider = FavoritesComponentProvider.Impl(graph),
             onAddFolder = graph::addCatalogFolder,
         )
     }
@@ -141,6 +144,7 @@ fun main() {
         catalogViewProvider = CatalogViewProvider.Impl(graph.albumArtProvider),
         currentQueueViewProvider = CurrentQueueViewProvider.Impl(graph.albumArtProvider),
         playlistsViewProvider = PlaylistsViewProvider.Impl(graph.albumArtProvider),
+        favoritesViewProvider = FavoritesViewProvider.Impl(graph.albumArtProvider),
         playlistRepository = graph.playlistRepository,
         addToPlaylistCoordinator = graph.addToPlaylistCoordinator,
         eventAnalytics = graph.eventAnalytics,

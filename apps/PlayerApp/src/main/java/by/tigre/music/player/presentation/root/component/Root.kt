@@ -14,6 +14,9 @@ import by.tigre.music.player.core.entiry.playlist.Playlist
 import by.tigre.music.player.core.presentation.playlist.current.component.CurrentQueueComponent
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueComponentProvider
 import by.tigre.music.player.core.presentation.playlist.current.navigation.QueueNavigator
+import by.tigre.music.player.core.presentation.favorites.component.FavoritesComponent
+import by.tigre.music.player.core.presentation.favorites.di.FavoritesComponentProvider
+import by.tigre.music.player.core.presentation.favorites.navigation.FavoritesNavigator
 import by.tigre.music.player.core.presentation.playlist.library.component.RootPlaylistsComponent
 import by.tigre.music.player.core.presentation.playlist.library.di.PlaylistsComponentProvider
 import by.tigre.music.player.core.presentation.playlist.library.navigation.PlaylistsNavigator
@@ -62,6 +65,7 @@ interface Root {
         class Queue(val component: CurrentQueueComponent) : PageComponentChild
         class Catalog(val component: RootCatalogComponent) : PageComponentChild
         class Playlists(val component: RootPlaylistsComponent) : PageComponentChild
+        class Favorites(val component: FavoritesComponent) : PageComponentChild
     }
 
     sealed interface MainComponentChild {
@@ -78,6 +82,7 @@ interface Root {
         playerComponentProvider: PlayerComponentProvider,
         currentQueueComponent: CurrentQueueComponentProvider,
         playlistsComponentProvider: PlaylistsComponentProvider,
+        favoritesComponentProvider: FavoritesComponentProvider,
     ) : Root, BaseComponentContext by context {
 
         private val eventAnalytics = dependency.eventAnalytics
@@ -138,15 +143,15 @@ interface Root {
             )
 
         private val queueNavigator = object : QueueNavigator {
-            override fun onOpenCatalog() = selectPage(1)
+            override fun onOpenCatalog() = selectPage(3)
 
             override fun onOpenArtist(artistId: Artist.Id) {
-                selectPage(1)
+                selectPage(3)
                 catalogComponent.navigateToArtist(artistId)
             }
 
             override fun onOpenAlbum(artistId: Artist.Id, albumId: Album.Id) {
-                selectPage(1)
+                selectPage(3)
                 catalogComponent.navigateToAlbum(artistId, albumId)
             }
         }
@@ -156,17 +161,31 @@ interface Root {
 
             override fun showPreviousScreen() = Unit
 
-            override fun openCatalog() = selectPage(1)
+            override fun openCatalog() = selectPage(3)
 
             override fun openQueue() = selectPage(0)
 
             override fun openArtist(id: Artist.Id) {
-                selectPage(1)
+                selectPage(3)
                 catalogComponent.navigateToArtist(id)
             }
 
             override fun openAlbum(artistId: Artist.Id, albumId: Album.Id) {
-                selectPage(1)
+                selectPage(3)
+                catalogComponent.navigateToAlbum(artistId, albumId)
+            }
+        }
+
+        private val favoritesNavigator = object : FavoritesNavigator {
+            override fun openCatalog() = selectPage(3)
+
+            override fun openArtist(id: Artist.Id) {
+                selectPage(3)
+                catalogComponent.navigateToArtist(id)
+            }
+
+            override fun openAlbum(artistId: Artist.Id, albumId: Album.Id) {
+                selectPage(3)
                 catalogComponent.navigateToAlbum(artistId, albumId)
             }
         }
@@ -175,6 +194,12 @@ interface Root {
             playlistsComponentProvider.createRootPlaylistsComponent(
                 context = appChildContext("playlists"),
                 navigator = playlistsNavigator,
+            )
+
+        private val favoritesComponent: FavoritesComponent =
+            favoritesComponentProvider.createFavoritesComponent(
+                context = appChildContext("favorites"),
+                navigator = favoritesNavigator,
             )
 
         override val pages: Value<ChildStack<*, PageComponentChild>> =
@@ -192,6 +217,7 @@ interface Root {
                 when (config) {
                     PagesConfig.Catalog -> PageComponentChild.Catalog(catalogComponent)
                     PagesConfig.Playlists -> PageComponentChild.Playlists(playlistsComponent)
+                    PagesConfig.Favorites -> PageComponentChild.Favorites(favoritesComponent)
 
                     PagesConfig.Queue -> PageComponentChild.Queue(
                         currentQueueComponent.createCurrentQueueComponent(
@@ -238,23 +264,28 @@ interface Root {
             when (index) {
                 0 -> pagesNavigation.bringToFront(PagesConfig.Queue)
                 1 -> {
-                    if (pages.value.active.configuration != PagesConfig.Catalog) {
-                        eventAnalytics.trackEvent(MusicEvents.Action.NavOpenCatalog)
-                    }
-                    pagesNavigation.bringToFront(PagesConfig.Catalog)
-                }
-
-                2 -> {
                     if (pages.value.active.configuration != PagesConfig.Playlists) {
                         eventAnalytics.trackEvent(MusicEvents.Action.NavOpenPlaylists)
                     }
                     pagesNavigation.bringToFront(PagesConfig.Playlists)
                 }
+                2 -> {
+                    if (pages.value.active.configuration != PagesConfig.Favorites) {
+                        eventAnalytics.trackEvent(MusicEvents.Action.NavOpenFavorites)
+                    }
+                    pagesNavigation.bringToFront(PagesConfig.Favorites)
+                }
+                3 -> {
+                    if (pages.value.active.configuration != PagesConfig.Catalog) {
+                        eventAnalytics.trackEvent(MusicEvents.Action.NavOpenCatalog)
+                    }
+                    pagesNavigation.bringToFront(PagesConfig.Catalog)
+                }
             }
         }
 
         override fun openPlaylistDetail(id: Playlist.Id) {
-            selectPage(2)
+            selectPage(1)
             playlistsComponent.openDetail(id)
         }
 
@@ -282,6 +313,7 @@ interface Root {
                         PagesConfig.Queue -> MusicEvents.Screen.Queue
                         PagesConfig.Catalog -> MusicEvents.Screen.CatalogTab
                         PagesConfig.Playlists -> MusicEvents.Screen.PlaylistsList
+                        PagesConfig.Favorites -> MusicEvents.Screen.FavoritesTab
                     }
                 }
             }
@@ -310,6 +342,9 @@ interface Root {
 
             @Serializable
             data object Playlists : PagesConfig
+
+            @Serializable
+            data object Favorites : PagesConfig
         }
 
         @Serializable

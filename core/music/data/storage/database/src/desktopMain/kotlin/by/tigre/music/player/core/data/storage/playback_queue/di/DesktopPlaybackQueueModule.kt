@@ -4,6 +4,8 @@ import app.cash.sqldelight.async.coroutines.synchronous
 import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import by.tigre.music.player.core.data.storage.music.DatabaseMusic
+import by.tigre.music.player.core.data.storage.favorites.FavoritesStorage
+import by.tigre.music.player.core.data.storage.favorites.impl.FavoritesStorageImpl
 import by.tigre.music.player.core.data.storage.playlist.PlaylistStorage
 import by.tigre.music.player.core.data.storage.playlist.impl.PlaylistKindAdapter
 import by.tigre.music.player.core.data.storage.playlist.impl.PlaylistStorageImpl
@@ -74,6 +76,13 @@ class DesktopPlaybackQueueModule(
 
     override val playlistStorage: PlaylistStorage by lazy {
         PlaylistStorageImpl(
+            database = database,
+            scope = coroutineModule.scope,
+        )
+    }
+
+    override val favoritesStorage: FavoritesStorage by lazy {
+        FavoritesStorageImpl(
             database = database,
             scope = coroutineModule.scope,
         )

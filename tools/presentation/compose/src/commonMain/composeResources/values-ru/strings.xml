@@ -2,6 +2,7 @@
 <resources>
     <string name="cd_error">Ошибка</string>
     <string name="cd_more_options">Дополнительные действия</string>
+    <string name="cd_favorite_toggle">Добавить или убрать из избранного</string>
     <string name="retry_action">Повторить</string>
     <string name="reload_action">Обновить</string>
     <string name="screen_state_error_title">Что-то пошло не так</string>

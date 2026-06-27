@@ -1,0 +1,30 @@
+CREATE TABLE FavoriteSong (
+    song_id INTEGER NOT NULL PRIMARY KEY,
+    added_at INTEGER NOT NULL
+);
+
+selectAllOrdered:
+SELECT song_id, added_at
+FROM FavoriteSong
+ORDER BY added_at DESC;
+
+selectAllSongIds:
+SELECT song_id FROM FavoriteSong;
+
+selectIsFavorite:
+SELECT EXISTS(
+    SELECT 1 FROM FavoriteSong WHERE song_id = ?
+);
+
+insertFavorite:
+INSERT OR IGNORE INTO FavoriteSong(song_id, added_at)
+VALUES(?, ?);
+
+deleteFavorite:
+DELETE FROM FavoriteSong WHERE song_id = ?;
+
+deleteFavoritesByIds:
+DELETE FROM FavoriteSong WHERE song_id IN ?;
+
+countFavorites:
+SELECT COUNT(*) FROM FavoriteSong;

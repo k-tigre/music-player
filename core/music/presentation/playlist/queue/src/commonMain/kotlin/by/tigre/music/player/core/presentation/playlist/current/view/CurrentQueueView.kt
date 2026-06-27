@@ -62,6 +62,7 @@ import by.tigre.media.platform.tools.platform.compose.view.bottomBarListContentP
 import by.tigre.media.platform.tools.platform.compose.view.smartScrollToItem
 import by.tigre.media.platform.tools.platform.compose.view.EmptyScreen
 import by.tigre.media.platform.tools.platform.compose.view.ErrorScreen
+import by.tigre.media.platform.tools.platform.compose.view.FavoriteHeartButton
 import by.tigre.media.platform.tools.platform.compose.view.PopupAction
 import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicator
 import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicatorSize
@@ -440,6 +441,13 @@ class CurrentQueueView(
             },
             leadingContent = {
                 CoverThumbnail(model = albumArtProvider.albumArtUri(entry.song.albumId))
+            },
+            trailingContent = {
+                val favoriteIds by component.favoriteIds.collectAsState()
+                FavoriteHeartButton(
+                    isFavorite = entry.song.id in favoriteIds,
+                    onClick = { component.onToggleFavorite(entry) },
+                )
             },
             menuModifier = menuDragModifier,
         )
