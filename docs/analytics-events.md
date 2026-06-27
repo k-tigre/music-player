@@ -18,6 +18,7 @@ Auto-generated from `@AnalyticsScope` annotations. Regenerate:
 | book | screen | `book_screen_night_timer` | NightTimerSettings |  | ✓ |  |  | Night timer settings |
 | common | action | `common_nav_open_equalizer` | NavOpenEqualizer | ✓ | ✓ | ✓ |  | Open equalizer screen |
 | common | action | `common_nav_open_player` | NavOpenPlayer | ✓ | ✓ | ✓ |  | Open full player screen |
+| common | action | `common_nav_open_settings` | NavOpenSettings | ✓ |  |  |  | Open settings screen |
 | common | action | `common_player_next` | PlayerNext | ✓ | ✓ | ✓ |  | Skip to next track or chapter |
 | common | action | `common_player_pause` | PlayerPause | ✓ | ✓ | ✓ |  | Pause playback |
 | common | action | `common_player_play` | PlayerPlay | ✓ | ✓ | ✓ |  | Play / resume playback |
@@ -31,10 +32,12 @@ Auto-generated from `@AnalyticsScope` annotations. Regenerate:
 | common | screen | `common_screen_equalizer` | Equalizer | ✓ | ✓ | ✓ |  | Equalizer screen |
 | common | screen | `common_screen_player` | Player | ✓ | ✓ | ✓ |  | Full player screen |
 | common | screen | `common_screen_root_overlay` | RootOverlay | ✓ |  | ✓ | yes | Root overlay without a dedicated screen (not sent to analytics) |
+| common | screen | `common_screen_settings` | Settings | ✓ |  |  |  | Settings screen |
 | music | action | `music_catalog_add_album_to_queue` | CatalogAddAlbumToQueue | ✓ |  | ✓ |  | Add entire album to queue from album list |
 | music | action | `music_catalog_add_song_to_queue` | CatalogAddSongToQueue | ✓ |  | ✓ |  | Add song to queue from album song list |
 | music | action | `music_catalog_play_album` | CatalogPlayAlbum | ✓ |  | ✓ |  | Play entire album from album list |
 | music | action | `music_catalog_play_song` | CatalogPlaySong | ✓ |  | ✓ |  | Play song from album song list |
+| music | action | `music_catalog_search` | CatalogSearch | ✓ |  | ✓ |  | Catalog search performed after debounce |
 | music | action | `music_default_player_prompt_clicked` | DefaultPlayerPromptClicked | ✓ |  |  |  | Default player onboarding prompt action clicked |
 | music | action | `music_default_player_prompt_shown` | DefaultPlayerPromptShown | ✓ |  |  |  | Default player onboarding prompt shown |
 | music | action | `music_external_audio_opened` | ExternalAudioOpened | ✓ |  |  |  | External audio file opened from another app |

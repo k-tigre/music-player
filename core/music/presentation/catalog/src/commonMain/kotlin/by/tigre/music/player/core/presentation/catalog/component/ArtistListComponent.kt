@@ -9,9 +9,12 @@ import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigat
 import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.presentation.ScreenContentStateDelegate
+import by.tigre.media.platform.tools.analytics.music.MusicEventAnalytics
+import by.tigre.media.platform.tools.analytics.music.MusicEvents
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
@@ -43,6 +46,7 @@ interface ArtistListComponent {
 
         private val catalogSource: CatalogSource = dependency.catalogSource
         private val playbackController: PlaybackController = dependency.playbackController
+        private val eventAnalytics: MusicEventAnalytics = dependency.eventAnalytics
 
         private val _searchQuery = MutableStateFlow("")
         override val searchQuery: StateFlow<String> = _searchQuery
@@ -54,6 +58,7 @@ interface ArtistListComponent {
                     catalogSource.dataVersion,
                     _searchQuery
                 ) { _, query -> query }
+                    .debounce(SEARCH_ANALYTICS_DEBOUNCE_MS)
                     .flatMapLatest { query ->
                         flow {
                             if (query.isBlank()) {
@@ -65,11 +70,21 @@ interface ArtistListComponent {
                                     )
                                 )
                             } else {
+                                val searchResult = catalogSource.search(query)
+                                eventAnalytics.trackEvent(
+                                    MusicEvents.Action.CatalogSearch(
+                                        queryLengthBucket = MusicEvents.QueryLengthBucket.fromQueryLength(
+                                            query.trim().length
+                                        ),
+                                        artistResultCount = searchResult.artists.size,
+                                        songResultCount = searchResult.songs.size,
+                                    )
+                                )
                                 emit(
                                     ArtistListScreenData(
                                         searchQuery = query,
                                         artists = emptyList(),
-                                        searchResult = catalogSource.search(query)
+                                        searchResult = searchResult
                                     )
                                 )
                             }
@@ -117,6 +132,10 @@ interface ArtistListComponent {
 
         override fun onAddSearchSongClicked(song: Song) {
             playbackController.addSongToPlay(song.id)
+        }
+
+        private companion object {
+            const val SEARCH_ANALYTICS_DEBOUNCE_MS = 250L
         }
     }
 }

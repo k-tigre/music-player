@@ -20,6 +20,20 @@ object MusicEvents {
         data object NavOpenCatalog : Action("music_nav_open_catalog")
 
         @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("Catalog search performed after debounce")
+        data class CatalogSearch(
+            private val queryLengthBucket: QueryLengthBucket,
+            private val artistResultCount: Int,
+            private val songResultCount: Int,
+        ) : Action("music_catalog_search"), WithPayload {
+            override val payload: Map<String, String> = mapOf(
+                "query_length_bucket" to queryLengthBucket.analyticsValue,
+                "artist_result_count" to artistResultCount.toString(),
+                "song_result_count" to songResultCount.toString(),
+            )
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
         @AnalyticsDoc("Play song from album song list")
         data object CatalogPlaySong : Action("music_catalog_play_song")
 
@@ -74,6 +88,23 @@ object MusicEvents {
         @AnalyticsScope(AnalyticsApp.PLAYER)
         @AnalyticsDoc("Default player onboarding prompt action clicked")
         data object DefaultPlayerPromptClicked : Action("music_default_player_prompt_clicked")
+    }
+
+    enum class QueryLengthBucket(val analyticsValue: String) {
+        Short("1_2"),
+        Medium("3_5"),
+        Long("6_10"),
+        VeryLong("11_plus"),
+        ;
+
+        companion object {
+            fun fromQueryLength(length: Int): QueryLengthBucket = when {
+                length <= 2 -> Short
+                length <= 5 -> Medium
+                length <= 10 -> Long
+                else -> VeryLong
+            }
+        }
     }
 
     enum class OverlayEndReason(val analyticsValue: String) {
