@@ -9,6 +9,21 @@
 
 ### EN
 
+## [0.5.0] - 2026-06-27
+### RU
+- Виджет воспроизведения на главном экране
+- Экран настроек
+- Очередь прокручивается к текущей главе
+- Тактильная отдача при перемотке и анимация кнопки play/pause
+- Улучшения стабильности воспроизведения
+
+### EN
+- Home screen playback widget
+- Settings screen
+- Queue scrolls to the currently playing chapter
+- Haptic feedback on seek and animated play/pause button
+- Playback stability improvements
+
 ## [0.4.0] - 2026-06-17
 ### RU
 - Раздел «Продолжить слушать» в библиотеке — недавние книги с прогрессом

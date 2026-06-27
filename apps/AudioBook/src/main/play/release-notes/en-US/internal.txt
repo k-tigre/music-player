@@ -1,2 +1,5 @@
-• "Continue listening" section in the library — recent books with progress
-• Collapse the section or remove a book from the list
+• Home screen playback widget
+• Settings screen
+• Queue scrolls to the currently playing chapter
+• Haptic feedback on seek and animated play/pause button
+• Playback stability improvements
