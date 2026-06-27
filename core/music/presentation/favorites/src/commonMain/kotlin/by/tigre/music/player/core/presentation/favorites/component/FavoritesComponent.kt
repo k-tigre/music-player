@@ -38,6 +38,7 @@ interface FavoritesComponent {
     fun onPlayArtist(entry: FavoritesRepository.LikedArtist)
     fun onToggleArtistFavorite(entry: FavoritesRepository.LikedArtist)
     fun onOpenArtist(entry: FavoritesRepository.LikedArtist)
+    fun onOpenCatalog()
 
     enum class FavoritesSegment {
         Tracks, Albums, Artists,
@@ -149,6 +150,10 @@ interface FavoritesComponent {
 
         override fun onOpenArtist(entry: FavoritesRepository.LikedArtist) {
             navigator.openArtist(entry.artist.id)
+        }
+
+        override fun onOpenCatalog() {
+            navigator.openCatalog()
         }
     }
 }

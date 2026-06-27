@@ -5,6 +5,7 @@
     <string name="cd_favorite_toggle">Добавить или убрать из избранного</string>
     <string name="favorites_empty_title">Пока пусто</string>
     <string name="favorites_empty_message">Добавляйте в избранное треки, альбомы и артистов сердечком в каталоге или плеере.</string>
+    <string name="favorites_empty_action">Выбрать</string>
     <string name="favorites_segment_tracks">Треки</string>
     <string name="favorites_segment_albums">Альбомы</string>
     <string name="favorites_segment_artists">Артисты</string>

@@ -291,8 +291,9 @@ class FavoritesView(
                 EmptyScreen(
                     title = stringResource(Res.string.favorites_empty_title),
                     message = stringResource(Res.string.favorites_empty_message),
+                    actionTitle = stringResource(Res.string.favorites_empty_action),
                     icon = Icons.Outlined.FavoriteBorder,
-                    reloadAction = {},
+                    reloadAction = component::onOpenCatalog,
                 )
             } else {
                 content()
