@@ -51,6 +51,10 @@ object CommonEvents {
         @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK, AnalyticsApp.DESKTOP)
         @AnalyticsDoc("Open equalizer screen")
         data object NavOpenEqualizer : Action("common_nav_open_equalizer")
+
+        @AnalyticsScope(AnalyticsApp.PLAYER)
+        @AnalyticsDoc("Open settings screen")
+        data object NavOpenSettings : Action("common_nav_open_settings")
     }
 
     sealed class Screen(
@@ -65,6 +69,10 @@ object CommonEvents {
         @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK, AnalyticsApp.DESKTOP)
         @AnalyticsDoc("Equalizer screen")
         data object Equalizer : Screen("common_screen_equalizer")
+
+        @AnalyticsScope(AnalyticsApp.PLAYER)
+        @AnalyticsDoc("Settings screen")
+        data object Settings : Screen("common_screen_settings")
 
         @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.DESKTOP)
         @AnalyticsDoc("Root overlay without a dedicated screen (not sent to analytics)")

@@ -173,6 +173,15 @@ class PlayerView(
                             component.showQueue()
                         },
                     )
+                    if (config.settingsMenuLabel != null) {
+                        DropdownMenuItem(
+                            text = { Text(config.settingsMenuLabel) },
+                            onClick = {
+                                menuExpanded = false
+                                component.showSettings()
+                            },
+                        )
+                    }
                 }
             }
         }
@@ -248,6 +257,7 @@ class PlayerView(
             Text(
                 modifier = Modifier.padding(horizontal = 4.dp),
                 text = position.value.current,
+                style = MaterialTheme.typography.labelMedium,
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -255,6 +265,7 @@ class PlayerView(
             Text(
                 modifier = Modifier.padding(horizontal = 4.dp),
                 text = position.value.left,
+                style = MaterialTheme.typography.labelMedium,
             )
         }
     }
@@ -496,6 +507,7 @@ class PlayerView(
         val seek1MinuteDurationCaption: String = "1m",
         val equalizerMenuLabel: String = "Equalizer",
         val queueMenuLabel: String = "Queue",
+        val settingsMenuLabel: String? = null,
         val returnToQueueLabel: String? = null,
     )
 

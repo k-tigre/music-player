@@ -5,4 +5,6 @@ interface PlayerNavigator {
     fun playerView()
     fun showEqualizer()
     fun closeEqualizer()
+    fun showSettings()
+    fun closeSettings()
 }

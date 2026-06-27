@@ -13,6 +13,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
+actual fun isDynamicColorSupported(): Boolean =
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+
 @Composable
 actual fun platformColorScheme(darkTheme: Boolean, dynamicColor: Boolean): ColorScheme? {
     return if (dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

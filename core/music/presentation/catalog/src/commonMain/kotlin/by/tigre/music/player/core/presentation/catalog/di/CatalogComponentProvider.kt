@@ -11,8 +11,15 @@ import by.tigre.music.player.core.presentation.catalog.navigation.CatalogNavigat
 import by.tigre.media.platform.presentation.BaseComponentContext
 
 interface CatalogComponentProvider {
-    fun createRootCatalogComponent(context: BaseComponentContext): RootCatalogComponent
-    fun createArtistListComponent(context: BaseComponentContext, navigator: CatalogNavigator): ArtistListComponent
+    fun createRootCatalogComponent(
+        context: BaseComponentContext,
+        onOpenSettings: (() -> Unit)? = null,
+    ): RootCatalogComponent
+    fun createArtistListComponent(
+        context: BaseComponentContext,
+        navigator: CatalogNavigator,
+        onOpenSettings: (() -> Unit)? = null,
+    ): ArtistListComponent
     fun createAlbumListComponent(
         context: BaseComponentContext,
         navigator: CatalogNavigator,
@@ -30,13 +37,15 @@ interface CatalogComponentProvider {
         private val dependency: CatalogDependency
     ) : CatalogComponentProvider {
         override fun createRootCatalogComponent(
-            context: BaseComponentContext
-        ): RootCatalogComponent = Impl(context, this, dependency)
+            context: BaseComponentContext,
+            onOpenSettings: (() -> Unit)?,
+        ): RootCatalogComponent = Impl(context, this, dependency, onOpenSettings)
 
         override fun createArtistListComponent(
             context: BaseComponentContext,
-            navigator: CatalogNavigator
-        ): ArtistListComponent = ArtistListComponent.Impl(context, dependency, navigator)
+            navigator: CatalogNavigator,
+            onOpenSettings: (() -> Unit)?,
+        ): ArtistListComponent = ArtistListComponent.Impl(context, dependency, navigator, onOpenSettings)
 
         override fun createAlbumListComponent(
             context: BaseComponentContext,

@@ -17,6 +17,8 @@
 
     <string name="player_equalizer_menu">Эквалайзер</string>
     <string name="player_queue_menu">Очередь</string>
+    <string name="player_settings_menu">Настройки</string>
+    <string name="settings_title">Настройки</string>
     <string name="cd_return_to_queue">Вернуться к очереди</string>
 
     <string name="external_audio_access_denied">Нет доступа к файлу</string>

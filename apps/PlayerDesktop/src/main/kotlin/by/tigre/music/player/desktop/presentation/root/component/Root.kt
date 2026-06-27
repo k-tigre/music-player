@@ -85,6 +85,10 @@ interface Root {
             override fun closeEqualizer() {
                 mainNavigation.pop()
             }
+
+            override fun showSettings() = Unit
+
+            override fun closeSettings() = Unit
         }
 
         override val playerComponent: SmallPlayerComponent by lazy {

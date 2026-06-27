@@ -9,6 +9,8 @@ import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.media3.session.MediaController
@@ -27,6 +29,7 @@ import by.tigre.media.platform.presentation.BaseComponentContextImpl
 import by.tigre.music.player.presentation.root.component.Root
 import by.tigre.music.player.presentation.root.view.RootView
 import by.tigre.media.platform.tools.platform.compose.AppTheme
+import by.tigre.media.platform.tools.platform.compose.resolveDarkTheme
 import com.arkivanov.decompose.defaultComponentContext
 import com.google.common.util.concurrent.ListenableFuture
 
@@ -58,7 +61,14 @@ class MainActivity : AppCompatActivity() {
         )
 
         setContent {
-            AppTheme {
+            val themeSettings by graph.themeSettingsStore.state.collectAsState()
+            val darkTheme = resolveDarkTheme(themeSettings.mode)
+
+            AppTheme(
+                darkTheme = darkTheme,
+                dynamicColor = themeSettings.dynamicColor,
+                contrast = themeSettings.contrast,
+            ) {
                 val currentIntent = rememberUpdatedState(intent)
                 LaunchedEffect(currentIntent.value) {
                     externalAudioIntentHandler.handle(currentIntent.value)

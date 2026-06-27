@@ -10,6 +10,8 @@ interface PlayerComponent : BasePlayerComponent {
 
     fun showEqualizer()
 
+    fun showSettings()
+
     class Impl(
         context: BaseComponentContext,
         dependency: PlayerDependency,
@@ -22,6 +24,10 @@ interface PlayerComponent : BasePlayerComponent {
 
         override fun showEqualizer() {
             navigator.showEqualizer()
+        }
+
+        override fun showSettings() {
+            navigator.showSettings()
         }
     }
 }

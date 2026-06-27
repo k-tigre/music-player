@@ -27,4 +27,16 @@
     <string name="equalizer_unavailable">Equalizer is not available.</string>
     <string name="equalizer_app_volume">Volume</string>
     <string name="equalizer_app_volume_cd">In-app volume (does not change system volume)</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_theme_mode_title">Theme</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_dynamic_color">Material You</string>
+    <string name="settings_contrast_title">Contrast</string>
+    <string name="settings_contrast_default">Default</string>
+    <string name="settings_contrast_medium">Medium</string>
+    <string name="settings_contrast_high">High</string>
+    <string name="player_settings_menu">Settings</string>
 </resources>

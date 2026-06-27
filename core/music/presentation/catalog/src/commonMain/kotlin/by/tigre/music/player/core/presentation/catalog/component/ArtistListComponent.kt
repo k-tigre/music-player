@@ -20,8 +20,10 @@ interface ArtistListComponent {
 
     val screenState: StateFlow<ScreenContentState<ArtistListScreenData>>
     val searchQuery: StateFlow<String>
+    val settingsAvailable: Boolean
 
     fun retry()
+    fun openSettings()
     fun onSearchQueryChanged(query: String)
     fun onArtistClicked(artist: Artist)
     fun onAddToPlayArtistClicked(artist: Artist)
@@ -33,8 +35,11 @@ interface ArtistListComponent {
     class Impl(
         context: BaseComponentContext,
         dependency: CatalogDependency,
-        private val navigator: CatalogNavigator
+        private val navigator: CatalogNavigator,
+        private val onOpenSettings: (() -> Unit)? = null,
     ) : ArtistListComponent, BaseComponentContext by context {
+
+        override val settingsAvailable: Boolean = onOpenSettings != null
 
         private val catalogSource: CatalogSource = dependency.catalogSource
         private val playbackController: PlaybackController = dependency.playbackController
@@ -80,6 +85,10 @@ interface ArtistListComponent {
 
         override fun retry() {
             stateDelegate.reload()
+        }
+
+        override fun openSettings() {
+            onOpenSettings?.invoke()
         }
 
         override fun onSearchQueryChanged(query: String) {

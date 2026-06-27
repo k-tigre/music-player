@@ -8,9 +8,11 @@ import by.tigre.music.player.core.data.playback.di.PlaybackModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.AndroidPlaybackQueueModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.PlaybackQueueModule
 import by.tigre.media.platform.preferences.Preferences
+import by.tigre.media.platform.preferences.ThemePreferencesStorage
 import by.tigre.media.platform.preferences.di.AndroidPreferencesModule
 import by.tigre.music.player.platform.PlayerSettings
 import by.tigre.music.player.platform.PlayerSettingsImpl
+import by.tigre.music.player.platform.ThemeSettingsStore
 import by.tigre.music.player.car.MusicCarMediaLibrary
 import by.tigre.media.platform.background.car.CarMediaLibrary
 import by.tigre.media.platform.background.di.PlayerBackgroundDependency
@@ -50,6 +52,10 @@ class ApplicationGraph(
 
     override val playerSettings: PlayerSettings by lazy {
         PlayerSettingsImpl(appContext, preferences)
+    }
+
+    override val themeSettingsStore: ThemeSettingsStore by lazy {
+        ThemeSettingsStore(ThemePreferencesStorage(preferences))
     }
 
     override val carMediaLibrary: CarMediaLibrary by lazy {

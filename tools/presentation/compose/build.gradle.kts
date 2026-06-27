@@ -30,6 +30,7 @@ kotlin {
         androidMain.dependencies {
             implementation(Library.ActivityCompose.notation)
             implementation(Library.AndroidXCore.notation)
+            implementation("androidx.compose.ui:ui-text-google-fonts:1.8.0")
         }
     }
 }

@@ -20,6 +20,7 @@ import by.tigre.media.platform.presentation.trackScreens
 import by.tigre.media.platform.tools.analytics.common.CommonEvents
 import by.tigre.media.platform.tools.analytics.music.MusicEvents
 import by.tigre.music.player.presentation.root.di.RootDependency
+import by.tigre.music.player.presentation.settings.component.SettingsComponent
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.bringToFront
@@ -60,6 +61,7 @@ interface Root {
         data object Main : MainComponentChild
         class Player(val component: PlayerComponent) : MainComponentChild
         class Equalizer(val component: EqualizerComponent) : MainComponentChild
+        class Settings(val component: SettingsComponent) : MainComponentChild
     }
 
     class Impl(
@@ -74,6 +76,7 @@ interface Root {
         private val screenAnalytics = dependency.screenAnalytics
         private val playbackQueueStorage: PlaybackQueueStorage = dependency.playbackQueueStorage
         private val playerSettings = dependency.playerSettings
+        private val themeSettingsStore = dependency.themeSettingsStore
 
         private val showDefaultPlayerPromptState = MutableStateFlow(playerSettings.shouldShowPrompt())
         override val showDefaultPlayerPrompt: StateFlow<Boolean> = showDefaultPlayerPromptState.asStateFlow()
@@ -100,6 +103,15 @@ interface Root {
             override fun closeEqualizer() {
                 mainNavigation.pop()
             }
+
+            override fun showSettings() {
+                eventAnalytics.trackEvent(CommonEvents.Action.NavOpenSettings)
+                mainNavigation.push(MainConfig.Settings)
+            }
+
+            override fun closeSettings() {
+                mainNavigation.pop()
+            }
         }
 
         override val playerComponent: SmallPlayerComponent by lazy {
@@ -112,7 +124,10 @@ interface Root {
         override val onStartServiceEvent = MutableSharedFlow<Unit>()
 
         private val catalogComponent: RootCatalogComponent =
-            catalogComponentProvider.createRootCatalogComponent(appChildContext("catalog"))
+            catalogComponentProvider.createRootCatalogComponent(
+                context = appChildContext("catalog"),
+                onOpenSettings = playerNavigator::showSettings,
+            )
 
         private val queueNavigator = object : QueueNavigator {
             override fun onOpenCatalog() = selectPage(1)
@@ -174,6 +189,13 @@ interface Root {
                             onClose = playerNavigator::closeEqualizer
                         )
                     )
+
+                    MainConfig.Settings -> MainComponentChild.Settings(
+                        SettingsComponent.Impl(
+                            themeSettingsStore = themeSettingsStore,
+                            onClose = playerNavigator::closeSettings,
+                        )
+                    )
                 }
             }
 
@@ -224,6 +246,7 @@ interface Root {
                         MainConfig.Main -> CommonEvents.Screen.RootOverlay
                         MainConfig.Player -> CommonEvents.Screen.Player
                         MainConfig.Equalizer -> CommonEvents.Screen.Equalizer
+                        MainConfig.Settings -> CommonEvents.Screen.Settings
                     }
                 }
             }
@@ -248,6 +271,9 @@ interface Root {
 
             @Serializable
             data object Equalizer : MainConfig
+
+            @Serializable
+            data object Settings : MainConfig
         }
     }
 }

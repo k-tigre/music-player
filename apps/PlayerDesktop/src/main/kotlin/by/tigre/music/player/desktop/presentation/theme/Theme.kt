@@ -4,6 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import by.tigre.media.platform.tools.platform.compose.AppTypography
 
 internal val DesktopColorScheme = darkColorScheme(
     background = DesktopBg,
@@ -24,7 +25,7 @@ internal val DesktopColorScheme = darkColorScheme(
 internal fun DesktopTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = DesktopColorScheme,
-        typography = DesktopTypography,
+        typography = AppTypography,
         content = content,
     )
 }

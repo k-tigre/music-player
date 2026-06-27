@@ -39,6 +39,7 @@ interface RootCatalogComponent {
         context: BaseComponentContext,
         private val componentProvider: CatalogComponentProvider,
         private val dependency: CatalogDependency,
+        private val onOpenSettings: (() -> Unit)? = null,
     ) : RootCatalogComponent, BaseComponentContext by context {
         private val navigation = StackNavigation<CatalogConfig>()
         private val catalogSource: CatalogSource = dependency.catalogSource
@@ -91,7 +92,8 @@ interface RootCatalogComponent {
                     CatalogChild.ArtistsList(
                         componentProvider.createArtistListComponent(
                             context = context,
-                            navigator = navigator
+                            navigator = navigator,
+                            onOpenSettings = onOpenSettings,
                         )
                     )
                 }

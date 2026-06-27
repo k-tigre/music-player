@@ -28,4 +28,16 @@
     <!-- Короткая подпись столбца: влезает в одну строку рядом с узкими полосами EQ -->
     <string name="equalizer_app_volume">Звук</string>
     <string name="equalizer_app_volume_cd">Громкость приложения (не системная)</string>
+
+    <string name="settings_title">Настройки</string>
+    <string name="settings_theme_mode_title">Тема</string>
+    <string name="settings_theme_system">Системная</string>
+    <string name="settings_theme_light">Светлая</string>
+    <string name="settings_theme_dark">Тёмная</string>
+    <string name="settings_dynamic_color">Material You</string>
+    <string name="settings_contrast_title">Контраст</string>
+    <string name="settings_contrast_default">Обычный</string>
+    <string name="settings_contrast_medium">Средний</string>
+    <string name="settings_contrast_high">Высокий</string>
+    <string name="player_settings_menu">Настройки</string>
 </resources>

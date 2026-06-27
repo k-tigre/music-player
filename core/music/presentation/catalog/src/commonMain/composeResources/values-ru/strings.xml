@@ -5,6 +5,7 @@
     <string name="screen_songs_of">Треки</string>
     <string name="cd_back">Назад</string>
     <string name="cd_reload">Обновить</string>
+    <string name="cd_settings">Настройки</string>
     <string name="action_play">Играть</string>
     <string name="action_add_to_queue">В очередь</string>
     <string name="action_delete">Убрать</string>

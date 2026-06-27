@@ -17,6 +17,8 @@
 
     <string name="player_equalizer_menu">Equalizer</string>
     <string name="player_queue_menu">Queue</string>
+    <string name="player_settings_menu">Settings</string>
+    <string name="settings_title">Settings</string>
     <string name="cd_return_to_queue">Return to queue</string>
 
     <string name="external_audio_access_denied">No access to this file</string>

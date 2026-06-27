@@ -37,6 +37,7 @@ import by.tigre.media.platform.player.view.PlayerView
 import by.tigre.music.player.core.presentation.playlist.current.di.CurrentQueueViewProvider
 import by.tigre.music.player.platform.DefaultMusicPlayerRole
 import by.tigre.music.player.presentation.root.component.Root
+import by.tigre.music.player.presentation.settings.view.SettingsView
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.view.BottomBarContainer
 import by.tigre.media.platform.tools.platform.compose.view.BottomBarNavigationBarInsets
@@ -101,6 +102,9 @@ class RootView(
 
                 is Root.MainComponentChild.Equalizer ->
                     playerViewProvider.createEqualizerView(child.component).Draw(Modifier.fillMaxSize())
+
+                is Root.MainComponentChild.Settings ->
+                    SettingsView(child.component).Draw(Modifier.fillMaxSize())
             }
         }
     }
