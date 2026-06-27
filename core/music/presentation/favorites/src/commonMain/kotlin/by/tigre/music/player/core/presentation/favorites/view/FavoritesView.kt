@@ -1,5 +1,11 @@
 package by.tigre.music.player.core.presentation.favorites.view
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +56,8 @@ import `by`.tigre.music.player.core.presentation.catalog.resources.catalog_track
 import `by`.tigre.music.player.core.presentation.favorites.resources.Res
 import `by`.tigre.music.player.core.presentation.favorites.resources.*
 import org.jetbrains.compose.resources.stringResource
+
+private const val FavoritesItemAnimationMs = 280
 
 class FavoritesView(
     private val component: FavoritesComponent,
@@ -136,139 +144,158 @@ class FavoritesView(
         }
     }
 
+    @OptIn(ExperimentalFoundationApi::class)
     @Composable
     private fun DrawTracks(
         tracks: List<FavoritesRepository.FavoriteTrack>,
         favoriteIds: Set<Song.Id>,
     ) {
         val playableTracks = tracks.filter { it.song != null }
-        if (playableTracks.isEmpty()) {
-            EmptyScreen(
-                title = stringResource(Res.string.favorites_empty_title),
-                message = stringResource(Res.string.favorites_empty_message),
-                icon = Icons.Outlined.FavoriteBorder,
-                reloadAction = {},
-            )
-            return
-        }
-
-        LazyColumn(
-            contentPadding = bottomBarListContentPadding(horizontal = 0.dp, top = 8.dp, extraBottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(1.dp),
-        ) {
-            items(playableTracks, key = { it.songId.value }) { entry ->
-                val song = entry.song ?: return@items
-                val playAction = PopupAction(stringResource(CatalogRes.string.action_play)) {
-                    component.onPlayTrack(song)
+        FavoritesListAnimatedContent(isEmpty = playableTracks.isEmpty()) {
+            LazyColumn(
+                contentPadding = bottomBarListContentPadding(horizontal = 0.dp, top = 8.dp, extraBottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(1.dp),
+            ) {
+                items(playableTracks, key = { it.songId.value }) { entry ->
+                    val song = entry.song ?: return@items
+                    val playAction = PopupAction(stringResource(CatalogRes.string.action_play)) {
+                        component.onPlayTrack(song)
+                    }
+                    val addToQueueAction = PopupAction(stringResource(CatalogRes.string.action_add_to_queue)) {
+                        component.onAddTrackToQueue(song)
+                    }
+                    CardWithPopup(
+                        modifier = Modifier.animateItem(
+                            fadeInSpec = tween(FavoritesItemAnimationMs),
+                            fadeOutSpec = tween(FavoritesItemAnimationMs),
+                            placementSpec = tween(FavoritesItemAnimationMs),
+                        ),
+                        title = "${song.index} - ${song.name}",
+                        onCardClicked = { component.onPlayTrack(song) },
+                        popupActions = listOf(playAction, addToQueueAction),
+                        descriptions = listOf(
+                            stringResource(CatalogRes.string.catalog_track_meta, song.artist, song.album)
+                        ),
+                        leadingContent = {
+                            CoverThumbnail(model = albumArtProvider.albumArtUri(song.albumId))
+                        },
+                        trailingContent = {
+                            FavoriteHeartButton(
+                                isFavorite = song.id in favoriteIds,
+                                onClick = { component.onToggleTrackFavorite(song.id) },
+                            )
+                        },
+                    )
                 }
-                val addToQueueAction = PopupAction(stringResource(CatalogRes.string.action_add_to_queue)) {
-                    component.onAddTrackToQueue(song)
-                }
-                CardWithPopup(
-                    modifier = Modifier,
-                    title = "${song.index} - ${song.name}",
-                    onCardClicked = { component.onPlayTrack(song) },
-                    popupActions = listOf(playAction, addToQueueAction),
-                    descriptions = listOf(
-                        stringResource(CatalogRes.string.catalog_track_meta, song.artist, song.album)
-                    ),
-                    leadingContent = {
-                        CoverThumbnail(model = albumArtProvider.albumArtUri(song.albumId))
-                    },
-                    trailingContent = {
-                        FavoriteHeartButton(
-                            isFavorite = song.id in favoriteIds,
-                            onClick = { component.onToggleTrackFavorite(song.id) },
-                        )
-                    },
-                )
             }
         }
     }
 
+    @OptIn(ExperimentalFoundationApi::class)
     @Composable
     private fun DrawAlbums(albums: List<FavoritesRepository.LikedAlbum>) {
-        if (albums.isEmpty()) {
-            EmptyScreen(
-                title = stringResource(Res.string.favorites_empty_title),
-                message = stringResource(Res.string.favorites_empty_message),
-                icon = Icons.Outlined.FavoriteBorder,
-                reloadAction = {},
-            )
-            return
-        }
-
-        LazyColumn(
-            contentPadding = bottomBarListContentPadding(horizontal = 0.dp, top = 8.dp, extraBottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(albums, key = { "${it.artistId.value}_${it.album.id.value}" }) { entry ->
-                CardWithPopup(
-                    modifier = Modifier,
-                    title = entry.album.name,
-                    onCardClicked = { component.onOpenAlbum(entry) },
-                    popupActions = listOf(
-                        PopupAction(stringResource(CatalogRes.string.action_play)) {
-                            component.onPlayAlbum(entry)
+        FavoritesListAnimatedContent(isEmpty = albums.isEmpty()) {
+            LazyColumn(
+                contentPadding = bottomBarListContentPadding(horizontal = 0.dp, top = 8.dp, extraBottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(albums, key = { "${it.artistId.value}_${it.album.id.value}" }) { entry ->
+                    CardWithPopup(
+                        modifier = Modifier.animateItem(
+                            fadeInSpec = tween(FavoritesItemAnimationMs),
+                            fadeOutSpec = tween(FavoritesItemAnimationMs),
+                            placementSpec = tween(FavoritesItemAnimationMs),
+                        ),
+                        title = entry.album.name,
+                        onCardClicked = { component.onOpenAlbum(entry) },
+                        popupActions = listOf(
+                            PopupAction(stringResource(CatalogRes.string.action_play)) {
+                                component.onPlayAlbum(entry)
+                            },
+                        ),
+                        descriptions = buildList {
+                            add(stringResource(Res.string.favorites_album_songs_count, entry.album.songCount))
+                            if (entry.album.years.isNotBlank()) {
+                                add(entry.album.years)
+                            }
                         },
-                    ),
-                    descriptions = listOf(
-                        stringResource(Res.string.favorites_album_liked_count, entry.likedSongCount),
-                        entry.album.years,
-                    ),
-                    leadingContent = {
-                        CoverThumbnail(model = albumArtProvider.albumArtUri(entry.album.id))
-                    },
-                    trailingContent = {
-                        FavoriteHeartButton(
-                            isFavorite = true,
-                            onClick = { component.onToggleAlbumFavorite(entry) },
-                        )
-                    },
-                )
+                        leadingContent = {
+                            CoverThumbnail(model = albumArtProvider.albumArtUri(entry.album.id))
+                        },
+                        trailingContent = {
+                            FavoriteHeartButton(
+                                isFavorite = true,
+                                onClick = { component.onToggleAlbumFavorite(entry) },
+                            )
+                        },
+                    )
+                }
+            }
+        }
+    }
+
+    @OptIn(ExperimentalFoundationApi::class)
+    @Composable
+    private fun DrawArtists(artists: List<FavoritesRepository.LikedArtist>) {
+        FavoritesListAnimatedContent(isEmpty = artists.isEmpty()) {
+            LazyColumn(
+                contentPadding = bottomBarListContentPadding(horizontal = 0.dp, top = 8.dp, extraBottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(artists, key = { it.artist.id.value }) { entry ->
+                    CardWithPopup(
+                        modifier = Modifier.animateItem(
+                            fadeInSpec = tween(FavoritesItemAnimationMs),
+                            fadeOutSpec = tween(FavoritesItemAnimationMs),
+                            placementSpec = tween(FavoritesItemAnimationMs),
+                        ),
+                        title = entry.artist.name,
+                        onCardClicked = { component.onOpenArtist(entry) },
+                        popupActions = listOf(
+                            PopupAction(stringResource(CatalogRes.string.action_play)) {
+                                component.onPlayArtist(entry)
+                            },
+                        ),
+                        descriptions = listOf(
+                            stringResource(Res.string.favorites_artist_albums_count, entry.artist.albumCount),
+                            stringResource(Res.string.favorites_artist_songs_count, entry.artist.songCount),
+                        ),
+                        leadingContent = {
+                            CoverThumbnail(model = null, fallbackIcon = Icons.Outlined.Person)
+                        },
+                        trailingContent = {
+                            FavoriteHeartButton(
+                                isFavorite = true,
+                                onClick = { component.onToggleArtistFavorite(entry) },
+                            )
+                        },
+                    )
+                }
             }
         }
     }
 
     @Composable
-    private fun DrawArtists(artists: List<FavoritesRepository.LikedArtist>) {
-        if (artists.isEmpty()) {
-            EmptyScreen(
-                title = stringResource(Res.string.favorites_empty_title),
-                message = stringResource(Res.string.favorites_empty_message),
-                icon = Icons.Outlined.FavoriteBorder,
-                reloadAction = {},
-            )
-            return
-        }
-
-        LazyColumn(
-            contentPadding = bottomBarListContentPadding(horizontal = 0.dp, top = 8.dp, extraBottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(artists, key = { it.artist.id.value }) { entry ->
-                CardWithPopup(
-                    modifier = Modifier,
-                    title = entry.artist.name,
-                    onCardClicked = { component.onOpenArtist(entry) },
-                    popupActions = listOf(
-                        PopupAction(stringResource(CatalogRes.string.action_play)) {
-                            component.onPlayArtist(entry)
-                        },
-                    ),
-                    descriptions = listOf(
-                        stringResource(Res.string.favorites_artist_liked_count, entry.likedSongCount),
-                    ),
-                    leadingContent = {
-                        CoverThumbnail(model = null, fallbackIcon = Icons.Outlined.Person)
-                    },
-                    trailingContent = {
-                        FavoriteHeartButton(
-                            isFavorite = true,
-                            onClick = { component.onToggleArtistFavorite(entry) },
-                        )
-                    },
+    private fun FavoritesListAnimatedContent(
+        isEmpty: Boolean,
+        content: @Composable () -> Unit,
+    ) {
+        AnimatedContent(
+            targetState = isEmpty,
+            transitionSpec = {
+                fadeIn(tween(FavoritesItemAnimationMs)) togetherWith fadeOut(tween(FavoritesItemAnimationMs))
+            },
+            label = "favorites-list",
+        ) { empty ->
+            if (empty) {
+                EmptyScreen(
+                    title = stringResource(Res.string.favorites_empty_title),
+                    message = stringResource(Res.string.favorites_empty_message),
+                    icon = Icons.Outlined.FavoriteBorder,
+                    reloadAction = {},
                 )
+            } else {
+                content()
             }
         }
     }

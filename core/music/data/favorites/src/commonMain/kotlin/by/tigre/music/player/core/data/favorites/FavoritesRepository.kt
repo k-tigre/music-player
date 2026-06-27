@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface FavoritesRepository {
     val favoriteIds: Flow<Set<Song.Id>>
+    val favoriteArtistIds: Flow<Set<Artist.Id>>
     val tracks: Flow<List<FavoriteTrack>>
     val likedAlbums: Flow<List<LikedAlbum>>
     val likedArtists: Flow<List<LikedArtist>>
@@ -15,6 +16,8 @@ interface FavoritesRepository {
     suspend fun setFavorite(songId: Song.Id, favorite: Boolean)
     suspend fun toggleAlbum(artistId: Artist.Id, albumId: Album.Id): Boolean
     suspend fun toggleArtist(artistId: Artist.Id): Boolean
+    suspend fun isAlbumFavorite(artistId: Artist.Id, albumId: Album.Id): Boolean
+    suspend fun isArtistFavorite(artistId: Artist.Id): Boolean
     suspend fun resolvePlayableSongIds(): List<Song.Id>
 
     data class FavoriteTrack(
@@ -26,13 +29,11 @@ interface FavoritesRepository {
     data class LikedAlbum(
         val artistId: Artist.Id,
         val album: Album,
-        val likedSongCount: Int,
-        val lastLikedAt: Long,
+        val addedAt: Long,
     )
 
     data class LikedArtist(
         val artist: Artist,
-        val likedSongCount: Int,
-        val lastLikedAt: Long,
+        val addedAt: Long,
     )
 }

@@ -14,6 +14,7 @@ interface CatalogComponentProvider {
     fun createRootCatalogComponent(
         context: BaseComponentContext,
         onOpenSettings: (() -> Unit)? = null,
+        onExitRequested: (() -> Unit)? = null,
     ): RootCatalogComponent
     fun createArtistListComponent(
         context: BaseComponentContext,
@@ -39,7 +40,8 @@ interface CatalogComponentProvider {
         override fun createRootCatalogComponent(
             context: BaseComponentContext,
             onOpenSettings: (() -> Unit)?,
-        ): RootCatalogComponent = Impl(context, this, dependency, onOpenSettings)
+            onExitRequested: (() -> Unit)?,
+        ): RootCatalogComponent = Impl(context, this, dependency, onOpenSettings, onExitRequested)
 
         override fun createArtistListComponent(
             context: BaseComponentContext,

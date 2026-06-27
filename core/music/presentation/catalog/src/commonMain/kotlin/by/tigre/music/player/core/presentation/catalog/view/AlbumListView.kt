@@ -33,6 +33,7 @@ import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.view.CoverThumbnail
 import by.tigre.media.platform.tools.platform.compose.view.CardWithPopup
+import by.tigre.media.platform.tools.platform.compose.view.FavoriteHeartButton
 import by.tigre.media.platform.tools.platform.compose.view.bottomBarListContentPadding
 import by.tigre.media.platform.tools.platform.compose.view.ErrorScreen
 import by.tigre.media.platform.tools.platform.compose.view.PopupAction
@@ -132,6 +133,7 @@ class AlbumListView(
 
     @Composable
     private fun DrawContent(albums: List<Album>) {
+        val likedAlbumIds by component.likedAlbumIds.collectAsState()
         LazyColumn(
             contentPadding = bottomBarListContentPadding(horizontal = 0.dp, top = 16.dp, extraBottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -156,6 +158,12 @@ class AlbumListView(
                         ),
                         leadingContent = {
                             CoverThumbnail(model = albumArtProvider.albumArtUri(album.id))
+                        },
+                        trailingContent = {
+                            FavoriteHeartButton(
+                                isFavorite = album.id in likedAlbumIds,
+                                onClick = { component.onToggleAlbumFavorite(album) },
+                            )
                         },
                         showDivider = index < albums.lastIndex,
                     )

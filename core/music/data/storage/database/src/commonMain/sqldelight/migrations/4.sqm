@@ -2,3 +2,15 @@ CREATE TABLE FavoriteSong (
     song_id INTEGER NOT NULL PRIMARY KEY,
     added_at INTEGER NOT NULL
 );
+
+CREATE TABLE FavoriteArtist (
+    artist_id INTEGER NOT NULL PRIMARY KEY,
+    added_at INTEGER NOT NULL
+);
+
+CREATE TABLE FavoriteAlbum (
+    artist_id INTEGER NOT NULL,
+    album_id INTEGER NOT NULL,
+    added_at INTEGER NOT NULL,
+    PRIMARY KEY (artist_id, album_id)
+);

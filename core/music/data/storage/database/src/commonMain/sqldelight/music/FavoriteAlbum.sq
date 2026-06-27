@@ -1,0 +1,23 @@
+CREATE TABLE FavoriteAlbum (
+    artist_id INTEGER NOT NULL,
+    album_id INTEGER NOT NULL,
+    added_at INTEGER NOT NULL,
+    PRIMARY KEY (artist_id, album_id)
+);
+
+selectAllOrdered:
+SELECT artist_id, album_id, added_at
+FROM FavoriteAlbum
+ORDER BY added_at DESC;
+
+selectIsFavorite:
+SELECT EXISTS(
+    SELECT 1 FROM FavoriteAlbum WHERE artist_id = ? AND album_id = ?
+);
+
+insertFavorite:
+INSERT OR IGNORE INTO FavoriteAlbum(artist_id, album_id, added_at)
+VALUES(?, ?, ?);
+
+deleteFavorite:
+DELETE FROM FavoriteAlbum WHERE artist_id = ? AND album_id = ?;

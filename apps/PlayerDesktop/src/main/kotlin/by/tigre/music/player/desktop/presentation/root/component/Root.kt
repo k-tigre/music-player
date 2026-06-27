@@ -83,6 +83,7 @@ interface Root {
 
         private val pagesNavigation = StackNavigation<PagesConfig>()
         private val mainNavigation = StackNavigation<MainConfig>()
+        private var catalogReturnPageIndex: Int? = null
 
         private val _isScanning = MutableStateFlow(false)
         override val isScanning: StateFlow<Boolean> = _isScanning.asStateFlow()
@@ -118,7 +119,13 @@ interface Root {
         }
 
         private val catalogComponent: RootCatalogComponent =
-            catalogComponentProvider.createRootCatalogComponent(appChildContext("catalog"))
+            catalogComponentProvider.createRootCatalogComponent(
+                context = appChildContext("catalog"),
+                onExitRequested = {
+                    catalogReturnPageIndex?.let(::selectPage)
+                    catalogReturnPageIndex = null
+                },
+            )
 
         private val queueNavigator = object : QueueNavigator {
             override fun onOpenCatalog() = selectPage(3)
@@ -158,13 +165,15 @@ interface Root {
             override fun openCatalog() = selectPage(3)
 
             override fun openArtist(id: Artist.Id) {
-                selectPage(3)
-                catalogComponent.navigateToArtist(id)
+                openCatalogFromFavorites {
+                    catalogComponent.navigateToArtist(id, returnOnRootBack = true)
+                }
             }
 
             override fun openAlbum(artistId: Artist.Id, albumId: Album.Id) {
-                selectPage(3)
-                catalogComponent.navigateToAlbum(artistId, albumId)
+                openCatalogFromFavorites {
+                    catalogComponent.navigateToAlbum(artistId, albumId, returnOnRootBack = true)
+                }
             }
         }
 
@@ -227,6 +236,10 @@ interface Root {
             }
 
         override fun selectPage(index: Int) {
+            if (index != 3) {
+                catalogReturnPageIndex = null
+                catalogComponent.clearReturnOnRootBack()
+            }
             when (index) {
                 0 -> pagesNavigation.bringToFront(PagesConfig.Queue)
                 1 -> {
@@ -241,7 +254,11 @@ interface Root {
                     }
                     pagesNavigation.bringToFront(PagesConfig.Favorites)
                 }
-                3 -> pagesNavigation.bringToFront(PagesConfig.Catalog)
+                3 -> {
+                    catalogReturnPageIndex = null
+                    catalogComponent.navigateToRoot()
+                    pagesNavigation.bringToFront(PagesConfig.Catalog)
+                }
             }
         }
 
@@ -263,6 +280,12 @@ interface Root {
 
         override fun createEqualizerComponent(onClose: () -> Unit): EqualizerComponent =
             playerComponentProvider.createEqualizerComponent(onClose)
+
+        private fun openCatalogFromFavorites(navigate: () -> Unit) {
+            catalogReturnPageIndex = 2
+            pagesNavigation.bringToFront(PagesConfig.Catalog)
+            navigate()
+        }
 
         init {
             launch {

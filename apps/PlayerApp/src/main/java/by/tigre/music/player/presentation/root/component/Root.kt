@@ -96,6 +96,7 @@ interface Root {
 
         private val pagesNavigation = StackNavigation<PagesConfig>()
         private val mainNavigation = StackNavigation<MainConfig>()
+        private var catalogReturnPageIndex: Int? = null
 
         private val playerNavigator = object : PlayerNavigator {
             override fun showQueue() {
@@ -140,6 +141,10 @@ interface Root {
             catalogComponentProvider.createRootCatalogComponent(
                 context = appChildContext("catalog"),
                 onOpenSettings = playerNavigator::showSettings,
+                onExitRequested = {
+                    catalogReturnPageIndex?.let(::selectPage)
+                    catalogReturnPageIndex = null
+                },
             )
 
         private val queueNavigator = object : QueueNavigator {
@@ -180,13 +185,15 @@ interface Root {
             override fun openCatalog() = selectPage(3)
 
             override fun openArtist(id: Artist.Id) {
-                selectPage(3)
-                catalogComponent.navigateToArtist(id)
+                openCatalogFromFavorites {
+                    catalogComponent.navigateToArtist(id, returnOnRootBack = true)
+                }
             }
 
             override fun openAlbum(artistId: Artist.Id, albumId: Album.Id) {
-                selectPage(3)
-                catalogComponent.navigateToAlbum(artistId, albumId)
+                openCatalogFromFavorites {
+                    catalogComponent.navigateToAlbum(artistId, albumId, returnOnRootBack = true)
+                }
             }
         }
 
@@ -261,6 +268,10 @@ interface Root {
             }
 
         override fun selectPage(index: Int) {
+            if (index != 3) {
+                catalogReturnPageIndex = null
+                catalogComponent.clearReturnOnRootBack()
+            }
             when (index) {
                 0 -> pagesNavigation.bringToFront(PagesConfig.Queue)
                 1 -> {
@@ -276,6 +287,8 @@ interface Root {
                     pagesNavigation.bringToFront(PagesConfig.Favorites)
                 }
                 3 -> {
+                    catalogReturnPageIndex = null
+                    catalogComponent.navigateToRoot()
                     if (pages.value.active.configuration != PagesConfig.Catalog) {
                         eventAnalytics.trackEvent(MusicEvents.Action.NavOpenCatalog)
                     }
@@ -298,6 +311,12 @@ interface Root {
             eventAnalytics.trackEvent(MusicEvents.Action.DefaultPlayerPromptClicked)
             playerSettings.markPromptShown()
             showDefaultPlayerPromptState.value = false
+        }
+
+        private fun openCatalogFromFavorites(navigate: () -> Unit) {
+            catalogReturnPageIndex = 2
+            pagesNavigation.bringToFront(PagesConfig.Catalog)
+            navigate()
         }
 
         init {

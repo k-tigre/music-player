@@ -17,6 +17,7 @@ import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackCallback
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -26,8 +27,10 @@ interface RootCatalogComponent {
 
     val childStack: Value<ChildStack<*, CatalogChild>>
 
-    fun navigateToArtist(artistId: Artist.Id)
-    fun navigateToAlbum(artistId: Artist.Id, albumId: Album.Id)
+    fun navigateToArtist(artistId: Artist.Id, returnOnRootBack: Boolean = false)
+    fun navigateToAlbum(artistId: Artist.Id, albumId: Album.Id, returnOnRootBack: Boolean = false)
+    fun clearReturnOnRootBack()
+    fun navigateToRoot()
 
     sealed interface CatalogChild {
         class ArtistsList(val component: ArtistListComponent) : CatalogChild
@@ -40,9 +43,15 @@ interface RootCatalogComponent {
         private val componentProvider: CatalogComponentProvider,
         private val dependency: CatalogDependency,
         private val onOpenSettings: (() -> Unit)? = null,
+        private val onExitRequested: (() -> Unit)? = null,
     ) : RootCatalogComponent, BaseComponentContext by context {
         private val navigation = StackNavigation<CatalogConfig>()
         private val catalogSource: CatalogSource = dependency.catalogSource
+        private var returnOnRootBack = false
+        private val externalExitBackCallback = BackCallback(isEnabled = false) {
+            returnOnRootBack = false
+            onExitRequested?.invoke()
+        }
 
         private val navigator = object : CatalogNavigator {
             override fun showArtists() {
@@ -58,11 +67,7 @@ interface RootCatalogComponent {
             }
 
             override fun showPreviousScreen() {
-                navigation.pop { isSuccess ->
-                    if (isSuccess.not()) {
-                        // TODO
-                    }
-                }
+                handleBack()
             }
 
             override fun showSongsForTrack(song: Song) {
@@ -123,6 +128,11 @@ interface RootCatalogComponent {
         override val childStack: Value<ChildStack<*, CatalogChild>> = stack
 
         init {
+            backHandler.register(externalExitBackCallback)
+            stack.subscribe {
+                externalExitBackCallback.isEnabled = returnOnRootBack && it.backStack.isEmpty()
+            }
+
             launch {
                 stack.trackScreens<CatalogConfig, MusicEvents.Screen>(
                     trackScreen = dependency.screenAnalytics::trackScreen,
@@ -137,28 +147,57 @@ interface RootCatalogComponent {
             }
         }
 
-        override fun navigateToArtist(artistId: Artist.Id) {
+        override fun navigateToArtist(artistId: Artist.Id, returnOnRootBack: Boolean) {
             launch {
                 val artist = catalogSource.getArtistById(artistId) ?: return@launch
                 withContext(Dispatchers.Main.immediate) {
-                    navigation.replaceAll(
-                        CatalogConfig.ArtistsList,
-                        CatalogConfig.AlbumsList(artist),
-                    )
+                    this@Impl.returnOnRootBack = returnOnRootBack
+                    if (returnOnRootBack) {
+                        navigation.replaceAll(CatalogConfig.AlbumsList(artist))
+                    } else {
+                        navigation.replaceAll(
+                            CatalogConfig.ArtistsList,
+                            CatalogConfig.AlbumsList(artist),
+                        )
+                    }
                 }
             }
         }
 
-        override fun navigateToAlbum(artistId: Artist.Id, albumId: Album.Id) {
+        override fun navigateToAlbum(artistId: Artist.Id, albumId: Album.Id, returnOnRootBack: Boolean) {
             launch {
                 val artist = catalogSource.getArtistById(artistId) ?: return@launch
                 val album = catalogSource.getAlbumById(artistId, albumId) ?: return@launch
                 withContext(Dispatchers.Main.immediate) {
-                    navigation.replaceAll(
-                        CatalogConfig.ArtistsList,
-                        CatalogConfig.AlbumsList(artist),
-                        CatalogConfig.SongsList(album, artist),
-                    )
+                    this@Impl.returnOnRootBack = returnOnRootBack
+                    if (returnOnRootBack) {
+                        navigation.replaceAll(CatalogConfig.SongsList(album, artist))
+                    } else {
+                        navigation.replaceAll(
+                            CatalogConfig.ArtistsList,
+                            CatalogConfig.AlbumsList(artist),
+                            CatalogConfig.SongsList(album, artist),
+                        )
+                    }
+                }
+            }
+        }
+
+        override fun clearReturnOnRootBack() {
+            returnOnRootBack = false
+            externalExitBackCallback.isEnabled = false
+        }
+
+        override fun navigateToRoot() {
+            clearReturnOnRootBack()
+            navigation.replaceAll(CatalogConfig.ArtistsList)
+        }
+
+        private fun handleBack() {
+            navigation.pop { isSuccess ->
+                if (!isSuccess && returnOnRootBack) {
+                    returnOnRootBack = false
+                    onExitRequested?.invoke()
                 }
             }
         }

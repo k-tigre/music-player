@@ -4,13 +4,14 @@
     <string name="cd_nav_favorites">Избранное</string>
     <string name="cd_favorite_toggle">Добавить или убрать из избранного</string>
     <string name="favorites_empty_title">Пока пусто</string>
-    <string name="favorites_empty_message">Лайкайте треки сердечком в каталоге или плеере.</string>
+    <string name="favorites_empty_message">Добавляйте в избранное треки, альбомы и артистов сердечком в каталоге или плеере.</string>
     <string name="favorites_segment_tracks">Треки</string>
     <string name="favorites_segment_albums">Альбомы</string>
     <string name="favorites_segment_artists">Артисты</string>
     <string name="favorites_play_all">Слушать всё</string>
-    <string name="favorites_album_liked_count">Лайкнуто треков: %1$d</string>
-    <string name="favorites_artist_liked_count">Лайкнуто треков: %1$d</string>
+    <string name="favorites_album_songs_count">Треков: %1$d</string>
+    <string name="favorites_artist_albums_count">Альбомов: %1$d</string>
+    <string name="favorites_artist_songs_count">Треков: %1$d</string>
     <string name="favorites_no_playable_tracks">Нет доступных треков</string>
     <string name="desktop_tab_favorites">ИЗБРАННОЕ</string>
 </resources>

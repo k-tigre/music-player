@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -45,8 +46,10 @@ interface ArtistListComponent {
     fun onPlaySearchSongClicked(song: Song)
     fun onAddSearchSongClicked(song: Song)
     fun onToggleSearchSongFavorite(song: Song)
+    fun onToggleArtistFavorite(artist: Artist)
 
     val favoriteIds: StateFlow<Set<Song.Id>>
+    val likedArtistIds: StateFlow<Set<Artist.Id>>
 
     class Impl(
         context: BaseComponentContext,
@@ -64,6 +67,13 @@ interface ArtistListComponent {
         private val eventAnalytics: MusicEventAnalytics = dependency.eventAnalytics
 
         override val favoriteIds: StateFlow<Set<Song.Id>> = favoritesRepository.favoriteIds
+            .stateIn(
+                scope = this,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptySet(),
+            )
+
+        override val likedArtistIds: StateFlow<Set<Artist.Id>> = favoritesRepository.favoriteArtistIds
             .stateIn(
                 scope = this,
                 started = SharingStarted.WhileSubscribed(5_000),
@@ -176,6 +186,13 @@ interface ArtistListComponent {
         override fun onToggleSearchSongFavorite(song: Song) {
             launch {
                 val isFavorite = favoritesRepository.toggle(song.id)
+                eventAnalytics.trackEvent(MusicEvents.Action.FavoriteToggle(isFavorite))
+            }
+        }
+
+        override fun onToggleArtistFavorite(artist: Artist) {
+            launch {
+                val isFavorite = favoritesRepository.toggleArtist(artist.id)
                 eventAnalytics.trackEvent(MusicEvents.Action.FavoriteToggle(isFavorite))
             }
         }

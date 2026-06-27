@@ -181,6 +181,7 @@ class ArtistListView(
 
     @Composable
     private fun ArtistCard(artist: Artist) {
+        val likedArtistIds by component.likedArtistIds.collectAsState()
         CardWithPopup(
             modifier = Modifier,
             title = artist.name,
@@ -198,6 +199,12 @@ class ArtistListView(
             ),
             leadingContent = {
                 CoverThumbnail(model = null, fallbackIcon = Icons.Outlined.Person)
+            },
+            trailingContent = {
+                FavoriteHeartButton(
+                    isFavorite = artist.id in likedArtistIds,
+                    onClick = { component.onToggleArtistFavorite(artist) },
+                )
             },
         )
     }
