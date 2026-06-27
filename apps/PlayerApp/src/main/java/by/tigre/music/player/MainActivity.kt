@@ -67,9 +67,9 @@ class MainActivity : AppCompatActivity() {
                 Surface(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
                     RootView(
                         root,
-                        catalogViewProvider = CatalogViewProvider.Impl(),
+                        catalogViewProvider = CatalogViewProvider.Impl(graph.albumArtProvider),
                         playerViewProvider = PlayerViewProvider.Impl(),
-                        currentQueueViewProvider = CurrentQueueViewProvider.Impl(),
+                        currentQueueViewProvider = CurrentQueueViewProvider.Impl(graph.albumArtProvider),
                     ).Draw(Modifier)
                 }
             }

@@ -24,13 +24,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import by.tigre.music.player.core.data.catalog.AlbumArtProvider
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.component.ArtistListComponent
 import by.tigre.music.player.core.presentation.catalog.component.ArtistListScreenData
 import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.tools.platform.compose.ComposableView
+import androidx.compose.material.icons.outlined.Person
 import by.tigre.media.platform.tools.platform.compose.view.CardWithPopup
+import by.tigre.media.platform.tools.platform.compose.view.CoverThumbnail
 import by.tigre.media.platform.tools.platform.compose.view.bottomBarListContentPadding
 import by.tigre.media.platform.tools.platform.compose.view.EmptyScreen
 import by.tigre.media.platform.tools.platform.compose.view.ErrorScreen
@@ -43,6 +46,7 @@ import org.jetbrains.compose.resources.stringResource
 
 class ArtistListView(
     private val component: ArtistListComponent,
+    private val albumArtProvider: AlbumArtProvider,
 ) : ComposableView {
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -117,8 +121,8 @@ class ArtistListView(
     @Composable
     private fun DrawContent(data: ArtistListScreenData) {
         LazyColumn(
-            contentPadding = bottomBarListContentPadding(),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            contentPadding = bottomBarListContentPadding(horizontal = 0.dp),
+            verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
             if (data.searchResult != null) {
                 val result = data.searchResult
@@ -185,7 +189,10 @@ class ArtistListView(
             descriptions = listOf(
                 stringResource(Res.string.catalog_artist_albums_count, artist.albumCount),
                 stringResource(Res.string.catalog_artist_songs_count, artist.songCount)
-            )
+            ),
+            leadingContent = {
+                CoverThumbnail(model = null, fallbackIcon = Icons.Outlined.Person)
+            },
         )
     }
 
@@ -201,7 +208,10 @@ class ArtistListView(
             ),
             descriptions = listOf(
                 stringResource(Res.string.catalog_track_meta, song.artist, song.album)
-            )
+            ),
+            leadingContent = {
+                CoverThumbnail(model = albumArtProvider.albumArtUri(song.albumId))
+            },
         )
     }
 

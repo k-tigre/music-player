@@ -1,7 +1,9 @@
 package by.tigre.music.player.core.data.catalog.di
 
 import android.content.Context
+import by.tigre.music.player.core.data.catalog.AlbumArtProvider
 import by.tigre.music.player.core.data.catalog.CatalogSource
+import by.tigre.music.player.core.data.catalog.android.AndroidAlbumArtProvider
 import by.tigre.music.player.core.data.catalog.android.AndroidCatalogBackend
 import by.tigre.music.player.core.data.catalog.android.DbHelper
 import by.tigre.music.player.core.data.catalog.hidden.HiddenCatalogStorage
@@ -19,4 +21,6 @@ class AndroidCatalogModule(
             hidden = HiddenCatalogStorageImpl(preferences),
         )
     }
+
+    override val albumArtProvider: AlbumArtProvider = AndroidAlbumArtProvider()
 }

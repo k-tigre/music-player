@@ -33,6 +33,8 @@ kotlin {
         }
         androidMain.dependencies {
             implementation(Library.ActivityCompose.notation)
+            implementation(Library.AndroidXPalette.notation)
+            implementation(Library.CoilCompose.notation)
         }
     }
 }

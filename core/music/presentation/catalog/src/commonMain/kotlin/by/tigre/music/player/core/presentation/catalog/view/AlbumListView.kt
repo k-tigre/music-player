@@ -25,11 +25,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import by.tigre.music.player.core.data.catalog.AlbumArtProvider
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.presentation.catalog.component.AlbumListComponent
 import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.view.CoverThumbnail
 import by.tigre.media.platform.tools.platform.compose.view.CardWithPopup
 import by.tigre.media.platform.tools.platform.compose.view.bottomBarListContentPadding
 import by.tigre.media.platform.tools.platform.compose.view.ErrorScreen
@@ -44,6 +46,7 @@ import org.jetbrains.compose.resources.stringResource
 
 class AlbumListView(
     private val component: AlbumListComponent,
+    private val albumArtProvider: AlbumArtProvider,
 ) : ComposableView {
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -130,10 +133,10 @@ class AlbumListView(
     @Composable
     private fun DrawContent(albums: List<Album>) {
         LazyColumn(
-            contentPadding = bottomBarListContentPadding(top = 16.dp, extraBottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            contentPadding = bottomBarListContentPadding(horizontal = 0.dp, top = 16.dp, extraBottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            albums.forEach { album ->
+            albums.forEachIndexed { index, album ->
                 item {
                     CardWithPopup(
                         modifier = Modifier,
@@ -147,7 +150,11 @@ class AlbumListView(
                         descriptions = listOf(
                             stringResource(Res.string.catalog_album_years, album.years),
                             stringResource(Res.string.catalog_album_songs_count, album.songCount)
-                        )
+                        ),
+                        leadingContent = {
+                            CoverThumbnail(model = albumArtProvider.albumArtUri(album.id))
+                        },
+                        showDivider = index < albums.lastIndex,
                     )
                 }
             }

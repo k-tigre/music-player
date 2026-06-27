@@ -1,9 +1,9 @@
 package by.tigre.music.player.car
 
-import android.content.ContentUris
 import android.content.Context
-import android.provider.MediaStore
+import android.net.Uri
 import by.tigre.media.platform.background.R
+import by.tigre.music.player.core.data.catalog.android.AndroidAlbumArtProvider
 import by.tigre.music.player.core.data.catalog.CatalogSource
 import by.tigre.music.player.core.data.playback.PlaybackController
 import by.tigre.music.player.core.entiry.catalog.Album
@@ -19,6 +19,8 @@ class MusicCarMediaLibrary(
     private val catalog: CatalogSource,
     private val playback: PlaybackController,
 ) : CarMediaLibrary {
+
+    private val albumArtProvider = AndroidAlbumArtProvider()
 
     override suspend fun getChildren(parentId: String): List<CarBrowseItem> = when (parentId) {
         CarMediaIds.ROOT -> listOf(
@@ -122,6 +124,6 @@ class MusicCarMediaLibrary(
         isPlayable = false,
     )
 
-    private fun albumArtUri(albumId: Long) =
-        ContentUris.withAppendedId(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, albumId)
+    private fun albumArtUri(albumId: Long): Uri? =
+        albumArtProvider.albumArtUri(Album.Id(albumId)) as? Uri
 }

@@ -1,8 +1,6 @@
 package by.tigre.music.player.core.di
 
-import android.content.ContentUris
 import android.content.Context
-import android.provider.MediaStore
 import by.tigre.music.player.core.data.catalog.di.AndroidCatalogModule
 import by.tigre.music.player.core.data.catalog.di.CatalogModule
 import by.tigre.media.platform.playback.di.AndroidBasePlaybackModule
@@ -84,10 +82,7 @@ class ApplicationGraph(
                         subtitle = "${song.artist}/${song.album}",
                         artist = song.artist,
                         album = song.album,
-                        coverUri = ContentUris.withAppendedId(
-                            MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-                            song.albumId.value
-                        )
+                        coverUri = albumArtProvider.albumArtUri(song.albumId),
                     )
 
                     else -> null

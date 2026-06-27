@@ -24,10 +24,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import by.tigre.music.player.core.data.catalog.AlbumArtProvider
 import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.component.SongsListComponent
 import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.view.CoverThumbnail
 import by.tigre.media.platform.tools.platform.compose.view.CardWithPopup
 import by.tigre.media.platform.tools.platform.compose.view.bottomBarListContentPadding
 import by.tigre.media.platform.tools.platform.compose.view.ErrorScreen
@@ -40,6 +42,7 @@ import org.jetbrains.compose.resources.stringResource
 
 class SongsListView(
     private val component: SongsListComponent,
+    private val albumArtProvider: AlbumArtProvider,
 ) : ComposableView {
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -124,8 +127,8 @@ class SongsListView(
     @Composable
     private fun DrawContent(songs: List<Song>) {
         LazyColumn(
-            contentPadding = bottomBarListContentPadding(top = 16.dp, extraBottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            contentPadding = bottomBarListContentPadding(horizontal = 0.dp, top = 16.dp, extraBottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
             songs.forEach { song ->
                 item {
@@ -147,7 +150,10 @@ class SongsListView(
                         ),
                         descriptions = listOf(
                             stringResource(Res.string.catalog_track_meta, song.artist, song.album)
-                        )
+                        ),
+                        leadingContent = {
+                            CoverThumbnail(model = albumArtProvider.albumArtUri(song.albumId))
+                        },
                     )
                 }
             }

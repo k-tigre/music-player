@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material.icons.Icons
@@ -64,7 +64,6 @@ import by.tigre.media.platform.player.component.PlayerComponent
 import by.tigre.media.platform.player.component.PlayerItem
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.view.EmptyScreen
-import coil3.compose.AsyncImage
 
 
 class PlayerView(
@@ -76,81 +75,104 @@ class PlayerView(
 
     @Composable
     override fun Draw(modifier: Modifier) {
-        Column(modifier = modifier.fillMaxSize()) {
-            topBarContent?.invoke()
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .then(
-                        if (topBarContent == null) Modifier.systemBarsPadding()
-                        else Modifier.navigationBarsPadding()
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                val current = component.currentItem.collectAsState().value
-                if (current != null) {
-                    DrawItem(
-                        modifier = Modifier.fillMaxSize(),
-                        item = current
-                    )
+        val current = component.currentItem.collectAsState().value
+        val showBackdrop = current != null && config.dynamicBackdropEnabled && !current.isExternal
+
+        Box(modifier = modifier.fillMaxSize()) {
+            if (showBackdrop) {
+                PlayerBackdrop(
+                    coverModel = current.coverUri,
+                    modifier = Modifier.fillMaxSize(),
+                    edgeToEdge = true,
+                ) {}
+            }
+
+            Column(modifier = Modifier.fillMaxSize()) {
+                if (topBarContent != null) {
+                    topBarContent()
                 } else {
-                    EmptyScreen(
-                        reloadAction = config.emptyScreenAction,
-                        title = config.emptyScreenTitle,
-                        message = config.emptyScreenMessage,
-                        actionTitle = config.emptyScreenActionTitle
-                    )
+                    DrawDefaultTopBar()
                 }
-                if (topBarContent == null) {
-                    IconButton(
-                        modifier = Modifier.align(Alignment.TopStart),
-                        onClick = component::showQueue
-                    ) {
-                        Icon(
-                            contentDescription = null,
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .navigationBarsPadding(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (current != null) {
+                        DrawItem(
+                            modifier = Modifier.fillMaxSize(),
+                            item = current,
+                        )
+                    } else {
+                        EmptyScreen(
+                            reloadAction = config.emptyScreenAction,
+                            title = config.emptyScreenTitle,
+                            message = config.emptyScreenMessage,
+                            actionTitle = config.emptyScreenActionTitle,
                         )
                     }
+                }
+            }
+        }
+    }
 
-                    var menuExpanded by remember { mutableStateOf(false) }
-                    val eqAvailable = component.playbackEqualizer.isAvailable.collectAsState()
-                    val presetNames = component.playbackEqualizer.presetNames.collectAsState()
+    @Composable
+    private fun DrawDefaultTopBar() {
+        var menuExpanded by remember { mutableStateOf(false) }
+        val eqAvailable = component.playbackEqualizer.isAvailable.collectAsState()
+        val presetNames = component.playbackEqualizer.presetNames.collectAsState()
 
-                    Box(modifier = Modifier.align(Alignment.TopEnd)) {
-                        IconButton(onClick = { menuExpanded = true }) {
-                            Icon(
-                                contentDescription = null,
-                                imageVector = Icons.Default.MoreVert
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = menuExpanded,
-                            onDismissRequest = { menuExpanded = false }
-                        ) {
-                            if (eqAvailable.value && presetNames.value.isNotEmpty()) {
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            text = config.equalizerMenuLabel,
-                                            style = MaterialTheme.typography.bodyLarge
-                                        )
-                                    },
-                                    onClick = {
-                                        menuExpanded = false
-                                        component.showEqualizer()
-                                    }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = component::showQueue) {
+                Icon(
+                    contentDescription = null,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Box {
+                IconButton(onClick = { menuExpanded = true }) {
+                    Icon(
+                        contentDescription = null,
+                        imageVector = Icons.Default.MoreVert,
+                    )
+                }
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false },
+                ) {
+                    if (eqAvailable.value && presetNames.value.isNotEmpty()) {
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = config.equalizerMenuLabel,
+                                    style = MaterialTheme.typography.bodyLarge,
                                 )
-                                HorizontalDivider()
-                            }
-                            DropdownMenuItem(
-                                text = { Text(config.queueMenuLabel) },
-                                onClick = {
-                                    menuExpanded = false
-                                    component.showQueue()
-                                }
-                            )
-                        }
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                component.showEqualizer()
+                            },
+                        )
+                        HorizontalDivider()
                     }
+                    DropdownMenuItem(
+                        text = { Text(config.queueMenuLabel) },
+                        onClick = {
+                            menuExpanded = false
+                            component.showQueue()
+                        },
+                    )
                 }
             }
         }
@@ -164,16 +186,13 @@ class PlayerView(
                 .padding(horizontal = 16.dp),
         ) {
             val coverPlaceholder = rememberVectorPainter(config.coverFallbackIcon)
-            AsyncImage(
+            CrossfadeAsyncImage(
                 model = if (item.isExternal) null else item.coverUri,
                 contentDescription = "",
-                placeholder = coverPlaceholder,
-                error = coverPlaceholder,
-                fallback = coverPlaceholder,
                 modifier = Modifier
-                    .padding(top = 48.dp)
                     .fillMaxWidth()
                     .aspectRatio(1f),
+                placeholder = coverPlaceholder,
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -181,20 +200,20 @@ class PlayerView(
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .animateContentSize()
+                    .animateContentSize(),
             ) {
                 if (chapterTitleContent != null) {
                     chapterTitleContent.invoke(item.title)
                 } else {
                     Text(
                         text = item.title,
-                        style = MaterialTheme.typography.headlineMedium
+                        style = MaterialTheme.typography.headlineMedium,
                     )
                 }
 
                 Text(
                     text = item.subtitle,
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleLarge,
                 )
 
                 if (item.canReturnToQueue && config.returnToQueueLabel != null) {
@@ -466,6 +485,7 @@ class PlayerView(
         val emptyScreenMessage: String,
         val emptyScreenActionTitle: String,
         val coverFallbackIcon: ImageVector = Icons.Outlined.LibraryMusic,
+        val dynamicBackdropEnabled: Boolean = true,
         val showOrderModeButton: Boolean = true,
         val actionsMode: ActionsMode = ActionsMode.ChapterButtons,
         val seekBack1MinuteLabel: String = "-1m",

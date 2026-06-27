@@ -150,6 +150,16 @@ class DesktopCatalogSourceImpl(dbDir: File) : CatalogBackend {
         return result
     }
 
+    fun getFirstSongPathForAlbum(albumId: Album.Id): String? {
+        connection.prepareStatement("SELECT path FROM Song WHERE album_id = ? LIMIT 1").use { stmt ->
+            stmt.setLong(1, albumId.value)
+            stmt.executeQuery().use { rs ->
+                if (rs.next()) return rs.getString(1)
+            }
+        }
+        return null
+    }
+
     override suspend fun getSongsByAlbum(artistId: Artist.Id, albumId: Album.Id): List<Song> {
         val result = mutableListOf<Song>()
         connection.prepareStatement(

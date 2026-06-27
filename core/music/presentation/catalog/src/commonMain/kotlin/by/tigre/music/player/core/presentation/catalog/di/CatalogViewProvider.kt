@@ -1,5 +1,6 @@
 package by.tigre.music.player.core.presentation.catalog.di
 
+import by.tigre.music.player.core.data.catalog.AlbumArtProvider
 import by.tigre.music.player.core.presentation.catalog.component.AlbumListComponent
 import by.tigre.music.player.core.presentation.catalog.component.ArtistListComponent
 import by.tigre.music.player.core.presentation.catalog.component.RootCatalogComponent
@@ -17,11 +18,14 @@ interface CatalogViewProvider {
     fun createSongsListView(component: SongsListComponent): ComposableView
 
     class Impl(
-
+        private val albumArtProvider: AlbumArtProvider,
     ) : CatalogViewProvider {
         override fun createRootView(component: RootCatalogComponent): RootCatalogView = RootCatalogView(component, this)
-        override fun createAlbumsListView(component: AlbumListComponent): AlbumListView = AlbumListView(component)
-        override fun createArtistsListView(component: ArtistListComponent): ArtistListView = ArtistListView(component)
-        override fun createSongsListView(component: SongsListComponent): SongsListView = SongsListView(component)
+        override fun createAlbumsListView(component: AlbumListComponent): AlbumListView =
+            AlbumListView(component, albumArtProvider)
+        override fun createArtistsListView(component: ArtistListComponent): ArtistListView =
+            ArtistListView(component, albumArtProvider)
+        override fun createSongsListView(component: SongsListComponent): SongsListView =
+            SongsListView(component, albumArtProvider)
     }
 }

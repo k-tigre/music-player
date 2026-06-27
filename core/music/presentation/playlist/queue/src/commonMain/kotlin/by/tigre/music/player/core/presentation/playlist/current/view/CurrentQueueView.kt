@@ -1,6 +1,5 @@
 package by.tigre.music.player.core.presentation.playlist.current.view
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,15 +33,18 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import by.tigre.music.player.core.data.catalog.AlbumArtProvider
 import by.tigre.music.player.core.entiry.playback.NowPlayingQueueEntry
 import by.tigre.music.player.core.entiry.playback.NowPlayingScreenModel
 import by.tigre.music.player.core.entiry.playback.OverlayQueueEntry
 import by.tigre.music.player.core.presentation.playlist.current.component.CurrentQueueComponent
 import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.view.CoverThumbnail
 import by.tigre.media.platform.tools.platform.compose.view.CardWithPopup
 import by.tigre.media.platform.tools.platform.compose.view.bottomBarListContentPadding
 import by.tigre.media.platform.tools.platform.compose.view.smartScrollToItem
@@ -59,6 +61,7 @@ import kotlin.math.abs
 
 class CurrentQueueView(
     private val component: CurrentQueueComponent,
+    private val albumArtProvider: AlbumArtProvider,
 ) : ComposableView {
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -158,8 +161,8 @@ class CurrentQueueView(
             }
             LazyColumn(
                 state = listState,
-                contentPadding = bottomBarListContentPadding(),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                contentPadding = bottomBarListContentPadding(horizontal = 0.dp),
+                verticalArrangement = Arrangement.spacedBy(1.dp)
             ) {
                 model.overlay?.let { overlay ->
                     item(key = "section_now") {
@@ -204,20 +207,18 @@ class CurrentQueueView(
     private fun DrawOverlayRow(overlay: OverlayQueueEntry, showReturnButton: Boolean) {
         val subtitle = overlay.item.sourceLabel?.takeIf { it.isNotBlank() }
             ?: stringResource(Res.string.queue_overlay_external_fallback)
-        val rowModifier = if (overlay.isPlaying) {
-            Modifier
-                .fillMaxWidth()
-                .border(1.dp, MaterialTheme.colorScheme.secondary, MaterialTheme.shapes.medium)
+        val containerColor = if (overlay.isPlaying) {
+            nowPlayingHighlightColor()
         } else {
-            Modifier.fillMaxWidth()
+            MaterialTheme.colorScheme.surfaceContainer
         }
-        Column(modifier = rowModifier) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(onClick = component::onOverlayRowClicked),
                 colors = CardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    containerColor = containerColor,
                     contentColor = MaterialTheme.colorScheme.onSurface,
                     disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
                     disabledContentColor = MaterialTheme.colorScheme.onSurface,
@@ -261,21 +262,15 @@ class CurrentQueueView(
         entry: NowPlayingQueueEntry,
         overlayActive: Boolean,
     ) {
+        val isNowPlaying = entry.isPlaying && !overlayActive
         val rowAlpha = if (overlayActive) 0.7f else 1f
-        val rowModifier = Modifier
-            .fillMaxWidth()
-            .alpha(rowAlpha)
-            .then(
-                if (entry.isPlaying && !overlayActive) {
-                    Modifier.border(1.dp, MaterialTheme.colorScheme.secondary, MaterialTheme.shapes.medium)
-                } else {
-                    Modifier
-                }
-            )
         CardWithPopup(
-            modifier = rowModifier,
+            modifier = Modifier
+                .fillMaxWidth()
+                .alpha(rowAlpha),
             title = formatQueueRowTitle(queuePositionOneBased = queuePositionOneBased, entry = entry),
             onCardClicked = { component.onSongClicked(entry) },
+            containerColor = if (isNowPlaying) nowPlayingHighlightColor() else null,
             popupActions = listOf(
                 PopupAction(stringResource(Res.string.queue_action_open_artist)) {
                     component.onOpenArtistClicked(entry)
@@ -295,9 +290,16 @@ class CurrentQueueView(
                     )
                 }
             },
+            leadingContent = {
+                CoverThumbnail(model = albumArtProvider.albumArtUri(entry.song.albumId))
+            },
         )
     }
 }
+
+@Composable
+private fun nowPlayingHighlightColor(): Color =
+    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.38f)
 
 private fun lazyListIndexForQueueItem(queueIndex: Int, model: NowPlayingScreenModel): Int {
     var offset = 0

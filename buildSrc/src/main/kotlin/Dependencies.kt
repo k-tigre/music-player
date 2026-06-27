@@ -10,6 +10,7 @@ enum class Library(group: String, artifact: String, version: Version) {
     AndoirdXAnnotation("androidx.annotation", "annotation", Version.AndroidXAnnotation),
     AndroidXSplash("androidx.core", "core-splashscreen", Version.AndroidXSplash),
     AndroidXDocumentFile("androidx.documentfile", "documentfile", Version.AndroidXDocumentFile),
+    AndroidXPalette("androidx.palette", "palette-ktx", Version.AndroidXPalette),
 
     KotlinStd("org.jetbrains.kotlin", "kotlin-stdlib-jdk8", Version.Kotlin),
     KotlinxSerialization("org.jetbrains.kotlinx", "kotlinx-serialization-core", Version.KotlinSerialization),
@@ -74,6 +75,7 @@ enum class Library(group: String, artifact: String, version: Version) {
         AndroidXAnnotation("1.9.1"),
         AndroidXSplash("1.2.0"),
         AndroidXDocumentFile("1.1.0"),
+        AndroidXPalette("1.0.0"),
         Kotlin("2.1.21"),
         KotlinSerialization("1.10.0"),
         Coroutines("1.10.2"),

@@ -44,7 +44,7 @@ class DesktopApplicationGraph(
                         subtitle = "${it.artist}/${it.album}",
                         artist = it.artist,
                         album = it.album,
-                        coverUri = null
+                        coverUri = albumArtProvider.albumArtUri(it.albumId),
                     )
                 }
             }

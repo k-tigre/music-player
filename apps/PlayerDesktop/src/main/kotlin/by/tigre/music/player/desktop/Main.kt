@@ -134,8 +134,8 @@ fun main() {
 
     val rootView = RootView(
         component = root,
-        catalogViewProvider = CatalogViewProvider.Impl(),
-        currentQueueViewProvider = CurrentQueueViewProvider.Impl(),
+        catalogViewProvider = CatalogViewProvider.Impl(graph.albumArtProvider),
+        currentQueueViewProvider = CurrentQueueViewProvider.Impl(graph.albumArtProvider),
         playerViewProvider = PlayerViewProvider.Impl(),
     )
 
