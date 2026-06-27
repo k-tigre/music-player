@@ -9,6 +9,29 @@
 
 ### EN
 
+## [0.19.0] - 2026-06-27
+### RU
+- Воспроизведение аудиофайлов, открытых из других приложений
+- Режимы повтора и перемешивания очереди
+- Обложки альбомов в списках библиотеки
+- Экран настроек
+- Виджет воспроизведения на главном экране
+- Очередь прокручивается к текущему треку
+- Улучшения возобновления и перехода между треками
+- Тактильная отдача при перемотке и анимация кнопки play/pause
+- Подсказки при назначении приложения плеером по умолчанию
+
+### EN
+- Play audio files opened from other apps
+- Repeat and shuffle queue modes
+- Album artwork in library lists
+- Settings screen
+- Home screen playback widget
+- Queue scrolls to the currently playing track
+- Smoother resume and track transitions
+- Haptic feedback on seek and animated play/pause button
+- Clearer prompts when setting the app as default player
+
 ## [0.18.7] - 2026-06-15
 ### RU
 - Списки библиотеки и очереди прокручиваются под мини-плеером
