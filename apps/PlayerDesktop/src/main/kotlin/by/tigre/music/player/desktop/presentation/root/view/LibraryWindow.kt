@@ -50,6 +50,7 @@ import by.tigre.media.platform.tools.platform.compose.resources.Res as ToolsRes
 import by.tigre.media.platform.tools.platform.compose.resources.cd_add_music_folder
 import by.tigre.music.player.core.presentation.playlist.library.resources.Res as PlaylistRes
 import by.tigre.music.player.core.presentation.playlist.library.resources.add_to_playlist_added_snackbar
+import by.tigre.music.player.core.presentation.playlist.library.resources.playlist_name_taken
 import by.tigre.media.platform.tools.analytics.music.MusicEventAnalytics
 import by.tigre.media.platform.tools.analytics.music.MusicEvents
 import org.jetbrains.compose.resources.stringResource
@@ -78,6 +79,8 @@ internal fun LibraryWindowContent(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val addToPlaylistAddedMessage = stringResource(PlaylistRes.string.add_to_playlist_added_snackbar)
+    val playlistNameTakenMessage = stringResource(PlaylistRes.string.playlist_name_taken)
+    val playlistNameTakenMessage = stringResource(PlaylistRes.string.playlist_name_taken)
 
     val pages = component.pages.subscribeAsState()
     val activePage = pages.value.active.instance
@@ -201,11 +204,18 @@ internal fun LibraryWindowContent(
             onCreateAndAdd = { playlistName ->
                 val request = addToPlaylistRequest ?: return@AddToPlaylistBottomSheet
                 scope.launch {
-                    val playlistId = playlistRepository.createPlaylist(playlistName)
+                    val trimmedName = playlistName.trim()
+                    if (trimmedName.isEmpty()) return@launch
+                    if (playlistRepository.isNameTaken(trimmedName)) {
+                        snackbarHostState.showSnackbar(playlistNameTakenMessage)
+                        return@launch
+                    }
+                    val playlistId = playlistRepository.createPlaylist(trimmedName)
                     playlistRepository.addSongs(playlistId, request.songIds)
                     eventAnalytics.trackEvent(MusicEvents.Action.PlaylistAddTracks(request.songIds.size))
                     addToPlaylistCoordinator.dismiss()
                     snackbarHostState.showSnackbar(addToPlaylistAddedMessage)
+                    component.openPlaylistDetail(playlistId)
                 }
             },
         )

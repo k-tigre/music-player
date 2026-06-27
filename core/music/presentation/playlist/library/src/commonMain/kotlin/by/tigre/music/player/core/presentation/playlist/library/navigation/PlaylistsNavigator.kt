@@ -7,6 +7,8 @@ import by.tigre.music.player.core.entiry.playlist.Playlist
 interface PlaylistsNavigator {
     fun openDetail(id: Playlist.Id)
     fun showPreviousScreen()
+    fun openCatalog()
+    fun openQueue()
     fun openArtist(id: Artist.Id)
     fun openAlbum(artistId: Artist.Id, albumId: Album.Id)
 }

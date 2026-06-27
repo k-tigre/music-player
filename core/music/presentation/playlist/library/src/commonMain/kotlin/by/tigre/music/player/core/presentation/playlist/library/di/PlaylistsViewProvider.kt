@@ -1,5 +1,6 @@
 package by.tigre.music.player.core.presentation.playlist.library.di
 
+import by.tigre.music.player.core.data.catalog.AlbumArtProvider
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.music.player.core.presentation.playlist.library.component.PlaylistDetailComponent
 import by.tigre.music.player.core.presentation.playlist.library.component.PlaylistsListComponent
@@ -13,7 +14,9 @@ interface PlaylistsViewProvider {
     fun createPlaylistsListView(component: PlaylistsListComponent): ComposableView
     fun createPlaylistDetailView(component: PlaylistDetailComponent): ComposableView
 
-    class Impl : PlaylistsViewProvider {
+    class Impl(
+        private val albumArtProvider: AlbumArtProvider,
+    ) : PlaylistsViewProvider {
         override fun createRootView(component: RootPlaylistsComponent): RootPlaylistsView =
             RootPlaylistsView(component, this)
 
@@ -21,6 +24,6 @@ interface PlaylistsViewProvider {
             PlaylistsListView(component)
 
         override fun createPlaylistDetailView(component: PlaylistDetailComponent): PlaylistDetailView =
-            PlaylistDetailView(component)
+            PlaylistDetailView(component, albumArtProvider)
     }
 }

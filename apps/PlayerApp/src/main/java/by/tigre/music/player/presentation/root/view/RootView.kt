@@ -100,6 +100,7 @@ class RootView(
         val snackbarHostState = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
         val addToPlaylistAddedMessage = stringResource(R.string.add_to_playlist_added_snackbar)
+        val playlistNameTakenMessage = stringResource(R.string.playlist_name_taken)
 
         Children(
             stack = component.mainComponent,
@@ -146,11 +147,18 @@ class RootView(
             onCreateAndAdd = { playlistName ->
                 val request = addToPlaylistRequest ?: return@AddToPlaylistBottomSheet
                 scope.launch {
-                    val playlistId = playlistRepository.createPlaylist(playlistName)
+                    val trimmedName = playlistName.trim()
+                    if (trimmedName.isEmpty()) return@launch
+                    if (playlistRepository.isNameTaken(trimmedName)) {
+                        snackbarHostState.showSnackbar(playlistNameTakenMessage)
+                        return@launch
+                    }
+                    val playlistId = playlistRepository.createPlaylist(trimmedName)
                     playlistRepository.addSongs(playlistId, request.songIds)
                     eventAnalytics.trackEvent(MusicEvents.Action.PlaylistAddTracks(request.songIds.size))
                     addToPlaylistCoordinator.dismiss()
                     snackbarHostState.showSnackbar(addToPlaylistAddedMessage)
+                    component.openPlaylistDetail(playlistId)
                 }
             },
         )

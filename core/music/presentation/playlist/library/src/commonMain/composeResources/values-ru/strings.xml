@@ -7,13 +7,30 @@
     <string name="playlist_delete_confirm">Удалить плейлист</string>
     <string name="playlist_track_unavailable">Трек недоступен</string>
     <string name="playlist_play_all">Играть всё</string>
+    <string name="playlist_play">Играть</string>
     <string name="playlist_add_all_to_queue">Добавить всё в очередь</string>
     <string name="playlist_remove_track">Убрать трек</string>
     <string name="playlist_no_playable_tracks">Нет доступных треков</string>
     <string name="playlist_open_artist">К исполнителю</string>
     <string name="playlist_open_album">К альбому</string>
+    <string name="playlist_detail_empty_title">Плейлист пуст</string>
+    <string name="playlist_detail_empty_message">Добавьте треки из каталога — кнопкой ниже или через контекстное меню.</string>
+    <string name="playlist_detail_add_tracks">Добавить треки</string>
+    <string name="playlist_move_up">Выше</string>
+    <string name="playlist_move_down">Ниже</string>
+    <string name="playlist_move_to_top">В самый верх</string>
+    <string name="playlist_move_to_bottom">В самый низ</string>
+    <string name="playlist_menu_more">Ещё действия</string>
+    <string name="playlist_name_taken">Плейлист с таким названием уже есть</string>
+    <string name="playlist_track_meta">%1$s / %2$s</string>
     <string name="action_add_to_playlist">Добавить в плейлист</string>
     <string name="add_to_playlist_preview">Добавить %1$d треков</string>
     <string name="add_to_playlist_create_new">Создать новый плейлист</string>
     <string name="add_to_playlist_added_snackbar">Добавлено в плейлист</string>
+    <plurals name="playlist_track_count">
+        <item quantity="one">%1$d трек</item>
+        <item quantity="few">%1$d трека</item>
+        <item quantity="many">%1$d треков</item>
+        <item quantity="other">%1$d треков</item>
+    </plurals>
 </resources>

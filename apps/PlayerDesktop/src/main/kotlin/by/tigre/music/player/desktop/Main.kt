@@ -140,7 +140,7 @@ fun main() {
         component = root,
         catalogViewProvider = CatalogViewProvider.Impl(graph.albumArtProvider),
         currentQueueViewProvider = CurrentQueueViewProvider.Impl(graph.albumArtProvider),
-        playlistsViewProvider = PlaylistsViewProvider.Impl(),
+        playlistsViewProvider = PlaylistsViewProvider.Impl(graph.albumArtProvider),
         playlistRepository = graph.playlistRepository,
         addToPlaylistCoordinator = graph.addToPlaylistCoordinator,
         eventAnalytics = graph.eventAnalytics,

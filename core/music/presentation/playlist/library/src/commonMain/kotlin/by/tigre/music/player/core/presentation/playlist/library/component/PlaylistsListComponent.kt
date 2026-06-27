@@ -17,6 +17,7 @@ interface PlaylistsListComponent {
 
     val screenState: StateFlow<ScreenContentState<List<Playlist>>>
     val dialogState: StateFlow<PlaylistsDialogState?>
+    val nameError: StateFlow<Boolean>
 
     fun retry()
     fun onCreateClicked()
@@ -54,11 +55,15 @@ interface PlaylistsListComponent {
         private val _dialogState = MutableStateFlow<PlaylistsDialogState?>(null)
         override val dialogState: StateFlow<PlaylistsDialogState?> = _dialogState.asStateFlow()
 
+        private val _nameError = MutableStateFlow(false)
+        override val nameError: StateFlow<Boolean> = _nameError.asStateFlow()
+
         override fun retry() {
             stateDelegate.reload()
         }
 
         override fun onCreateClicked() {
+            _nameError.value = false
             _dialogState.value = PlaylistsDialogState.Create
         }
 
@@ -66,8 +71,13 @@ interface PlaylistsListComponent {
             val trimmedName = name.trim()
             if (trimmedName.isEmpty()) return
             launch {
+                if (playlistRepository.isNameTaken(trimmedName)) {
+                    _nameError.value = true
+                    return@launch
+                }
                 val id = playlistRepository.createPlaylist(trimmedName)
                 eventAnalytics.trackEvent(MusicEvents.Action.PlaylistCreate)
+                _nameError.value = false
                 _dialogState.value = null
                 navigator.openDetail(id)
             }
@@ -78,6 +88,7 @@ interface PlaylistsListComponent {
         }
 
         override fun onRenameClicked(playlist: Playlist) {
+            _nameError.value = false
             _dialogState.value = PlaylistsDialogState.Rename(playlist)
         }
 
@@ -86,7 +97,12 @@ interface PlaylistsListComponent {
             val trimmedName = name.trim()
             if (trimmedName.isEmpty()) return
             launch {
+                if (playlistRepository.isNameTaken(trimmedName, excludeId = dialog.playlist.id)) {
+                    _nameError.value = true
+                    return@launch
+                }
                 playlistRepository.renamePlaylist(dialog.playlist.id, trimmedName)
+                _nameError.value = false
                 _dialogState.value = null
             }
         }
@@ -105,6 +121,7 @@ interface PlaylistsListComponent {
         }
 
         override fun dismissDialog() {
+            _nameError.value = false
             _dialogState.value = null
         }
     }

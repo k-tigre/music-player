@@ -1,32 +1,24 @@
 package by.tigre.music.player.core.presentation.playlist.library.view
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.PlaylistPlay
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -37,28 +29,39 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.view.CardWithPopup
+import by.tigre.media.platform.tools.platform.compose.view.CoverThumbnail
 import by.tigre.media.platform.tools.platform.compose.view.EmptyScreen
 import by.tigre.media.platform.tools.platform.compose.view.ErrorScreen
+import by.tigre.media.platform.tools.platform.compose.view.PopupAction
 import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicator
 import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicatorSize
 import by.tigre.media.platform.tools.platform.compose.view.bottomBarListContentPadding
+import by.tigre.music.player.core.data.catalog.AlbumArtProvider
 import by.tigre.music.player.core.entiry.playlist.PlaylistTrackEntry
 import by.tigre.music.player.core.presentation.playlist.library.component.PlaylistDetailComponent
 import by.tigre.music.player.core.presentation.playlist.library.component.PlaylistDetailComponent.Message
 import `by`.tigre.music.player.core.presentation.playlist.library.resources.Res
 import `by`.tigre.music.player.core.presentation.playlist.library.resources.*
 import org.jetbrains.compose.resources.stringResource
+import kotlin.math.roundToInt
 
 class PlaylistDetailView(
     private val component: PlaylistDetailComponent,
+    private val albumArtProvider: AlbumArtProvider,
 ) : ComposableView {
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -71,6 +74,7 @@ class PlaylistDetailView(
 
         var showRenameDialog by remember { mutableStateOf(false) }
         var showDeleteDialog by remember { mutableStateOf(false) }
+        var topMenuOpened by remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {
             component.messages.collect { message ->
@@ -130,28 +134,34 @@ class PlaylistDetailView(
                     },
                     actions = {
                         TextButton(onClick = component::onPlayAll) {
-                            Text(stringResource(Res.string.playlist_play_all))
+                            Text(stringResource(Res.string.playlist_play))
                         }
-                        TextButton(onClick = component::onAddAllToQueue) {
-                            Text(stringResource(Res.string.playlist_add_all_to_queue))
-                        }
-                        IconButton(onClick = { showRenameDialog = true }) {
-                            Icon(
-                                imageVector = Icons.Filled.Edit,
-                                contentDescription = stringResource(Res.string.playlist_rename),
-                            )
-                        }
-                        IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(
-                                imageVector = Icons.Filled.Delete,
-                                contentDescription = stringResource(Res.string.playlist_delete_confirm),
-                            )
-                        }
-                        IconButton(onClick = component::retry) {
-                            Icon(
-                                imageVector = Icons.Filled.Refresh,
-                                contentDescription = stringResource(Res.string.nav_playlists),
-                            )
+                        Box {
+                            IconButton(onClick = { topMenuOpened = true }) {
+                                Icon(
+                                    imageVector = Icons.Filled.MoreVert,
+                                    contentDescription = stringResource(Res.string.playlist_menu_more),
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = topMenuOpened,
+                                onDismissRequest = { topMenuOpened = false },
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(Res.string.playlist_rename)) },
+                                    onClick = {
+                                        topMenuOpened = false
+                                        showRenameDialog = true
+                                    },
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(Res.string.playlist_delete_confirm)) },
+                                    onClick = {
+                                        topMenuOpened = false
+                                        showDeleteDialog = true
+                                    },
+                                )
+                            }
                         }
                     },
                 )
@@ -159,11 +169,21 @@ class PlaylistDetailView(
         ) { paddingValues ->
             when (val state = screenState) {
                 is ScreenContentState.Loading -> {
-                    ProgressIndicator(Modifier.fillMaxSize(), ProgressIndicatorSize.LARGE)
+                    ProgressIndicator(
+                        Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues),
+                        ProgressIndicatorSize.LARGE,
+                    )
                 }
 
                 is ScreenContentState.Error -> {
-                    ErrorScreen(retryAction = component::retry)
+                    ErrorScreen(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues),
+                        retryAction = component::retry,
+                    )
                 }
 
                 is ScreenContentState.Content -> {
@@ -171,7 +191,7 @@ class PlaylistDetailView(
                         tracks = state.value,
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(paddingValues)
+                            .padding(paddingValues),
                     )
                 }
             }
@@ -185,136 +205,157 @@ class PlaylistDetailView(
     ) {
         if (tracks.isEmpty()) {
             EmptyScreen(
-                modifier = modifier.padding(32.dp),
-                message = stringResource(Res.string.playlists_empty),
-                reloadAction = component::retry,
+                modifier = modifier.padding(horizontal = 32.dp),
+                title = stringResource(Res.string.playlist_detail_empty_title),
+                message = stringResource(Res.string.playlist_detail_empty_message),
+                actionTitle = stringResource(Res.string.playlist_detail_add_tracks),
+                icon = Icons.Outlined.PlaylistPlay,
+                reloadAction = component::onAddTracksClicked,
             )
             return
         }
 
-        LazyColumn(
-            modifier = modifier,
-            contentPadding = bottomBarListContentPadding(top = 16.dp, extraBottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            tracks.forEachIndexed { index, track ->
-                item(key = track.entryId) {
-                    TrackRow(
-                        position = index + 1,
-                        track = track,
-                        canMoveUp = index > 0,
-                        canMoveDown = index < tracks.lastIndex,
-                    )
-                }
+        val listState = rememberLazyListState()
+        val density = LocalDensity.current
+        val estimatedItemHeightPx = with(density) { 64.dp.toPx() }
+
+        var localTracks by remember(tracks) { mutableStateOf(tracks) }
+        LaunchedEffect(tracks) {
+            localTracks = tracks
+        }
+
+        var draggedIndex by remember { mutableStateOf<Int?>(null) }
+        var dragOffset by remember { mutableFloatStateOf(0f) }
+        val originalOrder = remember(tracks) { tracks.map { it.entryId } }
+
+        fun commitReorderIfNeeded() {
+            val newOrder = localTracks.map { it.entryId }
+            if (newOrder != originalOrder) {
+                component.onTracksReordered(newOrder)
             }
         }
-    }
 
-    @Composable
-    private fun TrackRow(
-        position: Int,
-        track: PlaylistTrackEntry,
-        canMoveUp: Boolean,
-        canMoveDown: Boolean,
-    ) {
-        val song = track.song
-        val unavailableColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-        var menuOpened by remember { mutableStateOf(false) }
-
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(enabled = song != null) { component.onPlayTrack(track) },
+        LazyColumn(
+            modifier = modifier,
+            state = listState,
+            contentPadding = bottomBarListContentPadding(horizontal = 0.dp, top = 16.dp, extraBottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(1.dp),
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = if (song == null) {
-                            "$position. ${stringResource(Res.string.playlist_track_unavailable)}"
-                        } else {
-                            "$position. ${song.name}"
+            itemsIndexed(localTracks, key = { _, track -> track.entryId }) { index, track ->
+                val isDragging = draggedIndex == index
+                val song = track.song
+                val title = if (song == null) {
+                    "${index + 1}. ${stringResource(Res.string.playlist_track_unavailable)}"
+                } else {
+                    val trackInAlbum = song.index.trim()
+                    val albumTrackPart = if (trackInAlbum.isNotEmpty()) "($trackInAlbum) - " else ""
+                    "${index + 1}. - $albumTrackPart${song.name}"
+                }
+                val descriptions = if (song == null) {
+                    emptyList()
+                } else {
+                    listOf(stringResource(Res.string.playlist_track_meta, song.artist, song.album))
+                }
+                val menuDragModifier = Modifier.pointerInput(track.entryId, localTracks.size) {
+                    detectDragGesturesAfterLongPress(
+                        onDragStart = {
+                            draggedIndex = index
+                            dragOffset = 0f
                         },
-                        color = if (song == null) unavailableColor else MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    if (song != null) {
-                        Text(
-                            text = "${song.artist} / ${song.album}",
-                            style = MaterialTheme.typography.bodySmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.size(8.dp))
-                IconButton(
-                    enabled = canMoveUp,
-                    onClick = { component.onMoveTrackUp(track.entryId) },
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.KeyboardArrowUp,
-                        contentDescription = null,
-                    )
-                }
-                IconButton(
-                    enabled = canMoveDown,
-                    onClick = { component.onMoveTrackDown(track.entryId) },
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.KeyboardArrowDown,
-                        contentDescription = null,
-                    )
-                }
-                IconButton(onClick = { menuOpened = true }) {
-                    Icon(imageVector = Icons.Filled.MoreVert, contentDescription = null)
-                }
-                DropdownMenu(
-                    expanded = menuOpened,
-                    onDismissRequest = { menuOpened = false },
-                ) {
-                    if (song != null) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(Res.string.playlist_play_all)) },
-                            onClick = {
-                                menuOpened = false
-                                component.onPlayTrack(track)
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(Res.string.playlist_add_all_to_queue)) },
-                            onClick = {
-                                menuOpened = false
-                                component.onAddTrackToQueue(track)
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(Res.string.playlist_open_artist)) },
-                            onClick = {
-                                menuOpened = false
-                                component.onOpenArtist(track)
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(Res.string.playlist_open_album)) },
-                            onClick = {
-                                menuOpened = false
-                                component.onOpenAlbum(track)
-                            },
-                        )
-                    }
-                    DropdownMenuItem(
-                        text = { Text(stringResource(Res.string.playlist_remove_track)) },
-                        onClick = {
-                            menuOpened = false
-                            component.onRemoveTrack(track)
+                        onDrag = { change, dragAmount ->
+                            change.consume()
+                            dragOffset += dragAmount.y
+
+                            val currentIndex = draggedIndex ?: return@detectDragGesturesAfterLongPress
+                            val targetIndex = (currentIndex + (dragOffset / estimatedItemHeightPx).roundToInt())
+                                .coerceIn(0, localTracks.lastIndex)
+
+                            if (targetIndex != currentIndex) {
+                                localTracks = localTracks.toMutableList().apply {
+                                    add(targetIndex, removeAt(currentIndex))
+                                }
+                                draggedIndex = targetIndex
+                                dragOffset -= (targetIndex - currentIndex) * estimatedItemHeightPx
+                            }
+                        },
+                        onDragEnd = {
+                            draggedIndex = null
+                            dragOffset = 0f
+                            commitReorderIfNeeded()
+                        },
+                        onDragCancel = {
+                            draggedIndex = null
+                            dragOffset = 0f
+                            localTracks = tracks
                         },
                     )
                 }
+
+                CardWithPopup(
+                    modifier = Modifier
+                        .zIndex(if (isDragging) 1f else 0f)
+                        .graphicsLayer {
+                            translationY = if (isDragging) dragOffset else 0f
+                        },
+                    title = title,
+                    onCardClicked = {
+                        if (song != null) {
+                            component.onPlayTrack(track)
+                        }
+                    },
+                    descriptions = descriptions,
+                    popupActions = buildList {
+                        if (song != null) {
+                            add(
+                                PopupAction(stringResource(Res.string.playlist_open_artist)) {
+                                    component.onOpenArtist(track)
+                                }
+                            )
+                            add(
+                                PopupAction(stringResource(Res.string.playlist_open_album)) {
+                                    component.onOpenAlbum(track)
+                                }
+                            )
+                        }
+                        if (index > 0) {
+                            add(
+                                PopupAction(stringResource(Res.string.playlist_move_up)) {
+                                    component.onMoveTrackUp(track.entryId)
+                                }
+                            )
+                            add(
+                                PopupAction(stringResource(Res.string.playlist_move_to_top)) {
+                                    component.onMoveTrackToTop(track.entryId)
+                                }
+                            )
+                        }
+                        if (index < localTracks.lastIndex) {
+                            add(
+                                PopupAction(stringResource(Res.string.playlist_move_down)) {
+                                    component.onMoveTrackDown(track.entryId)
+                                }
+                            )
+                            add(
+                                PopupAction(stringResource(Res.string.playlist_move_to_bottom)) {
+                                    component.onMoveTrackToBottom(track.entryId)
+                                }
+                            )
+                        }
+                        add(
+                            PopupAction(stringResource(Res.string.playlist_remove_track)) {
+                                component.onRemoveTrack(track)
+                            }
+                        )
+                    },
+                    leadingContent = if (song != null) {
+                        {
+                            CoverThumbnail(model = albumArtProvider.albumArtUri(song.albumId))
+                        }
+                    } else {
+                        null
+                    },
+                    menuModifier = menuDragModifier,
+                )
             }
         }
     }

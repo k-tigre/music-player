@@ -26,12 +26,16 @@ interface PlaylistDetailComponent {
 
     fun retry()
     fun onBackClicked()
+    fun onAddTracksClicked()
     fun onPlayAll()
     fun onAddAllToQueue()
     fun onPlayTrack(track: PlaylistTrackEntry)
     fun onAddTrackToQueue(track: PlaylistTrackEntry)
     fun onMoveTrackUp(entryId: Long)
     fun onMoveTrackDown(entryId: Long)
+    fun onMoveTrackToTop(entryId: Long)
+    fun onMoveTrackToBottom(entryId: Long)
+    fun onTracksReordered(entryIdsInOrder: List<Long>)
     fun onRemoveTrack(track: PlaylistTrackEntry)
     fun onRename(name: String)
     fun onDeletePlaylist()
@@ -82,6 +86,10 @@ interface PlaylistDetailComponent {
             navigator.showPreviousScreen()
         }
 
+        override fun onAddTracksClicked() {
+            navigator.openCatalog()
+        }
+
         override fun onPlayAll() {
             launch {
                 val ids = playlistRepository.resolvePlayableSongIds(playlistId)
@@ -90,8 +98,8 @@ interface PlaylistDetailComponent {
                     return@launch
                 }
                 eventAnalytics.trackEvent(MusicEvents.Action.PlaylistPlayAll)
-                playbackController.playSong(ids.first())
-                ids.drop(1).forEach(playbackController::addSongToPlay)
+                playbackController.playSongs(ids)
+                navigator.openQueue()
             }
         }
 
@@ -102,7 +110,7 @@ interface PlaylistDetailComponent {
                     _messages.emit(Message.NoPlayableTracks)
                     return@launch
                 }
-                ids.forEach(playbackController::addSongToPlay)
+                playbackController.addSongsToPlay(ids)
             }
         }
 
@@ -122,6 +130,29 @@ interface PlaylistDetailComponent {
             moveTrack(entryId = entryId, offset = 1)
         }
 
+        override fun onMoveTrackToTop(entryId: Long) {
+            moveTrackToIndex(entryId = entryId, targetIndex = 0)
+        }
+
+        override fun onMoveTrackToBottom(entryId: Long) {
+            val tracks = (screenState.value as? Content)?.value.orEmpty()
+            if (tracks.isEmpty()) return
+            moveTrackToIndex(entryId = entryId, targetIndex = tracks.lastIndex)
+        }
+
+        override fun onTracksReordered(entryIdsInOrder: List<Long>) {
+            val currentOrder = (screenState.value as? Content)?.value.orEmpty().map { it.entryId }
+            if (entryIdsInOrder == currentOrder) return
+
+            launch {
+                playlistRepository.reorderTracks(
+                    entryIdsInOrder.mapIndexed { index, entryId ->
+                        entryId to index
+                    }
+                )
+            }
+        }
+
         override fun onRemoveTrack(track: PlaylistTrackEntry) {
             launch {
                 playlistRepository.removeTrack(track.entryId)
@@ -138,9 +169,18 @@ interface PlaylistDetailComponent {
             val targetIndex = sourceIndex + offset
             if (targetIndex !in tracks.indices) return
 
+            moveTrackToIndex(entryId = entryId, targetIndex = targetIndex)
+        }
+
+        private fun moveTrackToIndex(entryId: Long, targetIndex: Int) {
+            val tracks = (screenState.value as? Content)?.value.orEmpty()
+            if (tracks.size < 2) return
+
+            val sourceIndex = tracks.indexOfFirst { it.entryId == entryId }
+            if (sourceIndex == -1 || sourceIndex == targetIndex) return
+
             val reorderedTracks = tracks.toMutableList().apply {
-                val moved = removeAt(sourceIndex)
-                add(targetIndex, moved)
+                add(targetIndex, removeAt(sourceIndex))
             }
 
             launch {
@@ -156,6 +196,9 @@ interface PlaylistDetailComponent {
             val trimmedName = name.trim()
             if (trimmedName.isEmpty()) return
             launch {
+                if (playlistRepository.isNameTaken(trimmedName, excludeId = playlistId)) {
+                    return@launch
+                }
                 playlistRepository.renamePlaylist(playlistId, trimmedName)
             }
         }

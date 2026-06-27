@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity() {
                         catalogViewProvider = CatalogViewProvider.Impl(graph.albumArtProvider),
                         playerViewProvider = PlayerViewProvider.Impl(),
                         currentQueueViewProvider = CurrentQueueViewProvider.Impl(graph.albumArtProvider),
-                        playlistsViewProvider = PlaylistsViewProvider.Impl(),
+                        playlistsViewProvider = PlaylistsViewProvider.Impl(graph.albumArtProvider),
                         playlistRepository = graph.playlistRepository,
                         addToPlaylistCoordinator = graph.addToPlaylistCoordinator,
                         eventAnalytics = graph.eventAnalytics,

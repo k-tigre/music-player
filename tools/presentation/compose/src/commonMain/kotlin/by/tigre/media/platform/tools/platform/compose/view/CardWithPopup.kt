@@ -55,6 +55,7 @@ fun CardWithPopup(
     surface: ListRowSurface = ListRowSurface.Plain,
     showDivider: Boolean = true,
     containerColor: Color? = null,
+    menuModifier: Modifier = Modifier,
 ) {
     var popupControl by remember { mutableStateOf(false) }
     var activePopupActions by remember { mutableStateOf<List<PopupAction>?>(null) }
@@ -96,6 +97,7 @@ fun CardWithPopup(
                     activePopupActions = activePopupActions,
                     onDismissPopup = { popupControl = false },
                     onMenuClick = onMenuClick,
+                    menuModifier = menuModifier,
                 )
             }
         }
@@ -121,6 +123,7 @@ fun CardWithPopup(
                     activePopupActions = activePopupActions,
                     onDismissPopup = { popupControl = false },
                     onMenuClick = onMenuClick,
+                    menuModifier = menuModifier,
                 )
                 if (showDivider) {
                     ListRowDivider(
@@ -142,6 +145,7 @@ private fun ListRowContent(
     activePopupActions: List<PopupAction>?,
     onDismissPopup: () -> Unit,
     onMenuClick: () -> Unit,
+    menuModifier: Modifier = Modifier,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -177,7 +181,8 @@ private fun ListRowContent(
                 IconButton(
                     modifier = Modifier
                         .defaultMinSize(minWidth = MenuButtonSize, minHeight = MenuButtonSize)
-                        .size(MenuButtonSize),
+                        .size(MenuButtonSize)
+                        .then(menuModifier),
                     onClick = onMenuClick,
                 ) {
                     Icon(

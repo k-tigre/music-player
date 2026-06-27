@@ -25,6 +25,8 @@ interface RootPlaylistsComponent {
 
     val childStack: Value<ChildStack<*, PlaylistsChild>>
 
+    fun openDetail(id: Playlist.Id)
+
     sealed interface PlaylistsChild {
         class PlaylistsList(val component: PlaylistsListComponent) : PlaylistsChild
         class PlaylistDetail(val component: PlaylistDetailComponent) : PlaylistsChild
@@ -59,6 +61,22 @@ interface RootPlaylistsComponent {
                 }
             }
 
+            override fun openCatalog() {
+                launch {
+                    withContext(Dispatchers.Main.immediate) {
+                        externalNavigator.openCatalog()
+                    }
+                }
+            }
+
+            override fun openQueue() {
+                launch {
+                    withContext(Dispatchers.Main.immediate) {
+                        externalNavigator.openQueue()
+                    }
+                }
+            }
+
             override fun openArtist(id: Artist.Id) {
                 launch {
                     withContext(Dispatchers.Main.immediate) {
@@ -87,6 +105,10 @@ interface RootPlaylistsComponent {
         )
 
         override val childStack: Value<ChildStack<*, PlaylistsChild>> = stack
+
+        override fun openDetail(id: Playlist.Id) {
+            navigator.openDetail(id)
+        }
 
         init {
             launch {

@@ -52,6 +52,8 @@ interface Root {
 
     fun selectPage(index: Int)
 
+    fun openPlaylistDetail(id: Playlist.Id)
+
     fun dismissDefaultPlayerPrompt()
 
     fun confirmDefaultPlayerPrompt()
@@ -154,6 +156,10 @@ interface Root {
 
             override fun showPreviousScreen() = Unit
 
+            override fun openCatalog() = selectPage(1)
+
+            override fun openQueue() = selectPage(0)
+
             override fun openArtist(id: Artist.Id) {
                 selectPage(1)
                 catalogComponent.navigateToArtist(id)
@@ -245,6 +251,11 @@ interface Root {
                     pagesNavigation.bringToFront(PagesConfig.Playlists)
                 }
             }
+        }
+
+        override fun openPlaylistDetail(id: Playlist.Id) {
+            selectPage(2)
+            playlistsComponent.openDetail(id)
         }
 
         override fun dismissDefaultPlayerPrompt() {

@@ -29,4 +29,6 @@
     <string name="default_player_message_manual">Откройте любой аудиофайл в «Загрузках» или Telegram. В окне «Открыть с помощью» выберите Music Player и нажмите «Всегда».</string>
     <string name="default_player_action_role">Выбрать плеер</string>
     <string name="default_player_action_manual">Открыть «Загрузки»</string>
+    <string name="add_to_playlist_added_snackbar">Добавлено в плейлист</string>
+    <string name="playlist_name_taken">Плейлист с таким названием уже есть</string>
 </resources>

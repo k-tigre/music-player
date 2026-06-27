@@ -51,6 +51,14 @@ class PlaylistRepositoryImpl(
         playlistStorage.deletePlaylist(id = id)
     }
 
+    override suspend fun isNameTaken(name: String, excludeId: Playlist.Id?): Boolean {
+        val normalized = name.trim()
+        if (normalized.isEmpty()) return false
+        return allPlaylists.first().any { playlist ->
+            playlist.id != excludeId && playlist.name.equals(normalized, ignoreCase = true)
+        }
+    }
+
     override suspend fun addSongs(playlistId: Playlist.Id, songIds: List<Song.Id>) {
         playlistStorage.addSongs(playlistId = playlistId, songIds = songIds)
     }

@@ -126,6 +126,15 @@ internal class PlaybackControllerImpl(
                             storage.addSongs(listOf(action.songId))
                         }
 
+                        is Action.AddSongsToQueue -> {
+                            storage.addSongs(action.songIds)
+                        }
+
+                        is Action.PlaySongs -> {
+                            clearOverlayState()
+                            storage.playSongs(action.songIds)
+                        }
+
                         is Action.AddArtistToQueue -> {
                             storage.addSongs(catalog.getSongsByArtist(action.artistId).map(Song::id))
                         }
@@ -298,6 +307,14 @@ internal class PlaybackControllerImpl(
         resume()
     }
 
+    override fun playSongs(ids: List<Song.Id>) {
+        Log.d("PlaybackController") { "playSongs" }
+        if (ids.isEmpty()) return
+        clearOverlayState()
+        action.tryEmit(Action.PlaySongs(ids))
+        resume()
+    }
+
     override fun playSongInQueue(id: Long) {
         Log.d("PlaybackController") { "playSongInQueue" }
         if (activeSource.value is ActivePlaybackSource.Overlay) {
@@ -327,6 +344,12 @@ internal class PlaybackControllerImpl(
     override fun addSongToPlay(id: Song.Id) {
         Log.d("PlaybackController") { "addSongToPlay" }
         action.tryEmit(Action.AddSongToQueue(id))
+    }
+
+    override fun addSongsToPlay(ids: List<Song.Id>) {
+        Log.d("PlaybackController") { "addSongsToPlay" }
+        if (ids.isEmpty()) return
+        action.tryEmit(Action.AddSongsToQueue(ids))
     }
 
     override fun playArtist(id: Artist.Id) {
@@ -479,6 +502,8 @@ internal class PlaybackControllerImpl(
         data class PlayAlbum(val albumId: Album.Id, val artistId: Artist.Id) : Action
         data class AddAlbumToQueue(val albumId: Album.Id, val artistId: Artist.Id) : Action
         data class AddSongToQueue(val songId: Song.Id) : Action
+        data class AddSongsToQueue(val songIds: List<Song.Id>) : Action
+        data class PlaySongs(val songIds: List<Song.Id>) : Action
         data class PlayArtist(val artistId: Artist.Id) : Action
         data class AddArtistToQueue(val artistId: Artist.Id) : Action
         data object ToggleShuffle : Action

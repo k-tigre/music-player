@@ -7,13 +7,28 @@
     <string name="playlist_delete_confirm">Delete playlist</string>
     <string name="playlist_track_unavailable">Track unavailable</string>
     <string name="playlist_play_all">Play all</string>
+    <string name="playlist_play">Play</string>
     <string name="playlist_add_all_to_queue">Add all to queue</string>
     <string name="playlist_remove_track">Remove track</string>
     <string name="playlist_no_playable_tracks">No playable tracks</string>
     <string name="playlist_open_artist">Open artist</string>
     <string name="playlist_open_album">Open album</string>
+    <string name="playlist_detail_empty_title">This playlist is empty</string>
+    <string name="playlist_detail_empty_message">Add tracks from your library using the button below or the context menu in the catalog.</string>
+    <string name="playlist_detail_add_tracks">Add tracks</string>
+    <string name="playlist_move_up">Move up</string>
+    <string name="playlist_move_down">Move down</string>
+    <string name="playlist_move_to_top">Move to top</string>
+    <string name="playlist_move_to_bottom">Move to bottom</string>
+    <string name="playlist_menu_more">More actions</string>
+    <string name="playlist_name_taken">A playlist with this name already exists</string>
+    <string name="playlist_track_meta">%1$s / %2$s</string>
     <string name="action_add_to_playlist">Add to playlist</string>
     <string name="add_to_playlist_preview">Add %1$d tracks</string>
     <string name="add_to_playlist_create_new">Create new playlist</string>
     <string name="add_to_playlist_added_snackbar">Added to playlist</string>
+    <plurals name="playlist_track_count">
+        <item quantity="one">%1$d track</item>
+        <item quantity="other">%1$d tracks</item>
+    </plurals>
 </resources>
