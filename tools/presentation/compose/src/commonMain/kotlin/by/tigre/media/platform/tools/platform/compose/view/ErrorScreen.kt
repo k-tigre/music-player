@@ -29,7 +29,9 @@ fun ErrorScreen(
 ) {
     val resolvedTitle = title ?: stringResource(Res.string.screen_state_error_title)
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .centeredScreenContentBottomPadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {

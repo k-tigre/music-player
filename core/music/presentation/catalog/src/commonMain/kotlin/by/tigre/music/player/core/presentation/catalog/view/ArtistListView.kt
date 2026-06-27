@@ -123,6 +123,15 @@ class ArtistListView(
 
     @Composable
     private fun DrawContent(data: ArtistListScreenData) {
+        if (data.searchResult == null && data.artists.isEmpty()) {
+            EmptyScreen(
+                modifier = Modifier.padding(32.dp),
+                reloadAction = component::retry,
+                message = stringResource(Res.string.catalog_empty_artists_message),
+            )
+            return
+        }
+
         LazyColumn(
             contentPadding = bottomBarListContentPadding(horizontal = 0.dp),
             verticalArrangement = Arrangement.spacedBy(1.dp)
@@ -162,14 +171,6 @@ class ArtistListView(
                             item { SearchSongCard(song) }
                         }
                     }
-                }
-            } else if (data.artists.isEmpty()) {
-                item {
-                    EmptyScreen(
-                        modifier = Modifier.padding(32.dp),
-                        reloadAction = component::retry,
-                        message = stringResource(Res.string.catalog_empty_artists_message)
-                    )
                 }
             } else {
                 data.artists.forEach { artist ->

@@ -71,6 +71,7 @@ import by.tigre.media.platform.tools.platform.compose.view.ErrorScreen
 import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicator
 import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicatorSize
 import by.tigre.media.platform.tools.platform.compose.view.bottomBarListContentPadding
+import by.tigre.media.platform.tools.platform.compose.view.centeredScreenContentBottomPadding
 import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.stringResource
 
@@ -141,6 +142,7 @@ class BookListView(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .centeredScreenContentBottomPadding()
                     .padding(48.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally

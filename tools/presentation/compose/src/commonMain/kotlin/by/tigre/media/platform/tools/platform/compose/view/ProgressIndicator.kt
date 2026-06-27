@@ -38,7 +38,11 @@ fun ProgressIndicator(
     backgroundColor: Color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f),
     progress: Color = MaterialTheme.colorScheme.primary,
 ) {
-    Box(modifier, contentAlignment = Alignment.Center) {
+    Box(
+        modifier = modifier
+            .centeredScreenContentBottomPadding(),
+        contentAlignment = Alignment.Center,
+    ) {
         CircularProgressIndicator(
             modifier = Modifier.size(size.size),
             strokeWidth = size.strokeWidth,

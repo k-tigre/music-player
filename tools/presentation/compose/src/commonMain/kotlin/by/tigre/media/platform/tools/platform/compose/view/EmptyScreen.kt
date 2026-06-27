@@ -33,7 +33,9 @@ fun EmptyScreen(
     val resolvedTitle = title ?: stringResource(Res.string.screen_state_empty_title)
     val resolvedActionTitle = actionTitle ?: stringResource(Res.string.reload_action)
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .centeredScreenContentBottomPadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
