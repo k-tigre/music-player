@@ -9,7 +9,7 @@
     <string name="audiobooks_empty_hint">Сначала добавьте папку с аудиокнигами.</string>
     <string name="book_chapters_count">Глав: %1$d</string>
     <string name="book_completed">Завершено</string>
-    <string name="book_progress_listened">Прослушано %1$d%%</string>
+    <string name="book_progress_listened">Прослушано %1$d%</string>
     <string name="continue_listening_title">Продолжить слушать</string>
     <string name="continue_listening_books_count">%1$d книг</string>
     <string name="cd_dismiss_continue_listening">Убрать из «Продолжить слушать»</string>
