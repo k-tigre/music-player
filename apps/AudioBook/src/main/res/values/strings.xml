@@ -24,11 +24,11 @@
     <string name="night_timer_minutes_option">%d min</string>
     <string name="night_timer_fade_label">Fade out volume</string>
     <string name="night_timer_fade_description">In the last stretch before stop, volume eases down on a quick-then-gentle curve. After stopping, rewind 30 seconds if playback was running so you don’t miss the ending.</string>
-    <string name="night_timer_flip_extend_label">Extend by flipping the phone</string>
-    <string name="night_timer_flip_extend_description">In the last minute before stop, flip the phone over and back to how it was lying — adds 5 minutes and restores volume. First, keep the phone lying still on a surface.</string>
-    <string name="night_timer_flip_step_rest">As it lies</string>
-    <string name="night_timer_flip_step_flipped">Flipped</string>
-    <string name="night_timer_flip_step_done">+5 min</string>
+    <string name="night_timer_flip_extend_label">Extend by shaking</string>
+    <string name="night_timer_flip_extend_description">In the last minute before stop, shake the phone twice while it lies on the surface — adds 5 minutes and restores volume. Flipping it over and back works too.</string>
+    <string name="night_timer_flip_step_rest">Lying still</string>
+    <string name="night_timer_flip_step_flipped">1st shake</string>
+    <string name="night_timer_flip_step_done">2nd shake · +5 min</string>
     <string name="night_timer_flip_screen_label">Screen</string>
     <string name="night_timer_start">Start timer</string>
     <string name="night_timer_stop">Stop timer</string>

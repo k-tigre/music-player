@@ -148,7 +148,8 @@ enum class Toolkit(
 
 enum class FirebaseLibrary(group: String, artifact: String) {
     FirebaseCrashLytics("com.google.firebase", "firebase-crashlytics"),
-    FirebaseAnalytics("com.google.firebase", "firebase-analytics")
+    FirebaseAnalytics("com.google.firebase", "firebase-analytics"),
+    FirebaseConfig("com.google.firebase", "firebase-config"),
     ;
 
     val notation = "$group:$artifact"

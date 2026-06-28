@@ -125,7 +125,7 @@ dependencies {
     implementation(Project.Core.Base.Data.Playback)
     implementation(Project.Core.Platform.Permission)
     implementation(Project.Core.Data.Storage.Preferences)
-    implementation(FirebaseLibrary.FirebaseAnalytics, FirebaseLibrary.FirebaseCrashLytics)
+    implementation(FirebaseLibrary.FirebaseAnalytics, FirebaseLibrary.FirebaseCrashLytics, FirebaseLibrary.FirebaseConfig)
 
     implementation(TigreLogger.Artifact.Core)
     implementation(TigreLogger.Artifact.Crashlytics)

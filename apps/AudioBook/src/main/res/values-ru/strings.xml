@@ -24,11 +24,11 @@
     <string name="night_timer_minutes_option">%d мин</string>
     <string name="night_timer_fade_label">Приглушать громкость</string>
     <string name="night_timer_fade_description">Перед остановкой громкость плавно снижается по кривой: сначала быстрее, к концу мягче. После остановки — отмотка на 30 секунд, если книга ещё играла, чтобы не пропустить конец.</string>
-    <string name="night_timer_flip_extend_label">Продлить переворотом</string>
-    <string name="night_timer_flip_extend_description">В течение минуты до остановки переверните телефон на другую сторону и верните как лежал — таймер продлится на 5 минут, громкость восстановится. Сначала телефон должен лежать неподвижно на поверхности.</string>
-    <string name="night_timer_flip_step_rest">Как лежит</string>
-    <string name="night_timer_flip_step_flipped">Перевернут</string>
-    <string name="night_timer_flip_step_done">+5 мин</string>
+    <string name="night_timer_flip_extend_label">Продлить встряхиванием</string>
+    <string name="night_timer_flip_extend_description">В течение минуты до остановки дважды встряхните телефон, пока он лежит на поверхности — таймер продлится на 5 минут, громкость восстановится. Можно и перевернуть туда-обратно.</string>
+    <string name="night_timer_flip_step_rest">Лежит неподвижно</string>
+    <string name="night_timer_flip_step_flipped">1-е встряхивание</string>
+    <string name="night_timer_flip_step_done">2-е · +5 мин</string>
     <string name="night_timer_flip_screen_label">Экран</string>
     <string name="night_timer_start">Запустить таймер</string>
     <string name="night_timer_stop">Остановить таймер</string>

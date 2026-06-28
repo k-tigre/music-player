@@ -1,0 +1,11 @@
+{
+  "parameters": {
+    "audiobook_night_timer_shake_config": {
+      "defaultValue": {
+        "value": "{\"gForceThreshold\":1.45,\"debounceMs\":150,\"pairMaxGapMs\":10000}"
+      },
+      "description": "Night timer shake detection settings (JSON).",
+      "valueType": "JSON"
+    }
+  }
+}

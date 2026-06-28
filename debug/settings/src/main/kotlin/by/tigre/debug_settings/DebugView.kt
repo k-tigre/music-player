@@ -49,9 +49,13 @@ internal class DebugView(private val component: DebugComponent) : ComposableView
             HorizontalPager(
                 state = pagerState,
             ) { page ->
-                when (val component = component.pages[page]) {
+                when (val pageComponent = component.pages[page]) {
                     is DebugLogsComponent -> {
-                        DebugLogsView(component).Draw(Modifier)
+                        DebugLogsView(pageComponent).Draw(Modifier)
+                    }
+
+                    is ComposableDebugPage -> {
+                        pageComponent.view.Draw(Modifier)
                     }
                 }
             }

@@ -4,7 +4,7 @@ import android.content.Context
 import android.os.Looper
 import android.os.SystemClock
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
-import by.tigre.audiobook.nighttimer.NightTimerControllerImpl.Companion.FACE_DOWN_GATE_SECONDS
+import by.tigre.audiobook.nighttimer.NightTimerControllerImpl.Companion.SHAKE_GATE_SECONDS
 import by.tigre.media.platform.playback.AppPlaybackVolume
 import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.media.platform.preferences.Preferences
@@ -28,7 +28,7 @@ data class NightTimerUiState(
     val remainingSeconds: Int,
 )
 
-interface NightTimerController {
+interface NightTimerController : NightTimerShakeDebug {
 
     val uiState: StateFlow<NightTimerUiState>
 
@@ -48,13 +48,17 @@ fun createNightTimerController(
     playbackController: AudiobookPlaybackController,
     appPlaybackVolume: AppPlaybackVolume,
     scope: CoreScope,
-): NightTimerController = NightTimerControllerImpl(
-    context,
-    preferences,
-    playbackController,
-    appPlaybackVolume,
-    scope,
-)
+): NightTimerController {
+    val shakeConfigRepository = NightTimerShakeConfigRepository(preferences, scope)
+    return NightTimerControllerImpl(
+        context,
+        preferences,
+        playbackController,
+        appPlaybackVolume,
+        scope,
+        shakeConfigRepository,
+    )
+}
 
 private class NightTimerControllerImpl(
     context: Context,
@@ -62,9 +66,19 @@ private class NightTimerControllerImpl(
     private val playbackController: AudiobookPlaybackController,
     private val appPlaybackVolume: AppPlaybackVolume,
     private val scope: CoreScope,
+    private val shakeConfigRepository: NightTimerShakeConfigRepository,
 ) : NightTimerController {
 
-    private val faceDownExtender = FaceDownFlipExtender(context, ::extendByFlip)
+    private val shakeExtender = NightTimerShakeExtender(
+        context = context,
+        configProvider = { shakeConfigRepository.config.value },
+        onExtend = ::extendByShake,
+    )
+
+    override val shakeConfig = shakeConfigRepository.config
+    override val shakeConfigSource = shakeConfigRepository.source
+    override val shakeConfigFetching = shakeConfigRepository.fetching
+    override val shakeDebugState = shakeExtender.debugState
 
     private val _uiState = MutableStateFlow(NightTimerUiState(isRunning = false, remainingSeconds = 0))
     override val uiState: StateFlow<NightTimerUiState> = _uiState.asStateFlow()
@@ -82,8 +96,8 @@ private class NightTimerControllerImpl(
     private var fadeBaseVolume: Float = 1f
     private var fadeBaseCaptured: Boolean = false
 
-    /** Becomes true once remaining drops below [FACE_DOWN_GATE_SECONDS]; used to reset the flip detector once. */
-    private var faceDownGateEntered: Boolean = false
+    /** Becomes true once remaining drops below [SHAKE_GATE_SECONDS]; used to reset the shake detector once. */
+    private var shakeGateEntered: Boolean = false
 
     override fun setSelectedMinutes(minutes: Int) {
         if (minutes !in ALLOWED_MINUTES_SET) return
@@ -102,14 +116,14 @@ private class NightTimerControllerImpl(
         val fade = _fadeOutAtEnd.value
         volumeBeforeTimer = appPlaybackVolume.playbackVolume.value
         fadeBaseCaptured = false
-        faceDownGateEntered = false
+        shakeGateEntered = false
         endAtElapsedRealtime.set(SystemClock.elapsedRealtime() + minutes * 60_000L)
-        faceDownExtender.start()
+        shakeExtender.start()
         timerJob = scope.launch {
             try {
                 runTimerLoop(fade)
             } finally {
-                faceDownExtender.stop()
+                shakeExtender.stop()
             }
         }
         publishRemaining()
@@ -119,10 +133,30 @@ private class NightTimerControllerImpl(
         cancelTimerInternal(restoreVolume = true)
     }
 
+    override fun updateShakeConfig(config: NightTimerShakeConfig) {
+        shakeConfigRepository.update(config)
+    }
+
+    override fun resetShakeConfigToDefaults() {
+        shakeConfigRepository.resetToDefaults()
+    }
+
+    override fun refreshShakeConfig() {
+        shakeConfigRepository.refresh()
+    }
+
+    override fun setShakeTestMode(enabled: Boolean) {
+        shakeExtender.setTestMode(enabled)
+    }
+
+    override fun resetShakeDetection() {
+        shakeExtender.resetDetectionState()
+    }
+
     private fun cancelTimerInternal(restoreVolume: Boolean) {
         timerJob?.cancel()
         timerJob = null
-        faceDownExtender.stop()
+        shakeExtender.stop()
         if (restoreVolume) {
             appPlaybackVolume.setPlaybackVolume(volumeBeforeTimer)
         }
@@ -134,15 +168,15 @@ private class NightTimerControllerImpl(
             val remaining = computeRemainingSeconds()
             _uiState.value = NightTimerUiState(isRunning = true, remainingSeconds = remaining)
 
-            if (remaining < FACE_DOWN_GATE_SECONDS) {
-                if (!faceDownGateEntered) {
-                    faceDownGateEntered = true
-                    faceDownExtender.enable()
-                    faceDownExtender.resetDetectionState()
+            if (remaining < SHAKE_GATE_SECONDS) {
+                if (!shakeGateEntered) {
+                    shakeGateEntered = true
+                    shakeExtender.enable()
+                    shakeExtender.resetDetectionState()
                 }
-            } else if (faceDownGateEntered) {
-                faceDownGateEntered = false
-                faceDownExtender.disable()
+            } else if (shakeGateEntered) {
+                shakeGateEntered = false
+                shakeExtender.disable()
             }
 
             if (remaining <= 0) {
@@ -177,12 +211,12 @@ private class NightTimerControllerImpl(
         _uiState.value = NightTimerUiState(isRunning = true, remainingSeconds = remaining)
     }
 
-    private fun extendByFlip() {
+    private fun extendByShake() {
         if (timerJob?.isActive != true) return
-        if (computeRemainingSeconds() >= FACE_DOWN_GATE_SECONDS) return
-        endAtElapsedRealtime.addAndGet(FACE_DOWN_EXTRA_MS)
-        Log.d(TAG) { "Flip extend: +5 min" }
-        faceDownExtender.resetDetectionState()
+        if (computeRemainingSeconds() >= SHAKE_GATE_SECONDS) return
+        endAtElapsedRealtime.addAndGet(SHAKE_EXTRA_MS)
+        Log.d(TAG) { "Shake extend: +5 min" }
+        shakeExtender.resetDetectionState()
         val remaining = computeRemainingSeconds()
         if (remaining > FADE_WINDOW_SECONDS && fadeBaseCaptured) {
             setPlaybackVolumeOnMainSync(volumeBeforeTimer)
@@ -218,7 +252,7 @@ private class NightTimerControllerImpl(
     }
 
     private suspend fun onTimerFinished(fadeEnabled: Boolean) {
-        faceDownExtender.stop()
+        shakeExtender.stop()
         timerJob = null
         withContext(Dispatchers.Main.immediate) {
             val wasPlaying = playbackController.player.state.value == PlaybackPlayer.State.Playing
@@ -252,10 +286,10 @@ private class NightTimerControllerImpl(
 
         /** Greater than 1: volume falls faster early in the window, then eases. */
         const val FADE_CURVE_GAMMA = 2.15
-        const val FACE_DOWN_EXTRA_MS = 5 * 60_000L
+        const val SHAKE_EXTRA_MS = 5 * 60_000L
 
-        /** Face-down adds time only while remaining is strictly below this many seconds (less than one minute). */
-        const val FACE_DOWN_GATE_SECONDS = 60
+        /** Shake extend is available only while remaining is strictly below this many seconds (less than one minute). */
+        const val SHAKE_GATE_SECONDS = 60
         const val NIGHT_TIMER_REWIND_MS = 30_000L   
     }
 }

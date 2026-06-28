@@ -12,7 +12,8 @@ internal interface DebugComponent {
 
     class Impl(
         componentContext: BaseComponentContext,
-        logsProvider: LogsProvider
+        logsProvider: LogsProvider,
+        extraPages: List<DebugPageComponent> = emptyList(),
     ) : DebugComponent, BaseComponentContext by componentContext {
 
         private val logsComponent: DebugLogsComponent =
@@ -24,6 +25,6 @@ internal interface DebugComponent {
         override val currentPage = MutableStateFlow(0)
 
         override val pages: List<DebugPageComponent> =
-            listOf(logsComponent, logsAnalyticsComponent)
+            listOf(logsComponent, logsAnalyticsComponent) + extraPages
     }
 }

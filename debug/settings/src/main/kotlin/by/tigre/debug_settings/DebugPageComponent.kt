@@ -1,5 +1,11 @@
 package by.tigre.debug_settings
 
-internal interface DebugPageComponent {
+import by.tigre.media.platform.tools.platform.compose.ComposableView
+
+interface DebugPageComponent {
     val title: String
+}
+
+interface ComposableDebugPage : DebugPageComponent {
+    val view: ComposableView
 }
