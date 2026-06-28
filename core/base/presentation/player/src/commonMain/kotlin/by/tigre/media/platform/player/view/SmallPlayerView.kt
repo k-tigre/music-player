@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -70,10 +71,9 @@ class SmallPlayerView(
                     .fillMaxWidth()
                     .offset(y = 0.dp)
             ) {
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 0.dp)
                         .background(
                             color = MaterialTheme.colorScheme.surfaceContainerHighest,
                             shape = MaterialTheme.shapes.extraLarge.copy(
@@ -81,10 +81,18 @@ class SmallPlayerView(
                                 bottomEnd = CornerSize(0)
                             )
                         )
+                        .then(
+                            if (config.extendUnderNavigationBar) {
+                                Modifier.navigationBarsPadding()
+                            } else {
+                                Modifier
+                            }
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Column(
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         DrawItem(
                             modifier = Modifier
@@ -156,7 +164,7 @@ class SmallPlayerView(
         }
 
         Row(
-            modifier = Modifier.padding(bottom = 4.dp),
+            modifier = Modifier.padding(bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val state = component.state.collectAsState()
@@ -227,7 +235,7 @@ class SmallPlayerView(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 4.dp),
+                .padding(bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -359,6 +367,7 @@ class SmallPlayerView(
     data class Config(
         val showOrderModeButton: Boolean = true,
         val actionsMode: PlayerView.ActionsMode = PlayerView.ActionsMode.ChapterButtons,
+        val extendUnderNavigationBar: Boolean = false,
         val seekBack1MinuteLabel: String = "-1m",
         val seekBack15SecondsLabel: String = "-15s",
         val seekForward15SecondsLabel: String = "+15s",

@@ -287,11 +287,13 @@ class RootView(
                     .onSizeChanged { size ->
                         bottomBarHeight = with(density) { size.height.toDp() }
                     },
+                applyNavigationBarsPadding = false,
             ) {
                 playerViewProvider.createSmallPlayerView(
                     component = component.playerComponent,
                     config = SmallPlayerView.Config(
                         showOrderModeButton = false,
+                        extendUnderNavigationBar = true,
                         actionsMode = PlayerView.ActionsMode.SeekButtons,
                         seekBack1MinuteLabel = stringResource(R.string.player_seek_back_1_minute),
                         seekBack15SecondsLabel = stringResource(R.string.player_seek_back_15_seconds),

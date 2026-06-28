@@ -2,10 +2,13 @@ package by.tigre.music.player.presentation.root.view
 
 import android.Manifest
 import android.os.Build
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -215,14 +218,21 @@ class RootView(
                     .onSizeChanged { size ->
                         bottomBarHeight = with(density) { size.height.toDp() }
                     },
+                applyNavigationBarsPadding = false,
             ) {
                 playerViewProvider.createSmallPlayerView(component.playerComponent).Draw(Modifier)
 
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    tonalElevation = 0.dp,
-                    windowInsets = BottomBarNavigationBarInsets,
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                        .navigationBarsPadding(),
                 ) {
+                    NavigationBar(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0f),
+                        tonalElevation = 0.dp,
+                        windowInsets = BottomBarNavigationBarInsets,
+                    ) {
                     val pages = component.pages.subscribeAsState()
 
                     NavigationBarItem(
@@ -296,6 +306,7 @@ class RootView(
                             )
                         },
                     )
+                }
                 }
             }
         }
