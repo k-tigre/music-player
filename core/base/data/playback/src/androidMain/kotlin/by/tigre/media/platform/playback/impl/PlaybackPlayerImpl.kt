@@ -8,10 +8,10 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import by.tigre.logger.Log
 import by.tigre.media.platform.playback.AndroidPlaybackPlayer
 import by.tigre.media.platform.playback.MediaItemWrapper
 import by.tigre.media.platform.playback.PlaybackPlayer
-import by.tigre.logger.Log
 import by.tigre.media.platform.tools.coroutines.CoreScope
 import by.tigre.media.platform.tools.coroutines.extensions.tickerFlow
 import kotlinx.coroutines.Dispatchers
@@ -37,8 +37,8 @@ internal class PlaybackPlayerImpl(
     override val progress: Flow<PlaybackPlayer.Progress> by lazy {
         state.map {
             it == PlaybackPlayer.State.Paused ||
-                it == PlaybackPlayer.State.Playing ||
-                it == PlaybackPlayer.State.Ended
+                    it == PlaybackPlayer.State.Playing ||
+                    it == PlaybackPlayer.State.Ended
         }.distinctUntilChanged()
             .flatMapLatest { withProgress ->
                 if (withProgress) {
@@ -65,7 +65,7 @@ internal class PlaybackPlayerImpl(
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            Log.i("PlaybackPlayer") { "TEST: onPlayerError - $error" }
+            Log.i("PlaybackPlayer") { "onPlayerError - $error" }
             if (player.hasNextMediaItem().not()) {
                 state.tryEmit(PlaybackPlayer.State.Ended)
             } else {
@@ -77,7 +77,6 @@ internal class PlaybackPlayerImpl(
         }
 
         private fun handleState(@Player.State playbackState: Int, isPlaying: Boolean) {
-            Log.d("PlaybackPlayer") { "TEST: handleState - $playbackState - $isPlaying" }
             state.tryEmit(
                 when (playbackState) {
                     Player.STATE_READY -> if (isPlaying) PlaybackPlayer.State.Playing else PlaybackPlayer.State.Paused

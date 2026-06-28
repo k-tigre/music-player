@@ -1,7 +1,6 @@
 package by.tigre.music.player.core.data.playback.impl
 
 import by.tigre.logger.Log
-import by.tigre.logger.extensions.debugLog
 import by.tigre.media.platform.playback.MediaItemWrapper
 import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.media.platform.tools.coroutines.CoreScope
@@ -15,8 +14,8 @@ import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.entiry.playback.PlayableItem
 import by.tigre.music.player.core.entiry.playback.PlaybackInterruption
-import by.tigre.music.player.core.entiry.playback.ResumePoint
 import by.tigre.music.player.core.entiry.playback.QueueSession
+import by.tigre.music.player.core.entiry.playback.ResumePoint
 import by.tigre.music.player.core.entiry.playback.SongInQueueItem
 import by.tigre.music.player.core.entiry.playlist.Playlist
 import kotlinx.coroutines.FlowPreview
@@ -73,7 +72,6 @@ internal class PlaybackControllerImpl(
                 }
 
         }
-        .debugLog("PlaybackController", "currentItem")
         .stateIn(scope, SharingStarted.WhileSubscribed(), initialValue = null)
 
     override val currentItem: StateFlow<Song?> = currentQueueItem
@@ -109,7 +107,6 @@ internal class PlaybackControllerImpl(
     init {
         scope.launch {
             action
-                .debugLog("PlaybackController", "action")
                 .collect { action ->
                     when (action) {
                         is Action.PlaySong -> {
@@ -178,7 +175,6 @@ internal class PlaybackControllerImpl(
 
         scope.launch {
             player.state
-                .debugLog("PlaybackController", " player.state")
                 .filter { it == PlaybackPlayer.State.Ended }
                 .collect {
                     when (activeSource.value) {
@@ -193,11 +189,10 @@ internal class PlaybackControllerImpl(
                 .debounce(10000)
                 .filter {
                     it != PlaybackPlayer.State.Playing &&
-                        it != PlaybackPlayer.State.Paused
+                            it != PlaybackPlayer.State.Paused
                 }
                 .withLatestFrom(shouldPlay) { _, requested -> requested }
                 .filter { it }
-                .debugLog("PlaybackController", "AAAA!!!! Wrong player state")
                 .collect { shouldPlay.emit(false) }
         }
 
@@ -235,7 +230,6 @@ internal class PlaybackControllerImpl(
         scope.launch {
             shouldPlay
                 .withLatestFrom(activeSource)
-                .debugLog("PlaybackController", "applyPlayback")
                 .collect { applyPlayback() }
         }
     }
@@ -478,9 +472,11 @@ internal class PlaybackControllerImpl(
                         player.setMediaItem(externalToMediaItem(source.item), 0)
                         player.resume()
                     }
+
                     else -> player.resume()
                 }
             }
+
             is ActivePlaybackSource.Session -> {
                 val song = currentItem.value ?: run {
                     player.pause()
@@ -493,10 +489,12 @@ internal class PlaybackControllerImpl(
                         player.setMediaItem(songToMediaItem(song), seek)
                         player.resume()
                     }
+
                     PlaybackPlayer.State.Ended -> {
                         player.seekTo(0)
                         player.resume()
                     }
+
                     else -> player.resume()
                 }
             }
@@ -506,7 +504,7 @@ internal class PlaybackControllerImpl(
     private suspend fun isQueueExhausted(): Boolean {
         val queue = storage.currentQueue.first()
         return queue.isNotEmpty() &&
-            queue.none { it.state == PlaybackQueueStorage.QueueItem.State.Pending }
+                queue.none { it.state == PlaybackQueueStorage.QueueItem.State.Pending }
     }
 
     private suspend fun handleSessionEnded() {
