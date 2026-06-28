@@ -14,6 +14,8 @@ import by.tigre.media.platform.background.R
 import by.tigre.media.platform.background.car.CarMediaLibrary
 import by.tigre.audiobook.nighttimer.NightTimerController
 import by.tigre.audiobook.nighttimer.createNightTimerController
+import by.tigre.audiobook.platform.AudiobookGuideSettings
+import by.tigre.audiobook.platform.AudiobookGuideSettingsImpl
 import by.tigre.media.platform.playback.di.AndroidBasePlaybackModule
 import by.tigre.media.platform.playback.di.BasePlaybackModule
 import by.tigre.media.platform.preferences.di.AndroidPreferencesModule
@@ -35,6 +37,7 @@ class ApplicationGraph(
     audiobookPlaybackModule: AudiobookPlaybackModule,
     analyticsModule: BookAnalyticsModule,
     val nightTimerController: NightTimerController,
+    val audiobookGuideSettings: AudiobookGuideSettings,
 ) : PlayerDependency,
     PlayerBackgroundDependency,
     AudiobookCatalogDependency,
@@ -131,6 +134,7 @@ class ApplicationGraph(
                 audiobookPlaybackModule = audiobookPlaybackModule,
                 analyticsModule = analyticsModule,
                 nightTimerController = nightTimerController,
+                audiobookGuideSettings = AudiobookGuideSettingsImpl(preferences),
             )
         }
     }

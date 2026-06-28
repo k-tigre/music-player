@@ -2,6 +2,7 @@ package by.tigre.audiobook.presentation.root.view
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -20,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -60,6 +63,7 @@ class RootView(
     @Composable
     override fun Draw(modifier: Modifier) {
         DrawMain()
+        DrawGettingStartedGuide()
     }
 
     @Composable
@@ -208,6 +212,60 @@ class RootView(
                         onBack = component::onCloseNightTimerSettings,
                     )
             }
+        }
+    }
+
+    @Composable
+    private fun DrawGettingStartedGuide() {
+        val showGuide by component.showGettingStartedGuide.collectAsState()
+
+        if (showGuide) {
+            AlertDialog(
+                onDismissRequest = component::dismissGettingStartedGuide,
+                title = { Text(stringResource(R.string.getting_started_title)) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(stringResource(R.string.getting_started_intro))
+                        GettingStartedStep(
+                            number = 1,
+                            text = stringResource(R.string.getting_started_step_add_folder),
+                        )
+                        GettingStartedStep(
+                            number = 2,
+                            text = stringResource(R.string.getting_started_step_pick_book),
+                        )
+                        GettingStartedStep(
+                            number = 3,
+                            text = stringResource(R.string.getting_started_step_player_controls),
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = component::openFolderFromGettingStartedGuide) {
+                        Text(stringResource(R.string.getting_started_action_add_folder))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = component::dismissGettingStartedGuide) {
+                        Text(stringResource(R.string.button_got_it))
+                    }
+                },
+            )
+        }
+    }
+
+    @Composable
+    private fun GettingStartedStep(number: Int, text: String) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                text = "$number.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
     }
 

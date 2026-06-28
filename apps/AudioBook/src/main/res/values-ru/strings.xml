@@ -35,4 +35,11 @@
     <string name="night_timer_countdown">Сон · %1$d:%2$02d</string>
     <string name="night_timer_cancel_cd">Отменить ночной таймер</string>
     <string name="player_book_finished_message">Книга закончилась</string>
+
+    <string name="getting_started_title">С чего начать</string>
+    <string name="getting_started_intro">Аудиокниги хранятся в папках, которые вы выбираете на устройстве.</string>
+    <string name="getting_started_step_add_folder">Меню (⋮) → Настройки → +, чтобы добавить папку с аудиокнигами</string>
+    <string name="getting_started_step_pick_book">Меню → Библиотека — нажмите на книгу, чтобы начать слушать</string>
+    <string name="getting_started_step_player_controls">Нажмите название главы для переключения; ±15 сек / ±1 мин для перемотки; ночной таймер — в меню</string>
+    <string name="getting_started_action_add_folder">Добавить папку</string>
 </resources>

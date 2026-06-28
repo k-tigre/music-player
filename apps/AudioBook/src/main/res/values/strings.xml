@@ -35,4 +35,11 @@
     <string name="night_timer_countdown">Sleep · %1$d:%2$02d</string>
     <string name="night_timer_cancel_cd">Cancel sleep timer</string>
     <string name="player_book_finished_message">Book is finished</string>
+
+    <string name="getting_started_title">Getting started</string>
+    <string name="getting_started_intro">Audiobook files live in folders you choose on your device.</string>
+    <string name="getting_started_step_add_folder">Menu (⋮) → Settings → + to add a folder with audiobook files</string>
+    <string name="getting_started_step_pick_book">Menu → Library — tap a book to start listening</string>
+    <string name="getting_started_step_player_controls">Tap the chapter title to switch chapters; use ±15 sec / ±1 min to seek; sleep timer is in the menu</string>
+    <string name="getting_started_action_add_folder">Add folder</string>
 </resources>

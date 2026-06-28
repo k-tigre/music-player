@@ -35,6 +35,7 @@ class MainActivity : AppCompatActivity() {
             audiobookCatalogComponentProvider = AudiobookCatalogComponentProvider.Impl(graph),
             screenAnalytics = graph.screenAnalytics,
             eventAnalytics = graph.eventAnalytics,
+            audiobookGuideSettings = graph.audiobookGuideSettings,
         )
 
         setContent {

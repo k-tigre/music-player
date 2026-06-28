@@ -3,6 +3,7 @@ package by.tigre.audiobook.presentation.root.component
 import by.tigre.audiobook.core.presentation.audiobook_catalog.component.RootAudiobookCatalogComponent
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogComponentProvider
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.OnBookSelectedListener
+import by.tigre.audiobook.platform.AudiobookGuideSettings
 import by.tigre.media.platform.player.component.EqualizerComponent
 import by.tigre.media.platform.player.component.PlayerComponent
 import by.tigre.media.platform.player.component.SmallPlayerComponent
@@ -25,6 +26,9 @@ import com.arkivanov.decompose.router.stack.pushToFront
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
@@ -35,6 +39,8 @@ interface Root {
 
     val onStartServiceEvent: Flow<Unit>
 
+    val showGettingStartedGuide: StateFlow<Boolean>
+
     val mainComponent: Value<ChildStack<*, MainComponentChild>>
 
     fun onShowCatalog()
@@ -44,6 +50,10 @@ interface Root {
     fun onOpenNightTimerSettings()
 
     fun onCloseNightTimerSettings()
+
+    fun dismissGettingStartedGuide()
+
+    fun openFolderFromGettingStartedGuide()
 
     sealed interface MainComponentChild {
         data object Main : MainComponentChild
@@ -59,7 +69,13 @@ interface Root {
         audiobookCatalogComponentProvider: AudiobookCatalogComponentProvider,
         screenAnalytics: BookScreenAnalytics,
         private val eventAnalytics: BookEventAnalytics,
+        private val audiobookGuideSettings: AudiobookGuideSettings,
     ) : Root, BaseComponentContext by context {
+
+        private val showGettingStartedGuideState =
+            MutableStateFlow(audiobookGuideSettings.shouldShowGuide())
+        override val showGettingStartedGuide: StateFlow<Boolean> =
+            showGettingStartedGuideState.asStateFlow()
 
         private val mainNavigation = StackNavigation<MainConfig>()
 
@@ -153,6 +169,16 @@ interface Root {
 
         override fun onCloseNightTimerSettings() {
             mainNavigation.pop()
+        }
+
+        override fun dismissGettingStartedGuide() {
+            audiobookGuideSettings.markGuideShown()
+            showGettingStartedGuideState.value = false
+        }
+
+        override fun openFolderFromGettingStartedGuide() {
+            dismissGettingStartedGuide()
+            onOpenFolderSettings()
         }
 
         init {
