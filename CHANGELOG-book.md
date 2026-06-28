@@ -9,6 +9,19 @@
 
 ### EN
 
+## [0.6.1] - 2026-06-28
+### RU
+- Ночной таймер: продление встряхиванием (переворот тоже работает)
+- Экран «С чего начать» при первом запуске
+- Мини-плеер с кнопками перемотки ±15 сек и ±1 мин
+- Мини-плеер и нижняя панель корректно учитывают системную навигационную панель
+
+### EN
+- Sleep timer: extend by shaking (flipping still works too)
+- Getting started screen on first launch
+- Mini player with ±15 sec and ±1 min seek buttons
+- Mini player and bottom bar now respect the system navigation bar
+
 ## [0.6.0] - 2026-06-27
 ### RU
 - Исправлено отображение процента прогресса в библиотеке

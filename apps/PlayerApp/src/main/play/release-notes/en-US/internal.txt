@@ -1,5 +1,1 @@
-• User playlists: create, manage, and add tracks from catalog and queue
-• Favorites tab — liked tracks, albums, and artists
-• Heart toggle in lists and player for quick favorites
-• Queue improvements: session persistence and track reordering
-• Shuffle mode improvements
+• Mini player and bottom bar now respect the system navigation bar

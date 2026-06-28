@@ -1,2 +1,4 @@
-• Fixed percentage display in library progress
-• Minor UI improvements
+• Sleep timer: extend by shaking (flipping still works too)
+• Getting started screen on first launch
+• Mini player with ±15 sec and ±1 min seek buttons
+• Mini player and bottom bar now respect the system navigation bar
