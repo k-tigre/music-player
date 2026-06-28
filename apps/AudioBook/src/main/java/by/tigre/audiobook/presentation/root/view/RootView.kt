@@ -45,6 +45,7 @@ import by.tigre.audiobook.nighttimer.NightTimerSettingsScreen
 import by.tigre.audiobook.presentation.root.component.Root
 import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.media.platform.player.view.PlayerView
+import by.tigre.media.platform.player.view.SmallPlayerView
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.view.BottomBarContainer
 import by.tigre.media.platform.tools.platform.compose.view.LocalBottomBarHeight
@@ -289,7 +290,16 @@ class RootView(
             ) {
                 playerViewProvider.createSmallPlayerView(
                     component = component.playerComponent,
-                    showOrderModeButton = false,
+                    config = SmallPlayerView.Config(
+                        showOrderModeButton = false,
+                        actionsMode = PlayerView.ActionsMode.SeekButtons,
+                        seekBack1MinuteLabel = stringResource(R.string.player_seek_back_1_minute),
+                        seekBack15SecondsLabel = stringResource(R.string.player_seek_back_15_seconds),
+                        seekForward15SecondsLabel = stringResource(R.string.player_seek_forward_15_seconds),
+                        seekForward1MinuteLabel = stringResource(R.string.player_seek_forward_1_minute),
+                        seek15SecondsDurationCaption = stringResource(R.string.player_seek_duration_15_seconds),
+                        seek1MinuteDurationCaption = stringResource(R.string.player_seek_duration_1_minute),
+                    ),
                 ).Draw(Modifier)
             }
         }

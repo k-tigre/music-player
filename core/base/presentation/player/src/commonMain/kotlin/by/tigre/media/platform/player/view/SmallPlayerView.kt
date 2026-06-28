@@ -4,17 +4,24 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Reply
+import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.Shuffle
@@ -28,6 +35,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import by.tigre.media.platform.playback.AppPlaybackVolume
 import by.tigre.media.platform.playback.PlaybackEqualizer
@@ -43,7 +58,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 class SmallPlayerView(
     private val component: SmallPlayerComponent,
-    private val showOrderModeButton: Boolean = true,
+    private val config: Config = Config(),
 ) : ComposableView {
 
     @Composable
@@ -135,13 +150,18 @@ class SmallPlayerView(
 
     @Composable
     private fun DrawActions(current: PlayerItem) {
+        if (config.actionsMode == PlayerView.ActionsMode.SeekButtons) {
+            DrawSeekActions()
+            return
+        }
+
         Row(
             modifier = Modifier.padding(bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val state = component.state.collectAsState()
             val position = component.position.collectAsState().value
-            val showOrderMode = showOrderModeButton && !current.isExternal
+            val showOrderMode = config.showOrderModeButton && !current.isExternal
             val shuffleEnabled = component.shuffleEnabled.collectAsState().value
             val repeatMode = component.repeatMode.collectAsState().value
             val repeatActive = repeatMode != RepeatMode.Off
@@ -196,5 +216,160 @@ class SmallPlayerView(
                 )
             }
         }
+    }
+
+    @Composable
+    private fun DrawSeekActions() {
+        val state = component.state.collectAsState()
+        val position = component.position.collectAsState().value
+        val isPlaying = state.value == BasePlayerComponent.State.Playing
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                modifier = Modifier.padding(horizontal = 4.dp),
+                text = "${position.current}/${position.total}",
+            )
+
+            Spacer(Modifier.weight(1f))
+
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                SeekControlSlot(
+                    onClick = component::seekBack1Minute,
+                    imageVector = Icons.Filled.FastRewind,
+                    caption = config.seek1MinuteDurationCaption,
+                    contentDescription = config.seekBack1MinuteLabel,
+                )
+                SeekControlSlot(
+                    onClick = component::seekBack15Seconds,
+                    imageVector = Icons.Filled.FastRewind,
+                    caption = config.seek15SecondsDurationCaption,
+                    contentDescription = config.seekBack15SecondsLabel,
+                )
+                SeekControlSlot(
+                    onClick = if (isPlaying) component::pause else component::play,
+                    contentDescription = if (isPlaying) "Pause" else "Play",
+                    caption = null,
+                ) {
+                    AnimatedPlayPauseIcon(
+                        isPlaying = isPlaying,
+                        iconSize = SeekControlIconSize,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+                SeekControlSlot(
+                    onClick = component::seekForward15Seconds,
+                    imageVector = Icons.Filled.FastForward,
+                    caption = config.seek15SecondsDurationCaption,
+                    contentDescription = config.seekForward15SecondsLabel,
+                )
+                SeekControlSlot(
+                    onClick = component::seekForward1Minute,
+                    imageVector = Icons.Filled.FastForward,
+                    caption = config.seek1MinuteDurationCaption,
+                    contentDescription = config.seekForward1MinuteLabel,
+                )
+            }
+
+            Spacer(Modifier.weight(1f))
+        }
+    }
+
+    @Composable
+    private fun seekCaptionHeight(): Dp {
+        val style = MaterialTheme.typography.labelSmall
+        return with(LocalDensity.current) {
+            style.lineHeight.toDp()
+        }
+    }
+
+    @Composable
+    private fun SeekControlSlot(
+        onClick: () -> Unit,
+        imageVector: ImageVector,
+        contentDescription: String,
+        caption: String?,
+    ) {
+        val color = MaterialTheme.colorScheme.onSurface
+        SeekControlSlot(
+            onClick = onClick,
+            contentDescription = contentDescription,
+            caption = caption,
+        ) {
+            Icon(
+                imageVector = imageVector,
+                contentDescription = null,
+                modifier = Modifier.size(SeekControlIconSize),
+                tint = color,
+            )
+        }
+    }
+
+    @Composable
+    private fun SeekControlSlot(
+        onClick: () -> Unit,
+        contentDescription: String,
+        caption: String?,
+        icon: @Composable () -> Unit,
+    ) {
+        val color = MaterialTheme.colorScheme.onSurface
+        Column(
+            modifier = Modifier
+                .defaultMinSize(minWidth = SeekControlSlotMinWidth)
+                .semantics {
+                    role = Role.Button
+                    this.contentDescription = contentDescription
+                }
+                .clickable(onClick = onClick)
+                .padding(horizontal = 2.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(
+                modifier = Modifier.size(SeekControlIconAreaSize),
+                contentAlignment = Alignment.Center,
+            ) {
+                icon()
+            }
+            Box(
+                modifier = Modifier
+                    .height(seekCaptionHeight())
+                    .widthIn(min = SeekControlSlotMinWidth),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (caption != null) {
+                    Text(
+                        text = caption,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = color,
+                        maxLines = 1,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+        }
+    }
+
+    data class Config(
+        val showOrderModeButton: Boolean = true,
+        val actionsMode: PlayerView.ActionsMode = PlayerView.ActionsMode.ChapterButtons,
+        val seekBack1MinuteLabel: String = "-1m",
+        val seekBack15SecondsLabel: String = "-15s",
+        val seekForward15SecondsLabel: String = "+15s",
+        val seekForward1MinuteLabel: String = "+1m",
+        val seek15SecondsDurationCaption: String = "15s",
+        val seek1MinuteDurationCaption: String = "1m",
+    )
+
+    private companion object {
+        private val SeekControlIconAreaSize = 36.dp
+        private val SeekControlIconSize = 22.dp
+        private val SeekControlSlotMinWidth = 40.dp
     }
 }

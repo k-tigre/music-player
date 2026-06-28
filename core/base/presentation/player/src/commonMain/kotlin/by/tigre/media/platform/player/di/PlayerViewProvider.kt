@@ -12,7 +12,7 @@ import by.tigre.media.platform.tools.platform.compose.ComposableView
 interface PlayerViewProvider {
     fun createSmallPlayerView(
         component: SmallPlayerComponent,
-        showOrderModeButton: Boolean = true,
+        config: SmallPlayerView.Config = SmallPlayerView.Config(),
     ): ComposableView
     fun createPlayerView(
         component: PlayerComponent,
@@ -26,9 +26,9 @@ interface PlayerViewProvider {
     class Impl : PlayerViewProvider {
         override fun createSmallPlayerView(
             component: SmallPlayerComponent,
-            showOrderModeButton: Boolean,
+            config: SmallPlayerView.Config,
         ): SmallPlayerView =
-            SmallPlayerView(component, showOrderModeButton)
+            SmallPlayerView(component, config)
 
         override fun createPlayerView(
             component: PlayerComponent,
