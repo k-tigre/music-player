@@ -16,6 +16,7 @@ Auto-generated from `@AnalyticsScope` annotations. Regenerate:
 | book | screen | `book_screen_catalog` | Catalog |  | ✓ |  |  | Audiobook library catalog root |
 | book | screen | `book_screen_folder_selection` | FolderSelection |  | ✓ |  |  | Folder selection for audiobook sources |
 | book | screen | `book_screen_night_timer` | NightTimerSettings |  | ✓ |  |  | Night timer settings |
+| book | screen | `book_screen_playback_speed` | PlaybackSpeedSettings |  | ✓ |  |  | Playback speed settings |
 | common | action | `common_nav_open_equalizer` | NavOpenEqualizer | ✓ | ✓ | ✓ |  | Open equalizer screen |
 | common | action | `common_nav_open_player` | NavOpenPlayer | ✓ | ✓ | ✓ |  | Open full player screen |
 | common | action | `common_nav_open_settings` | NavOpenSettings | ✓ |  |  |  | Open settings screen |
