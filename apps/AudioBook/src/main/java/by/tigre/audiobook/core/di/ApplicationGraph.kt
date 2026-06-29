@@ -21,6 +21,7 @@ import by.tigre.media.platform.playback.di.BasePlaybackModule
 import by.tigre.media.platform.preferences.di.AndroidPreferencesModule
 import by.tigre.media.platform.background.di.PlayerBackgroundDependency
 import by.tigre.media.platform.player.component.BasePlaybackController
+import by.tigre.media.platform.player.component.PlaybackSpeedSource
 import by.tigre.media.platform.player.component.PlayerItem
 import by.tigre.media.platform.player.component.RepeatMode
 import by.tigre.media.platform.player.di.PlayerDependency
@@ -48,6 +49,15 @@ class ApplicationGraph(
     override val playbackEqualizer = basePlaybackModule.playbackEqualizer
 
     override val appPlaybackVolume = basePlaybackModule.appPlaybackVolume
+
+    override val playbackSpeedSource: PlaybackSpeedSource by lazy {
+        val controller = audiobookPlaybackController
+        object : PlaybackSpeedSource {
+            override val playbackSpeed = controller.playbackSpeed
+            override fun setPlaybackSpeed(speed: Float) = controller.setPlaybackSpeed(speed)
+            override fun resetPlaybackSpeed() = controller.resetPlaybackSpeed()
+        }
+    }
 
     override val carSessionMediaType: Int = MediaMetadata.MEDIA_TYPE_AUDIO_BOOK
 
@@ -112,6 +122,7 @@ class ApplicationGraph(
                 audiobookCatalogStorageModule = audiobookStorageModule,
                 audiobookCatalogModule = audiobookCatalogModule,
                 basePlaybackModule = basePlaybackModule,
+                preferences = preferencesModule.preferences,
                 coroutineModule = coroutineModule
             )
 

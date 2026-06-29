@@ -47,5 +47,9 @@ object AudiobookEvents {
         @AnalyticsScope(AnalyticsApp.AUDIOBOOK)
         @AnalyticsDoc("Night timer settings")
         data object NightTimerSettings : Screen("book_screen_night_timer")
+
+        @AnalyticsScope(AnalyticsApp.AUDIOBOOK)
+        @AnalyticsDoc("Playback speed settings")
+        data object PlaybackSpeedSettings : Screen("book_screen_playback_speed")
     }
 }

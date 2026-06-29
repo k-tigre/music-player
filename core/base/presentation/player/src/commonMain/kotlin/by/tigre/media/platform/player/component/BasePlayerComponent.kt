@@ -32,6 +32,7 @@ interface BasePlayerComponent {
     val repeatMode: StateFlow<RepeatMode>
     val playbackEqualizer: PlaybackEqualizer
     val appPlaybackVolume: AppPlaybackVolume?
+    val playbackSpeed: StateFlow<Float>?
 
     fun pause()
     fun play()
@@ -46,6 +47,8 @@ interface BasePlayerComponent {
     fun seekTo(fraction: Float)
     fun onSeekCommitted(fraction: Float) = Unit
     fun returnToQueue() = Unit
+    fun setPlaybackSpeed(speed: Float) = Unit
+    fun resetPlaybackSpeed() = Unit
 
     enum class State {
         Playing, Paused
@@ -65,6 +68,9 @@ internal class BasePlayerComponentImpl(
     override val playbackEqualizer: PlaybackEqualizer = dependency.playbackEqualizer
 
     override val appPlaybackVolume: AppPlaybackVolume? = dependency.appPlaybackVolume
+
+    private val playbackSpeedSource = dependency.playbackSpeedSource
+    override val playbackSpeed: StateFlow<Float>? = playbackSpeedSource?.playbackSpeed
 
     private val seekAction = MutableSharedFlow<Float>(extraBufferCapacity = 1)
     override val currentItem: StateFlow<PlayerItem?> = basePlaybackController.currentItem
@@ -192,6 +198,14 @@ internal class BasePlayerComponentImpl(
 
     override fun returnToQueue() {
         basePlaybackController.resumeInterruptedSession()
+    }
+
+    override fun setPlaybackSpeed(speed: Float) {
+        playbackSpeedSource?.setPlaybackSpeed(speed)
+    }
+
+    override fun resetPlaybackSpeed() {
+        playbackSpeedSource?.resetPlaybackSpeed()
     }
 
     private fun seekBy(deltaMs: Long) {

@@ -13,6 +13,7 @@ interface AudiobookPlaybackController {
     val chapters: StateFlow<List<Chapter>>
     /** True after the book ends; cleared when the user seeks back or starts playback again. */
     val bookFinishedBannerVisible: StateFlow<Boolean>
+    val playbackSpeed: StateFlow<Float>
 
     fun loadBook(book: Book)
     fun playBook(book: Book)
@@ -24,6 +25,9 @@ interface AudiobookPlaybackController {
     fun resume()
     fun stop()
     fun seekBy(deltaMs: Long)
+
+    fun setPlaybackSpeed(speed: Float)
+    fun resetPlaybackSpeed()
 
     /** Persists chapter/file position after the user scrubbed the timeline (e.g. while paused). */
     fun persistPlaybackPositionAfterSeek(positionMs: Long)

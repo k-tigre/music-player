@@ -248,6 +248,8 @@ class PlaybackControllerImplTest {
         override val progress: Flow<PlaybackPlayer.Progress> = flowOf(PlaybackPlayer.Progress(position = 0, duration = 0))
         private val stateFlow = MutableStateFlow(state)
         override val state: StateFlow<PlaybackPlayer.State> = stateFlow.asStateFlow()
+        private val _playbackSpeed = MutableStateFlow(1f)
+        override val playbackSpeed: StateFlow<Float> = _playbackSpeed.asStateFlow()
 
         var pauseCalls: Int = 0
             private set
@@ -272,6 +274,9 @@ class PlaybackControllerImplTest {
         }
         override suspend fun seekTo(position: Long) = Unit
         override suspend fun setMediaItem(item: MediaItemWrapper, position: Long) = Unit
+        override suspend fun setPlaybackSpeed(speed: Float) {
+            _playbackSpeed.value = speed
+        }
     }
 
     private class FakeCatalogSource : CatalogSource {

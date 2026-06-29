@@ -51,6 +51,10 @@ interface Root {
 
     fun onCloseNightTimerSettings()
 
+    fun onOpenPlaybackSpeedSettings()
+
+    fun onClosePlaybackSpeedSettings()
+
     fun dismissGettingStartedGuide()
 
     fun openFolderFromGettingStartedGuide()
@@ -61,6 +65,8 @@ interface Root {
         class Equalizer(val component: EqualizerComponent) : MainComponentChild
 
         data object NightTimerSettings : MainComponentChild
+
+        data object PlaybackSpeedSettings : MainComponentChild
     }
 
     class Impl(
@@ -147,6 +153,8 @@ interface Root {
                     )
 
                     MainConfig.NightTimer -> MainComponentChild.NightTimerSettings
+
+                    MainConfig.PlaybackSpeed -> MainComponentChild.PlaybackSpeedSettings
                 }
             }
 
@@ -168,6 +176,14 @@ interface Root {
         }
 
         override fun onCloseNightTimerSettings() {
+            mainNavigation.pop()
+        }
+
+        override fun onOpenPlaybackSpeedSettings() {
+            mainNavigation.push(MainConfig.PlaybackSpeed)
+        }
+
+        override fun onClosePlaybackSpeedSettings() {
             mainNavigation.pop()
         }
 
@@ -195,6 +211,7 @@ interface Root {
                     when (it) {
                         MainConfig.Main -> AudiobookEvents.Screen.Catalog
                         MainConfig.NightTimer -> AudiobookEvents.Screen.NightTimerSettings
+                        MainConfig.PlaybackSpeed -> AudiobookEvents.Screen.PlaybackSpeedSettings
                         MainConfig.Player -> CommonEvents.Screen.Player
                         MainConfig.Equalizer -> CommonEvents.Screen.Equalizer
                     }
@@ -215,6 +232,9 @@ interface Root {
 
             @Serializable
             data object NightTimer : MainConfig
+
+            @Serializable
+            data object PlaybackSpeed : MainConfig
         }
     }
 }

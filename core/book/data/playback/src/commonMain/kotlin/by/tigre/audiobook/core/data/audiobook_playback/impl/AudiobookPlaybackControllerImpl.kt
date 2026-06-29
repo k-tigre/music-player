@@ -3,11 +3,13 @@ package by.tigre.audiobook.core.data.audiobook_playback.impl
 import by.tigre.audiobook.core.data.audiobook.AudiobookCatalogSource
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackConfig
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
+import by.tigre.audiobook.core.data.audiobook_playback.prefs.AudiobookPlaybackSpeedPreferences
 import by.tigre.audiobook.core.data.storage.audiobook_playback.AudiobookPlaybackStorage
 import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.entity.catalog.Chapter
 import by.tigre.media.platform.playback.MediaItemWrapper
 import by.tigre.media.platform.playback.PlaybackPlayer
+import by.tigre.media.platform.playback.PlaybackSpeed
 import by.tigre.logger.Log
 import by.tigre.media.platform.tools.coroutines.CoreScope
 import by.tigre.media.platform.tools.coroutines.extensions.tickerFlow
@@ -29,6 +31,7 @@ internal class AudiobookPlaybackControllerImpl(
     override val player: PlaybackPlayer,
     private val catalog: AudiobookCatalogSource,
     private val storage: AudiobookPlaybackStorage,
+    private val speedPreferences: AudiobookPlaybackSpeedPreferences,
     private val scope: CoreScope
 ) : AudiobookPlaybackController {
 
@@ -36,6 +39,7 @@ internal class AudiobookPlaybackControllerImpl(
     override val currentChapter = MutableStateFlow<Chapter?>(null)
     override val chapters = MutableStateFlow<List<Chapter>>(emptyList())
     override val bookFinishedBannerVisible = MutableStateFlow(false)
+    override val playbackSpeed = player.playbackSpeed
     private val isPlaying = MutableStateFlow(false)
 
     /** Monotonic mark when [pause] was invoked; used to rewind on [resume]. */
@@ -75,6 +79,10 @@ internal class AudiobookPlaybackControllerImpl(
 
         scope.launch {
             restoreLastPlayedBook()
+        }
+
+        scope.launch {
+            player.setPlaybackSpeed(speedPreferences.load())
         }
     }
 
@@ -281,6 +289,18 @@ internal class AudiobookPlaybackControllerImpl(
             seekAcrossChapters(deltaMs)
             saveCurrentPosition()
         }
+    }
+
+    override fun setPlaybackSpeed(speed: Float) {
+        val normalized = PlaybackSpeed.coerce(speed)
+        scope.launch {
+            player.setPlaybackSpeed(normalized)
+            speedPreferences.save(normalized)
+        }
+    }
+
+    override fun resetPlaybackSpeed() {
+        setPlaybackSpeed(PlaybackSpeed.DEFAULT)
     }
 
     override fun persistPlaybackPositionAfterSeek(positionMs: Long) {

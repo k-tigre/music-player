@@ -4,22 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -42,6 +30,8 @@ import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalo
 import by.tigre.audiobook.core.presentation.audiobook_catalog.view.AudiobookChapterSelector
 import by.tigre.audiobook.nighttimer.NightTimerController
 import by.tigre.audiobook.nighttimer.NightTimerSettingsScreen
+import by.tigre.audiobook.playback.PlaybackSpeedSettingsScreen
+import by.tigre.audiobook.presentation.player.view.AudiobookPlayerTopBar
 import by.tigre.audiobook.presentation.root.component.Root
 import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.media.platform.player.view.PlayerView
@@ -103,85 +93,15 @@ class RootView(
                                 )
                             },
                             topBarContent = {
-                                val eqAvailable by child.component.playbackEqualizer.isAvailable.collectAsState()
-                                val nightUi by nightTimerController.uiState.collectAsState()
-                                var menuExpanded by remember { mutableStateOf(false) }
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .statusBarsPadding()
-                                        .padding(horizontal = 8.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = if (nightUi.isRunning) {
-                                        Arrangement.SpaceBetween
-                                    } else {
-                                        Arrangement.End
-                                    },
-                                ) {
-                                    if (nightUi.isRunning) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Text(
-                                                text = stringResource(
-                                                    R.string.night_timer_countdown,
-                                                    nightUi.remainingSeconds / 60,
-                                                    nightUi.remainingSeconds % 60,
-                                                ),
-                                                style = MaterialTheme.typography.titleMedium,
-                                            )
-                                            IconButton(onClick = nightTimerController::cancelTimer) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Close,
-                                                    contentDescription = stringResource(R.string.night_timer_cancel_cd),
-                                                )
-                                            }
-                                        }
-                                    }
-                                    Box {
-                                        IconButton(
-                                            onClick = { menuExpanded = true },
-                                        ) {
-                                            Icon(
-                                                contentDescription = stringResource(R.string.player_overflow_menu_cd),
-                                                imageVector = Icons.Default.MoreVert,
-                                                modifier = Modifier.size(56.dp),
-                                            )
-                                        }
-                                        DropdownMenu(
-                                            expanded = menuExpanded,
-                                            onDismissRequest = { menuExpanded = false },
-                                        ) {
-                                            DropdownMenuItem(
-                                                text = { Text(stringResource(R.string.player_menu_settings)) },
-                                                onClick = {
-                                                    menuExpanded = false
-                                                    component.onOpenFolderSettings()
-                                                },
-                                            )
-                                            DropdownMenuItem(
-                                                text = { Text(stringResource(R.string.player_menu_library)) },
-                                                onClick = {
-                                                    menuExpanded = false
-                                                    component.onShowCatalog()
-                                                },
-                                            )
-                                            DropdownMenuItem(
-                                                text = { Text(stringResource(R.string.player_menu_night_timer)) },
-                                                onClick = {
-                                                    menuExpanded = false
-                                                    component.onOpenNightTimerSettings()
-                                                },
-                                            )
-                                            DropdownMenuItem(
-                                                text = { Text(stringResource(R.string.player_equalizer_menu)) },
-                                                onClick = {
-                                                    menuExpanded = false
-                                                    if (eqAvailable) child.component.showEqualizer()
-                                                },
-                                                enabled = eqAvailable,
-                                            )
-                                        }
-                                    }
-                                }
+                                AudiobookPlayerTopBar(
+                                    playerComponent = child.component,
+                                    nightTimerController = nightTimerController,
+                                    onShowCatalog = component::onShowCatalog,
+                                    onOpenFolderSettings = component::onOpenFolderSettings,
+                                    onOpenNightTimerSettings = component::onOpenNightTimerSettings,
+                                    onOpenPlaybackSpeedSettings = component::onOpenPlaybackSpeedSettings,
+                                    onShowEqualizer = child.component::showEqualizer,
+                                )
                             },
                         ).Draw(Modifier.fillMaxSize())
 
@@ -211,6 +131,12 @@ class RootView(
                     NightTimerSettingsScreen(
                         controller = nightTimerController,
                         onBack = component::onCloseNightTimerSettings,
+                    )
+
+                is Root.MainComponentChild.PlaybackSpeedSettings ->
+                    PlaybackSpeedSettingsScreen(
+                        playerComponent = component.playerComponent,
+                        onBack = component::onClosePlaybackSpeedSettings,
                     )
             }
         }

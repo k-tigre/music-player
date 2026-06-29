@@ -12,6 +12,7 @@ import by.tigre.logger.Log
 import by.tigre.media.platform.playback.AndroidPlaybackPlayer
 import by.tigre.media.platform.playback.MediaItemWrapper
 import by.tigre.media.platform.playback.PlaybackPlayer
+import by.tigre.media.platform.playback.PlaybackSpeed
 import by.tigre.media.platform.tools.coroutines.CoreScope
 import by.tigre.media.platform.tools.coroutines.extensions.tickerFlow
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.withContext
@@ -32,6 +34,8 @@ internal class PlaybackPlayerImpl(
     scope: CoreScope
 ) : AndroidPlaybackPlayer {
     override val state = MutableStateFlow(PlaybackPlayer.State.Idle)
+    private val _playbackSpeed = MutableStateFlow(PlaybackSpeed.DEFAULT)
+    override val playbackSpeed = _playbackSpeed.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val progress: Flow<PlaybackPlayer.Progress> by lazy {
@@ -98,7 +102,10 @@ internal class PlaybackPlayerImpl(
         ExoPlayer.Builder(context)
             .setAudioAttributes(audioAttributes, true)
             .setHandleAudioBecomingNoisy(true)
-            .build().also { it.addListener(playerStateListener) }
+            .build().also {
+                it.addListener(playerStateListener)
+                it.playbackParameters = it.playbackParameters.withSpeed(_playbackSpeed.value)
+            }
     }
 
     override suspend fun stop() {
@@ -142,6 +149,14 @@ internal class PlaybackPlayerImpl(
                 position
             )
             player.prepare()
+        }
+    }
+
+    override suspend fun setPlaybackSpeed(speed: Float) {
+        val normalized = PlaybackSpeed.coerce(speed)
+        _playbackSpeed.value = normalized
+        withContext(Dispatchers.Main) {
+            player.playbackParameters = player.playbackParameters.withSpeed(normalized)
         }
     }
 }

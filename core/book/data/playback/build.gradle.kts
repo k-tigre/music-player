@@ -19,6 +19,7 @@ kotlin {
             implementation(project(Project.Core.Base.Data.Playback.name))
             implementation(project(Project.Core.Book.Data.Catalog.name))
             implementation(project(Project.Core.Book.Data.Storage.Database.name))
+            implementation(project(Project.Core.Data.Storage.Preferences.name))
         }
     }
 }

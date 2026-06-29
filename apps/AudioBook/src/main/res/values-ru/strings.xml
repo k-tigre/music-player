@@ -8,6 +8,10 @@
     <string name="player_queue_menu">Очередь</string>
 
     <string name="player_overflow_menu_cd">Ещё</string>
+    <string name="player_back_to_library_cd">Назад в библиотеку</string>
+    <string name="player_open_night_timer_cd">Ночной таймер</string>
+    <string name="player_open_folder_settings_cd">Настройки папок</string>
+    <string name="player_open_equalizer_cd">Эквалайзер</string>
     <string name="player_menu_settings">Настройки</string>
     <string name="player_menu_library">Библиотека</string>
     <string name="player_seek_back_1_minute">-1 мин</string>
@@ -17,7 +21,13 @@
     <string name="player_seek_duration_15_seconds">15 сек</string>
     <string name="player_seek_duration_1_minute">1 мин</string>
 
+    <string name="player_playback_speed_label">Скорость</string>
+    <string name="player_playback_speed_reset">Сброс</string>
+
     <string name="player_menu_night_timer">Ночной таймер</string>
+    <string name="player_menu_playback_speed">Скорость воспроизведения</string>
+    <string name="playback_speed_title">Скорость воспроизведения</string>
+    <string name="playback_speed_back_cd">Назад</string>
     <string name="night_timer_title">Ночной таймер</string>
     <string name="night_timer_back_cd">Назад</string>
     <string name="night_timer_minutes_label">Выключить через</string>
@@ -33,13 +43,14 @@
     <string name="night_timer_start">Запустить таймер</string>
     <string name="night_timer_stop">Остановить таймер</string>
     <string name="night_timer_countdown">Сон · %1$d:%2$02d</string>
+    <string name="night_timer_countdown_short">%1$d:%2$02d</string>
     <string name="night_timer_cancel_cd">Отменить ночной таймер</string>
     <string name="player_book_finished_message">Книга закончилась</string>
 
     <string name="getting_started_title">С чего начать</string>
     <string name="getting_started_intro">Аудиокниги хранятся в папках, которые вы выбираете на устройстве.</string>
-    <string name="getting_started_step_add_folder">Меню (⋮) → Настройки → +, чтобы добавить папку с аудиокнигами</string>
-    <string name="getting_started_step_pick_book">Меню → Библиотека — нажмите на книгу, чтобы начать слушать</string>
-    <string name="getting_started_step_player_controls">Нажмите название главы для переключения; ±15 сек / ±1 мин для перемотки; ночной таймер — в меню</string>
+    <string name="getting_started_step_add_folder">Нажмите шестерёнку (⚙) в плеере, чтобы открыть настройки папок и добавить папку с аудиокнигами</string>
+    <string name="getting_started_step_pick_book">Нажмите ← в плеере или выберите книгу в библиотеке ниже</string>
+    <string name="getting_started_step_player_controls">Нажмите название главы для переключения; ±15 сек / ±1 мин для перемотки; скорость, ночной таймер и эквалайзер — в верхней панели</string>
     <string name="getting_started_action_add_folder">Добавить папку</string>
 </resources>

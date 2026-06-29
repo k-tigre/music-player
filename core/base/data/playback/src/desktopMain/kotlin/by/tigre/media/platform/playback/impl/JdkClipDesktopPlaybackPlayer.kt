@@ -3,6 +3,7 @@ package by.tigre.media.platform.playback.impl
 import by.tigre.media.platform.playback.AppPlaybackVolume
 import by.tigre.media.platform.playback.MediaItemWrapper
 import by.tigre.media.platform.playback.PlaybackPlayer
+import by.tigre.media.platform.playback.PlaybackSpeed
 import by.tigre.media.platform.playback.prefs.PlaybackVolumePreferences
 import by.tigre.media.platform.playback.impl.dsp.DesktopEqualizerPresets
 import by.tigre.media.platform.playback.impl.dsp.EqualizingPcmAudioInputStream
@@ -51,6 +52,8 @@ internal class JdkClipDesktopPlaybackPlayer(
     }
 
     override val state = MutableStateFlow(PlaybackPlayer.State.Idle)
+    private val _playbackSpeed = MutableStateFlow(PlaybackSpeed.DEFAULT)
+    override val playbackSpeed: StateFlow<Float> = _playbackSpeed.asStateFlow()
     private val _progress = MutableStateFlow(PlaybackPlayer.Progress(0, 0))
     override val progress: Flow<PlaybackPlayer.Progress> = _progress
 
@@ -197,6 +200,10 @@ internal class JdkClipDesktopPlaybackPlayer(
             currentClip = null
             state.emit(PlaybackPlayer.State.Ended)
         }
+    }
+
+    override suspend fun setPlaybackSpeed(speed: Float) {
+        _playbackSpeed.value = PlaybackSpeed.coerce(speed)
     }
 
     private suspend fun stopProgressJob() {
