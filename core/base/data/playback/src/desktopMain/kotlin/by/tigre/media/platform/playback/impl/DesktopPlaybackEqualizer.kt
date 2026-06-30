@@ -77,10 +77,10 @@ internal class DesktopPlaybackEqualizer(
     override fun selectPreset(index: Int) {
         if (index !in _names.value.indices) return
         _selected.value = index
-        equalizerPrefs.saveSelectedPresetIndex(index)
         when {
             index < builtInCount -> {
                 _bandGainDb.value = DesktopEqualizerPresets.gainsForPreset(index).toList()
+                equalizerPrefs.saveState(index, null)
                 scope.launch {
                     player.applyEqualizerPreset(index)
                 }
@@ -89,7 +89,7 @@ internal class DesktopPlaybackEqualizer(
             else -> {
                 val aligned = alignGainsToBandCount(equalizerPrefs.loadCustomBandGainsDb(), bandCount)
                 _bandGainDb.value = aligned
-                equalizerPrefs.saveCustomBandGainsDb(aligned)
+                equalizerPrefs.saveState(customIdx, aligned)
                 scope.launch {
                     player.applyEqualizerCustomGains(aligned.toFloatArray())
                 }
@@ -104,8 +104,7 @@ internal class DesktopPlaybackEqualizer(
         val next = bands.toMutableList().also { it[bandIndex] = clamped }
         _bandGainDb.value = next
         _selected.value = customIdx
-        equalizerPrefs.saveSelectedPresetIndex(customIdx)
-        equalizerPrefs.saveCustomBandGainsDb(next)
+        equalizerPrefs.saveState(customIdx, next)
         scope.launch {
             player.applyEqualizerCustomGains(next.toFloatArray())
         }

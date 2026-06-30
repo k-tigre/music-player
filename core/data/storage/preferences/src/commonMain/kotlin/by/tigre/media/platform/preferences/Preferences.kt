@@ -13,4 +13,6 @@ interface Preferences {
 
     fun saveLong(key: String, value: Long?)
     fun loadLong(key: String, default: Long): Long
+
+    fun save(block: PreferencesEditor.() -> Unit)
 }

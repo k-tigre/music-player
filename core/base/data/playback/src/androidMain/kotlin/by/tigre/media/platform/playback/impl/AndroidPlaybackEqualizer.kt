@@ -76,6 +76,13 @@ internal class AndroidPlaybackEqualizer(
     }
 
     private fun attachForSession(audioSessionId: Int) {
+        val inMemoryCustomGains =
+            if (_available.value && _customPresetIndex.value >= 0 && _selected.value == _customPresetIndex.value) {
+                _bandGainDb.value.takeIf { it.isNotEmpty() }
+            } else {
+                null
+            }
+
         releaseEqualizer()
         hardwareBandCentersHz = FloatArray(0)
         if (audioSessionId == C.AUDIO_SESSION_ID_UNSET) {
@@ -117,17 +124,30 @@ internal class AndroidPlaybackEqualizer(
 
             _available.value = true
             val customUiIdx = n
-            val savedIndex = equalizerPrefs.loadSelectedPresetIndex(0).coerceIn(0, customUiIdx)
-            _selected.value = savedIndex
+            val saved = equalizerPrefs.loadState()
+            val savedIndex = saved.selectedPresetIndex.coerceIn(0, customUiIdx)
+            val useInMemoryCustom = inMemoryCustomGains != null
+            val effectiveIndex = when {
+                useInMemoryCustom -> customUiIdx
+                savedIndex >= customUiIdx -> customUiIdx
+                else -> savedIndex
+            }
+            _selected.value = effectiveIndex
 
-            if (savedIndex < n) {
-                eq.usePreset(savedIndex.toShort())
+            if (effectiveIndex < n) {
+                eq.usePreset(effectiveIndex.toShort())
                 val hwGains = readHardwareGains(eq, bandCount)
                 _bandGainDb.value = expandHardwareGainsToUi(hwGains)
             } else {
-                val ui8 = alignGainsToBandCount(equalizerPrefs.loadCustomBandGainsDb(), uiBandCentersHz.size)
+                val ui8 = alignGainsToBandCount(
+                    inMemoryCustomGains ?: saved.customBandGainsDb,
+                    uiBandCentersHz.size,
+                )
                 applyHardwareFromUiGains(ui8)
                 _bandGainDb.value = ui8
+                if (useInMemoryCustom) {
+                    equalizerPrefs.saveState(customUiIdx, ui8)
+                }
             }
             customBandLevelsMb = ShortArray(bandCount) { b -> eq.getBandLevel(b.toShort()) }
         } catch (e: Exception) {
@@ -173,15 +193,14 @@ internal class AndroidPlaybackEqualizer(
                 val hwGains = readHardwareGains(eq, bc)
                 _bandGainDb.value = expandHardwareGainsToUi(hwGains)
                 customBandLevelsMb = ShortArray(bc) { b -> eq.getBandLevel(b.toShort()) }
-                equalizerPrefs.saveSelectedPresetIndex(index)
+                equalizerPrefs.saveState(index, null)
             } else if (index == customIdx) {
                 val ui8 = alignGainsToBandCount(equalizerPrefs.loadCustomBandGainsDb(), uiBandCentersHz.size)
                 applyHardwareFromUiGains(ui8)
                 _bandGainDb.value = ui8
                 val bc = eq.numberOfBands.toInt()
                 customBandLevelsMb = ShortArray(bc) { b -> eq.getBandLevel(b.toShort()) }
-                equalizerPrefs.saveSelectedPresetIndex(customIdx)
-                equalizerPrefs.saveCustomBandGainsDb(ui8)
+                equalizerPrefs.saveState(customIdx, ui8)
             }
         } catch (e: Exception) {
             Log.w("PlaybackEqualizer") { "selectPreset failed: ${e.message}" }
@@ -204,8 +223,7 @@ internal class AndroidPlaybackEqualizer(
             applyHardwareFromUiGains(current)
             _bandGainDb.value = current.toList()
             _selected.value = customIdx
-            equalizerPrefs.saveSelectedPresetIndex(customIdx)
-            equalizerPrefs.saveCustomBandGainsDb(current)
+            equalizerPrefs.saveState(customIdx, current)
         } catch (e: Exception) {
             Log.w("PlaybackEqualizer") { "setBandLevel failed: ${e.message}" }
         }

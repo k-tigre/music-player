@@ -239,18 +239,18 @@ internal class FfmpegDesktopPlaybackPlayer private constructor(
     override fun selectPreset(index: Int) {
         if (index !in 0..customPresetIdx) return
         _selectedPreset.value = index
-        equalizerPrefs.saveSelectedPresetIndex(index)
         synchronized(grabberLock) {
             val eq = pcmEqualizer
             if (index < builtInPresetCount) {
                 currentEqGains = DesktopEqualizerPresets.gainsForPreset(index)
                 eq?.setPreset(index)
+                equalizerPrefs.saveState(index, null)
             } else {
                 val bandN = DesktopEqualizerPresets.bandCentersHz.size
                 currentEqGains =
                     alignGainsToBandCount(equalizerPrefs.loadCustomBandGainsDb(), bandN).toFloatArray()
                 eq?.setGains(currentEqGains.copyOf())
-                equalizerPrefs.saveCustomBandGainsDb(currentEqGains.toList())
+                equalizerPrefs.saveState(customPresetIdx, currentEqGains.toList())
             }
         }
         _bandGainDb.value = currentEqGains.toList()
@@ -261,8 +261,7 @@ internal class FfmpegDesktopPlaybackPlayer private constructor(
         currentEqGains[bandIndex] =
             gainDb.coerceIn(DesktopEqualizerPresets.GAIN_DB_MIN, DesktopEqualizerPresets.GAIN_DB_MAX)
         _selectedPreset.value = customPresetIdx
-        equalizerPrefs.saveSelectedPresetIndex(customPresetIdx)
-        equalizerPrefs.saveCustomBandGainsDb(currentEqGains.toList())
+        equalizerPrefs.saveState(customPresetIdx, currentEqGains.toList())
         synchronized(grabberLock) {
             pcmEqualizer?.setGains(currentEqGains.copyOf())
         }

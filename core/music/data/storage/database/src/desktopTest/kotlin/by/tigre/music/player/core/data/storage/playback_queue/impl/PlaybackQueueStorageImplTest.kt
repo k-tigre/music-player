@@ -222,5 +222,23 @@ class PlaybackQueueStorageImplTest {
         }
 
         override fun loadLong(key: String, default: Long): Long = longs[key] ?: default
+
+        override fun save(block: PreferencesEditor.() -> Unit) {
+            val editor = PreferencesEditor().apply(block)
+            editor.ops.forEach { op ->
+                when (op) {
+                    is PreferencesEditor.Op.PutBoolean -> booleans[op.key] = op.value
+                    is PreferencesEditor.Op.PutString -> strings[op.key] = op.value
+                    is PreferencesEditor.Op.PutInt -> ints[op.key] = op.value
+                    is PreferencesEditor.Op.PutLong -> longs[op.key] = op.value
+                    is PreferencesEditor.Op.Remove -> {
+                        booleans.remove(op.key)
+                        strings.remove(op.key)
+                        ints.remove(op.key)
+                        longs.remove(op.key)
+                    }
+                }
+            }
+        }
     }
 }
