@@ -28,7 +28,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material.icons.outlined.LibraryMusic
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.DropdownMenu
@@ -48,7 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import by.tigre.media.platform.tools.platform.compose.view.rememberAppIconPainter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -192,7 +191,7 @@ class PlayerView(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
         ) {
-            val coverPlaceholder = rememberVectorPainter(config.coverFallbackIcon)
+            val coverPlaceholder = rememberAppIconPainter()
             CrossfadeAsyncImage(
                 model = if (item.isExternal) null else item.coverUri,
                 contentDescription = "",
@@ -489,7 +488,6 @@ class PlayerView(
         val emptyScreenTitle: String,
         val emptyScreenMessage: String,
         val emptyScreenActionTitle: String,
-        val coverFallbackIcon: ImageVector = Icons.Outlined.LibraryMusic,
         val dynamicBackdropEnabled: Boolean = true,
         val showOrderModeButton: Boolean = true,
         val actionsMode: ActionsMode = ActionsMode.ChapterButtons,

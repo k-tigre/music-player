@@ -8,5 +8,4 @@ internal object WidgetDrawables {
     val pause: Int = android.R.drawable.ic_media_pause
     val skipPrevious: Int = android.R.drawable.ic_media_previous
     val skipNext: Int = android.R.drawable.ic_media_next
-    val coverPlaceholder: Int = android.R.drawable.ic_menu_gallery
 }

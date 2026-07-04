@@ -44,7 +44,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -70,9 +69,9 @@ import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.view.ErrorScreen
 import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicator
 import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicatorSize
+import by.tigre.media.platform.tools.platform.compose.view.CoverThumbnail
 import by.tigre.media.platform.tools.platform.compose.view.bottomBarListContentPadding
 import by.tigre.media.platform.tools.platform.compose.view.centeredScreenContentBottomPadding
-import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.stringResource
 
 class BookListView(
@@ -323,18 +322,12 @@ class BookListView(
                 modifier = Modifier.padding(start = 10.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                val cover = book.coverUri
-                if (cover != null) {
-                    AsyncImage(
-                        model = cover,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(RoundedCornerShape(6.dp)),
-                        contentScale = ContentScale.Crop,
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                }
+                CoverThumbnail(
+                    model = book.coverUri,
+                    size = 44.dp,
+                    cornerRadius = 6.dp,
+                )
+                Spacer(modifier = Modifier.width(10.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     if (isCurrent) {
                         Text(
@@ -500,18 +493,12 @@ class BookListView(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val cover = book.coverUri
-                if (cover != null) {
-                    AsyncImage(
-                        model = cover,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(64.dp)
-                            .clip(RoundedCornerShape(8.dp)),
-                        contentScale = ContentScale.Crop,
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                }
+                CoverThumbnail(
+                    model = book.coverUri,
+                    size = 64.dp,
+                    cornerRadius = 8.dp,
+                )
+                Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     if (showNowPlayingBadge) {
                         Text(

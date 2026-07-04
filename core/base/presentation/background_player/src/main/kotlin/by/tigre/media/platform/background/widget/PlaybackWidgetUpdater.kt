@@ -580,7 +580,7 @@ internal object PlaybackWidgetUpdater {
         if (bitmap != null) {
             views.setImageViewBitmap(coverId, bitmap)
         } else {
-            views.setImageViewResource(coverId, WidgetDrawables.coverPlaceholder)
+            views.setImageViewBitmap(coverId, WidgetAppIcon.load(context))
         }
     }
 
