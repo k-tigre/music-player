@@ -28,7 +28,7 @@ android {
         buildConfigField(
             "String",
             "MIXPANEL_TOKEN",
-            "\"${envOrPropertyNullable("AUDIO_BOOK_MIXPANEL_TOKEN").also{println("Has AUDIO MIXPANEL_TOKEN=${it?.isNotBlank()}")}}\""
+            "\"${envOrPropertyNullable("AUDIO_BOOK_MIXPANEL_TOKEN")}\""
         )
         buildConfigField(
             "String",
@@ -67,7 +67,7 @@ android {
     buildTypes {
         create(Environment.Qa.gradleName)
 
-        Environment.values().forEach { env ->
+        Environment.entries.forEach { env ->
             named(env.gradleName) {
                 isDebuggable = env.debuggable
                 isMinifyEnabled = env.useProguard
