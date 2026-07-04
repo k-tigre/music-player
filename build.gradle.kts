@@ -21,6 +21,7 @@ buildscript {
         plugin(Plugin.SQLDelight)
         plugin(Plugin.GooglePlayPublisher)
         plugin(Plugin.FirebasePublisher)
+        plugin(Plugin.Roborazzi)
     }
 }
 

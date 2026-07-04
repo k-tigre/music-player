@@ -59,6 +59,20 @@ enum class Library(group: String, artifact: String, version: Version) {
 
     Mixpanel("com.mixpanel.android", "mixpanel-android", Version.Mixpanel),
 
+    ComposeUiTestJunit4("androidx.compose.ui", "ui-test-junit4", Version.Compose),
+    ComposeUiTestManifest("androidx.compose.ui", "ui-test-manifest", Version.Compose),
+    ComposeUiTextGoogleFonts("androidx.compose.ui", "ui-text-google-fonts", Version.ComposeUiTextGoogleFonts),
+    ComposeComponentsResources(
+        "org.jetbrains.compose.components",
+        "components-resources",
+        Version.ComposeMultiplatform
+    ),
+    AndroidXTestCore("androidx.test", "core", Version.AndroidXTest),
+    JUnit4("junit", "junit", Version.JUnit4),
+    Robolectric("org.robolectric", "robolectric", Version.Robolectric),
+    Roborazzi("io.github.takahirom.roborazzi", "roborazzi", Version.Roborazzi),
+    RoborazziCompose("io.github.takahirom.roborazzi", "roborazzi-compose", Version.Roborazzi),
+
     // TODO compose preview not working, check issue: https://issuetracker.google.com/issues/227767363
     DebugComposeCustomView("androidx.customview", "customview", Version.DebugComposeCustomView),
     DebugComposeCustomViewPoolingcontainer(
@@ -89,6 +103,8 @@ enum class Library(group: String, artifact: String, version: Version) {
         ComposeMaterial("1.8.0"),
         ComposeMaterialIcons("1.7.8"),
         ComposeMaterial3("1.4.0"),
+        ComposeUiTextGoogleFonts("1.10.3"),
+        ComposeMultiplatform("1.8.1"),
         Accompanist("0.37.3") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
         CoilCompose("3.1.0"),
         JAudioTagger("3.0.1"),
@@ -98,6 +114,10 @@ enum class Library(group: String, artifact: String, version: Version) {
         Reorderable("3.1.0"),
         Jnativehook("2.2.2"),
         Mixpanel("8.2.0"),
+        JUnit4("4.13.2"),
+        AndroidXTest("1.6.1"),
+        Robolectric("4.14.1"),
+        Roborazzi("1.40.1"),
 
         DebugComposeCustomView("1.2.0-alpha02"),
         DebugComposeCustomViewPoolingcontainer("1.0.0"),
@@ -171,7 +191,8 @@ enum class Plugin(group: String, artifact: String, version: Version) {
     Versions("com.github.ben-manes", "gradle-versions-plugin", Version.Versions),
     SQLDelight("app.cash.sqldelight", "gradle-plugin", Version.SQLDelight),
     GooglePlayPublisher("com.github.triplet.gradle", "play-publisher", Version.GooglePlayPublisher),
-    FirebasePublisher("com.google.firebase", "firebase-appdistribution-gradle", Version.FirebasePublisher)
+    FirebasePublisher("com.google.firebase", "firebase-appdistribution-gradle", Version.FirebasePublisher),
+    Roborazzi("io.github.takahirom.roborazzi", "roborazzi-gradle-plugin", Version.Roborazzi)
     ;
 
     internal val notation = "$group:$artifact:${version.value}"
@@ -192,7 +213,8 @@ enum class Plugin(group: String, artifact: String, version: Version) {
         Versions("com.github.ben-manes.versions"),
         SQLDelight("app.cash.sqldelight"),
         GooglePlayPublisher("com.github.triplet.play"),
-        FirebasePublisher("com.google.firebase.appdistribution")
+        FirebasePublisher("com.google.firebase.appdistribution"),
+        Roborazzi("io.github.takahirom.roborazzi")
     }
 
     private enum class Version(val value: String) {
@@ -205,6 +227,7 @@ enum class Plugin(group: String, artifact: String, version: Version) {
         SQLDelight(Library.Version.SQLDelight.value),
         GooglePlayPublisher("3.12.1"),
         FirebasePublisher("5.0.0"),
+        Roborazzi(Library.Version.Roborazzi.value),
     }
 }
 
@@ -342,6 +365,8 @@ fun DependencyHandler.implementation(toolkit: Toolkit) {
 fun DependencyHandler.implementation(library: Library) = add("implementation", library.notation)
 fun DependencyHandler.implementation(artifact: TigreLogger.Artifact) = add("implementation", artifact.notation)
 fun DependencyHandler.debugImplementation(library: Library) = add("debugImplementation", library.notation)
+fun DependencyHandler.testImplementation(library: Library) = add("testImplementation", library.notation)
+fun DependencyHandler.testDebugImplementation(library: Library) = add("testDebugImplementation", library.notation)
 fun DependencyHandler.implementation(vararg firebaseLibrary: FirebaseLibrary) {
     add("implementation", platform(FirebaseLibrary.bom))
     firebaseLibrary.forEach { lib -> add("implementation", lib.notation) }

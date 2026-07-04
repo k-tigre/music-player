@@ -1,0 +1,15 @@
+Screenshot mock book covers (public domain / library scan sources).
+
+English (testDebug/resources/marketing/covers/en/):
+- War and Peace — Oxford World's Classics (Open Library ISBN 9780192833983)
+- Crime and Punishment — Oxford World's Classics (Open Library ISBN 9780199536368)
+- The Master and Margarita — Penguin edition (Open Library ISBN 9780679760801)
+- 1984 — first edition cover (Wikimedia Commons, PD)
+- The Adventures of Sherlock Holmes — 1892 first edition (Wikimedia Commons, PD)
+
+Russian (testDebug/resources/marketing/covers/ru/):
+- War and Peace — 1873 Russian title page (Wikimedia Commons, PD)
+- Crime and Punishment — 1867 first edition cover (Wikimedia Commons, PD)
+- The Master and Margarita — 1967 Paris YMCA Press first edition (Wikimedia Commons)
+- 1984 — Soviet Progress Press 1984 edition (Wikimedia Commons)
+- The Adventures of Sherlock Holmes — 1892 first edition (Wikimedia Commons, PD)

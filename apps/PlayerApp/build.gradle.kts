@@ -11,6 +11,7 @@ plugins {
     id(Plugin.Id.GooglePlayPublisher.value)
     id(Plugin.Id.FirebasePublisher.value)
     id(Plugin.Id.KotlinCompose.value)
+    id(Plugin.Id.Roborazzi.value)
 }
 
 android {
@@ -103,6 +104,14 @@ android {
         buildConfig = true
         viewBinding = false
     }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
+}
+
+roborazzi {
+    outputDir.set(rootProject.file("docs/marketing/music-player/assets/screenshots"))
 }
 
 dependencies {
@@ -144,10 +153,92 @@ dependencies {
 //    debugImplementation(Library.Leakcanary)
 
     debugImplementation(Project.DebugSettings)
+
+    debugImplementation(Library.ComposeUiTestManifest)
+    testDebugImplementation(Library.ComposeUiTestManifest)
+
+    testImplementation(Library.JUnit4)
+    testImplementation(Library.AndroidXTestCore)
+    testImplementation(Library.Robolectric)
+    testImplementation(Library.Roborazzi)
+    testImplementation(Library.RoborazziCompose)
+    testImplementation(Library.ComposeUiTestJunit4)
+    testImplementation(Library.DebugComposeUiToolingPreview)
+    testImplementation(Library.ComposeComponentsResources)
 }
 
 play {
     track.set("internal")
     userFraction.set(1.0)
     releaseStatus.set(ReleaseStatus.COMPLETED)
+}
+
+val syncPlayListingAssetsAction = Action<Task> {
+    val outputDir = rootProject.file("docs/marketing/music-player/assets/output")
+    val playBase = file("src/main/play/listings")
+    fun syncScreenshots(sourceDir: File, targetDir: File) {
+        targetDir.mkdirs()
+        targetDir.listFiles()?.forEach { it.delete() }
+        sourceDir.listFiles()
+            ?.filter { it.isFile && it.extension.equals("png", ignoreCase = true) }
+            ?.sortedBy { it.name }
+            ?.forEachIndexed { index, sourceFile ->
+                sourceFile.copyTo(targetDir.resolve("${index + 1}.png"), overwrite = true)
+            }
+    }
+    fun syncFeatureGraphic(sourceFile: File, targetFile: File) {
+        targetFile.parentFile.mkdirs()
+        sourceFile.copyTo(targetFile, overwrite = true)
+    }
+    syncScreenshots(
+        outputDir.resolve("screenshots/ru"),
+        playBase.resolve("ru-RU/graphics/phone-screenshots"),
+    )
+    syncScreenshots(
+        outputDir.resolve("screenshots/en"),
+        playBase.resolve("en-US/graphics/phone-screenshots"),
+    )
+    syncFeatureGraphic(
+        outputDir.resolve("feature-graphic/feature-graphic-ru.png"),
+        playBase.resolve("ru-RU/graphics/feature-graphic/1.png"),
+    )
+    syncFeatureGraphic(
+        outputDir.resolve("feature-graphic/feature-graphic-en.png"),
+        playBase.resolve("en-US/graphics/feature-graphic/1.png"),
+    )
+}
+
+tasks.register("buildMarketingAssets") {
+    group = "marketing"
+    description = "Render final Google Play PNGs from Roborazzi screenshots (Music Player)"
+    dependsOn("recordRoborazziDebug")
+    doLast {
+        val assetsDir = rootProject.file("docs/marketing/music-player/assets")
+        val script = assetsDir.resolve("scripts/build_assets.py")
+        val exitCode = ProcessBuilder("python", script.absolutePath)
+            .directory(assetsDir)
+            .inheritIO()
+            .start()
+            .waitFor()
+        check(exitCode == 0) { "build_assets.py failed with exit code $exitCode" }
+    }
+}
+
+tasks.register("syncPlayListingAssets") {
+    group = "marketing"
+    description = "Copy generated marketing PNGs into src/main/play/listings for GPP upload"
+    dependsOn("buildMarketingAssets")
+    doLast(syncPlayListingAssetsAction)
+}
+
+tasks.register("buildMarketingScreenshots") {
+    group = "marketing"
+    description = "Record Roborazzi screenshots and build final Google Play assets (Music Player)"
+    dependsOn("syncPlayListingAssets")
+}
+
+tasks.register("recordMarketingScreenshots") {
+    group = "marketing"
+    description = "Re-capture app screenshots with Roborazzi and rebuild marketing assets (Music Player)"
+    dependsOn("recordRoborazziDebug", "buildMarketingScreenshots")
 }

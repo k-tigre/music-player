@@ -100,50 +100,68 @@ fun AudiobookChapterSelector(
 
     if (sheetVisible && canSelect) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        val listState = rememberLazyListState()
-
-        LaunchedEffect(sheetVisible) {
-            if (currentIndex >= 0) {
-                listState.scrollToItem(currentIndex)
-            }
-        }
 
         ModalBottomSheet(
             onDismissRequest = { sheetVisible = false },
             sheetState = sheetState,
         ) {
-            Text(
-                text = stringResource(Res.string.chapters_sheet_title),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+            AudiobookChapterListSheet(
+                controller = controller,
+                onChapterSelected = { chapterId ->
+                    sheetVisible = false
+                    if (chapterId != currentChapter?.id) {
+                        controller.jumpToChapter(chapterId)
+                    }
+                },
             )
-            LazyColumn(
-                state = listState,
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                    start = 16.dp,
-                    end = 16.dp,
-                    bottom = 24.dp,
-                ),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                itemsIndexed(
-                    items = chapters,
-                    key = { _, chapter -> chapter.id.value },
-                ) { index, chapter ->
-                    ChapterSheetRow(
-                        index = index,
-                        chapter = chapter,
-                        totalChapters = chapters.size,
-                        offsetMs = chapterOffsetMs(chapters, index),
-                        isCurrent = chapter.id == currentChapter?.id,
-                        onClick = {
-                            sheetVisible = false
-                            if (chapter.id != currentChapter?.id) {
-                                controller.jumpToChapter(chapter.id)
-                            }
-                        },
-                    )
-                }
+        }
+    }
+}
+
+@Composable
+fun AudiobookChapterListSheet(
+    controller: AudiobookPlaybackController,
+    onChapterSelected: (Chapter.Id) -> Unit = {},
+    modifier: Modifier = Modifier,
+) {
+    val chapters by controller.chapters.collectAsState()
+    val currentChapter by controller.currentChapter.collectAsState()
+    val currentIndex = chapters.indexOfFirst { it.id == currentChapter?.id }
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(chapters, currentIndex) {
+        if (currentIndex >= 0) {
+            listState.scrollToItem(currentIndex)
+        }
+    }
+
+    Column(modifier = modifier) {
+        Text(
+            text = stringResource(Res.string.chapters_sheet_title),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+        )
+        LazyColumn(
+            state = listState,
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                bottom = 24.dp,
+            ),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            itemsIndexed(
+                items = chapters,
+                key = { _, chapter -> chapter.id.value },
+            ) { index, chapter ->
+                ChapterSheetRow(
+                    index = index,
+                    chapter = chapter,
+                    totalChapters = chapters.size,
+                    offsetMs = chapterOffsetMs(chapters, index),
+                    isCurrent = chapter.id == currentChapter?.id,
+                    onClick = { onChapterSelected(chapter.id) },
+                )
             }
         }
     }

@@ -1,0 +1,11 @@
+Screenshot mock album covers (testDebug only, not shipped in release APK).
+
+English and Russian locales share the same artwork (album covers are not localized).
+
+- abbey_road.jpg — Wikimedia Commons (File:The Beatles Abbey Road album cover.jpg)
+  URL: https://upload.wikimedia.org/wikipedia/commons/a/a4/The_Beatles_Abbey_Road_album_cover.jpg
+- dark_side.jpg — stylized prism artwork (generated mock for Pink Floyd)
+- thriller.jpg — Wikipedia (fair use album cover thumbnail)
+  URL: https://upload.wikimedia.org/wikipedia/en/5/55/Michael_Jackson_-_Thriller.png
+
+Regenerate: python docs/marketing/music-player/assets/scripts/fetch_album_covers.py
