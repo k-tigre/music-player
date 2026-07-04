@@ -2,7 +2,7 @@ package by.tigre.media.platform.tools.platform.compose.view
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import java.awt.Color
@@ -15,7 +15,7 @@ import java.awt.image.BufferedImage
 @Composable
 actual fun rememberAppIconPainter(): Painter {
     return remember {
-        BitmapPainter(createDesktopAppIconBitmap().asImageBitmap())
+        BitmapPainter(createDesktopAppIconBitmap().toComposeImageBitmap())
     }
 }
 
