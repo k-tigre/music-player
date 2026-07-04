@@ -18,5 +18,4 @@ local.properties
 .vscode
 /docs/*
 !/docs/analytics-events.md
-apps/*/src/main/play/listings/
 apps/*/src/main/play/contact-*.txt
