@@ -10,7 +10,9 @@ import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
+import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
+import androidx.media3.session.SessionResult
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -31,8 +33,12 @@ internal class CarMediaLibrarySessionCallback(
         session: MediaSession,
         controller: MediaSession.ControllerInfo,
     ): MediaSession.ConnectionResult {
+        val sessionCommands = MediaSession.ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS
+            .buildUpon()
+            .add(SessionCommand(CarBrowseActions.ADD_TO_QUEUE, Bundle.EMPTY))
+            .build()
         return MediaSession.ConnectionResult.accept(
-            MediaSession.ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS,
+            sessionCommands,
             MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS,
         )
     }
@@ -58,6 +64,54 @@ internal class CarMediaLibrarySessionCallback(
         return Futures.immediateFuture(
             LibraryResult.ofItem(CarMediaItemFactory.rootItem(), libraryParams)
         )
+    }
+
+    override fun onSearch(
+        session: MediaLibrarySession,
+        browser: MediaSession.ControllerInfo,
+        query: String,
+        params: MediaLibraryService.LibraryParams?,
+    ): ListenableFuture<LibraryResult<Void>> {
+        val future = SettableFuture.create<LibraryResult<Void>>()
+        scope.launch {
+            try {
+                val results = withContext(Dispatchers.IO) {
+                    carMediaLibrary.search(query)
+                }
+                session.notifySearchResultChanged(browser, query, results.size, params)
+                future.set(LibraryResult.ofVoid())
+            } catch (e: Exception) {
+                future.set(LibraryResult.ofError(SessionError.ERROR_UNKNOWN))
+            }
+        }
+        return future
+    }
+
+    override fun onGetSearchResult(
+        session: MediaLibrarySession,
+        browser: MediaSession.ControllerInfo,
+        query: String,
+        page: Int,
+        pageSize: Int,
+        params: MediaLibraryService.LibraryParams?,
+    ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
+        val future = SettableFuture.create<LibraryResult<ImmutableList<MediaItem>>>()
+        scope.launch {
+            try {
+                val browseItems = withContext(Dispatchers.IO) {
+                    carMediaLibrary.search(query)
+                }
+                val from = (page * pageSize).coerceAtMost(browseItems.size)
+                val to = (from + pageSize).coerceAtMost(browseItems.size)
+                val pageItems = browseItems.subList(from, to).map {
+                    CarMediaItemFactory.fromBrowseItem(it, carSessionMediaType)
+                }
+                future.set(LibraryResult.ofItemList(ImmutableList.copyOf(pageItems), null))
+            } catch (e: Exception) {
+                future.set(LibraryResult.ofError(SessionError.ERROR_UNKNOWN))
+            }
+        }
+        return future
     }
 
     override fun onGetChildren(
@@ -97,6 +151,25 @@ internal class CarMediaLibrarySessionCallback(
             }
         }
         return future
+    }
+
+    override fun onCustomCommand(
+        session: MediaSession,
+        controller: MediaSession.ControllerInfo,
+        customCommand: SessionCommand,
+        args: Bundle,
+    ): ListenableFuture<SessionResult> {
+        if (customCommand.customAction != CarBrowseActions.ADD_TO_QUEUE) {
+            return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
+        }
+        val mediaId = args.getString(MediaConstants.EXTRA_KEY_MEDIA_ID)
+            ?: return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE))
+        return try {
+            carMediaLibrary.addMediaIdToQueue(mediaId)
+            Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+        } catch (e: Exception) {
+            Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_UNKNOWN))
+        }
     }
 
     override fun onAddMediaItems(
@@ -145,5 +218,4 @@ internal class CarMediaLibrarySessionCallback(
         }
         return future
     }
-
 }

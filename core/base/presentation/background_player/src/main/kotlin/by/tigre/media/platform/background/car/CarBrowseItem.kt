@@ -9,4 +9,5 @@ data class CarBrowseItem(
     val isBrowsable: Boolean,
     val isPlayable: Boolean,
     val artworkUri: Uri? = null,
+    val customBrowseActionIds: List<String> = emptyList(),
 )

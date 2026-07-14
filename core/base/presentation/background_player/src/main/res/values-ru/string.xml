@@ -4,6 +4,8 @@
     <string name="car_tab_artists">Исполнители</string>
     <string name="car_tab_queue">Очередь</string>
     <string name="car_tab_books">Книги</string>
+    <string name="car_action_add_to_queue">В очередь</string>
+    <string name="car_action_play_all">Играть всё</string>
     <string name="widget_description">Управление воспроизведением</string>
     <string name="widget_idle_title">Ничего не играет</string>
     <string name="widget_idle_subtitle">Откройте приложение для воспроизведения</string>

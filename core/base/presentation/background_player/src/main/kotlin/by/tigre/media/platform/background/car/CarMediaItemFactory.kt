@@ -25,6 +25,9 @@ internal object CarMediaItemFactory {
             .setIsPlayable(item.isPlayable)
         item.subtitle?.let { metadata.setArtist(it) }
         item.artworkUri?.let { metadata.setArtworkUri(it) }
+        if (item.customBrowseActionIds.isNotEmpty()) {
+            metadata.setSupportedCommands(item.customBrowseActionIds)
+        }
         return MediaItem.Builder()
             .setMediaId(item.id)
             .setMediaMetadata(metadata.build())

@@ -4,6 +4,8 @@
     <string name="car_tab_artists">Artists</string>
     <string name="car_tab_queue">Queue</string>
     <string name="car_tab_books">Books</string>
+    <string name="car_action_add_to_queue">Add to queue</string>
+    <string name="car_action_play_all">Play all</string>
     <string name="widget_description">Now playing controls</string>
     <string name="widget_idle_title">Nothing playing</string>
     <string name="widget_idle_subtitle">Open the app to start playback</string>

@@ -6,16 +6,20 @@ import android.app.PendingIntent
 import android.appwidget.AppWidgetProvider
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import by.tigre.media.platform.playback.AndroidPlaybackPlayer
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.CommandButton
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
+import androidx.media3.session.SessionCommand
+import by.tigre.media.platform.background.car.CarBrowseActions
 import by.tigre.media.platform.background.car.CarMediaLibrarySessionCallback
 import by.tigre.media.platform.background.R
 import by.tigre.media.platform.background.presentation.component.BackgroundComponent
@@ -97,6 +101,13 @@ class BackgroundPlayerView(
             carMediaLibrary = component.carMediaLibrary,
             carSessionMediaType = component.carSessionMediaType,
         )
+        val addToQueueButton = CommandButton.Builder(CommandButton.ICON_PLAYLIST_ADD)
+            .setDisplayName(service.getString(R.string.car_action_add_to_queue))
+            .setSessionCommand(SessionCommand(CarBrowseActions.ADD_TO_QUEUE, Bundle.EMPTY))
+            .setIconUri(
+                Uri.parse("android.resource://${service.packageName}/${R.drawable.ic_car_add_to_queue}")
+            )
+            .build()
         mediaSession = MediaLibraryService.MediaLibrarySession.Builder(service, player, callback)
             .setSessionActivity(
                 PendingIntent.getActivity(
@@ -106,6 +117,7 @@ class BackgroundPlayerView(
                     PendingIntent.FLAG_IMMUTABLE
                 )
             )
+            .setCommandButtonsForMediaItems(listOf(addToQueueButton))
             .build()
     }
 

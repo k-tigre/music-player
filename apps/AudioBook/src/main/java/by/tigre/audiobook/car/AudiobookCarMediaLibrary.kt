@@ -27,7 +27,7 @@ class AudiobookCarMediaLibrary(
                 isPlayable = false,
             )
         )
-        CarMediaIds.TAB_BOOKS -> catalog.getBooks().map { book -> bookItem(book, browsable = true) }
+        CarMediaIds.TAB_BOOKS -> catalog.getBooks().map { bookItem(it) }
         else -> {
             val bookId = CarMediaIds.parseBookId(parentId) ?: return emptyList()
             catalog.getChapters(Book.Id(bookId)).map { chapter -> chapterItem(bookId, chapter) }
@@ -54,17 +54,25 @@ class AudiobookCarMediaLibrary(
         }
         CarMediaIds.parseBookId(mediaId)?.let { bookId ->
             val book = catalog.getBook(Book.Id(bookId)) ?: return null
-            return bookItem(book, browsable = true)
+            return bookItem(book)
         }
         return null
     }
 
-    private fun bookItem(book: Book, browsable: Boolean): CarBrowseItem = CarBrowseItem(
+    override suspend fun search(query: String): List<CarBrowseItem> {
+        val trimmed = query.trim()
+        if (trimmed.isEmpty()) return emptyList()
+        return catalog.getBooks()
+            .filter { it.title.contains(trimmed, ignoreCase = true) }
+            .map { bookItem(it) }
+    }
+
+    private fun bookItem(book: Book): CarBrowseItem = CarBrowseItem(
         id = CarMediaIds.book(book.id.value),
         title = book.title,
         subtitle = book.chapterCount.takeIf { it > 0 }?.let { "$it chapters" },
-        isBrowsable = browsable,
-        isPlayable = !browsable,
+        isBrowsable = true,
+        isPlayable = true,
         artworkUri = book.coverUri?.let(Uri::parse),
     )
 

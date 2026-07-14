@@ -15,6 +15,12 @@ interface CarMediaLibrary {
     /** Replace queue / play a list (e.g. album or queue tab). */
     fun playMediaIds(mediaIds: List<String>) {}
 
+    /** Append to queue without interrupting current playback. */
+    fun addMediaIdToQueue(mediaId: String) {}
+
     /** Resolve a single item for [onGetItem]; return null if unknown. */
     suspend fun getBrowseItem(mediaId: String): CarBrowseItem? = null
+
+    /** Search results for Android Auto; empty means no matches / not supported. */
+    suspend fun search(query: String): List<CarBrowseItem> = emptyList()
 }
