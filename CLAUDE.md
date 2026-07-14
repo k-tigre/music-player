@@ -24,6 +24,7 @@ Kotlin monorepo: **3 apps** (2 Android + 1 Desktop) sharing KMP modules. Archite
 | Dependency versions | `buildSrc/src/main/kotlin/Dependencies.kt` |
 | App IDs / SDK / versions | `buildSrc/src/main/kotlin/Application.kt` |
 | Module registry | `settings.gradle.kts` |
+| Play listing texts / screenshots | `.cursor/skills/prepare-play-listing/SKILL.md` |
 
 **Rule of thumb:** UI and domain logic go in `core:*` KMP modules; app-specific wiring (DI graph, root nav, Car, night timer) stays in `apps:*`.
 

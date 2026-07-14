@@ -242,3 +242,52 @@ tasks.register("recordMarketingScreenshots") {
     description = "Re-capture app screenshots with Roborazzi and rebuild marketing assets (Music Player)"
     dependsOn("recordRoborazziDebug", "buildMarketingScreenshots")
 }
+
+tasks.register("preparePlayContactMetadata") {
+    group = "publishing"
+    description = "Write Play contact-email/website from PLAY_CONTACT_* env vars"
+    val playDir = layout.projectDirectory.dir("src/main/play")
+    val emailFile = playDir.file("contact-email.txt")
+    val websiteFile = playDir.file("contact-website.txt")
+    outputs.files(emailFile, websiteFile)
+    doLast {
+        val email = System.getenv("PLAY_CONTACT_EMAIL")?.trim().orEmpty()
+        if (email.isEmpty()) {
+            throw GradleException(
+                "PLAY_CONTACT_EMAIL is required to publish Play listing. " +
+                    "Set it as a GitHub Actions variable or local env var.",
+            )
+        }
+        emailFile.asFile.writeText(email + "\n")
+
+        val website = System.getenv("PLAY_CONTACT_WEBSITE")?.trim().orEmpty()
+        if (website.isNotEmpty()) {
+            websiteFile.asFile.writeText(website + "\n")
+        } else if (websiteFile.asFile.exists()) {
+            websiteFile.asFile.delete()
+        }
+    }
+}
+
+tasks.register("publishPlayListing") {
+    group = "publishing"
+    description = "Upload Play Store listing only (texts, screenshots, feature graphic)"
+}
+
+tasks.register("publishReleaseApp") {
+    group = "publishing"
+    description = "Upload release AAB and release notes only (no listing)"
+}
+
+afterEvaluate {
+    tasks.named("publishPlayListing").configure {
+        dependsOn("preparePlayContactMetadata", "publishReleaseListing")
+    }
+    tasks.named("publishReleaseApp").configure {
+        dependsOn("publishReleaseBundle")
+    }
+    // Contact email is required only for listing uploads, not for AAB release tags.
+    tasks.matching { it.name == "publishReleaseListing" }.configureEach {
+        dependsOn("preparePlayContactMetadata")
+    }
+}

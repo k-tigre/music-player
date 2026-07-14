@@ -1,0 +1,15 @@
+AudioBook is a player for local audiobooks. Point it at your books folder, pick up where you left off, and listen comfortably — including at bedtime.
+
+What the app does:
+• Library from a folder on your device (SAF)
+• Chapters with saved playback position
+• Seek ±15s / ±1min
+• Playback speed control
+• Sleep timer with smooth volume fade-out
+• Extend the timer by shaking or flipping the phone
+• Equalizer
+• Home screen widgets
+• Android Auto: browse books and play
+• Background playback via MediaSession
+
+No subscriptions or streaming — just your files on the device.

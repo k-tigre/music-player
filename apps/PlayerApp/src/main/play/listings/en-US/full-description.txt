@@ -1,0 +1,13 @@
+Music Player is a straightforward on-device music player. No accounts or subscriptions — browse your phone library, play in the background, and manage playback the way you expect.
+
+What the app does:
+• Catalog: artists → albums → tracks
+• Playback queue that persists between sessions
+• Playlists and favorite tracks and albums
+• Full-screen and mini player with background playback
+• Equalizer
+• Home screen widgets
+• Android Auto: browse library, search, add to queue
+• Open audio files from other apps (Downloads, Telegram, and more)
+
+Your music stays on your device — no streaming and no sign-up.

@@ -1,0 +1,48 @@
+name: Publish Play listing
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: Which app listing to publish
+        required: true
+        type: choice
+        options:
+          - music
+          - book
+          - all
+        default: all
+
+jobs:
+  publish-music-listing:
+    name: Publish Music listing
+    runs-on: ubuntu-latest
+    if: inputs.app == 'music' || inputs.app == 'all'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Publish Music Play listing
+        run: ./gradlew :apps:PlayerApp:publishPlayListing
+        env:
+          ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
+          PLAY_CONTACT_EMAIL: ${{ vars.PLAY_CONTACT_EMAIL }}
+          PLAY_CONTACT_WEBSITE: ${{ vars.PLAY_CONTACT_WEBSITE }}
+
+  publish-book-listing:
+    name: Publish AudioBook listing
+    runs-on: ubuntu-latest
+    if: inputs.app == 'book' || inputs.app == 'all'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Publish AudioBook Play listing
+        run: ./gradlew :apps:AudioBook:publishPlayListing
+        env:
+          ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
+          PLAY_CONTACT_EMAIL: ${{ vars.PLAY_CONTACT_EMAIL }}
+          PLAY_CONTACT_WEBSITE: ${{ vars.PLAY_CONTACT_WEBSITE }}

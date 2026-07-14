@@ -1,0 +1,1 @@
+Local music: library, playlists, queue, favorites, and equalizer.
