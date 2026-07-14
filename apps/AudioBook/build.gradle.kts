@@ -235,20 +235,16 @@ tasks.register("recordMarketingScreenshots") {
 
 tasks.register("preparePlayContactMetadata") {
     group = "publishing"
-    description = "Write Play contact-email/website from PLAY_CONTACT_* env vars"
+    description = "Write Play contact-email/website from PLAY_CONTACT_* env vars (optional for AAB-only)"
     val playDir = layout.projectDirectory.dir("src/main/play")
     val emailFile = playDir.file("contact-email.txt")
     val websiteFile = playDir.file("contact-website.txt")
     outputs.files(emailFile, websiteFile)
     doLast {
         val email = System.getenv("PLAY_CONTACT_EMAIL")?.trim().orEmpty()
-        if (email.isEmpty()) {
-            throw GradleException(
-                "PLAY_CONTACT_EMAIL is required to publish Play listing. " +
-                    "Set it as a GitHub Actions variable or local env var.",
-            )
+        if (email.isNotEmpty()) {
+            emailFile.asFile.writeText(email + "\n")
         }
-        emailFile.asFile.writeText(email + "\n")
 
         val website = System.getenv("PLAY_CONTACT_WEBSITE")?.trim().orEmpty()
         if (website.isNotEmpty()) {
@@ -259,9 +255,23 @@ tasks.register("preparePlayContactMetadata") {
     }
 }
 
+tasks.register("requirePlayContactEmail") {
+    group = "publishing"
+    description = "Fail if PLAY_CONTACT_EMAIL is missing (listing upload only)"
+    doLast {
+        val email = System.getenv("PLAY_CONTACT_EMAIL")?.trim().orEmpty()
+        if (email.isEmpty()) {
+            throw GradleException(
+                "PLAY_CONTACT_EMAIL is required to publish Play listing. " +
+                    "Set it as a GitHub Actions variable or local env var.",
+            )
+        }
+    }
+}
+
 tasks.register("publishPlayListing") {
     group = "publishing"
-    description = "Upload Play Store listing only (texts, screenshots, feature graphic)"
+    description = "Upload Play Store listing only (texts, screenshots, feature graphic already in play/listings)"
 }
 
 tasks.register("publishReleaseApp") {
@@ -270,14 +280,20 @@ tasks.register("publishReleaseApp") {
 }
 
 afterEvaluate {
+    // Listing upload: committed play/listings/* + contact from env. No screenshot rebuild on CI.
     tasks.named("publishPlayListing").configure {
-        dependsOn("preparePlayContactMetadata", "publishReleaseListing")
+        dependsOn("requirePlayContactEmail", "preparePlayContactMetadata", "publishReleaseListing")
     }
     tasks.named("publishReleaseApp").configure {
         dependsOn("publishReleaseBundle")
     }
-    // Contact email is required only for listing uploads, not for AAB release tags.
-    tasks.matching { it.name == "publishReleaseListing" }.configureEach {
-        dependsOn("preparePlayContactMetadata")
+    // preparePlayContactMetadata writes into src/main/play; GPP generate* reads it — declare deps.
+    listOf(
+        "generateReleasePlayResources",
+        "publishReleaseListing",
+    ).forEach { taskName ->
+        tasks.matching { it.name == taskName }.configureEach {
+            dependsOn("preparePlayContactMetadata")
+        }
     }
 }

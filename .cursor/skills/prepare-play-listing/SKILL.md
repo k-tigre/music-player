@@ -97,6 +97,8 @@ git push
 Нужна GitHub Variable `PLAY_CONTACT_EMAIL` (и опционально `PLAY_CONTACT_WEBSITE`).
 Secret `ANDROID_PUBLISHER_CREDENTIALS` уже используется для релизов.
 
+CI **только заливает** уже закоммиченные `play/listings/` (+ contact из env). Скриншоты и тексты собираются локально (`prepare-play-listing`), не на Actions.
+
 **GitHub Actions** (рекомендуется): Actions → **Publish Play listing** → Run workflow → выбрать `music` / `book` / `all`.
 
 **Локально**:
