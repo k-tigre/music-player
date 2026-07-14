@@ -1,1 +1,3 @@
-• Mini player and bottom bar now respect the system navigation bar
+• Android Auto: library search
+• Android Auto: play and add-to-queue for artists and albums
+• Improved cover artwork in player, catalog, and home widget

@@ -9,6 +9,17 @@
 
 ### EN
 
+## [0.7.0] - 2026-07-14
+### RU
+- Настройка скорости воспроизведения
+- Android Auto: поиск книг и запуск прямо из списка
+- Улучшено отображение обложек в библиотеке, плеере и виджете
+
+### EN
+- Playback speed settings
+- Android Auto: search books and play directly from the list
+- Improved cover artwork in library, player, and home widget
+
 ## [0.6.1] - 2026-06-28
 ### RU
 - Ночной таймер: продление встряхиванием (переворот тоже работает)

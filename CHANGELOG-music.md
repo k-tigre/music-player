@@ -9,6 +9,17 @@
 
 ### EN
 
+## [0.21.0] - 2026-07-14
+### RU
+- Android Auto: поиск по библиотеке
+- Android Auto: воспроизведение и добавление в очередь для исполнителей и альбомов
+- Улучшено отображение обложек в плеере, каталоге и виджете
+
+### EN
+- Android Auto: library search
+- Android Auto: play and add-to-queue for artists and albums
+- Improved cover artwork in player, catalog, and home widget
+
 ## [0.20.1] - 2026-06-28
 ### RU
 - Мини-плеер и нижняя панель корректно учитывают системную навигационную панель

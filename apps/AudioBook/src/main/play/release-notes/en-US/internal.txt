@@ -1,4 +1,3 @@
-• Sleep timer: extend by shaking (flipping still works too)
-• Getting started screen on first launch
-• Mini player with ±15 sec and ±1 min seek buttons
-• Mini player and bottom bar now respect the system navigation bar
+• Playback speed settings
+• Android Auto: search books and play directly from the list
+• Improved cover artwork in library, player, and home widget
