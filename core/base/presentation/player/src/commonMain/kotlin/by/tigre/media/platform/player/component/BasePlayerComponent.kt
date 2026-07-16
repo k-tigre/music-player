@@ -1,8 +1,10 @@
 package by.tigre.media.platform.player.component
 
 import by.tigre.media.platform.playback.AppPlaybackVolume
+import by.tigre.media.platform.playback.AudioSpectrumSource
 import by.tigre.media.platform.playback.PlaybackEqualizer
 import by.tigre.media.platform.playback.PlaybackPlayer
+import by.tigre.media.platform.playback.prefs.VisualizerPreferences
 import by.tigre.media.platform.player.component.BasePlayerComponent.Position
 import by.tigre.media.platform.player.component.BasePlayerComponent.State
 import by.tigre.media.platform.player.di.PlayerDependency
@@ -31,6 +33,8 @@ interface BasePlayerComponent {
     val shuffleEnabled: StateFlow<Boolean>
     val repeatMode: StateFlow<RepeatMode>
     val playbackEqualizer: PlaybackEqualizer
+    val audioSpectrumSource: AudioSpectrumSource
+    val visualizerPreferences: VisualizerPreferences
     val appPlaybackVolume: AppPlaybackVolume?
     val playbackSpeed: StateFlow<Float>?
 
@@ -66,6 +70,10 @@ internal class BasePlayerComponentImpl(
     private val eventAnalytics: CommonEventAnalytics = dependency.eventAnalytics
 
     override val playbackEqualizer: PlaybackEqualizer = dependency.playbackEqualizer
+
+    override val audioSpectrumSource: AudioSpectrumSource = dependency.audioSpectrumSource
+
+    override val visualizerPreferences: VisualizerPreferences = dependency.visualizerPreferences
 
     override val appPlaybackVolume: AppPlaybackVolume? = dependency.appPlaybackVolume
 

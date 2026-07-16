@@ -2,10 +2,12 @@ package by.tigre.music.player.core.data.playback.di
 
 import by.tigre.music.player.core.data.catalog.di.CatalogModule
 import by.tigre.media.platform.playback.AppPlaybackVolume
+import by.tigre.media.platform.playback.AudioSpectrumSource
 import by.tigre.music.player.core.data.playback.PlaybackController
 import by.tigre.media.platform.playback.PlaybackEqualizer
 import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.media.platform.playback.di.BasePlaybackModule
+import by.tigre.media.platform.playback.prefs.VisualizerPreferences
 import by.tigre.music.player.core.data.playback.impl.PlaybackControllerImpl
 import by.tigre.music.player.core.data.storage.playback_queue.di.PlaybackQueueModule
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
@@ -15,6 +17,8 @@ interface PlaybackModule {
     val playbackController: PlaybackController
     val playbackPlayer: PlaybackPlayer
     val playbackEqualizer: PlaybackEqualizer
+    val audioSpectrumSource: AudioSpectrumSource
+    val visualizerPreferences: VisualizerPreferences
     val appPlaybackVolume: AppPlaybackVolume?
 
     class Impl(
@@ -35,6 +39,10 @@ interface PlaybackModule {
         override val playbackPlayer: PlaybackPlayer = basePlaybackModule.playbackPlayer
 
         override val playbackEqualizer: PlaybackEqualizer = basePlaybackModule.playbackEqualizer
+
+        override val audioSpectrumSource: AudioSpectrumSource = basePlaybackModule.audioSpectrumSource
+
+        override val visualizerPreferences: VisualizerPreferences = basePlaybackModule.visualizerPreferences
 
         override val appPlaybackVolume: AppPlaybackVolume? = basePlaybackModule.appPlaybackVolume
     }

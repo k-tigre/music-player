@@ -48,6 +48,10 @@ class ApplicationGraph(
 
     override val playbackEqualizer = basePlaybackModule.playbackEqualizer
 
+    override val audioSpectrumSource = basePlaybackModule.audioSpectrumSource
+
+    override val visualizerPreferences = basePlaybackModule.visualizerPreferences
+
     override val appPlaybackVolume = basePlaybackModule.appPlaybackVolume
 
     override val playbackSpeedSource: PlaybackSpeedSource by lazy {

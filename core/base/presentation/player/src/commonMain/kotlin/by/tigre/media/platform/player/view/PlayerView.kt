@@ -59,6 +59,7 @@ import by.tigre.media.platform.player.component.BasePlayerComponent
 import by.tigre.media.platform.player.component.RepeatMode
 import by.tigre.media.platform.player.component.PlayerComponent
 import by.tigre.media.platform.player.component.PlayerItem
+import by.tigre.media.platform.player.view.visualizer.PlayerVisualizerHost
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.view.EmptyScreen
 
@@ -192,14 +193,18 @@ class PlayerView(
                 .padding(horizontal = 16.dp),
         ) {
             val coverPlaceholder = rememberAppIconPainter()
-            CrossfadeAsyncImage(
-                model = if (item.isExternal) null else item.coverUri,
-                contentDescription = "",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f),
-                placeholder = coverPlaceholder,
-            )
+            PlayerVisualizerHost(
+                coverModel = if (item.isExternal) null else item.coverUri,
+                spectrumSource = component.audioSpectrumSource,
+                visualizerPreferences = component.visualizerPreferences,
+            ) { coverModifier ->
+                CrossfadeAsyncImage(
+                    model = if (item.isExternal) null else item.coverUri,
+                    contentDescription = "",
+                    modifier = coverModifier,
+                    placeholder = coverPlaceholder,
+                )
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 

@@ -7,7 +7,14 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionParameters
+import androidx.media3.common.audio.AudioProcessor
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.audio.AudioSink
+import androidx.media3.exoplayer.audio.DefaultAudioSink
+import androidx.media3.exoplayer.audio.TeeAudioProcessor
 import by.tigre.logger.Log
 import by.tigre.media.platform.playback.AndroidPlaybackPlayer
 import by.tigre.media.platform.playback.MediaItemWrapper
@@ -31,7 +38,8 @@ import kotlin.time.Duration.Companion.milliseconds
 
 internal class PlaybackPlayerImpl(
     context: Context,
-    scope: CoreScope
+    scope: CoreScope,
+    private val trackLevelMeter: TrackPcmLevelMeter = TrackPcmLevelMeter(),
 ) : AndroidPlaybackPlayer {
     override val state = MutableStateFlow(PlaybackPlayer.State.Idle)
     private val _playbackSpeed = MutableStateFlow(PlaybackSpeed.DEFAULT)
@@ -93,18 +101,53 @@ internal class PlaybackPlayerImpl(
         }
     }
 
+    val trackLevel: Float
+        get() = trackLevelMeter.rms
+
+    @OptIn(UnstableApi::class)
     override val player: ExoPlayer by lazy {
         val audioAttributes = AudioAttributes.Builder()
             .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
             .setUsage(C.USAGE_MEDIA)
             .build()
 
+        val renderersFactory = object : DefaultRenderersFactory(context) {
+            override fun buildAudioSink(
+                context: Context,
+                enableFloatOutput: Boolean,
+                enableAudioTrackPlaybackParams: Boolean,
+            ): AudioSink {
+                Log.d("PlaybackPlayer") { "buildAudioSink + TeeAudioProcessor" }
+                return DefaultAudioSink.Builder(context)
+                    .setEnableFloatOutput(enableFloatOutput)
+                    .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
+                    .setAudioProcessorChain(
+                        DefaultAudioSink.DefaultAudioProcessorChain(
+                            TeeAudioProcessor(trackLevelMeter),
+                        ),
+                    )
+                    .build()
+            }
+        }
+
         ExoPlayer.Builder(context)
+            .setRenderersFactory(renderersFactory)
             .setAudioAttributes(audioAttributes, true)
             .setHandleAudioBecomingNoisy(true)
-            .build().also {
-                it.addListener(playerStateListener)
-                it.playbackParameters = it.playbackParameters.withSpeed(_playbackSpeed.value)
+            .build().also { player ->
+                player.addListener(playerStateListener)
+                player.playbackParameters = player.playbackParameters.withSpeed(_playbackSpeed.value)
+                // Offload bypasses AudioProcessors — disable so Tee gets PCM even when device muted.
+                player.trackSelectionParameters = player.trackSelectionParameters
+                    .buildUpon()
+                    .setAudioOffloadPreferences(
+                        TrackSelectionParameters.AudioOffloadPreferences.Builder()
+                            .setAudioOffloadMode(
+                                TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_DISABLED,
+                            )
+                            .build(),
+                    )
+                    .build()
             }
     }
 
@@ -135,6 +178,7 @@ internal class PlaybackPlayerImpl(
 
     override suspend fun setMediaItem(item: MediaItemWrapper, position: Long) {
         withContext(Dispatchers.Main) {
+            trackLevelMeter.reset()
             player.setMediaItem(
                 MediaItem.Builder()
                     .setUri(item.uri)
