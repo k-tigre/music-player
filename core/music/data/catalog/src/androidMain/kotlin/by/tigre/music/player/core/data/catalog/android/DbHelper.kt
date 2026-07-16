@@ -158,7 +158,7 @@ interface DbHelper {
             querySongs(
                 selection = "${MediaStore.Audio.Media.IS_MUSIC} != ? AND ${MediaStore.Audio.Media.ARTIST_ID} = ?",
                 selectionArgs = arrayOf("0", artistId.value.toString()),
-                sortOrder = MediaStore.Audio.Media.TRACK + " ASC"
+                sortOrder = "${MediaStore.Audio.Media.ALBUM} ASC, ${MediaStore.Audio.Media.TRACK} ASC"
             )
 
         override suspend fun getSongById(id: Song.Id): Song? {
