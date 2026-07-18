@@ -9,14 +9,18 @@ Auto-generated from `@AnalyticsScope` annotations. Regenerate:
 | Module | Kind | Event name | ID | Player | AudioBook | Desktop | Skip | Description |
 |--------|------|------------|-----|:------:|:---------:|:-------:|:----:|-------------|
 | book | action | `book_catalog_open_folder_settings` | CatalogOpenFolderSettings |  | ✓ |  |  | Open folder selection for audiobook library |
+| book | action | `book_catalog_open_settings` | CatalogOpenSettings |  | ✓ |  |  | Open app settings hub from library |
 | book | action | `book_catalog_select_book` | CatalogSelectBook |  | ✓ |  |  | Select book in library |
 | book | action | `book_nav_open_catalog` | NavOpenCatalog |  | ✓ |  |  | Open audiobook library catalog |
 | book | action | `book_nav_open_night_timer` | NavOpenNightTimer |  | ✓ |  |  | Open night timer settings |
+| book | screen | `book_screen_about` | About |  | ✓ |  |  | About screen |
 | book | screen | `book_screen_book_list` | BookList |  | ✓ |  |  | Book list in library |
 | book | screen | `book_screen_catalog` | Catalog |  | ✓ |  |  | Audiobook library catalog root |
 | book | screen | `book_screen_folder_selection` | FolderSelection |  | ✓ |  |  | Folder selection for audiobook sources |
 | book | screen | `book_screen_night_timer` | NightTimerSettings |  | ✓ |  |  | Night timer settings |
 | book | screen | `book_screen_playback_speed` | PlaybackSpeedSettings |  | ✓ |  |  | Playback speed settings |
+| book | screen | `book_screen_settings` | Settings |  | ✓ |  |  | App settings hub |
+| book | screen | `book_screen_theme_settings` | ThemeSettings |  | ✓ |  |  | Theme settings |
 | common | action | `common_nav_open_equalizer` | NavOpenEqualizer | ✓ | ✓ | ✓ |  | Open equalizer screen |
 | common | action | `common_nav_open_player` | NavOpenPlayer | ✓ | ✓ | ✓ |  | Open full player screen |
 | common | action | `common_nav_open_settings` | NavOpenSettings | ✓ |  |  |  | Open settings screen |
