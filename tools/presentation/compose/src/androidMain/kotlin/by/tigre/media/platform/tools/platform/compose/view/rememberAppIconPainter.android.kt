@@ -30,6 +30,15 @@ private fun loadAppIconBitmap(context: Context): Bitmap {
 private fun loadAppIconDrawable(context: Context): Drawable? {
     val appContext = context.applicationContext
 
+    // Prefer the transparent vector foreground over the adaptive icon (colored circle).
+    appContext.resources.getIdentifier(
+        "ic_launcher_foreground",
+        "drawable",
+        appContext.packageName,
+    ).takeIf { it != 0 }?.let { resId ->
+        ContextCompat.getDrawable(appContext, resId)?.let { return it }
+    }
+
     appContext.applicationInfo?.let { appInfo ->
         if (appInfo.icon != 0) {
             ContextCompat.getDrawable(appContext, appInfo.icon)?.let { return it }
@@ -42,7 +51,6 @@ private fun loadAppIconDrawable(context: Context): Drawable? {
     listOf(
         appContext.resources.getIdentifier("ic_launcher", "mipmap", appContext.packageName),
         appContext.resources.getIdentifier("ic_launcher", "drawable", appContext.packageName),
-        appContext.resources.getIdentifier("ic_launcher_foreground", "drawable", appContext.packageName),
     ).firstOrNull { it != 0 }?.let { resId ->
         ContextCompat.getDrawable(appContext, resId)?.let { return it }
     }
