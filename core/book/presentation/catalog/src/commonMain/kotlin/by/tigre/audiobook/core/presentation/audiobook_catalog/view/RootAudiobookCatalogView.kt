@@ -29,10 +29,19 @@ class RootAudiobookCatalogView(
         ) {
             when (val child = it.instance) {
                 is AudiobookCatalogChild.FolderSelection ->
-                    viewProvider.createFolderSelectionView(child.component).Draw(Modifier)
+                    viewProvider.createFolderSelectionView(child.component).Draw(modifier)
 
                 is AudiobookCatalogChild.BookList ->
-                    viewProvider.createBookListView(child.component).Draw(Modifier)
+                    viewProvider.createBookListView(child.component).Draw(modifier)
+
+                is AudiobookCatalogChild.Settings ->
+                    viewProvider.createSettingsHubView(child.component).Draw(modifier)
+
+                is AudiobookCatalogChild.Theme ->
+                    viewProvider.createThemeSettingsView(child.component).Draw(modifier)
+
+                is AudiobookCatalogChild.About ->
+                    viewProvider.createAboutView(child.component).Draw(modifier)
             }
         }
     }

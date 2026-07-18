@@ -60,7 +60,7 @@ import by.tigre.audiobook.core.presentation.catalog.resources.book_progress_list
 import by.tigre.audiobook.core.presentation.catalog.resources.cd_collapse_folder
 import by.tigre.audiobook.core.presentation.catalog.resources.cd_dismiss_continue_listening
 import by.tigre.audiobook.core.presentation.catalog.resources.cd_expand_folder
-import by.tigre.audiobook.core.presentation.catalog.resources.cd_manage_folders
+import by.tigre.audiobook.core.presentation.catalog.resources.cd_open_settings
 import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening_books_count
 import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening_title
 import by.tigre.audiobook.core.presentation.catalog.resources.folder_group_books_count
@@ -92,10 +92,10 @@ class BookListView(
                         )
                     },
                     actions = {
-                        IconButton(onClick = component::onManageFolders) {
+                        IconButton(onClick = component::onOpenSettings) {
                             Icon(
                                 imageVector = Icons.Filled.Settings,
-                                contentDescription = stringResource(Res.string.cd_manage_folders)
+                                contentDescription = stringResource(Res.string.cd_open_settings)
                             )
                         }
                     }

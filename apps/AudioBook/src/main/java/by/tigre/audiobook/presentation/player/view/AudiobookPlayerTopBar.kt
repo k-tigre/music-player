@@ -8,10 +8,10 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.GraphicEq
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,7 +35,6 @@ fun AudiobookPlayerTopBar(
     playerComponent: PlayerComponent,
     nightTimerController: NightTimerController,
     onShowCatalog: () -> Unit,
-    onOpenFolderSettings: () -> Unit,
     onOpenNightTimerSettings: () -> Unit,
     onOpenPlaybackSpeedSettings: () -> Unit,
     onShowEqualizer: () -> Unit,
@@ -99,7 +98,7 @@ fun AudiobookPlayerTopBar(
                         modifier = Modifier.padding(start = (-8).dp),
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Close,
+                            imageVector = Icons.Filled.Close,
                             contentDescription = stringResource(R.string.night_timer_cancel_cd),
                         )
                     }
@@ -107,25 +106,25 @@ fun AudiobookPlayerTopBar(
             } else {
                 IconButton(onClick = onOpenNightTimerSettings) {
                     Icon(
-                        imageVector = Icons.Default.Bedtime,
+                        imageVector = Icons.Filled.Bedtime,
                         contentDescription = stringResource(R.string.player_open_night_timer_cd),
                     )
                 }
             }
 
-            IconButton(onClick = onOpenFolderSettings) {
+            IconButton(onClick = onShowCatalog) {
                 Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = stringResource(R.string.player_open_folder_settings_cd),
+                    imageVector = Icons.AutoMirrored.Filled.LibraryBooks,
+                    contentDescription = stringResource(R.string.player_open_library_cd),
                 )
             }
 
             if (eqAvailable) {
                 IconButton(onClick = onShowEqualizer) {
-                    Icon(
-                        imageVector = Icons.Default.GraphicEq,
-                        contentDescription = stringResource(R.string.player_open_equalizer_cd),
-                    )
+                        Icon(
+                            imageVector = Icons.Filled.GraphicEq,
+                            contentDescription = stringResource(R.string.player_open_equalizer_cd),
+                        )
                 }
             }
         }

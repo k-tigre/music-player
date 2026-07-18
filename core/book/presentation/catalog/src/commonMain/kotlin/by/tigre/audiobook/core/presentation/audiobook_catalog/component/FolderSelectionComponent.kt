@@ -25,7 +25,7 @@ interface FolderSelectionComponent {
     fun onFolderSelected(uri: String, name: String)
     fun onRemoveFolder(id: FolderSource.Id)
     fun onRescanFolders()
-    fun onNavigateToBooks()
+    fun onBack()
     fun retry()
 
     class Impl(
@@ -88,8 +88,8 @@ interface FolderSelectionComponent {
             }
         }
 
-        override fun onNavigateToBooks() {
-            navigator.showBookList()
+        override fun onBack() {
+            navigator.showPreviousScreen()
         }
 
         override fun retry() {

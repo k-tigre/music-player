@@ -23,7 +23,7 @@ interface BookListComponent {
     val screenState: StateFlow<ScreenContentState<BookListUiState>>
 
     fun onBookClicked(book: Book)
-    fun onManageFolders()
+    fun onOpenSettings()
     fun retry()
     fun toggleGroup(path: String)
     fun toggleContinueListening()
@@ -97,9 +97,9 @@ interface BookListComponent {
             onBookSelectedListener.onBookSelected()
         }
 
-        override fun onManageFolders() {
-            eventAnalytics.trackEvent(AudiobookEvents.Action.CatalogOpenFolderSettings)
-            navigator.showFolderSelection()
+        override fun onOpenSettings() {
+            eventAnalytics.trackEvent(AudiobookEvents.Action.CatalogOpenSettings)
+            navigator.showSettings()
         }
 
         override fun retry() {

@@ -78,7 +78,6 @@ abstract class MarketingScreenshotTestBase(
                     playerComponent = playerComponent,
                     nightTimerController = nightTimerController,
                     onShowCatalog = {},
-                    onOpenFolderSettings = {},
                     onOpenNightTimerSettings = {},
                     onOpenPlaybackSpeedSettings = {},
                     onShowEqualizer = {},

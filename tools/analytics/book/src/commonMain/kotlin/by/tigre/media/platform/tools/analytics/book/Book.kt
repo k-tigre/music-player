@@ -25,6 +25,10 @@ object AudiobookEvents {
         @AnalyticsScope(AnalyticsApp.AUDIOBOOK)
         @AnalyticsDoc("Open folder selection for audiobook library")
         data object CatalogOpenFolderSettings : Action("book_catalog_open_folder_settings")
+
+        @AnalyticsScope(AnalyticsApp.AUDIOBOOK)
+        @AnalyticsDoc("Open app settings hub from library")
+        data object CatalogOpenSettings : Action("book_catalog_open_settings")
     }
 
     sealed class Screen(
@@ -43,6 +47,18 @@ object AudiobookEvents {
         @AnalyticsScope(AnalyticsApp.AUDIOBOOK)
         @AnalyticsDoc("Book list in library")
         data object BookList : Screen("book_screen_book_list")
+
+        @AnalyticsScope(AnalyticsApp.AUDIOBOOK)
+        @AnalyticsDoc("App settings hub")
+        data object Settings : Screen("book_screen_settings")
+
+        @AnalyticsScope(AnalyticsApp.AUDIOBOOK)
+        @AnalyticsDoc("Theme settings")
+        data object ThemeSettings : Screen("book_screen_theme_settings")
+
+        @AnalyticsScope(AnalyticsApp.AUDIOBOOK)
+        @AnalyticsDoc("About screen")
+        data object About : Screen("book_screen_about")
 
         @AnalyticsScope(AnalyticsApp.AUDIOBOOK)
         @AnalyticsDoc("Night timer settings")

@@ -2,6 +2,15 @@
 <resources>
     <string name="audiobooks_title">Аудиокниги</string>
     <string name="cd_manage_folders">Управление папками</string>
+    <string name="cd_open_settings">Настройки</string>
+    <string name="settings_title">Настройки</string>
+    <string name="settings_hint_add_books">Чтобы добавить аудиокниги, откройте «Папки с книгами» и нажмите +. Выберите папку на устройстве — приложение просканирует её.</string>
+    <string name="settings_theme">Тема</string>
+    <string name="settings_folders">Папки с книгами</string>
+    <string name="settings_about">О приложении</string>
+    <string name="about_app_name">Audiobook Player</string>
+    <string name="about_version">Версия %1$s</string>
+    <string name="about_rate_on_play">Оценить в Google Play</string>
     <string name="folder_group_books_count">%1$d книг</string>
     <string name="cd_expand_folder">Развернуть папку</string>
     <string name="cd_collapse_folder">Свернуть папку</string>
@@ -25,7 +34,8 @@
     <string name="cd_add_folder">Добавить папку</string>
     <string name="cd_remove_folder">Удалить папку</string>
     <string name="folders_empty_title">Папки ещё не добавлены.</string>
-    <string name="folders_empty_hint">Нажмите +, чтобы выбрать папку с аудиокнигами.</string>
+    <string name="folders_empty_hint">Добавьте папку с аудиокнигами на устройстве.</string>
+    <string name="folders_empty_action">Добавить папку</string>
     <string name="folders_access_broke_hint">Если доступ пропал: нажмите + и снова выберите ту же папку. Удалять запись не обязательно — книги и прогресс сохраняются.</string>
     <string name="scanning_folders_title">Сканирование папок</string>
     <string name="scan_files_progress">%1$d / %2$d файлов</string>

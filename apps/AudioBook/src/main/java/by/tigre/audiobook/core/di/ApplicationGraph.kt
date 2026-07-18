@@ -1,8 +1,10 @@
 package by.tigre.audiobook.core.di
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.media3.common.MediaMetadata
+import by.tigre.audiobook.BuildConfig
 import by.tigre.audiobook.core.data.audiobook.di.AndroidAudiobookCatalogModule
 import by.tigre.audiobook.core.data.audiobook.di.AudiobookCatalogModule
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
@@ -10,14 +12,19 @@ import by.tigre.audiobook.core.data.audiobook_playback.di.AudiobookPlaybackModul
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.di.AndroidAudiobookCatalogStorageModule
 import by.tigre.audiobook.car.AudiobookCarMediaLibrary
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogDependency
+import by.tigre.audiobook.core.presentation.audiobook_catalog.di.CatalogThemeSettings
 import by.tigre.media.platform.background.R
 import by.tigre.media.platform.background.car.CarMediaLibrary
 import by.tigre.audiobook.nighttimer.NightTimerController
 import by.tigre.audiobook.nighttimer.createNightTimerController
 import by.tigre.audiobook.platform.AudiobookGuideSettings
 import by.tigre.audiobook.platform.AudiobookGuideSettingsImpl
+import by.tigre.audiobook.platform.ThemeSettingsStore
+import by.tigre.audiobook.settings.RateAppConfigRepository
+import by.tigre.logger.Log
 import by.tigre.media.platform.playback.di.AndroidBasePlaybackModule
 import by.tigre.media.platform.playback.di.BasePlaybackModule
+import by.tigre.media.platform.preferences.ThemePreferencesStorage
 import by.tigre.media.platform.preferences.di.AndroidPreferencesModule
 import by.tigre.media.platform.background.di.PlayerBackgroundDependency
 import by.tigre.media.platform.player.component.BasePlaybackController
@@ -27,8 +34,14 @@ import by.tigre.media.platform.player.component.RepeatMode
 import by.tigre.media.platform.player.di.PlayerDependency
 import by.tigre.media.platform.tools.analytics.book.BookAnalyticsModule
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
+import by.tigre.media.platform.tools.platform.compose.ContrastPreference
+import by.tigre.media.platform.tools.platform.compose.ThemeMode
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 class ApplicationGraph(
     private val appContext: Context,
@@ -39,6 +52,8 @@ class ApplicationGraph(
     analyticsModule: BookAnalyticsModule,
     val nightTimerController: NightTimerController,
     val audiobookGuideSettings: AudiobookGuideSettings,
+    val themeSettingsStore: ThemeSettingsStore,
+    private val rateAppConfigRepository: RateAppConfigRepository,
 ) : PlayerDependency,
     PlayerBackgroundDependency,
     AudiobookCatalogDependency,
@@ -49,6 +64,55 @@ class ApplicationGraph(
     override val playbackEqualizer = basePlaybackModule.playbackEqualizer
 
     override val appPlaybackVolume = basePlaybackModule.appPlaybackVolume
+
+    override val themeSettings: StateFlow<CatalogThemeSettings> =
+        themeSettingsStore.state
+            .map { settings ->
+                CatalogThemeSettings(
+                    mode = settings.mode,
+                    dynamicColor = settings.dynamicColor,
+                    contrast = settings.contrast,
+                )
+            }
+            .stateIn(
+                coroutineScope,
+                SharingStarted.Eagerly,
+                CatalogThemeSettings(
+                    mode = themeSettingsStore.state.value.mode,
+                    dynamicColor = themeSettingsStore.state.value.dynamicColor,
+                    contrast = themeSettingsStore.state.value.contrast,
+                ),
+            )
+
+    override fun setThemeMode(mode: ThemeMode) = themeSettingsStore.setThemeMode(mode)
+
+    override fun setDynamicColor(enabled: Boolean) = themeSettingsStore.setDynamicColor(enabled)
+
+    override fun setContrast(contrast: ContrastPreference) = themeSettingsStore.setContrast(contrast)
+
+    override val appVersionName: String = BuildConfig.VERSION_NAME
+
+    override val showRateApp: StateFlow<Boolean> = rateAppConfigRepository.showRateApp
+
+    override fun refreshRateAppFlag() = rateAppConfigRepository.refresh()
+
+    override fun onRateAppClick() {
+        val packageName = appContext.packageName
+        val marketIntent = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse("market://details?id=$packageName"),
+        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        try {
+            appContext.startActivity(marketIntent)
+        } catch (e: Exception) {
+            Log.e(e) { "Failed to open Play Store market URI, falling back to https" }
+            val webIntent = Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("https://play.google.com/store/apps/details?id=$packageName"),
+            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            appContext.startActivity(webIntent)
+        }
+    }
 
     override val playbackSpeedSource: PlaybackSpeedSource by lazy {
         val controller = audiobookPlaybackController
@@ -137,6 +201,8 @@ class ApplicationGraph(
                 appPlaybackVolume = appPlaybackVolume,
                 scope = coroutineModule.scope,
             )
+            val themeSettingsStore = ThemeSettingsStore(ThemePreferencesStorage(preferences))
+            val rateAppConfigRepository = RateAppConfigRepository(coroutineModule.scope)
             return ApplicationGraph(
                 appContext = context.applicationContext,
                 coroutineScope = coroutineModule.scope,
@@ -146,6 +212,8 @@ class ApplicationGraph(
                 analyticsModule = analyticsModule,
                 nightTimerController = nightTimerController,
                 audiobookGuideSettings = AudiobookGuideSettingsImpl(preferences),
+                themeSettingsStore = themeSettingsStore,
+                rateAppConfigRepository = rateAppConfigRepository,
             )
         }
     }

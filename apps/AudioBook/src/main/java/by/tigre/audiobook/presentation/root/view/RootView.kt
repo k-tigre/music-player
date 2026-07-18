@@ -97,7 +97,6 @@ class RootView(
                                     playerComponent = child.component,
                                     nightTimerController = nightTimerController,
                                     onShowCatalog = component::onShowCatalog,
-                                    onOpenFolderSettings = component::onOpenFolderSettings,
                                     onOpenNightTimerSettings = component::onOpenNightTimerSettings,
                                     onOpenPlaybackSpeedSettings = component::onOpenPlaybackSpeedSettings,
                                     onShowEqualizer = child.component::showEqualizer,

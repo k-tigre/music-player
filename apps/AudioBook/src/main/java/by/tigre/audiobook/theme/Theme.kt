@@ -11,6 +11,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import by.tigre.media.platform.tools.platform.compose.ContrastPreference
 import by.tigre.media.platform.tools.platform.compose.PlatformThemeEffect
 
 private val lightScheme = lightColorScheme(
@@ -258,6 +259,7 @@ fun AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
+    @Suppress("UNUSED_PARAMETER") contrast: ContrastPreference = ContrastPreference.Default,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

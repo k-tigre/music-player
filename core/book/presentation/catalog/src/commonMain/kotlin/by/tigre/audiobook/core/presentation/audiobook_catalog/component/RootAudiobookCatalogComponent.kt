@@ -12,6 +12,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.bringToFront
 import com.arkivanov.decompose.router.stack.pop
+import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -21,11 +22,15 @@ interface RootAudiobookCatalogComponent {
     val childStack: Value<ChildStack<*, AudiobookCatalogChild>>
 
     fun openFolderSelection()
+    fun openSettings()
     fun focusCurrentBookInLibrary()
 
     sealed interface AudiobookCatalogChild {
         class FolderSelection(val component: FolderSelectionComponent) : AudiobookCatalogChild
         class BookList(val component: BookListComponent) : AudiobookCatalogChild
+        class Settings(val component: SettingsHubComponent) : AudiobookCatalogChild
+        class Theme(val component: ThemeSettingsComponent) : AudiobookCatalogChild
+        class About(val component: AboutComponent) : AudiobookCatalogChild
     }
 
     class Impl(
@@ -39,11 +44,23 @@ interface RootAudiobookCatalogComponent {
 
         private val navigator = object : AudiobookCatalogNavigator {
             override fun showFolderSelection() {
-                navigation.bringToFront(Config.FolderSelection)
+                navigation.push(Config.FolderSelection)
             }
 
             override fun showBookList() {
                 navigation.bringToFront(Config.BookList)
+            }
+
+            override fun showSettings() {
+                navigation.bringToFront(Config.Settings)
+            }
+
+            override fun showThemeSettings() {
+                navigation.push(Config.Theme)
+            }
+
+            override fun showAbout() {
+                navigation.push(Config.About)
             }
 
             override fun showPreviousScreen() {
@@ -67,6 +84,18 @@ interface RootAudiobookCatalogComponent {
                 is Config.BookList -> AudiobookCatalogChild.BookList(
                     componentProvider.createBookListComponent(context, navigator, onBookSelectedListener)
                 )
+
+                is Config.Settings -> AudiobookCatalogChild.Settings(
+                    componentProvider.createSettingsHubComponent(context, navigator)
+                )
+
+                is Config.Theme -> AudiobookCatalogChild.Theme(
+                    componentProvider.createThemeSettingsComponent(context, navigator)
+                )
+
+                is Config.About -> AudiobookCatalogChild.About(
+                    componentProvider.createAboutComponent(context, navigator)
+                )
             }
 
         override val childStack: Value<ChildStack<*, AudiobookCatalogChild>> = stack
@@ -80,6 +109,9 @@ interface RootAudiobookCatalogComponent {
                     when (it) {
                         Config.FolderSelection -> AudiobookEvents.Screen.FolderSelection
                         Config.BookList -> AudiobookEvents.Screen.BookList
+                        Config.Settings -> AudiobookEvents.Screen.Settings
+                        Config.Theme -> AudiobookEvents.Screen.ThemeSettings
+                        Config.About -> AudiobookEvents.Screen.About
                     }
                 }
             }
@@ -87,6 +119,10 @@ interface RootAudiobookCatalogComponent {
 
         override fun openFolderSelection() {
             navigation.bringToFront(Config.FolderSelection)
+        }
+
+        override fun openSettings() {
+            navigation.bringToFront(Config.Settings)
         }
 
         override fun focusCurrentBookInLibrary() {
@@ -102,6 +138,15 @@ interface RootAudiobookCatalogComponent {
 
             @Serializable
             data object BookList : Config
+
+            @Serializable
+            data object Settings : Config
+
+            @Serializable
+            data object Theme : Config
+
+            @Serializable
+            data object About : Config
         }
     }
 }

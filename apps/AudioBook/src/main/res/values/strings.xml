@@ -10,7 +10,7 @@
     <string name="player_overflow_menu_cd">More options</string>
     <string name="player_back_to_library_cd">Back to library</string>
     <string name="player_open_night_timer_cd">Sleep timer</string>
-    <string name="player_open_folder_settings_cd">Folder settings</string>
+    <string name="player_open_library_cd">Library</string>
     <string name="player_open_equalizer_cd">Equalizer</string>
     <string name="player_menu_settings">Settings</string>
     <string name="player_menu_library">Library</string>
@@ -49,8 +49,8 @@
 
     <string name="getting_started_title">Getting started</string>
     <string name="getting_started_intro">Audiobook files live in folders you choose on your device.</string>
-    <string name="getting_started_step_add_folder">Tap the gear icon (⚙) in the player to open folder settings and add a folder with audiobook files</string>
-    <string name="getting_started_step_pick_book">Tap ← in the player or pick a book in the library below</string>
+    <string name="getting_started_step_add_folder">Open the library, tap Settings (⚙), then Audiobook folders, and tap + to add a folder with audiobook files</string>
+    <string name="getting_started_step_pick_book">Tap ← or Library in the player, or pick a book in the library</string>
     <string name="getting_started_step_player_controls">Tap the chapter title to switch chapters; use ±15 sec / ±1 min to seek; speed, sleep timer, and equalizer are in the top bar</string>
     <string name="getting_started_action_add_folder">Add folder</string>
 </resources>

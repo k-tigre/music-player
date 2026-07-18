@@ -7,6 +7,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -19,6 +21,7 @@ import by.tigre.audiobook.theme.AppTheme
 import by.tigre.media.platform.player.di.PlayerComponentProvider
 import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.media.platform.presentation.BaseComponentContextImpl
+import by.tigre.media.platform.tools.platform.compose.resolveDarkTheme
 import com.arkivanov.decompose.defaultComponentContext
 import com.google.common.util.concurrent.ListenableFuture
 
@@ -39,7 +42,12 @@ class MainActivity : AppCompatActivity() {
         )
 
         setContent {
-            AppTheme {
+            val themeSettings by graph.themeSettingsStore.state.collectAsState()
+            AppTheme(
+                darkTheme = resolveDarkTheme(themeSettings.mode),
+                dynamicColor = themeSettings.dynamicColor,
+                contrast = themeSettings.contrast,
+            ) {
                 Surface(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
                     RootView(
                         component = root,
