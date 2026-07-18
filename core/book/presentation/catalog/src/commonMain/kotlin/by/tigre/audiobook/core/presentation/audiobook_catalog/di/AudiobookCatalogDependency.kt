@@ -2,6 +2,7 @@ package by.tigre.audiobook.core.presentation.audiobook_catalog.di
 
 import by.tigre.audiobook.core.data.audiobook.AudiobookCatalogSource
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
+import by.tigre.audiobook.core.presentation.audiobook_catalog.scan.CatalogScanCoordinator
 import by.tigre.media.platform.tools.analytics.book.BookAnalyticsDependency
 import by.tigre.media.platform.tools.platform.compose.ContrastPreference
 import by.tigre.media.platform.tools.platform.compose.ThemeMode
@@ -16,6 +17,7 @@ data class CatalogThemeSettings(
 interface AudiobookCatalogDependency : BookAnalyticsDependency {
     val audiobookCatalogSource: AudiobookCatalogSource
     val audiobookPlaybackController: AudiobookPlaybackController
+    val catalogScanCoordinator: CatalogScanCoordinator
 
     val themeSettings: StateFlow<CatalogThemeSettings>
     fun setThemeMode(mode: ThemeMode)

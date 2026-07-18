@@ -47,6 +47,8 @@
     <string name="scan_summary_no_files_seen">Файлы не найдены (проблема доступа?). Каталог не изменён. При необходимости выберите папку снова.</string>
     <string name="scan_summary_updated_books">Обновлено %1$d книг · %2$d файлов</string>
     <string name="scan_summary_failed">Сканирование не удалось</string>
+    <string name="scan_summary_cancelled">Сканирование отменено</string>
+    <string name="scan_banner_cancel">Отмена</string>
     <string name="scan_summary_no_folders_to_scan">Нет папок для сканирования.</string>
     <string name="scan_summary_cannot_open_folders">Не удалось открыть: %1$s. Добавьте папки заново.</string>
     <string name="scan_summary_nothing_to_scan">Нечего сканировать.</string>

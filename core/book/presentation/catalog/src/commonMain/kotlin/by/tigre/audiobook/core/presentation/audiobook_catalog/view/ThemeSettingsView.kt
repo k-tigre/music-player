@@ -19,6 +19,7 @@ import by.tigre.audiobook.core.presentation.audiobook_catalog.component.ThemeSet
 import by.tigre.audiobook.core.presentation.catalog.resources.Res
 import by.tigre.audiobook.core.presentation.catalog.resources.settings_theme
 import by.tigre.media.platform.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.appTopBarWindowInsets
 import by.tigre.media.platform.tools.platform.compose.isDynamicColorSupported
 import by.tigre.media.platform.tools.platform.compose.view.ThemeSettingsContent
 import org.jetbrains.compose.resources.stringResource
@@ -37,6 +38,7 @@ class ThemeSettingsView(
             topBar = {
                 TopAppBar(
                     title = { Text(stringResource(Res.string.settings_theme)) },
+                    windowInsets = appTopBarWindowInsets(),
                     navigationIcon = {
                         IconButton(onClick = component::onBack) {
                             Icon(

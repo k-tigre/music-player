@@ -33,6 +33,7 @@ import by.tigre.audiobook.core.presentation.catalog.resources.settings_hint_add_
 import by.tigre.audiobook.core.presentation.catalog.resources.settings_theme
 import by.tigre.audiobook.core.presentation.catalog.resources.settings_title
 import by.tigre.media.platform.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.appTopBarWindowInsets
 import org.jetbrains.compose.resources.stringResource
 
 class SettingsHubView(
@@ -47,6 +48,7 @@ class SettingsHubView(
             topBar = {
                 TopAppBar(
                     title = { Text(stringResource(Res.string.settings_title)) },
+                    windowInsets = appTopBarWindowInsets(),
                     navigationIcon = {
                         IconButton(onClick = component::onBack) {
                             Icon(

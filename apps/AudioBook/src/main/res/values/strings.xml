@@ -53,4 +53,26 @@
     <string name="getting_started_step_pick_book">Tap ← or Library in the player, or pick a book in the library</string>
     <string name="getting_started_step_player_controls">Tap the chapter title to switch chapters; use ±15 sec / ±1 min to seek; speed, sleep timer, and equalizer are in the top bar</string>
     <string name="getting_started_action_add_folder">Add folder</string>
+
+    <string name="catalog_scan_notification_channel">Library scan</string>
+    <string name="catalog_scan_notification_channel_desc">Progress while indexing audiobook folders</string>
+    <string name="catalog_scan_notification_title">Scanning library</string>
+    <string name="catalog_scan_notification_done_title">Scan complete</string>
+    <string name="catalog_scan_notification_progress">%1$d / %2$d files</string>
+    <string name="catalog_scan_detail_preparing">Preparing…</string>
+    <string name="catalog_scan_detail_collecting">Collecting files…</string>
+    <string name="catalog_scan_detail_metadata">Reading metadata…</string>
+    <string name="catalog_scan_summary_cannot_open_folder">Cannot open folder. Grant access again.</string>
+    <string name="catalog_scan_summary_cannot_read_folder">Cannot read folder. Re-add the folder.</string>
+    <string name="catalog_scan_summary_no_files_seen">No files seen (access issue?). Catalog unchanged.</string>
+    <string name="catalog_scan_summary_updated_books">Updated %1$d books · %2$d files</string>
+    <string name="catalog_scan_summary_failed">Scan failed</string>
+    <string name="catalog_scan_summary_cancelled">Scan cancelled</string>
+    <string name="catalog_scan_summary_no_folders">No folders to scan.</string>
+    <string name="catalog_scan_summary_cannot_open_folders">Cannot open: %1$s</string>
+    <string name="catalog_scan_summary_nothing">Nothing to scan.</string>
+    <string name="catalog_scan_summary_no_files_read">No files read. Re-add: %1$s</string>
+    <string name="catalog_scan_summary_nothing_indexed">Nothing indexed.</string>
+    <string name="catalog_scan_summary_indexed">Indexed %1$d books · %2$d files</string>
+    <string name="catalog_scan_summary_skipped"> — skipped: %1$d</string>
 </resources>

@@ -47,6 +47,8 @@
     <string name="scan_summary_no_files_seen">No files seen (access issue?). Your catalog was not changed. Re-pick the folder if needed.</string>
     <string name="scan_summary_updated_books">Updated %1$d books · %2$d files</string>
     <string name="scan_summary_failed">Scan failed</string>
+    <string name="scan_summary_cancelled">Scan cancelled</string>
+    <string name="scan_banner_cancel">Cancel</string>
     <string name="scan_summary_no_folders_to_scan">No folders to scan.</string>
     <string name="scan_summary_cannot_open_folders">Cannot open: %1$s. Re-add folders.</string>
     <string name="scan_summary_nothing_to_scan">Nothing to scan.</string>

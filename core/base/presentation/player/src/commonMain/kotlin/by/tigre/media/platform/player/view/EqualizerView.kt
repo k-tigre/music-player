@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.contentDescription
+import by.tigre.media.platform.tools.platform.compose.appTopBarWindowInsets
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerInputScope
@@ -87,6 +88,7 @@ class EqualizerView(
                 topBar = {
                     TopAppBar(
                         title = { Text(title) },
+                        windowInsets = appTopBarWindowInsets(),
                         navigationIcon = {
                             IconButton(onClick = component::close) {
                                 Icon(

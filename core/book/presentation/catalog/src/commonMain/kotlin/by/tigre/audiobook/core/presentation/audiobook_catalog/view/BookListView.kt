@@ -66,6 +66,7 @@ import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening
 import by.tigre.audiobook.core.presentation.catalog.resources.folder_group_books_count
 import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.appTopBarWindowInsets
 import by.tigre.media.platform.tools.platform.compose.view.ErrorScreen
 import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicator
 import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicatorSize
@@ -91,6 +92,7 @@ class BookListView(
                             overflow = TextOverflow.Ellipsis
                         )
                     },
+                    windowInsets = appTopBarWindowInsets(),
                     actions = {
                         IconButton(onClick = component::onOpenSettings) {
                             Icon(

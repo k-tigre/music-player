@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -29,6 +28,7 @@ import by.tigre.audiobook.R
 import by.tigre.audiobook.nighttimer.NightTimerController
 import by.tigre.media.platform.playback.PlaybackSpeed
 import by.tigre.media.platform.player.component.PlayerComponent
+import by.tigre.media.platform.tools.platform.compose.statusBarsPaddingUnlessHandled
 
 @Composable
 fun AudiobookPlayerTopBar(
@@ -48,7 +48,7 @@ fun AudiobookPlayerTopBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .statusBarsPadding()
+            .statusBarsPaddingUnlessHandled()
             .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

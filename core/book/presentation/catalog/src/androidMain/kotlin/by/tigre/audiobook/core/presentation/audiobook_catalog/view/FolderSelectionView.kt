@@ -24,16 +24,13 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -54,13 +51,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.documentfile.provider.DocumentFile
-import by.tigre.audiobook.core.data.audiobook.CatalogScanDetail
-import by.tigre.audiobook.core.data.audiobook.CatalogScanSummary
 import by.tigre.audiobook.core.data.audiobook.FolderSourceAccessHealth
 import by.tigre.audiobook.core.entity.catalog.FolderSource
 import by.tigre.audiobook.core.presentation.audiobook_catalog.component.FolderSelectionComponent
 import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.appTopBarWindowInsets
 import by.tigre.media.platform.tools.platform.compose.view.ErrorScreen
 import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicator
 import by.tigre.media.platform.tools.platform.compose.view.ProgressIndicatorSize
@@ -80,24 +76,6 @@ import `by`.tigre.audiobook.core.presentation.catalog.resources.folders_access_b
 import `by`.tigre.audiobook.core.presentation.catalog.resources.folders_empty_action
 import `by`.tigre.audiobook.core.presentation.catalog.resources.folders_empty_hint
 import `by`.tigre.audiobook.core.presentation.catalog.resources.folders_empty_title
-import `by`.tigre.audiobook.core.presentation.catalog.resources.scan_detail_collecting_files
-import `by`.tigre.audiobook.core.presentation.catalog.resources.scan_detail_preparing
-import `by`.tigre.audiobook.core.presentation.catalog.resources.scan_detail_reading_metadata
-import `by`.tigre.audiobook.core.presentation.catalog.resources.scan_files_progress
-import `by`.tigre.audiobook.core.presentation.catalog.resources.scan_summary_cannot_open_folder
-import `by`.tigre.audiobook.core.presentation.catalog.resources.scan_summary_cannot_open_folders
-import `by`.tigre.audiobook.core.presentation.catalog.resources.scan_summary_cannot_read_folder
-import `by`.tigre.audiobook.core.presentation.catalog.resources.scan_summary_failed
-import `by`.tigre.audiobook.core.presentation.catalog.resources.scan_summary_indexed
-import `by`.tigre.audiobook.core.presentation.catalog.resources.scan_summary_no_files_read_access
-import `by`.tigre.audiobook.core.presentation.catalog.resources.scan_summary_no_files_seen
-import `by`.tigre.audiobook.core.presentation.catalog.resources.scan_summary_no_folders_to_scan
-import `by`.tigre.audiobook.core.presentation.catalog.resources.scan_summary_nothing_indexed
-import `by`.tigre.audiobook.core.presentation.catalog.resources.scan_summary_nothing_to_scan
-import `by`.tigre.audiobook.core.presentation.catalog.resources.scan_summary_skipped_or_failed_count
-import `by`.tigre.audiobook.core.presentation.catalog.resources.scan_summary_skipped_or_failed_names
-import `by`.tigre.audiobook.core.presentation.catalog.resources.scan_summary_updated_books
-import `by`.tigre.audiobook.core.presentation.catalog.resources.scanning_folders_title
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
@@ -136,41 +114,12 @@ class FolderSelectionView(
         }
 
         val scanUi by component.catalogScanUi.collectAsState()
-        val completedSummaryText = scanUi.completedSummary?.let { formatScanSummary(it) }
         var wasScanActive by remember { mutableStateOf(false) }
-        LaunchedEffect(scanUi.active, completedSummaryText) {
+        LaunchedEffect(scanUi.active) {
             if (wasScanActive && !scanUi.active) {
-                completedSummaryText?.let { snackbarHostState.showSnackbar(it) }
                 component.refreshFolderAccessHealth()
             }
             wasScanActive = scanUi.active
-        }
-
-        if (scanUi.active) {
-            AlertDialog(
-                onDismissRequest = {},
-                confirmButton = {},
-                title = { Text(stringResource(Res.string.scanning_folders_title)) },
-                text = {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        if (scanUi.total > 0) {
-                            LinearProgressIndicator(
-                                progress = { scanUi.processed.toFloat() / scanUi.total.toFloat() },
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(stringResource(Res.string.scan_files_progress, scanUi.processed, scanUi.total))
-                        } else {
-                            CircularProgressIndicator()
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(formatScanDetail(scanUi.detail))
-                    }
-                }
-            )
         }
 
         Scaffold(
@@ -184,6 +133,7 @@ class FolderSelectionView(
                             overflow = TextOverflow.Ellipsis
                         )
                     },
+                    windowInsets = appTopBarWindowInsets(),
                     navigationIcon = {
                         IconButton(onClick = component::onBack) {
                             Icon(
@@ -370,77 +320,6 @@ class FolderSelectionView(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-            }
-        }
-    }
-
-    @Composable
-    private fun formatScanDetail(detail: CatalogScanDetail): String {
-        return when (detail) {
-            CatalogScanDetail.Preparing -> stringResource(Res.string.scan_detail_preparing)
-            CatalogScanDetail.CollectingFiles -> stringResource(Res.string.scan_detail_collecting_files)
-            CatalogScanDetail.ReadingMetadata -> stringResource(Res.string.scan_detail_reading_metadata)
-        }
-    }
-
-    @Composable
-    private fun formatScanSummary(summary: CatalogScanSummary): String {
-        return when (summary) {
-            CatalogScanSummary.CannotOpenFolder ->
-                stringResource(Res.string.scan_summary_cannot_open_folder)
-
-            CatalogScanSummary.CannotReadFolder ->
-                stringResource(Res.string.scan_summary_cannot_read_folder)
-
-            CatalogScanSummary.NoFilesSeenAccessIssue ->
-                stringResource(Res.string.scan_summary_no_files_seen)
-
-            is CatalogScanSummary.UpdatedBooks ->
-                stringResource(Res.string.scan_summary_updated_books, summary.books, summary.files)
-
-            CatalogScanSummary.ScanFailed ->
-                stringResource(Res.string.scan_summary_failed)
-
-            CatalogScanSummary.NoFoldersToScan ->
-                stringResource(Res.string.scan_summary_no_folders_to_scan)
-
-            is CatalogScanSummary.CannotOpenFolders ->
-                stringResource(
-                    Res.string.scan_summary_cannot_open_folders,
-                    summary.names.joinToString(),
-                )
-
-            CatalogScanSummary.NothingToScan ->
-                stringResource(Res.string.scan_summary_nothing_to_scan)
-
-            is CatalogScanSummary.NoFilesReadAccess ->
-                stringResource(
-                    Res.string.scan_summary_no_files_read_access,
-                    summary.folderNames.joinToString(),
-                )
-
-            CatalogScanSummary.NothingIndexed ->
-                stringResource(Res.string.scan_summary_nothing_indexed)
-
-            is CatalogScanSummary.Indexed -> {
-                val base = stringResource(
-                    Res.string.scan_summary_indexed,
-                    summary.books,
-                    summary.files,
-                )
-                val suffix = when {
-                    summary.problemFolders.isEmpty() -> ""
-                    summary.problemFolders.size <= 2 -> stringResource(
-                        Res.string.scan_summary_skipped_or_failed_names,
-                        summary.problemFolders.joinToString(),
-                    )
-
-                    else -> stringResource(
-                        Res.string.scan_summary_skipped_or_failed_count,
-                        summary.problemFolders.size,
-                    )
-                }
-                base + suffix
             }
         }
     }

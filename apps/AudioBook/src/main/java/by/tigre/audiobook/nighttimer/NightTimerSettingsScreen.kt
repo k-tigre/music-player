@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import by.tigre.audiobook.R
+import by.tigre.media.platform.tools.platform.compose.appTopBarWindowInsets
 
 val NIGHT_TIMER_MINUTE_CHOICES: List<Int> = listOf(5, 10, 15, 20, 30)
 
@@ -46,6 +47,7 @@ fun NightTimerSettingsScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.night_timer_title)) },
+                windowInsets = appTopBarWindowInsets(),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(

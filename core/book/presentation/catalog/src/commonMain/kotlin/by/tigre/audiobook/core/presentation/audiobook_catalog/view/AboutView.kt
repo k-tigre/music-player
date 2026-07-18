@@ -27,6 +27,7 @@ import by.tigre.audiobook.core.presentation.catalog.resources.about_rate_on_play
 import by.tigre.audiobook.core.presentation.catalog.resources.about_version
 import by.tigre.audiobook.core.presentation.catalog.resources.settings_about
 import by.tigre.media.platform.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.appTopBarWindowInsets
 import org.jetbrains.compose.resources.stringResource
 
 class AboutView(
@@ -47,6 +48,7 @@ class AboutView(
             topBar = {
                 TopAppBar(
                     title = { Text(stringResource(Res.string.settings_about)) },
+                    windowInsets = appTopBarWindowInsets(),
                     navigationIcon = {
                         IconButton(onClick = component::onBack) {
                             Icon(

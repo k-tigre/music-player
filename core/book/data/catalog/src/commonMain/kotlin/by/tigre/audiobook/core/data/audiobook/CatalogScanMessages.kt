@@ -12,6 +12,7 @@ sealed class CatalogScanSummary {
     data object NoFilesSeenAccessIssue : CatalogScanSummary()
     data class UpdatedBooks(val books: Int, val files: Int) : CatalogScanSummary()
     data object ScanFailed : CatalogScanSummary()
+    data object Cancelled : CatalogScanSummary()
     data object NoFoldersToScan : CatalogScanSummary()
     data class CannotOpenFolders(val names: List<String>) : CatalogScanSummary()
     data object NothingToScan : CatalogScanSummary()

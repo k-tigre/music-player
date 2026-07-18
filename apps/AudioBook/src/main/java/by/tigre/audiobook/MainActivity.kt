@@ -18,6 +18,7 @@ import by.tigre.audiobook.presentation.background.BackgroundService
 import by.tigre.audiobook.presentation.root.component.Root
 import by.tigre.audiobook.presentation.root.view.RootView
 import by.tigre.audiobook.theme.AppTheme
+import by.tigre.logger.Log
 import by.tigre.media.platform.player.di.PlayerComponentProvider
 import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.media.platform.presentation.BaseComponentContextImpl
@@ -30,6 +31,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.i(TAG) { "onCreate savedInstanceStateNull=${savedInstanceState == null}" }
 
         val graph = (application as App).graph
         val root = Root.Impl(
@@ -55,6 +57,7 @@ class MainActivity : AppCompatActivity() {
                         audiobookPlaybackController = graph.audiobookPlaybackController,
                         playerViewProvider = PlayerViewProvider.Impl(),
                         audiobookCatalogViewProvider = AndroidAudiobookCatalogViewProvider(),
+                        catalogScanCoordinator = graph.catalogScanCoordinator,
                     ).Draw(Modifier)
                 }
             }
@@ -78,8 +81,28 @@ class MainActivity : AppCompatActivity() {
         controllerFuture = null
     }
 
+    override fun onStart() {
+        super.onStart()
+        Log.i(TAG) { "onStart" }
+    }
+
+    override fun onStop() {
+        Log.i(TAG) {
+            "onStop isFinishing=$isFinishing isChangingConfigurations=$isChangingConfigurations"
+        }
+        super.onStop()
+    }
+
     override fun onDestroy() {
+        Log.w(TAG) {
+            "onDestroy isFinishing=$isFinishing isChangingConfigurations=$isChangingConfigurations " +
+                "scanActive=${runCatching { (application as App).graph.catalogScanCoordinator.catalogScanUi.value.active }.getOrNull()}"
+        }
         releaseController()
         super.onDestroy()
+    }
+
+    private companion object {
+        const val TAG = "CatalogScan"
     }
 }

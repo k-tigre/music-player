@@ -1,5 +1,12 @@
 package by.tigre.audiobook.presentation.root.view
 
+import android.Manifest
+import android.app.NotificationManager
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,11 +15,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,23 +31,35 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import by.tigre.audiobook.R
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogViewProvider
+import by.tigre.audiobook.core.presentation.audiobook_catalog.scan.CatalogScanCoordinator
 import by.tigre.audiobook.core.presentation.audiobook_catalog.view.AudiobookChapterSelector
+import by.tigre.audiobook.core.presentation.audiobook_catalog.view.CatalogScanProgressBanner
+import by.tigre.audiobook.core.presentation.audiobook_catalog.view.formatCatalogScanSummary
 import by.tigre.audiobook.nighttimer.NightTimerController
 import by.tigre.audiobook.nighttimer.NightTimerSettingsScreen
 import by.tigre.audiobook.playback.PlaybackSpeedSettingsScreen
 import by.tigre.audiobook.presentation.player.view.AudiobookPlayerTopBar
 import by.tigre.audiobook.presentation.root.component.Root
+import by.tigre.logger.Log
 import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.media.platform.player.view.PlayerView
 import by.tigre.media.platform.player.view.SmallPlayerView
 import by.tigre.media.platform.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.LocalStatusBarInsetHandled
 import by.tigre.media.platform.tools.platform.compose.view.BottomBarContainer
 import by.tigre.media.platform.tools.platform.compose.view.LocalBottomBarHeight
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -49,12 +72,75 @@ class RootView(
     private val audiobookPlaybackController: AudiobookPlaybackController,
     private val playerViewProvider: PlayerViewProvider,
     private val audiobookCatalogViewProvider: AudiobookCatalogViewProvider,
+    private val catalogScanCoordinator: CatalogScanCoordinator,
 ) : ComposableView {
 
     @Composable
     override fun Draw(modifier: Modifier) {
-        DrawMain()
-        DrawGettingStartedGuide()
+        val scanUi by catalogScanCoordinator.catalogScanUi.collectAsState()
+        val snackbarHostState = remember { SnackbarHostState() }
+        val context = LocalContext.current
+        val completedSummaryText = scanUi.completedSummary?.let { formatCatalogScanSummary(it) }
+        var wasScanActive by remember { mutableStateOf(false) }
+        val bannerColor = MaterialTheme.colorScheme.secondaryContainer
+
+        val notificationPermissionLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission(),
+        ) { granted ->
+            Log.i(TAG) { "POST_NOTIFICATIONS result granted=$granted" }
+        }
+
+        LaunchedEffect(scanUi.active) {
+            if (!scanUi.active) return@LaunchedEffect
+            val nm = context.getSystemService(NotificationManager::class.java)
+            val notificationsEnabled = nm?.areNotificationsEnabled() == true
+            Log.i(TAG) {
+                "scan active: notificationsEnabled=$notificationsEnabled sdk=${Build.VERSION.SDK_INT}"
+            }
+            if (Build.VERSION.SDK_INT >= 33) {
+                val granted = ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS,
+                ) == PackageManager.PERMISSION_GRANTED
+                Log.i(TAG) { "POST_NOTIFICATIONS granted=$granted" }
+                if (!granted) {
+                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+        }
+
+        LaunchedEffect(scanUi.active, completedSummaryText) {
+            if (wasScanActive && !scanUi.active) {
+                completedSummaryText?.let { snackbarHostState.showSnackbar(it) }
+            }
+            wasScanActive = scanUi.active
+        }
+
+        Box(modifier = modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                CatalogScanProgressBanner(
+                    scanUi = scanUi,
+                    onCancel = catalogScanCoordinator::cancelScan,
+                )
+                CompositionLocalProvider(
+                    LocalStatusBarInsetHandled provides scanUi.active,
+                ) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        DrawMain()
+                    }
+                }
+            }
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter),
+            )
+            DrawGettingStartedGuide()
+        }
+
+        // After DrawMain so this wins over PlayerBackdropSystemBarEffect (transparent).
+        if (scanUi.active) {
+            ScanBannerStatusBarEffect(color = bannerColor)
+        }
     }
 
     @Composable
@@ -230,5 +316,26 @@ class RootView(
                 ).Draw(Modifier)
             }
         }
+    }
+
+    private companion object {
+        const val TAG = "CatalogScan"
+    }
+}
+
+/** Paints status bar in banner color; composed after player so it wins over transparent backdrop. */
+@Composable
+private fun ScanBannerStatusBarEffect(color: Color) {
+    val view = LocalView.current
+    if (view.isInEditMode) return
+    val lightIcons = color.luminance() > 0.5f
+
+    // SideEffect every frame so Theme / PlayerBackdrop cannot override mid-scan.
+    SideEffect {
+        val activity = view.context as? ComponentActivity ?: return@SideEffect
+        val window = activity.window
+        val insetsController = WindowCompat.getInsetsController(window, view)
+        window.statusBarColor = color.toArgb()
+        insetsController.isAppearanceLightStatusBars = lightIcons
     }
 }

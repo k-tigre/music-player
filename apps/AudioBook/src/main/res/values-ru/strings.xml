@@ -53,4 +53,26 @@
     <string name="getting_started_step_pick_book">Нажмите ← или «Библиотека» в плеере либо выберите книгу в библиотеке</string>
     <string name="getting_started_step_player_controls">Нажмите название главы для переключения; ±15 сек / ±1 мин для перемотки; скорость, ночной таймер и эквалайзер — в верхней панели</string>
     <string name="getting_started_action_add_folder">Добавить папку</string>
+
+    <string name="catalog_scan_notification_channel">Сканирование библиотеки</string>
+    <string name="catalog_scan_notification_channel_desc">Прогресс индексации папок с аудиокнигами</string>
+    <string name="catalog_scan_notification_title">Сканирование библиотеки</string>
+    <string name="catalog_scan_notification_done_title">Сканирование завершено</string>
+    <string name="catalog_scan_notification_progress">%1$d / %2$d файлов</string>
+    <string name="catalog_scan_detail_preparing">Подготовка…</string>
+    <string name="catalog_scan_detail_collecting">Сбор файлов…</string>
+    <string name="catalog_scan_detail_metadata">Чтение метаданных…</string>
+    <string name="catalog_scan_summary_cannot_open_folder">Не удалось открыть папку. Предоставьте доступ снова.</string>
+    <string name="catalog_scan_summary_cannot_read_folder">Не удалось прочитать папку. Добавьте её заново.</string>
+    <string name="catalog_scan_summary_no_files_seen">Файлы не найдены (проблема доступа?). Каталог не изменён.</string>
+    <string name="catalog_scan_summary_updated_books">Обновлено %1$d книг · %2$d файлов</string>
+    <string name="catalog_scan_summary_failed">Сканирование не удалось</string>
+    <string name="catalog_scan_summary_cancelled">Сканирование отменено</string>
+    <string name="catalog_scan_summary_no_folders">Нет папок для сканирования.</string>
+    <string name="catalog_scan_summary_cannot_open_folders">Не удалось открыть: %1$s</string>
+    <string name="catalog_scan_summary_nothing">Нечего сканировать.</string>
+    <string name="catalog_scan_summary_no_files_read">Файлы не прочитаны. Добавьте снова: %1$s</string>
+    <string name="catalog_scan_summary_nothing_indexed">Ничего не проиндексировано.</string>
+    <string name="catalog_scan_summary_indexed">Проиндексировано %1$d книг · %2$d файлов</string>
+    <string name="catalog_scan_summary_skipped"> — пропущено: %1$d</string>
 </resources>

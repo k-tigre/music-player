@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material.icons.Icons
@@ -60,6 +59,7 @@ import by.tigre.media.platform.player.component.RepeatMode
 import by.tigre.media.platform.player.component.PlayerComponent
 import by.tigre.media.platform.player.component.PlayerItem
 import by.tigre.media.platform.tools.platform.compose.ComposableView
+import by.tigre.media.platform.tools.platform.compose.statusBarsPaddingUnlessHandled
 import by.tigre.media.platform.tools.platform.compose.view.EmptyScreen
 
 
@@ -125,7 +125,7 @@ class PlayerView(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding(),
+                .statusBarsPaddingUnlessHandled(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = component::showQueue) {

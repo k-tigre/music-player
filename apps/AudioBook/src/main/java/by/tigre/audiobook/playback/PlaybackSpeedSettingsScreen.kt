@@ -20,6 +20,7 @@ import by.tigre.audiobook.R
 import by.tigre.media.platform.player.component.BasePlayerComponent
 import by.tigre.media.platform.player.view.PlaybackSpeedControl
 import by.tigre.media.platform.player.view.PlaybackSpeedControlLayout
+import by.tigre.media.platform.tools.platform.compose.appTopBarWindowInsets
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +37,7 @@ fun PlaybackSpeedSettingsScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.playback_speed_title)) },
+                windowInsets = appTopBarWindowInsets(),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(

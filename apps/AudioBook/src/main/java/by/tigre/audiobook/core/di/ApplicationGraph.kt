@@ -13,6 +13,8 @@ import by.tigre.audiobook.core.data.storage.audiobook_catalog.di.AndroidAudioboo
 import by.tigre.audiobook.car.AudiobookCarMediaLibrary
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogDependency
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.CatalogThemeSettings
+import by.tigre.audiobook.core.presentation.audiobook_catalog.scan.CatalogScanCoordinator
+import by.tigre.audiobook.scan.CatalogScanCoordinatorImpl
 import by.tigre.media.platform.background.R
 import by.tigre.media.platform.background.car.CarMediaLibrary
 import by.tigre.audiobook.nighttimer.NightTimerController
@@ -54,6 +56,7 @@ class ApplicationGraph(
     val audiobookGuideSettings: AudiobookGuideSettings,
     val themeSettingsStore: ThemeSettingsStore,
     private val rateAppConfigRepository: RateAppConfigRepository,
+    override val catalogScanCoordinator: CatalogScanCoordinator,
 ) : PlayerDependency,
     PlayerBackgroundDependency,
     AudiobookCatalogDependency,
@@ -203,6 +206,11 @@ class ApplicationGraph(
             )
             val themeSettingsStore = ThemeSettingsStore(ThemePreferencesStorage(preferences))
             val rateAppConfigRepository = RateAppConfigRepository(coroutineModule.scope)
+            val catalogScanCoordinator = CatalogScanCoordinatorImpl(
+                appContext = context.applicationContext,
+                scope = coroutineModule.scope,
+                catalogSource = audiobookCatalogModule.audiobookCatalogSource,
+            )
             return ApplicationGraph(
                 appContext = context.applicationContext,
                 coroutineScope = coroutineModule.scope,
@@ -214,6 +222,7 @@ class ApplicationGraph(
                 audiobookGuideSettings = AudiobookGuideSettingsImpl(preferences),
                 themeSettingsStore = themeSettingsStore,
                 rateAppConfigRepository = rateAppConfigRepository,
+                catalogScanCoordinator = catalogScanCoordinator,
             )
         }
     }

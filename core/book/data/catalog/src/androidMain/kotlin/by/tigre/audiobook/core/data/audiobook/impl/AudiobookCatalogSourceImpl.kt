@@ -16,12 +16,15 @@ import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.entity.catalog.Chapter
 import by.tigre.audiobook.core.entity.catalog.FolderSource
 import by.tigre.logger.Log
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.coroutineContext
 
 class AudiobookCatalogSourceImpl(
     private val context: Context,
@@ -46,6 +49,7 @@ class AudiobookCatalogSourceImpl(
                 endScan(CatalogScanSummary.CannotOpenFolder)
                 return@withContext
             }
+            _catalogScanUi.value = _catalogScanUi.value.copy(detail = CatalogScanDetail.CollectingFiles)
             val pending = mutableListOf<PendingBook>()
             val total = when (val collected = collectBooks(root, parentPath = "", out = pending)) {
                 is CollectResult.Ok -> collected.fileCount
@@ -74,6 +78,10 @@ class AudiobookCatalogSourceImpl(
             storage.syncBooksForFolder(folderSourceId, scanned)
             Log.d(TAG) { "Scan complete for folder $uri: ${scanned.size} books, $total files" }
             endScan(CatalogScanSummary.UpdatedBooks(scanned.size, total))
+        } catch (e: CancellationException) {
+            Log.w(TAG) { "addFolderAndScan cancelled: $uri" }
+            endScan(CatalogScanSummary.Cancelled)
+            throw e
         } catch (e: Exception) {
             Log.e(e) { "Error in addFolderAndScan: $uri" }
             endScan(CatalogScanSummary.ScanFailed)
@@ -98,6 +106,7 @@ class AudiobookCatalogSourceImpl(
             val works = mutableListOf<FolderScanWork>()
             val failedNames = mutableListOf<String>()
             for (folder in folders) {
+                coroutineContext.ensureActive()
                 val root = DocumentFile.fromTreeUri(context, Uri.parse(folder.uri))
                 if (root == null) {
                     Log.e(TAG) { "fromTreeUri null for rescan: ${folder.uri} (${folder.name})" }
@@ -135,6 +144,7 @@ class AudiobookCatalogSourceImpl(
             var processed = 0
             var booksCount = 0
             for (work in works) {
+                coroutineContext.ensureActive()
                 val scanned = buildScannedBooksForFolder(work.folderSourceId, work.pending) {
                     processed++
                     _catalogScanUi.value = _catalogScanUi.value.copy(processed = processed)
@@ -166,6 +176,10 @@ class AudiobookCatalogSourceImpl(
                     CatalogScanSummary.Indexed(booksCount, totalFiles, problemFolders)
             }
             endScan(summary)
+        } catch (e: CancellationException) {
+            Log.w(TAG) { "rescanAllFolders cancelled" }
+            endScan(CatalogScanSummary.Cancelled)
+            throw e
         } catch (e: Exception) {
             Log.e(e) { "Error in rescanAllFolders" }
             endScan(CatalogScanSummary.ScanFailed)
@@ -229,6 +243,7 @@ class AudiobookCatalogSourceImpl(
     ): List<ScannedBook> {
         val result = ArrayList<ScannedBook>(pending.size)
         for (book in pending) {
+            coroutineContext.ensureActive()
             val bookId = storage.getExistingBookIdForScan(folderSourceId, book.folderUri, book.title)
             val existingByUri = if (bookId != null) {
                 storage.getChaptersByBook(bookId).associateBy { it.fileUri }
@@ -252,13 +267,14 @@ class AudiobookCatalogSourceImpl(
         return result
     }
 
-    private fun buildChapters(
+    private suspend fun buildChapters(
         audioFiles: List<DocumentFile>,
         existingByUri: Map<String, Chapter>,
         onFileProcessed: () -> Unit,
     ): List<ScannedChapter> {
         val sorted = audioFiles.sortedBy { it.name ?: "" }
         return sorted.mapIndexed { index, file ->
+            coroutineContext.ensureActive()
             val chapterTitle = file.name?.substringBeforeLast('.') ?: "Chapter ${index + 1}"
             val uriStr = file.uri.toString()
             val existing = existingByUri[uriStr]
@@ -296,7 +312,12 @@ class AudiobookCatalogSourceImpl(
         data object ListingFailed : CollectResult()
     }
 
-    private fun collectBooks(dir: DocumentFile, parentPath: String, out: MutableList<PendingBook>): CollectResult {
+    private suspend fun collectBooks(
+        dir: DocumentFile,
+        parentPath: String,
+        out: MutableList<PendingBook>,
+    ): CollectResult {
+        coroutineContext.ensureActive()
         val frameStart = out.size
         @Suppress("UNCHECKED_CAST") // Java API may return null; stubs are non-null
         val raw = dir.listFiles() as Array<out DocumentFile>?
@@ -304,6 +325,7 @@ class AudiobookCatalogSourceImpl(
             Log.w(TAG) { "listFiles() returned null at ${dir.uri}" }
             return CollectResult.ListingFailed
         }
+        coroutineContext.ensureActive()
         val children = raw.asList()
         val audioFiles = children.filter { it.isFile && isAudioFile(it) }
         val subdirs = children.filter { it.isDirectory }
@@ -324,6 +346,7 @@ class AudiobookCatalogSourceImpl(
 
         val currentPath = if (parentPath.isEmpty()) (dir.name ?: "") else "$parentPath/${dir.name ?: ""}"
         for (subdir in subdirs) {
+            coroutineContext.ensureActive()
             when (val sub = collectBooks(subdir, currentPath, out)) {
                 CollectResult.ListingFailed -> {
                     while (out.size > frameStart) {
