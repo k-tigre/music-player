@@ -1,3 +1,4 @@
-• Playback speed settings
-• Android Auto: search books and play directly from the list
-• Improved cover artwork in library, player, and home widget
+• Library settings: theme, folders, and About
+• Background folder scanning with progress banner and cancel
+• Fixed a crash when opening settings from the library
+• Improved app icon display

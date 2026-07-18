@@ -9,6 +9,19 @@
 
 ### EN
 
+## [0.8.0] - 2026-07-18
+### RU
+- Настройки из библиотеки: тема, папки и «О приложении»
+- Сканирование папок в фоне с баннером прогресса и отменой
+- Исправлена ошибка при открытии настроек из библиотеки
+- Улучшено отображение иконки приложения
+
+### EN
+- Library settings: theme, folders, and About
+- Background folder scanning with progress banner and cancel
+- Fixed a crash when opening settings from the library
+- Improved app icon display
+
 ## [0.7.0] - 2026-07-14
 ### RU
 - Настройка скорости воспроизведения

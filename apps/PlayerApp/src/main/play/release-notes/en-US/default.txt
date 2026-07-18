@@ -1,3 +1,2 @@
-• Android Auto: library search
-• Android Auto: play and add-to-queue for artists and albums
-• Improved cover artwork in player, catalog, and home widget
+• Fixed track order within albums
+• Improved app icon display
