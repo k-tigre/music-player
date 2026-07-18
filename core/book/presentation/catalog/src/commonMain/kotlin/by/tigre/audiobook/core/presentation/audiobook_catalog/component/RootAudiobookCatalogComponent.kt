@@ -12,7 +12,6 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.bringToFront
 import com.arkivanov.decompose.router.stack.pop
-import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -44,7 +43,7 @@ interface RootAudiobookCatalogComponent {
 
         private val navigator = object : AudiobookCatalogNavigator {
             override fun showFolderSelection() {
-                navigation.push(Config.FolderSelection)
+                navigation.bringToFront(Config.FolderSelection)
             }
 
             override fun showBookList() {
@@ -56,11 +55,11 @@ interface RootAudiobookCatalogComponent {
             }
 
             override fun showThemeSettings() {
-                navigation.push(Config.Theme)
+                navigation.bringToFront(Config.Theme)
             }
 
             override fun showAbout() {
-                navigation.push(Config.About)
+                navigation.bringToFront(Config.About)
             }
 
             override fun showPreviousScreen() {
