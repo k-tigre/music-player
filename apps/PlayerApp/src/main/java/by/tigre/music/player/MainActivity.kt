@@ -83,11 +83,17 @@ class MainActivity : AppCompatActivity() {
                 Surface(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
                     RootView(
                         root,
-                        catalogViewProvider = CatalogViewProvider.Impl(graph.albumArtProvider),
+                        catalogViewProvider = CatalogViewProvider.Impl(
+                            graph.albumArtProvider,
+                            graph.artistArtProvider,
+                        ),
                         playerViewProvider = PlayerViewProvider.Impl(),
                         currentQueueViewProvider = CurrentQueueViewProvider.Impl(graph.albumArtProvider),
                         playlistsViewProvider = PlaylistsViewProvider.Impl(graph.albumArtProvider),
-                        favoritesViewProvider = FavoritesViewProvider.Impl(graph.albumArtProvider),
+                        favoritesViewProvider = FavoritesViewProvider.Impl(
+                            graph.albumArtProvider,
+                            graph.artistArtProvider,
+                        ),
                         playlistRepository = graph.playlistRepository,
                         favoritesRepository = graph.favoritesRepository,
                         playbackController = graph.playbackController,

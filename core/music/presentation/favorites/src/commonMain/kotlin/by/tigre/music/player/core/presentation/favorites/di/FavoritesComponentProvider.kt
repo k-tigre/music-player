@@ -30,8 +30,9 @@ interface FavoritesViewProvider {
 
     class Impl(
         private val albumArtProvider: by.tigre.music.player.core.data.catalog.AlbumArtProvider,
+        private val artistArtProvider: by.tigre.music.player.core.data.catalog.ArtistArtProvider,
     ) : FavoritesViewProvider {
         override fun createFavoritesView(component: FavoritesComponent): FavoritesView =
-            FavoritesView(component, albumArtProvider)
+            FavoritesView(component, albumArtProvider, artistArtProvider)
     }
 }

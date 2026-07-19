@@ -14,10 +14,19 @@ enum class Library(group: String, artifact: String, version: Version) {
 
     KotlinStd("org.jetbrains.kotlin", "kotlin-stdlib-jdk8", Version.Kotlin),
     KotlinxSerialization("org.jetbrains.kotlinx", "kotlinx-serialization-core", Version.KotlinSerialization),
+    KotlinxSerializationJson("org.jetbrains.kotlinx", "kotlinx-serialization-json", Version.KotlinSerialization),
 
     CoroutinesCore("org.jetbrains.kotlinx", "kotlinx-coroutines-core", Version.Coroutines),
     CoroutinesAndroid("org.jetbrains.kotlinx", "kotlinx-coroutines-android", Version.Coroutines),
     CoroutinesSwing("org.jetbrains.kotlinx", "kotlinx-coroutines-swing", Version.Coroutines),
+
+    KtorClientCore("io.ktor", "ktor-client-core", Version.Ktor),
+    KtorClientContentNegotiation("io.ktor", "ktor-client-content-negotiation", Version.Ktor),
+    KtorSerializationJson("io.ktor", "ktor-serialization-kotlinx-json", Version.Ktor),
+    KtorClientOkHttp("io.ktor", "ktor-client-okhttp", Version.Ktor),
+    KtorClientCio("io.ktor", "ktor-client-cio", Version.Ktor),
+
+    Okio("com.squareup.okio", "okio", Version.Okio),
 
     SQLDelightAndroid("app.cash.sqldelight", "android-driver", Version.SQLDelight),
     SQLDelightJvm("app.cash.sqldelight", "sqlite-driver", Version.SQLDelight),
@@ -95,6 +104,8 @@ enum class Library(group: String, artifact: String, version: Version) {
         Kotlin("2.1.21"),
         KotlinSerialization("1.10.0"),
         Coroutines("1.10.2"),
+        Ktor("3.1.3"),
+        Okio("3.11.0"),
         SQLDelight("2.2.1"),
         Media3("1.5.0"),
         Leakcanary("2.14"),

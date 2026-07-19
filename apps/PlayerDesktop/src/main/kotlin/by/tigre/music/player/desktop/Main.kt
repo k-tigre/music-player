@@ -141,10 +141,16 @@ fun main() {
 
     val rootView = RootView(
         component = root,
-        catalogViewProvider = CatalogViewProvider.Impl(graph.albumArtProvider),
+        catalogViewProvider = CatalogViewProvider.Impl(
+            graph.albumArtProvider,
+            graph.artistArtProvider,
+        ),
         currentQueueViewProvider = CurrentQueueViewProvider.Impl(graph.albumArtProvider),
         playlistsViewProvider = PlaylistsViewProvider.Impl(graph.albumArtProvider),
-        favoritesViewProvider = FavoritesViewProvider.Impl(graph.albumArtProvider),
+        favoritesViewProvider = FavoritesViewProvider.Impl(
+            graph.albumArtProvider,
+            graph.artistArtProvider,
+        ),
         playlistRepository = graph.playlistRepository,
         addToPlaylistCoordinator = graph.addToPlaylistCoordinator,
         eventAnalytics = graph.eventAnalytics,

@@ -1,2 +1,1 @@
-• Fixed track order within albums
-• Improved app icon display
+• Artist avatars in the catalog and favorites (name-based lookup with local cache)

@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -44,8 +43,10 @@ import by.tigre.media.platform.tools.platform.compose.view.LocalBottomBarHeight
 import by.tigre.media.platform.tools.platform.compose.view.PopupAction
 import by.tigre.media.platform.tools.platform.compose.view.bottomBarListContentPadding
 import by.tigre.music.player.core.data.catalog.AlbumArtProvider
+import by.tigre.music.player.core.data.catalog.ArtistArtProvider
 import by.tigre.music.player.core.data.favorites.FavoritesRepository
 import by.tigre.music.player.core.entiry.catalog.Song
+import by.tigre.music.player.core.presentation.catalog.view.ArtistArtThumbnail
 import by.tigre.music.player.core.presentation.favorites.component.FavoritesComponent
 import by.tigre.music.player.core.presentation.favorites.component.FavoritesComponent.FavoritesSegment
 import by.tigre.music.player.core.presentation.favorites.component.FavoritesComponent.Message
@@ -62,6 +63,7 @@ private const val FavoritesItemAnimationMs = 280
 class FavoritesView(
     private val component: FavoritesComponent,
     private val albumArtProvider: AlbumArtProvider,
+    private val artistArtProvider: ArtistArtProvider,
 ) : ComposableView {
 
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -261,7 +263,11 @@ class FavoritesView(
                             stringResource(Res.string.favorites_artist_songs_count, entry.artist.songCount),
                         ),
                         leadingContent = {
-                            CoverThumbnail(model = null, fallbackIcon = Icons.Outlined.Person)
+                            ArtistArtThumbnail(
+                                artistId = entry.artist.id,
+                                name = entry.artist.name,
+                                artistArtProvider = artistArtProvider,
+                            )
                         },
                         trailingContent = {
                             FavoriteHeartButton(

@@ -25,13 +25,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import by.tigre.music.player.core.data.catalog.AlbumArtProvider
+import by.tigre.music.player.core.data.catalog.ArtistArtProvider
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.Song
 import by.tigre.music.player.core.presentation.catalog.component.ArtistListComponent
 import by.tigre.music.player.core.presentation.catalog.component.ArtistListScreenData
 import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.tools.platform.compose.ComposableView
-import androidx.compose.material.icons.outlined.Person
 import by.tigre.media.platform.tools.platform.compose.view.CardWithPopup
 import by.tigre.media.platform.tools.platform.compose.view.CoverThumbnail
 import by.tigre.media.platform.tools.platform.compose.view.bottomBarListContentPadding
@@ -48,6 +48,7 @@ import org.jetbrains.compose.resources.stringResource
 class ArtistListView(
     private val component: ArtistListComponent,
     private val albumArtProvider: AlbumArtProvider,
+    private val artistArtProvider: ArtistArtProvider,
 ) : ComposableView {
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -199,7 +200,11 @@ class ArtistListView(
                 stringResource(Res.string.catalog_artist_songs_count, artist.songCount)
             ),
             leadingContent = {
-                CoverThumbnail(model = null, fallbackIcon = Icons.Outlined.Person)
+                ArtistArtThumbnail(
+                    artistId = artist.id,
+                    name = artist.name,
+                    artistArtProvider = artistArtProvider,
+                )
             },
             trailingContent = {
                 FavoriteHeartButton(

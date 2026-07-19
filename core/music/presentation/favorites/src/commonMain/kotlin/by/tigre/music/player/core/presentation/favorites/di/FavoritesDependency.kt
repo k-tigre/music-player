@@ -1,6 +1,7 @@
 package by.tigre.music.player.core.presentation.favorites.di
 
 import by.tigre.music.player.core.data.catalog.AlbumArtProvider
+import by.tigre.music.player.core.data.catalog.ArtistArtProvider
 import by.tigre.music.player.core.data.catalog.CatalogSource
 import by.tigre.music.player.core.data.favorites.FavoritesRepository
 import by.tigre.music.player.core.data.playback.PlaybackController
@@ -11,4 +12,5 @@ interface FavoritesDependency : MusicAnalyticsDependency {
     val playbackController: PlaybackController
     val catalogSource: CatalogSource
     val albumArtProvider: AlbumArtProvider
+    val artistArtProvider: ArtistArtProvider
 }

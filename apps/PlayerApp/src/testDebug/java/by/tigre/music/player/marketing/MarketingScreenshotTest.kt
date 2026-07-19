@@ -57,6 +57,7 @@ abstract class MarketingScreenshotTestBase(
         ArtistListView(
             component = MarketingScreenshotFixtures.artistListComponent(context, locale),
             albumArtProvider = MarketingScreenshotFixtures.albumArtProvider(context, locale),
+            artistArtProvider = by.tigre.music.player.core.data.catalog.NoOpArtistArtProvider,
         ).Draw(Modifier.fillMaxSize())
     }
 
@@ -100,6 +101,7 @@ abstract class MarketingScreenshotTestBase(
         FavoritesView(
             component = MarketingScreenshotFixtures.favoritesComponent(locale),
             albumArtProvider = MarketingScreenshotFixtures.albumArtProvider(context, locale),
+            artistArtProvider = by.tigre.music.player.core.data.catalog.NoOpArtistArtProvider,
         ).Draw(Modifier.fillMaxSize())
     }
 
