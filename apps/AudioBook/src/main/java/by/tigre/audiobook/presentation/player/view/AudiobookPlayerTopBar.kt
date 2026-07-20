@@ -3,6 +3,7 @@ package by.tigre.audiobook.presentation.player.view
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
@@ -95,7 +96,7 @@ fun AudiobookPlayerTopBar(
                     )
                     IconButton(
                         onClick = nightTimerController::cancelTimer,
-                        modifier = Modifier.padding(start = (-8).dp),
+                        modifier = Modifier.offset(x = (-8).dp),
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Close,
