@@ -1,4 +1,1 @@
-• Library settings: theme, folders, and About
-• Background folder scanning with progress banner and cancel
-• Fixed a crash when opening settings from the library
-• Improved app icon display
+• Fixed a crash when starting the sleep timer
