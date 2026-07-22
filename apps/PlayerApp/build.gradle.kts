@@ -83,7 +83,7 @@ android {
                 if (env.useProguard) {
                     proguardFiles(
                         "rules.proguard",
-                        getDefaultProguardFile(com.android.build.gradle.ProguardFiles.ProguardFile.DONT_OPTIMIZE.fileName)
+                        getDefaultProguardFile("proguard-android-optimize.txt")
                     )
                 }
 
@@ -102,6 +102,7 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+        resValues = true
         viewBinding = false
     }
 

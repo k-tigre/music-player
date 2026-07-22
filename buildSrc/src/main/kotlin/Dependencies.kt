@@ -96,7 +96,7 @@ enum class Library(group: String, artifact: String, version: Version) {
     internal enum class Version(val value: String) {
         ActivityCompose("1.13.0"),
         AndroidXAppcompat("1.7.1"),
-        AndroidXCore("1.18.0"),
+        AndroidXCore("1.19.0"),
         AndroidXAnnotation("1.10.0"),
         AndroidXSplash("1.2.0"),
         AndroidXDocumentFile("1.1.0"),
@@ -211,6 +211,7 @@ enum class Plugin(group: String, artifact: String, version: Version) {
     enum class Id(val value: String) {
         AndroidApplication("com.android.application"),
         AndroidLibrary("com.android.library"),
+        AndroidKmpLibrary("com.android.kotlin.multiplatform.library"),
         KotlinAndroid("org.jetbrains.kotlin.android"),
         KotlinCompose("org.jetbrains.kotlin.plugin.compose"),
         KotlinSerialization("org.jetbrains.kotlin.plugin.serialization"),
@@ -229,7 +230,7 @@ enum class Plugin(group: String, artifact: String, version: Version) {
     }
 
     private enum class Version(val value: String) {
-        Android("8.13.2"),
+        Android("9.3.0"),
         Kotlin(Library.Version.Kotlin.value),
         ComposeMultiplatform("1.11.1"),
         Google("4.5.0"),

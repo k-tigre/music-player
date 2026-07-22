@@ -1,10 +1,17 @@
 plugins {
     id(Plugin.Id.KotlinMultiplatform.value)
-    id(Plugin.Id.AndroidLibrary.value)
+    id(Plugin.Id.AndroidKmpLibrary.value)
 }
 
 kotlin {
-    androidTarget()
+    android {
+        namespace = "by.tigre.media.platform.tools.analytics"
+        compileSdk = Application.SDK_COMPILE
+        minSdk = Application.SDK_MINIMUM
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        }
+    }
     jvm("desktop")
     jvmToolchain(21)
 
@@ -20,10 +27,6 @@ kotlin {
             implementation(project(Project.Tools.Coroutines.name))
         }
     }
-}
-
-android {
-    namespace = "by.tigre.media.platform.tools.analytics"
 }
 
 val generateAnalyticsDocs = tasks.register<JavaExec>("generateAnalyticsDocs") {

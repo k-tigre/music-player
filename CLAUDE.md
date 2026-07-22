@@ -241,11 +241,11 @@ Windows: use `gradlew.bat` instead of `./gradlew`.
 | Setting | Value |
 |---------|-------|
 | Kotlin | 2.4.10 |
-| AGP | 8.13.2 |
+| AGP | 9.3.0 |
 | Gradle | 9.5.1 |
 | JVM toolchain | 21 |
-| Compile SDK | 36 |
-| Target SDK | 36 |
+| Compile SDK | 37 |
+| Target SDK | 37 |
 | Min SDK | 26 |
 | Compose (Android) | 1.11.4 |
 | Compose Multiplatform | 1.11.1 |
@@ -267,6 +267,7 @@ App versions: Music Player `0.17.0`, AudioBook `0.2.0`, Desktop `1.0.5`.
 2. **Respect module boundaries** — don't import `apps:*` from `core:*`; don't put Android APIs in `entity`
 3. **Both apps may need wiring** — if changing shared `core:*`, check PlayerApp AND AudioBook `ApplicationGraph` / `Root`
 4. **KMP source sets** — platform code in `androidMain`/`desktopMain`, shared in `commonMain`
-5. **No tests exist** — don't claim test coverage; run relevant `assembleDebug` or `:apps:PlayerDesktop:run` to verify
+5. **KMP source sets** — platform code in `androidMain`/`desktopMain`, shared in `commonMain`. Android target uses `com.android.kotlin.multiplatform.library` (`kotlin { android { ... } }`), not `com.android.library` + `androidTarget()`.
 6. **Don't rename `entiry`/`backgound_player`** — breaks imports across the entire codebase
 7. **Commits/PRs** — only when explicitly asked by the user
+8. **AGP 9 apps** — apps/Android-only libs still use `org.jetbrains.kotlin.android` via `android.builtInKotlin=false` + `android.newDsl=false` (temporary until built-in Kotlin migration)
