@@ -1,0 +1,28 @@
+# Crashlytics / stack traces
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
+
+# Kotlin
+-dontwarn kotlin.**
+-keep class kotlin.Metadata { *; }
+
+# Kotlinx Serialization (polymorphic / reflective lookups)
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.AnnotationsKt
+-keep,includedescriptorclasses class **$$serializer { *; }
+-keepclassmembers class ** {
+    *** Companion;
+}
+-keepclasseswithmembers class ** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+# Parcelable (Android Auto / MediaSession extras)
+-keepclassmembers class * implements android.os.Parcelable {
+    public static final ** CREATOR;
+}
+
+# Keep native methods
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
