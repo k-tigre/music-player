@@ -1,3 +1,5 @@
+import com.android.build.api.dsl.ApplicationExtension
+import com.android.build.api.dsl.LibraryExtension
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -26,37 +28,52 @@ buildscript {
 }
 
 subprojects {
-    plugins.matching { it is com.android.build.gradle.AppPlugin || it is com.android.build.gradle.LibraryPlugin }
-        .whenPluginAdded {
-            configure<com.android.build.gradle.BaseExtension> {
-
-                buildToolsVersion(Tools.Build.version)
-                compileSdkVersion(Application.SDK_COMPILE)
-
-                defaultConfig {
-                    minSdk = Application.SDK_MINIMUM
-                    targetSdk = Application.SDK_TARGET
-                }
-
-                compileOptions {
-                    sourceCompatibility = JavaVersion.VERSION_21
-                    targetCompatibility = JavaVersion.VERSION_21
-                }
-
-                testOptions {
-                    unitTests.isReturnDefaultValues = true
-                }
-
-                buildFeatures.buildConfig = false
-                buildFeatures.viewBinding = false
-                buildFeatures.compose = false
-
-                namespace = "by.tigre.${name.replace(":", ".").replace("-", "_")}"
+    plugins.withId(Plugin.Id.AndroidApplication.value) {
+        extensions.configure<ApplicationExtension>("android") {
+            compileSdk = Application.SDK_COMPILE
+            buildToolsVersion = Tools.Build.version
+            defaultConfig {
+                minSdk = Application.SDK_MINIMUM
+                targetSdk = Application.SDK_TARGET
             }
+            compileOptions {
+                sourceCompatibility = JavaVersion.VERSION_21
+                targetCompatibility = JavaVersion.VERSION_21
+            }
+            testOptions {
+                unitTests.isReturnDefaultValues = true
+            }
+            buildFeatures {
+                buildConfig = false
+                viewBinding = false
+                compose = false
+            }
+            namespace = "by.tigre.${name.replace(":", ".").replace("-", "_")}"
         }
+        pluginManager.apply(Plugin.Id.KotlinSerialization.value)
+    }
 
-    // Apply serialization plugin to all Kotlin Android modules (bundled in kotlin-gradle-plugin)
-    plugins.withId(Plugin.Id.KotlinAndroid.value) {
+    plugins.withId(Plugin.Id.AndroidLibrary.value) {
+        extensions.configure<LibraryExtension>("android") {
+            compileSdk = Application.SDK_COMPILE
+            buildToolsVersion = Tools.Build.version
+            defaultConfig {
+                minSdk = Application.SDK_MINIMUM
+            }
+            compileOptions {
+                sourceCompatibility = JavaVersion.VERSION_21
+                targetCompatibility = JavaVersion.VERSION_21
+            }
+            testOptions {
+                unitTests.isReturnDefaultValues = true
+            }
+            buildFeatures {
+                buildConfig = false
+                viewBinding = false
+                compose = false
+            }
+            namespace = "by.tigre.${name.replace(":", ".").replace("-", "_")}"
+        }
         pluginManager.apply(Plugin.Id.KotlinSerialization.value)
     }
 
@@ -67,14 +84,6 @@ subprojects {
         }
     }
 
-    plugins.withId(Plugin.Id.KotlinAndroid.value) {
-        tasks.withType<KotlinCompile> {
-            compilerOptions {
-                allWarningsAsErrors = false
-                jvmTarget = JvmTarget.JVM_21
-            }
-        }
-    }
     plugins.withId(Plugin.Id.KotlinJvm.value) {
         tasks.withType<KotlinCompile> {
             compilerOptions {
@@ -97,15 +106,5 @@ subprojects {
         }
 
         outputDir = File(rootDir, "build/${project.group.toString().replace(".", "/")}/${project.name}").absolutePath
-
-//        resolutionStrategy {
-//            componentSelection {
-//                all {
-//                    if (isNonStable(candidate.version) && !isNonStable(currentVersion)) {
-//                        reject("Release candidate")
-//                    }
-//                }
-//            }
-//        }
     }
 }

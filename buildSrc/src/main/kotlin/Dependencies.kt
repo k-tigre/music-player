@@ -237,7 +237,7 @@ enum class Plugin(group: String, artifact: String, version: Version) {
         Crashlytics("3.0.7"),
         Versions("0.54.0"),
         SQLDelight(Library.Version.SQLDelight.value),
-        GooglePlayPublisher("3.13.0"),
+        GooglePlayPublisher("4.0.0"),
         FirebasePublisher("5.3.0"),
         Roborazzi(Library.Version.Roborazzi.value),
     }

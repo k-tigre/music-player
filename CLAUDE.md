@@ -270,4 +270,4 @@ App versions: Music Player `0.17.0`, AudioBook `0.2.0`, Desktop `1.0.5`.
 5. **KMP source sets** — platform code in `androidMain`/`desktopMain`, shared in `commonMain`. Android target uses `com.android.kotlin.multiplatform.library` (`kotlin { android { ... } }`), not `com.android.library` + `androidTarget()`.
 6. **Don't rename `entiry`/`backgound_player`** — breaks imports across the entire codebase
 7. **Commits/PRs** — only when explicitly asked by the user
-8. **AGP 9 apps** — apps/Android-only libs still use `org.jetbrains.kotlin.android` via `android.builtInKotlin=false` + `android.newDsl=false` (temporary until built-in Kotlin migration)
+8. **AGP 9 apps** — apps and Android-only libs use AGP built-in Kotlin (no `org.jetbrains.kotlin.android`); keep Compose / Parcelize / Serialization plugins where needed

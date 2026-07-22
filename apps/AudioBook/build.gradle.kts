@@ -4,7 +4,6 @@ import com.github.triplet.gradle.androidpublisher.ReleaseStatus
 
 plugins {
     id(Plugin.Id.AndroidApplication.value)
-    id(Plugin.Id.KotlinAndroid.value)
     id(Plugin.Id.GoogleServices.value)
     id(Plugin.Id.Crashlytics.value)
     id(Plugin.Id.GooglePlayPublisher.value)
