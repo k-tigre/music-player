@@ -240,22 +240,22 @@ Windows: use `gradlew.bat` instead of `./gradlew`.
 
 | Setting | Value |
 |---------|-------|
-| Kotlin | 2.1.21 |
+| Kotlin | 2.4.10 |
 | AGP | 8.13.2 |
-| Gradle | 8.9 |
+| Gradle | 9.5.1 |
 | JVM toolchain | 21 |
 | Compile SDK | 36 |
-| Target SDK | 35 |
+| Target SDK | 36 |
 | Min SDK | 26 |
-| Compose (Android) | 1.8.0 |
-| Compose Multiplatform | 1.8.1 |
+| Compose (Android) | 1.11.4 |
+| Compose Multiplatform | 1.11.1 |
 | Material3 | 1.4.0 |
-| Decompose | 3.4.0 |
-| Media3 | 1.5.0 |
-| SQLDelight | 2.2.1 |
-| Coroutines | 1.10.2 |
-| Firebase BOM | 34.0.0 |
-| Coil | 3.1.0 |
+| Decompose | 3.5.0 |
+| Media3 | 1.10.1 |
+| SQLDelight | 2.3.2 |
+| Coroutines | 1.11.0 |
+| Firebase BOM | 34.16.0 |
+| Coil | 3.5.0 |
 
 App versions: Music Player `0.17.0`, AudioBook `0.2.0`, Desktop `1.0.5`.
 

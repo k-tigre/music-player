@@ -1,7 +1,7 @@
 object Application {
     const val SDK_COMPILE = 36
     const val SDK_MINIMUM = 26
-    const val SDK_TARGET = 35
+    const val SDK_TARGET = 36
 
     data class Version(private val major: Int, private val minor: Int, private val patch: Int) {
         val code = 10000 * major + 100 * minor + patch

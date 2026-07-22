@@ -94,41 +94,41 @@ enum class Library(group: String, artifact: String, version: Version) {
     val notation = "$group:$artifact:${version.value}"
 
     internal enum class Version(val value: String) {
-        ActivityCompose("1.10.0"),
-        AndroidXAppcompat("1.7.0"),
-        AndroidXCore("1.17.0"),
-        AndroidXAnnotation("1.9.1"),
+        ActivityCompose("1.13.0"),
+        AndroidXAppcompat("1.7.1"),
+        AndroidXCore("1.18.0"),
+        AndroidXAnnotation("1.10.0"),
         AndroidXSplash("1.2.0"),
         AndroidXDocumentFile("1.1.0"),
         AndroidXPalette("1.0.0"),
-        Kotlin("2.1.21"),
-        KotlinSerialization("1.10.0"),
-        Coroutines("1.10.2"),
-        Ktor("3.1.3"),
-        Okio("3.11.0"),
-        SQLDelight("2.2.1"),
-        Media3("1.5.0"),
+        Kotlin("2.4.10"),
+        KotlinSerialization("1.11.0"),
+        Coroutines("1.11.0"),
+        Ktor("3.5.1"),
+        Okio("3.18.0"),
+        SQLDelight("2.3.2"),
+        Media3("1.10.1"),
         Leakcanary("2.14"),
-        Compose("1.8.0"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
-        ComposeFoundation("1.8.0"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
-        ComposeMaterial("1.8.0"),
+        Compose("1.11.4"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
+        ComposeFoundation("1.11.4"), /*MUST BE CHANGED WITH ACCOMPANIST VERSION*/
+        ComposeMaterial("1.11.4"),
         ComposeMaterialIcons("1.7.8"),
         ComposeMaterial3("1.4.0"),
-        ComposeUiTextGoogleFonts("1.10.3"),
-        ComposeMultiplatform("1.8.1"),
+        ComposeUiTextGoogleFonts("1.11.4"),
+        ComposeMultiplatform("1.11.1"),
         Accompanist("0.37.3") /*MUST BE CHANGED WITH COMPOSE VERSION*/,
-        CoilCompose("3.1.0"),
+        CoilCompose("3.5.0"),
         JAudioTagger("3.0.1"),
         JavaCv("1.5.11"),
         FfmpegPlatform("7.1-1.5.11"),
-        Decompose("3.4.0"),
+        Decompose("3.5.0"),
         Reorderable("3.1.0"),
         Jnativehook("2.2.2"),
-        Mixpanel("8.2.0"),
+        Mixpanel("8.9.0"),
         JUnit4("4.13.2"),
-        AndroidXTest("1.6.1"),
-        Robolectric("4.14.1"),
-        Roborazzi("1.40.1"),
+        AndroidXTest("1.7.0"),
+        Robolectric("4.16.1"),
+        Roborazzi("1.70.0"),
 
         DebugComposeCustomView("1.2.0-alpha02"),
         DebugComposeCustomViewPoolingcontainer("1.0.0"),
@@ -186,7 +186,7 @@ enum class FirebaseLibrary(group: String, artifact: String) {
     val notation = "$group:$artifact"
 
     companion object {
-        val bom = "com.google.firebase:firebase-bom:34.0.0"
+        val bom = "com.google.firebase:firebase-bom:34.16.0"
     }
 }
 
@@ -231,13 +231,13 @@ enum class Plugin(group: String, artifact: String, version: Version) {
     private enum class Version(val value: String) {
         Android("8.13.2"),
         Kotlin(Library.Version.Kotlin.value),
-        ComposeMultiplatform("1.8.1"),
-        Google("4.4.2"),
-        Crashlytics("3.0.6"),
-        Versions("0.52.0"),
+        ComposeMultiplatform("1.11.1"),
+        Google("4.5.0"),
+        Crashlytics("3.0.7"),
+        Versions("0.54.0"),
         SQLDelight(Library.Version.SQLDelight.value),
-        GooglePlayPublisher("3.12.1"),
-        FirebasePublisher("5.0.0"),
+        GooglePlayPublisher("3.13.0"),
+        FirebasePublisher("5.3.0"),
         Roborazzi(Library.Version.Roborazzi.value),
     }
 }
@@ -245,10 +245,10 @@ enum class Plugin(group: String, artifact: String, version: Version) {
 /* With Kotlin 2.0+, composeOptions.kotlinCompilerExtensionVersion is no longer used.
    The Compose compiler is now bundled with Kotlin. Apply org.jetbrains.kotlin.plugin.compose
    plugin to each module using Compose instead. */
-const val KotlinCompilerExtensionVersion = "2.1.0"
+const val KotlinCompilerExtensionVersion = "2.4.10"
 
 enum class Tools(val version: String) {
-    Build("35.0.0"),
+    Build("36.0.0"),
 }
 
 sealed class Project(id: String) {
