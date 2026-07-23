@@ -147,6 +147,9 @@ internal class FfmpegDesktopPlaybackPlayer private constructor(
     private val _progress = MutableStateFlow(PlaybackPlayer.Progress(0, 0))
     override val progress: Flow<PlaybackPlayer.Progress> = _progress
 
+    override suspend fun currentProgress(): PlaybackPlayer.Progress =
+        PlaybackPlayer.Progress(lastPositionMs, currentDurationMs)
+
     private fun startDecodeThreadLocked() {
         if (decodeThread?.isAlive == true) return
         runDecode = true

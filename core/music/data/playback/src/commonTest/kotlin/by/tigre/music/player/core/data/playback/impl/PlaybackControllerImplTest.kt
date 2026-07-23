@@ -273,6 +273,8 @@ class PlaybackControllerImplTest {
             resumeCalls++
         }
         override suspend fun seekTo(position: Long) = Unit
+        override suspend fun currentProgress(): PlaybackPlayer.Progress =
+            PlaybackPlayer.Progress(position = 0, duration = 0)
         override suspend fun setMediaItem(item: MediaItemWrapper, position: Long) = Unit
         override suspend fun setPlaybackSpeed(speed: Float) {
             _playbackSpeed.value = speed

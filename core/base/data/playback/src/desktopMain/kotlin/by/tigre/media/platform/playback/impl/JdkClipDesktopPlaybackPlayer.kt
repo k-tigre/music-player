@@ -57,6 +57,9 @@ internal class JdkClipDesktopPlaybackPlayer(
     private val _progress = MutableStateFlow(PlaybackPlayer.Progress(0, 0))
     override val progress: Flow<PlaybackPlayer.Progress> = _progress
 
+    override suspend fun currentProgress(): PlaybackPlayer.Progress =
+        PlaybackPlayer.Progress(currentPosition, currentDurationMs)
+
     @Volatile
     private var playWhenReady = false
 

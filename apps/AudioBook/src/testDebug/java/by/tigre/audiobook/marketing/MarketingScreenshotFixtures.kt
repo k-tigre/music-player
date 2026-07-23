@@ -262,6 +262,8 @@ object MarketingScreenshotFixtures {
         override suspend fun pause() = Unit
         override suspend fun resume() = Unit
         override suspend fun seekTo(position: Long) = Unit
+        override suspend fun currentProgress() =
+            by.tigre.media.platform.playback.PlaybackPlayer.Progress(0, 0)
         override suspend fun setMediaItem(item: by.tigre.media.platform.playback.MediaItemWrapper, position: Long) = Unit
         override suspend fun setPlaybackSpeed(speed: Float) = Unit
     }

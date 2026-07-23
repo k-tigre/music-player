@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
@@ -213,11 +212,11 @@ internal class AudiobookPlaybackControllerImpl(
         Log.d(TAG) { "playPrevChapter" }
         scope.launch {
             dismissBookFinishedBanner()
-            val progress = player.progress.first()
+            val progress = player.currentProgress()
             if (progress.position > AudiobookPlaybackConfig.PREV_BUTTON_CHAPTER_RESTART_THRESHOLD_MS) {
                 clearPauseRewindState()
                 player.seekTo(0L)
-                saveCurrentPosition()
+                persistPlaybackPosition(0L)
             } else {
                 skipToPreviousChapter()
             }
@@ -279,15 +278,16 @@ internal class AudiobookPlaybackControllerImpl(
     override fun seekBy(deltaMs: Long) {
         scope.launch {
             if (deltaMs == 0L) return@launch
-            if (deltaMs < 0L) {
-                dismissBookFinishedBanner()
-            } else {
-                dismissBookFinishedBanner()
-            }
+            dismissBookFinishedBanner()
             clearPauseRewindState()
             mayPersistBelowCanonical = true
-            seekAcrossChapters(deltaMs)
-            saveCurrentPosition()
+            val target = seekAcrossChapters(deltaMs)
+            // Persist computed target — progress SharedFlow can still report the pre-seek position.
+            if (target != null) {
+                persistPlaybackPosition(target)
+            } else {
+                saveCurrentPosition()
+            }
         }
     }
 
@@ -320,10 +320,10 @@ internal class AudiobookPlaybackControllerImpl(
         player.pause()
         val back = rewindMs?.takeIf { it > 0L } ?: return
         dismissBookFinishedBanner()
-        val positionMs = player.progress.first().position
+        val positionMs = player.currentProgress().position
         val target = (positionMs - back).coerceAtLeast(0L)
         player.seekTo(target)
-        // ExoPlayer applies seek asynchronously; progress.first() can still be stale here — persist [target] explicitly.
+        // Persist [target] explicitly — engine position / progress flow can lag right after seek.
         persistPlaybackPosition(target)
     }
 
@@ -348,7 +348,7 @@ internal class AudiobookPlaybackControllerImpl(
     private suspend fun saveCurrentPosition() {
         val book = currentBook.value ?: return
         val chapter = currentChapter.value ?: return
-        val progress = player.progress.first()
+        val progress = player.currentProgress()
         persistPlaybackPosition(progress.position)
     }
 
@@ -367,6 +367,8 @@ internal class AudiobookPlaybackControllerImpl(
         if (position > 0) {
             storage.savePosition(book.id, chapter.id, position)
             Log.d(TAG) { "Saved position: book=${book.title}, chapter=${chapter.title}, pos=$position" }
+        } else {
+            storage.savePosition(book.id, chapter.id, 0L)
         }
         saveBookProgress(book, chapter, position)
     }
@@ -400,7 +402,11 @@ internal class AudiobookPlaybackControllerImpl(
         pauseStartedAt = null
         val rewindMs = rewindMsAfterPause(wantsRewind, pauseMark)
         if (rewindMs > 0L) {
-            rewindAcrossChapters(rewindMs)
+            val target = rewindAcrossChapters(rewindMs)
+            if (target != null) {
+                persistPlaybackPosition(target)
+                return
+            }
         }
         saveCurrentPosition()
     }
@@ -432,8 +438,8 @@ internal class AudiobookPlaybackControllerImpl(
         return (minMs + (maxMs - minMs) * fraction).toLong()
     }
 
-    private suspend fun seekAcrossChapters(deltaMs: Long) {
-        if (deltaMs < 0L) {
+    private suspend fun seekAcrossChapters(deltaMs: Long): Long? {
+        return if (deltaMs < 0L) {
             rewindAcrossChapters(-deltaMs)
         } else {
             forwardAcrossChapters(deltaMs)
@@ -443,19 +449,22 @@ internal class AudiobookPlaybackControllerImpl(
     /**
      * Moves playback back by [rewindMs] within the current chapter; overflow goes to the previous chapter(s)
      * from the end of each file, same as rewinding from the chapter boundary.
+     *
+     * @return the absolute position in the resulting chapter after the seek, or null if nothing changed.
      */
-    private suspend fun rewindAcrossChapters(rewindMs: Long) {
+    private suspend fun rewindAcrossChapters(rewindMs: Long): Long? {
         val chapterList = chapters.value
-        val current = currentChapter.value ?: return
+        val current = currentChapter.value ?: return null
         var chapterIndex = chapterList.indexOfFirst { it.id == current.id }
-        if (chapterIndex < 0) return
+        if (chapterIndex < 0) return null
 
-        val positionMs = player.progress.first().position.coerceAtLeast(0L)
+        val positionMs = player.currentProgress().position.coerceAtLeast(0L)
         var remaining = rewindMs
 
         if (positionMs >= remaining) {
-            player.seekTo(positionMs - remaining)
-            return
+            val target = positionMs - remaining
+            player.seekTo(target)
+            return target
         }
 
         remaining -= positionMs
@@ -471,29 +480,31 @@ internal class AudiobookPlaybackControllerImpl(
             if (remaining <= durationMs) {
                 val targetPos = (durationMs - remaining).coerceAtLeast(0L)
                 setChapter(chapter, targetPos)
-                return
+                return targetPos
             }
             remaining -= durationMs
             chapterIndex--
         }
 
         setChapter(chapterList.first(), 0L)
+        return 0L
     }
 
-    private suspend fun forwardAcrossChapters(forwardMs: Long) {
+    private suspend fun forwardAcrossChapters(forwardMs: Long): Long? {
         val chapterList = chapters.value
-        if (chapterList.isEmpty()) return
-        val current = currentChapter.value ?: return
+        if (chapterList.isEmpty()) return null
+        val current = currentChapter.value ?: return null
         var chapterIndex = chapterList.indexOfFirst { it.id == current.id }
-        if (chapterIndex < 0) return
+        if (chapterIndex < 0) return null
 
-        val positionMs = player.progress.first().position.coerceAtLeast(0L)
+        val positionMs = player.currentProgress().position.coerceAtLeast(0L)
         var remaining = forwardMs
 
         val currentDurationMs = chapterList[chapterIndex].duration.coerceAtLeast(0L)
         if (currentDurationMs > 0L && positionMs + remaining <= currentDurationMs) {
-            player.seekTo(positionMs + remaining)
-            return
+            val target = positionMs + remaining
+            player.seekTo(target)
+            return target
         }
 
         if (currentDurationMs > 0L) {
@@ -510,15 +521,16 @@ internal class AudiobookPlaybackControllerImpl(
             }
             if (remaining < durationMs) {
                 setChapter(chapter, remaining)
-                return
+                return remaining
             }
             if (remaining == durationMs) {
                 if (chapterIndex < chapterList.size - 1) {
                     setChapter(chapterList[chapterIndex + 1], 0L)
+                    return 0L
                 } else {
                     setChapter(chapter, durationMs)
+                    return durationMs
                 }
-                return
             }
             remaining -= durationMs
             chapterIndex++
@@ -527,6 +539,7 @@ internal class AudiobookPlaybackControllerImpl(
         val lastChapter = chapterList.last()
         val endMs = lastChapter.duration.coerceAtLeast(0L)
         setChapter(lastChapter, endMs)
+        return endMs
     }
 
     private suspend fun saveBookProgressCompleted(book: Book, chapterList: List<Chapter>) {

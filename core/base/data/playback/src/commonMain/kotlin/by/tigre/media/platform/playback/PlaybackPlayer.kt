@@ -8,6 +8,12 @@ interface PlaybackPlayer {
     val state: StateFlow<State>
     val playbackSpeed: StateFlow<Float>
 
+    /**
+     * Live position/duration from the engine (not [progress] SharedFlow replay).
+     * Use for seeks and persistence — [progress] can be stale between ticks / without subscribers.
+     */
+    suspend fun currentProgress(): Progress
+
     suspend fun stop()
     suspend fun pause()
     suspend fun resume()

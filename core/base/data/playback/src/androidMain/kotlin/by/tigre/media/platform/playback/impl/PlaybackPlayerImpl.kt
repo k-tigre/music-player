@@ -127,6 +127,10 @@ internal class PlaybackPlayerImpl(
         }
     }
 
+    override suspend fun currentProgress(): PlaybackPlayer.Progress = withContext(Dispatchers.Main) {
+        PlaybackPlayer.Progress(player.contentPosition, player.duration)
+    }
+
     override suspend fun seekTo(position: Long) {
         withContext(Dispatchers.Main) {
             player.seekTo(position)
