@@ -2,6 +2,10 @@
 
 AI agents: read **[CLAUDE.md](CLAUDE.md)** for full project context.
 
+Process/domain knowledge: use the **knowledge** MCP
+(`knowledge_search` / `knowledge_get` / `knowledge_list`).
+Scopes: `process` + `domains/music-player`. Prefer writing lasting facts into the private knowledge repo, not inventing process details.
+
 Quick facts:
 - Kotlin monorepo — 3 apps (`PlayerApp`, `AudioBook`, `PlayerDesktop`) + shared KMP `core:*` modules
 - Pattern: manual DI (`ApplicationGraph`) + Decompose + Component/View split
