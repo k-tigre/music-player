@@ -56,11 +56,25 @@ internal class AudiobookPlaybackControllerImpl(
     /** After user paused while playing, allow saving a position earlier than [loadCanonicalListenedMs] (e.g. resume rewind). */
     private var mayPersistBelowCanonical: Boolean = false
 
+    /**
+     * MediaSession Legacy often sends pause on [PlaybackPlayer.State.Ended] (BT / system controls).
+     * While true, [pause] is ignored so auto-advance can [resumePlaybackIfDesired].
+     */
+    private var suppressExternalPause: Boolean = false
+
     init {
         scope.launch {
             player.state
                 .filter { it == PlaybackPlayer.State.Ended }
-                .collect { playNextChapter() }
+                .collect {
+                    // Set before launching playNext work — pause can arrive on main in the same frame.
+                    suppressExternalPause = true
+                    Log.d(TAG) {
+                        "state Ended → playNextChapter isPlaying=${isPlaying.value} " +
+                            "chapter=${currentChapter.value?.title}"
+                    }
+                    playNextChapter()
+                }
         }
 
         scope.launch {
@@ -162,33 +176,49 @@ internal class AudiobookPlaybackControllerImpl(
     }
 
     override fun playNextChapter() {
-        Log.d(TAG) { "playNextChapter" }
+        Log.d(TAG) {
+            "playNextChapter isPlaying=${isPlaying.value} chapter=${currentChapter.value?.title}"
+        }
+        suppressExternalPause = true
         scope.launch {
-            clearPauseRewindState()
-            loadCanonicalListenedMs = null
-            saveCurrentPosition()
-            val chapterList = chapters.value
-            val current = currentChapter.value ?: return@launch
-            val nextIndex = chapterList.indexOfFirst { it.id == current.id } + 1
-            if (nextIndex < chapterList.size) {
-                dismissBookFinishedBanner()
-                setChapter(chapterList[nextIndex], 0L)
-                resumePlaybackIfDesired()
-            } else {
-                Log.d(TAG) { "Book finished" }
-                currentBook.value?.let { book ->
+            try {
+                clearPauseRewindState()
+                loadCanonicalListenedMs = null
+                saveCurrentPosition()
+                val chapterList = chapters.value
+                val current = currentChapter.value ?: return@launch
+                val nextIndex = chapterList.indexOfFirst { it.id == current.id } + 1
+                if (nextIndex < chapterList.size) {
+                    val next = chapterList[nextIndex]
+                    dismissBookFinishedBanner()
+                    Log.d(TAG) {
+                        "playNextChapter setChapter ${current.title} → ${next.title} " +
+                            "isPlaying=${isPlaying.value}"
+                    }
+                    setChapter(next, 0L)
+                    Log.d(TAG) {
+                        "playNextChapter after setChapter chapter=${currentChapter.value?.title} " +
+                            "isPlaying=${isPlaying.value}"
+                    }
+                    resumePlaybackIfDesired()
+                } else {
+                    Log.d(TAG) { "Book finished" }
+                    currentBook.value?.let { book ->
+                        val lastChapter = chapterList.last()
+                        storage.savePosition(book.id, lastChapter.id, lastChapter.duration.coerceAtLeast(0L))
+                        saveBookProgressCompleted(book, chapterList)
+                    }
+                    isPlaying.value = false
+                    player.pause()
                     val lastChapter = chapterList.last()
-                    storage.savePosition(book.id, lastChapter.id, lastChapter.duration.coerceAtLeast(0L))
-                    saveBookProgressCompleted(book, chapterList)
+                    val endMs = lastChapter.duration.coerceAtLeast(0L)
+                    if (endMs > 0L) {
+                        player.seekTo(endMs)
+                    }
+                    bookFinishedBannerVisible.value = true
                 }
-                isPlaying.value = false
-                player.pause()
-                val lastChapter = chapterList.last()
-                val endMs = lastChapter.duration.coerceAtLeast(0L)
-                if (endMs > 0L) {
-                    player.seekTo(endMs)
-                }
-                bookFinishedBannerVisible.value = true
+            } finally {
+                suppressExternalPause = false
             }
         }
     }
@@ -240,8 +270,19 @@ internal class AudiobookPlaybackControllerImpl(
     }
 
     override fun pause() {
-        Log.d(TAG) { "pause" }
+        val ended = player.state.value == PlaybackPlayer.State.Ended
+        if (suppressExternalPause || ended) {
+            Log.d(TAG) {
+                "pause ignored (suppressExternalPause=$suppressExternalPause ended=$ended) " +
+                    "chapter=${currentChapter.value?.title}"
+            }
+            return
+        }
         val wasPlaying = isPlaying.value
+        Log.d(TAG) {
+            "pause wasPlaying=$wasPlaying chapter=${currentChapter.value?.title} " +
+                "shouldRewindOnResume→true"
+        }
         shouldRewindOnResume = true
         pauseStartedAt = TimeSource.Monotonic.markNow()
         scope.launch {
@@ -255,7 +296,9 @@ internal class AudiobookPlaybackControllerImpl(
     }
 
     override fun resume() {
-        Log.d(TAG) { "resume" }
+        Log.d(TAG) {
+            "resume shouldRewind=$shouldRewindOnResume chapter=${currentChapter.value?.title}"
+        }
         dismissBookFinishedBanner()
         isPlaying.value = true
         scope.launch {
@@ -329,11 +372,17 @@ internal class AudiobookPlaybackControllerImpl(
 
     private suspend fun resumePlaybackIfDesired() {
         if (isPlaying.value) {
+            Log.d(TAG) { "resumePlaybackIfDesired → resume chapter=${currentChapter.value?.title}" }
             player.resume()
+        } else {
+            Log.d(TAG) {
+                "resumePlaybackIfDesired → skip (isPlaying=false) chapter=${currentChapter.value?.title}"
+            }
         }
     }
 
     private suspend fun setChapter(chapter: Chapter, positionMs: Long) {
+        Log.d(TAG) { "setChapter chapter=${chapter.title} positionMs=$positionMs" }
         currentChapter.value = chapter
         player.setMediaItem(
             MediaItemWrapper(

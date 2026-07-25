@@ -28,6 +28,9 @@ kotlin {
             implementation(project(Project.Core.Book.Data.Storage.Database.name))
             implementation(project(Project.Core.Data.Storage.Preferences.name))
         }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
     }
 }
 

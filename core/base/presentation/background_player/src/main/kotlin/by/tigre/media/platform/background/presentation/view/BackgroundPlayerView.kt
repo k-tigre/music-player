@@ -227,38 +227,75 @@ class BackgroundPlayerView(
         }
 
         override fun seekToNext() {
+            Log.i(PLAYER_TAG) { "seekToNext ${playerSnapshot()}" }
             component.next()
         }
 
         override fun seekToPrevious() {
+            Log.i(PLAYER_TAG) { "seekToPrevious ${playerSnapshot()}" }
             component.prev()
         }
 
         override fun play() {
+            Log.i(PLAYER_TAG) { "play ${playerSnapshot()}" }
             component.play()
         }
 
         override fun pause() {
+            Log.i(PLAYER_TAG) { "pause ${playerSnapshot()} stack=[${callerStack()}]" }
             component.pause()
         }
 
+        override fun setPlayWhenReady(playWhenReady: Boolean) {
+            val was = getPlayWhenReady()
+            Log.i(PLAYER_TAG) {
+                "setPlayWhenReady requested=$playWhenReady was=$was ${playerSnapshot()} stack=[${callerStack()}]"
+            }
+            super.setPlayWhenReady(playWhenReady)
+        }
+
         override fun seekToPreviousMediaItem() {
+            Log.i(PLAYER_TAG) { "seekToPreviousMediaItem ${playerSnapshot()}" }
             component.prev()
         }
 
         override fun seekToNextMediaItem() {
+            Log.i(PLAYER_TAG) { "seekToNextMediaItem ${playerSnapshot()}" }
             component.next()
         }
 
         override fun stop() {
-            Log.i("BackgroundPlayerView") { "stop" }
+            Log.i(PLAYER_TAG) { "stop ${playerSnapshot()} stack=[${callerStack()}]" }
             component.pause()
         }
 
         override fun release() {
-            Log.i("BackgroundPlayerView") { "release" }
+            Log.i(PLAYER_TAG) { "release" }
             component.stop()
         }
+
+        private fun playerSnapshot(): String =
+            "pos=$currentPosition state=$playbackState playWhenReady=$playWhenReady isPlaying=$isPlaying" +
+                " mediaId=${currentMediaItem?.mediaId}"
+
+        /** Compact stack for DB logs — who called MediaSession Player.pause/play. */
+        private fun callerStack(): String =
+            Throwable().stackTrace
+                .asSequence()
+                .map { it.className to it }
+                .filterNot { (className, _) ->
+                    className.startsWith("java.") ||
+                        className.startsWith("javax.") ||
+                        className.startsWith("kotlin.") ||
+                        className.startsWith("dalvik.") ||
+                        className.startsWith("android.os.") ||
+                        className.contains("BackgroundPlayerView")
+                }
+                .map { (_, el) ->
+                    "${el.className.substringAfterLast('.')}.${el.methodName}:${el.lineNumber}"
+                }
+                .take(14)
+                .joinToString(" <- ")
 
         override fun isCommandAvailable(command: Int): Boolean {
             return when (command) {
@@ -296,6 +333,7 @@ class BackgroundPlayerView(
     companion object {
         private const val NOTIFICATION_CHANEL_ID = "playback_01"
         private const val WIDGET_UPDATE_DEBOUNCE_MS = 400L
+        private const val PLAYER_TAG = "BackgroundPlayerView"
 
         internal fun coverUri(cover: Any?): Uri? = when (cover) {
             is Uri -> cover
