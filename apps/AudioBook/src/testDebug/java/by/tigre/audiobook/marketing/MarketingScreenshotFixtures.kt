@@ -62,7 +62,7 @@ object MarketingScreenshotFixtures {
                 )
 
             override fun onBookClicked(book: Book) = Unit
-            override fun onManageFolders() = Unit
+            override fun onOpenSettings() = Unit
             override fun retry() = Unit
             override fun toggleGroup(path: String) = Unit
             override fun toggleContinueListening() = Unit

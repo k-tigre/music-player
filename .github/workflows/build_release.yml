@@ -24,7 +24,7 @@ jobs:
         run: |
           ./gradlew \
             verifySqlDelightMigration \
-            :apps:PlayerApp:testReleaseUnitTest \
+            :apps:PlayerApp:testDebugUnitTest \
             :apps:PlayerApp:assembleRelease \
             :apps:PlayerApp:bundleRelease \
             :apps:PlayerApp:publishReleaseBundle
@@ -60,7 +60,7 @@ jobs:
         run: |
           ./gradlew \
             verifySqlDelightMigration \
-            :apps:AudioBook:testReleaseUnitTest \
+            :apps:AudioBook:testDebugUnitTest \
             :apps:AudioBook:assembleRelease \
             :apps:AudioBook:bundleRelease \
             :apps:AudioBook:publishReleaseBundle

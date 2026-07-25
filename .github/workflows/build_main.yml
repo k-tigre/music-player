@@ -20,7 +20,7 @@ jobs:
           ./gradlew \
             :tools:analytics:checkAnalyticsDocs \
             verifySqlDelightMigration
-          ./gradlew testQaUnitTest assembleQa
+          ./gradlew testDebugUnitTest assembleQa
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MUSIC_PLAYER_MIXPANEL_TOKEN: ${{ secrets.MUSIC_PLAYER_MIXPANEL_TOKEN }}
