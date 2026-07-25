@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicReference
 
 @OptIn(UnstableApi::class)
 class BackgroundPlayerView(
@@ -51,6 +52,7 @@ class BackgroundPlayerView(
 ) {
     private val scope = CoroutineScope(Dispatchers.Main)
     private val notificationManager = service.getNotificationManager()
+    private val currentArtworkData = AtomicReference<ByteArray?>(null)
 
     private var mediaSession: MediaLibraryService.MediaLibrarySession? = null
     private var wrappedPlayer: InternalPlayerWrapper? = null
@@ -81,12 +83,14 @@ class BackgroundPlayerView(
                 .debounce(WIDGET_UPDATE_DEBOUNCE_MS)
                 .collect { (item, playerState) ->
                     currentPlayerItem.value = item
-                    wrappedPlayer?.dispatchMetadataChanged()
                     val artworkUri = coverUri(item?.coverUri)
                     persistWidgetState(item, playerState, artworkUri)
-                    withContext(Dispatchers.IO) {
+                    val artworkBytes = withContext(Dispatchers.IO) {
                         WidgetArtworkCache.update(service, artworkUri)
+                        WidgetArtworkCache.loadBytes(service)
                     }
+                    currentArtworkData.set(artworkBytes)
+                    wrappedPlayer?.dispatchMetadataChanged()
                     if (widgetProviderClass != null) {
                         requestWidgetUpdate()
                     }
@@ -205,15 +209,19 @@ class BackgroundPlayerView(
         }
 
         // Prefer catalog strings over ExoPlayer-merged ID3 (often wrong encoding for Cyrillic).
+        // Artwork: use cached bytes so Media3 does not open SAF content:// concurrently with Coil.
         override fun getMediaMetadata(): MediaMetadata {
             val item = currentPlayerItem.value ?: return super.getMediaMetadata()
+            val artworkBytes = currentArtworkData.get()
             return super.getMediaMetadata().buildUpon()
                 .setMediaType(component.carSessionMediaType)
                 .setTitle(item.title)
                 .setArtist(item.artist ?: item.subtitle)
                 .apply {
                     item.album?.let { setAlbumTitle(it) }
-                    coverUri(item.coverUri)?.let { setArtworkUri(it) }
+                    if (artworkBytes != null) {
+                        setArtworkData(artworkBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+                    }
                 }
                 .build()
         }
