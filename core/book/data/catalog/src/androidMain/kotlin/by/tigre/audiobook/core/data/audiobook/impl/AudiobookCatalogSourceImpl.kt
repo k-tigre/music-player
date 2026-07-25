@@ -16,6 +16,7 @@ import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.entity.catalog.Chapter
 import by.tigre.audiobook.core.entity.catalog.FolderSource
 import by.tigre.logger.Log
+import by.tigre.media.platform.tools.platform.utils.CoverArtCache
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
@@ -197,6 +198,11 @@ class AudiobookCatalogSourceImpl(
             storage.setHiddenFromContinue(bookId, hidden)
         }
 
+    override suspend fun updateBookCoverUriIfEmpty(bookId: Book.Id, coverUri: String) =
+        withContext(Dispatchers.IO) {
+            storage.updateBookCoverUriIfEmpty(bookId, coverUri)
+        }
+
     override suspend fun getFolderSourcesList(): List<FolderSource> = storage.getFolderSources()
 
     override suspend fun diagnoseFolderAccess(folder: FolderSource): FolderSourceAccessHealth =
@@ -253,6 +259,12 @@ class AudiobookCatalogSourceImpl(
             val chapters = buildChapters(book.audioFiles, existingByUri, onFileProcessed)
             val totalDuration = chapters.sumOf { it.duration }
             val coverUri = resolveCoverUri(book.bookDir, book.title)
+                ?: extractEmbeddedCoverUri(book.audioFiles)
+            if (coverUri == null) {
+                Log.w(TAG) { "No cover for book='${book.title}' (no folder image, no embedded art)" }
+            } else {
+                Log.i(TAG) { "Cover for book='${book.title}': $coverUri" }
+            }
             result.add(
                 ScannedBook(
                     title = book.title,
@@ -409,6 +421,13 @@ class AudiobookCatalogSourceImpl(
             pickBestCoverImage(listImageFiles(parent), bookTitle)
         }
         return pick?.uri?.toString()
+    }
+
+    /** When the folder has no image files, use embedded art from the first chapter. */
+    private fun extractEmbeddedCoverUri(audioFiles: List<DocumentFile>): String? {
+        val first = audioFiles.sortedBy { it.name ?: "" }.firstOrNull() ?: return null
+        val file = CoverArtCache.materializeEmbedded(context, first.uri) ?: return null
+        return file.absolutePath
     }
 
     private fun pickBestCoverImage(files: List<DocumentFile>, bookTitle: String): DocumentFile? {

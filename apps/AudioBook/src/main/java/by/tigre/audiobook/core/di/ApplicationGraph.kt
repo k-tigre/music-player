@@ -11,6 +11,7 @@ import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackControll
 import by.tigre.audiobook.core.data.audiobook_playback.di.AudiobookPlaybackModule
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.di.AndroidAudiobookCatalogStorageModule
 import by.tigre.audiobook.car.AudiobookCarMediaLibrary
+import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogDependency
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.CatalogThemeSettings
 import by.tigre.audiobook.core.presentation.audiobook_catalog.scan.CatalogScanCoordinator
@@ -29,6 +30,7 @@ import by.tigre.media.platform.playback.di.BasePlaybackModule
 import by.tigre.media.platform.preferences.ThemePreferencesStorage
 import by.tigre.media.platform.preferences.di.AndroidPreferencesModule
 import by.tigre.media.platform.background.di.PlayerBackgroundDependency
+import by.tigre.media.platform.background.widget.WidgetArtworkCache
 import by.tigre.media.platform.player.component.BasePlaybackController
 import by.tigre.media.platform.player.component.PlaybackSpeedSource
 import by.tigre.media.platform.player.component.PlayerItem
@@ -38,12 +40,16 @@ import by.tigre.media.platform.tools.analytics.book.BookAnalyticsModule
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
 import by.tigre.media.platform.tools.platform.compose.ContrastPreference
 import by.tigre.media.platform.tools.platform.compose.ThemeMode
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.withContext
+import java.io.File
 
 class ApplicationGraph(
     private val appContext: Context,
@@ -143,16 +149,22 @@ class ApplicationGraph(
             override val player = controller.player
             override val currentItem = combine(
                 controller.currentBook,
-                controller.currentChapter
-            ) { book, chapter ->
-                if (book != null && chapter != null) {
-                    PlayerItem(
-                        title = chapter.title,
-                        subtitle = book.title,
-                        coverUri = book.coverUri?.let(Uri::parse),
-                    )
-                } else null
-            }
+                controller.currentChapter,
+            ) { book, chapter -> book to chapter }
+                .mapLatest { (book, chapter) ->
+                    if (book == null || chapter == null) {
+                        null
+                    } else {
+                        val cover = withContext(Dispatchers.IO) {
+                            resolvePlayerCover(book, chapter.fileUri)
+                        }
+                        PlayerItem(
+                            title = chapter.title,
+                            subtitle = book.title,
+                            coverUri = cover,
+                        )
+                    }
+                }
             override val shuffleEnabled = flowOf(false)
             override val repeatMode = flowOf(RepeatMode.Off)
             override fun playNext() = controller.playNextChapter()
@@ -171,6 +183,40 @@ class ApplicationGraph(
                 return true
             }
         }
+    }
+
+    private suspend fun resolvePlayerCover(book: Book, chapterFileUri: String): File? {
+        val storedCover = book.coverUri
+        if (storedCover != null) {
+            Log.i("CoverArt") { "player resolve book.coverUri=$storedCover" }
+            val fromStored = when {
+                storedCover.startsWith("content:", ignoreCase = true) ||
+                    storedCover.startsWith("file:", ignoreCase = true) ->
+                    WidgetArtworkCache.materialize(appContext, Uri.parse(storedCover))
+                else -> {
+                    val file = File(storedCover)
+                    file.takeIf { it.exists() && it.length() > 0L }
+                }
+            }
+            if (fromStored != null) {
+                Log.i("CoverArt") { "player cover from stored file=${fromStored.absolutePath}" }
+                return fromStored
+            }
+            Log.w("CoverArt") { "player stored cover failed for $storedCover" }
+        } else {
+            Log.i("CoverArt") { "player book.coverUri=null chapter=$chapterFileUri" }
+        }
+        val embedded = WidgetArtworkCache.materializeEmbedded(appContext, Uri.parse(chapterFileUri))
+        if (embedded != null) {
+            Log.i("CoverArt") { "player cover from embedded file=${embedded.absolutePath}" }
+            if (storedCover.isNullOrBlank()) {
+                audiobookCatalogSource.updateBookCoverUriIfEmpty(book.id, embedded.absolutePath)
+                Log.i("CoverArt") { "persisted embedded cover to book id=${book.id.value}" }
+            }
+        } else {
+            Log.w("CoverArt") { "player no cover (folder+embedded miss) chapter=$chapterFileUri" }
+        }
+        return embedded
     }
 
     companion object {

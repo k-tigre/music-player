@@ -41,6 +41,7 @@ kotlin {
             implementation(Library.ActivityCompose.notation)
             implementation(Library.AndroidXCore.notation)
             implementation(Library.ComposeUiTextGoogleFonts.notation)
+            implementation(project(Project.Tools.Platform.Utils.name))
         }
     }
 }

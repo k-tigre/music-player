@@ -27,6 +27,7 @@ kotlin {
         }
         androidMain.dependencies {
             implementation(Library.AndroidXDocumentFile.notation)
+            implementation(project(Project.Tools.Platform.Utils.name))
         }
     }
 }

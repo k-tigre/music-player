@@ -73,6 +73,10 @@ WHERE id = ?;
 setHiddenFromContinue:
 UPDATE Book SET hidden_from_continue = ? WHERE id = ?;
 
+updateBookCoverUri:
+UPDATE Book SET cover_uri = ?
+WHERE id = ? AND (cover_uri IS NULL OR cover_uri = '');
+
 selectRecentContinueListening:
 SELECT b.id, b.title, b.folder_uri,
     (SELECT COUNT(*) FROM Chapter c WHERE c.book_id = b.id) AS chapter_count,

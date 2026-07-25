@@ -28,9 +28,10 @@ fun CoverThumbnail(
     } else {
         appIcon
     }
+    val coilModel = rememberResolvedCoverModel(model)
 
     AsyncImage(
-        model = model,
+        model = coilModel,
         contentDescription = null,
         modifier = modifier
             .size(size)
@@ -39,5 +40,8 @@ fun CoverThumbnail(
         placeholder = placeholder,
         error = placeholder,
         fallback = placeholder,
+        onError = { error ->
+            logCoverLoadError(model, error.result.throwable)
+        },
     )
 }

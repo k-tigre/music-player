@@ -7,6 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import by.tigre.media.platform.tools.platform.compose.view.logCoverLoadError
+import by.tigre.media.platform.tools.platform.compose.view.rememberResolvedCoverModel
 import coil3.compose.AsyncImage
 
 private const val CoverCrossfadeMillis = 400
@@ -19,22 +21,24 @@ fun CrossfadeAsyncImage(
     contentScale: ContentScale = ContentScale.Crop,
     placeholder: Painter? = null,
 ) {
-    val coverKey = model?.toString()
-
+    val resolved = rememberResolvedCoverModel(model)
     Crossfade(
-        targetState = coverKey,
+        targetState = resolved,
         modifier = modifier,
         animationSpec = tween(CoverCrossfadeMillis),
         label = "playerCoverCrossfade",
-    ) { key ->
+    ) { current ->
         AsyncImage(
-            model = key,
+            model = current,
             contentDescription = contentDescription,
             modifier = Modifier.fillMaxSize(),
             contentScale = contentScale,
             placeholder = placeholder,
             error = placeholder,
             fallback = placeholder,
+            onError = { error ->
+                logCoverLoadError(current, error.result.throwable)
+            },
         )
     }
 }

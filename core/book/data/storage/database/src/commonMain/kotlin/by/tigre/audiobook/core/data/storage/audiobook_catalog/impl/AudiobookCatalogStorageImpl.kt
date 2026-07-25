@@ -213,6 +213,13 @@ class AudiobookCatalogStorageImpl(
         )
     }
 
+    override suspend fun updateBookCoverUriIfEmpty(bookId: Book.Id, coverUri: String) {
+        database.bookQueries.updateBookCoverUri(
+            cover_uri = coverUri,
+            id = bookId.value,
+        )
+    }
+
     override suspend fun getBooks(): List<Book> {
         return database.bookQueries.selectAll { id, title, folderUri, chapterCount, subPath, _, _, _, coverUri, hiddenFromContinue ->
             Book(

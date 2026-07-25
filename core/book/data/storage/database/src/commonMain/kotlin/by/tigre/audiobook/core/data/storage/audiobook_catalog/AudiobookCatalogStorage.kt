@@ -29,6 +29,8 @@ interface AudiobookCatalogStorage {
     suspend fun getBook(bookId: Book.Id): Book?
     suspend fun getChaptersByBook(bookId: Book.Id): List<Chapter>
     suspend fun setHiddenFromContinue(bookId: Book.Id, hidden: Boolean)
+    /** Fills empty [Book.coverUri] (e.g. embedded art discovered during playback). */
+    suspend fun updateBookCoverUriIfEmpty(bookId: Book.Id, coverUri: String)
 
     data class ScannedBook(
         val title: String,

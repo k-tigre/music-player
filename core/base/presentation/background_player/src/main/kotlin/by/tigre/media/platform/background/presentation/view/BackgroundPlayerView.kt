@@ -300,6 +300,7 @@ class BackgroundPlayerView(
         internal fun coverUri(cover: Any?): Uri? = when (cover) {
             is Uri -> cover
             is String -> cover.takeIf { it.isNotBlank() }?.let(Uri::parse)
+            is java.io.File -> Uri.fromFile(cover)
             else -> null
         }
     }

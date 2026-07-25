@@ -23,4 +23,5 @@ interface AudiobookCatalogSource {
     suspend fun getBook(bookId: Book.Id): Book?
     suspend fun getChapters(bookId: Book.Id): List<Chapter>
     suspend fun setHiddenFromContinueListening(bookId: Book.Id, hidden: Boolean)
+    suspend fun updateBookCoverUriIfEmpty(bookId: Book.Id, coverUri: String)
 }

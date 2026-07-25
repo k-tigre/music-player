@@ -1,20 +1,27 @@
 package by.tigre.media.platform.background.widget
 
-import android.content.ContentUris
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.Build
-import android.util.Size
 import by.tigre.logger.Log
+import by.tigre.media.platform.tools.platform.utils.CoverArtCache
 import java.io.File
 
-internal object WidgetArtworkCache {
+/**
+ * Widget-sized artwork cache + helpers for MediaSession bytes.
+ * Decoding/materialization for UI lives in [CoverArtCache].
+ */
+object WidgetArtworkCache {
 
     private const val FILE_NAME = "playback_widget_artwork.png"
-    private const val MAX_SIZE_PX = 256
-    private val ALBUM_ART_URI = Uri.parse("content://media/external/audio/albumart")
+    private const val WIDGET_MAX_SIZE_PX = 256
+
+    fun materialize(context: Context, uri: Uri?, maxSizePx: Int = 1024): File? =
+        CoverArtCache.materialize(context, uri, maxSizePx)
+
+    fun materializeEmbedded(context: Context, audioUri: Uri?, maxSizePx: Int = 1024): File? =
+        CoverArtCache.materializeEmbedded(context, audioUri, maxSizePx)
 
     fun update(context: Context, uri: Uri?) {
         val file = cacheFile(context)
@@ -23,12 +30,12 @@ internal object WidgetArtworkCache {
             return
         }
         try {
-            val decoded = loadBitmap(context, uri)
+            val decoded = CoverArtCache.decodeBitmap(context, uri, WIDGET_MAX_SIZE_PX)
             if (decoded == null) {
                 file.delete()
                 return
             }
-            val scaled = scaleDown(decoded, MAX_SIZE_PX)
+            val scaled = scaleDown(decoded, WIDGET_MAX_SIZE_PX)
             file.outputStream().use { output ->
                 scaled.compress(Bitmap.CompressFormat.PNG, 90, output)
             }
@@ -61,38 +68,6 @@ internal object WidgetArtworkCache {
             Log.e("PlaybackWidget") { "Failed to read widget artwork bytes: $e" }
             null
         }
-    }
-
-    private fun loadBitmap(context: Context, uri: Uri): Bitmap? {
-        val artworkUri = resolveArtworkUri(uri)
-        try {
-            context.contentResolver.openInputStream(artworkUri)?.use { input ->
-                BitmapFactory.decodeStream(input)?.let { return it }
-            }
-        } catch (e: Exception) {
-            Log.e("PlaybackWidget") { "Failed to open artwork stream for $artworkUri: $e" }
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            try {
-                return context.contentResolver.loadThumbnail(
-                    artworkUri,
-                    Size(MAX_SIZE_PX, MAX_SIZE_PX),
-                    null,
-                )
-            } catch (e: Exception) {
-                Log.e("PlaybackWidget") { "Failed to load artwork thumbnail for $artworkUri: $e" }
-            }
-        }
-        return null
-    }
-
-    private fun resolveArtworkUri(uri: Uri): Uri {
-        val path = uri.path.orEmpty()
-        if (path.contains("/audio/albums/")) {
-            val albumId = ContentUris.parseId(uri)
-            return ContentUris.withAppendedId(ALBUM_ART_URI, albumId)
-        }
-        return uri
     }
 
     private fun cacheFile(context: Context): File {
