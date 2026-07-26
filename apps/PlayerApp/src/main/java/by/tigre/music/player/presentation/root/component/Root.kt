@@ -32,7 +32,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.bringToFront
 import com.arkivanov.decompose.router.stack.pop
-import com.arkivanov.decompose.router.stack.push
+import com.arkivanov.decompose.router.stack.pushToFront
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -106,12 +106,12 @@ interface Root {
 
             override fun playerView() {
                 eventAnalytics.trackEvent(CommonEvents.Action.NavOpenPlayer)
-                mainNavigation.push(MainConfig.Player)
+                mainNavigation.pushToFront(MainConfig.Player)
             }
 
             override fun showEqualizer() {
                 eventAnalytics.trackEvent(CommonEvents.Action.NavOpenEqualizer)
-                mainNavigation.push(MainConfig.Equalizer)
+                mainNavigation.pushToFront(MainConfig.Equalizer)
             }
 
             override fun closeEqualizer() {
@@ -120,7 +120,7 @@ interface Root {
 
             override fun showSettings() {
                 eventAnalytics.trackEvent(CommonEvents.Action.NavOpenSettings)
-                mainNavigation.push(MainConfig.Settings)
+                mainNavigation.pushToFront(MainConfig.Settings)
             }
 
             override fun closeSettings() {

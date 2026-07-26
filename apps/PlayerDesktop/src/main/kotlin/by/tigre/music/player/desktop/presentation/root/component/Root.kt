@@ -25,12 +25,11 @@ import by.tigre.media.platform.presentation.appChildStack
 import by.tigre.media.platform.presentation.trackScreens
 import by.tigre.media.platform.tools.analytics.music.MusicAnalyticsDependency
 import by.tigre.media.platform.tools.analytics.music.MusicEvents
-import com.arkivanov.decompose.DelicateDecomposeApi
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.bringToFront
 import com.arkivanov.decompose.router.stack.pop
-import com.arkivanov.decompose.router.stack.push
+import com.arkivanov.decompose.router.stack.pushToFront
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -88,18 +87,17 @@ interface Root {
         private val _isScanning = MutableStateFlow(false)
         override val isScanning: StateFlow<Boolean> = _isScanning.asStateFlow()
 
-        @OptIn(DelicateDecomposeApi::class)
         private val playerNavigator = object : PlayerNavigator {
             override fun showQueue() {
                 mainNavigation.pop()
             }
 
             override fun playerView() {
-                mainNavigation.push(MainConfig.Player)
+                mainNavigation.pushToFront(MainConfig.Player)
             }
 
             override fun showEqualizer() {
-                mainNavigation.push(MainConfig.Equalizer)
+                mainNavigation.pushToFront(MainConfig.Equalizer)
             }
 
             override fun closeEqualizer() {

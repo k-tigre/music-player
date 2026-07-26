@@ -21,7 +21,6 @@ import by.tigre.media.platform.tools.analytics.common.CommonEvents
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
-import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.pushToFront
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.Flow
@@ -97,7 +96,7 @@ interface Root {
 
             override fun showEqualizer() {
                 eventAnalytics.trackEvent(CommonEvents.Action.NavOpenEqualizer)
-                mainNavigation.push(MainConfig.Equalizer)
+                mainNavigation.pushToFront(MainConfig.Equalizer)
             }
 
             override fun closeEqualizer() {
@@ -172,7 +171,7 @@ interface Root {
 
         override fun onOpenNightTimerSettings() {
             eventAnalytics.trackEvent(AudiobookEvents.Action.NavOpenNightTimer)
-            mainNavigation.push(MainConfig.NightTimer)
+            mainNavigation.pushToFront(MainConfig.NightTimer)
         }
 
         override fun onCloseNightTimerSettings() {
@@ -180,7 +179,7 @@ interface Root {
         }
 
         override fun onOpenPlaybackSpeedSettings() {
-            mainNavigation.push(MainConfig.PlaybackSpeed)
+            mainNavigation.pushToFront(MainConfig.PlaybackSpeed)
         }
 
         override fun onClosePlaybackSpeedSettings() {
