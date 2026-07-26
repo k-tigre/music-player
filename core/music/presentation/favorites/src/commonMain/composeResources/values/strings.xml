@@ -3,6 +3,9 @@
     <string name="nav_favorites">Favorites</string>
     <string name="cd_nav_favorites">Favorites</string>
     <string name="cd_favorite_toggle">Toggle favorite</string>
+    <string name="cd_player_back">Back</string>
+    <string name="cd_open_equalizer">Equalizer</string>
+    <string name="cd_open_settings">Settings</string>
     <string name="favorites_empty_title">Nothing here yet</string>
     <string name="favorites_empty_message">Use the heart button in the catalog or player to save tracks, albums, or artists.</string>
     <string name="favorites_empty_action">Choose</string>
