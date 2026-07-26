@@ -1,1 +1,1 @@
-• Fixed a crash when starting the sleep timer
+• Play Billing stub so subscriptions can be configured in Play Console

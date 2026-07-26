@@ -132,6 +132,7 @@ dependencies {
     implementation(Project.Core.Music.Presentation.Favorites)
     implementation(Project.Core.Base.Presentation.BackgroundPlayer)
     implementation(Project.Core.Platform.Permission)
+    implementation(Project.Core.Platform.Billing)
     implementation(Project.Core.Data.Storage.Preferences)
     implementation(Project.Core.Music.Data.Storage.Database)
     implementation(Project.Core.Music.Data.Playback)

@@ -133,6 +133,7 @@ dependencies {
     implementation(Project.Core.Base.Presentation.BackgroundPlayer)
     implementation(Project.Core.Base.Data.Playback)
     implementation(Project.Core.Platform.Permission)
+    implementation(Project.Core.Platform.Billing)
     implementation(Project.Core.Data.Storage.Preferences)
     implementation(FirebaseLibrary.FirebaseAnalytics, FirebaseLibrary.FirebaseCrashLytics, FirebaseLibrary.FirebaseConfig)
 

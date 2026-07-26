@@ -9,6 +9,13 @@
 
 ### EN
 
+## [0.22.1] - 2026-07-26
+### RU
+- Подготовка Play Billing (stub) для настройки подписок в Console
+
+### EN
+- Play Billing stub so subscriptions can be configured in Play Console
+
 ## [0.22.0] - 2026-07-19
 ### RU
 - Аватарки исполнителей в каталоге и избранном (загрузка по имени с кэшем)

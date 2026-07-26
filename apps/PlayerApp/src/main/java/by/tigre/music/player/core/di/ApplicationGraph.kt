@@ -3,6 +3,7 @@ package by.tigre.music.player.core.di
 import android.content.Context
 import by.tigre.music.player.core.data.catalog.di.AndroidCatalogModule
 import by.tigre.music.player.core.data.catalog.di.CatalogModule
+import by.tigre.media.platform.billing.AndroidBillingWarmup
 import by.tigre.media.platform.playback.di.AndroidBasePlaybackModule
 import by.tigre.music.player.core.data.playback.di.PlaybackModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.AndroidPlaybackQueueModule
@@ -161,6 +162,7 @@ class ApplicationGraph(
             val playbackModule =
                 PlaybackModule.Impl(coroutineModule, playbackQueueModule, catalogModule, basePlaybackModule)
 
+            AndroidBillingWarmup(context.applicationContext).warmUp()
             return ApplicationGraph(
                 appContext = context.applicationContext,
                 playbackModule = playbackModule,

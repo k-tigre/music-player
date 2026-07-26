@@ -9,6 +9,13 @@
 
 ### EN
 
+## [0.8.2] - 2026-07-26
+### RU
+- Подготовка Play Billing (stub) для настройки подписок в Console
+
+### EN
+- Play Billing stub so subscriptions can be configured in Play Console
+
 ## [0.8.1] - 2026-07-20
 ### RU
 - Исправлен краш при запуске ночного таймера

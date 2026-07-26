@@ -25,6 +25,7 @@ import by.tigre.audiobook.platform.AudiobookGuideSettingsImpl
 import by.tigre.audiobook.platform.ThemeSettingsStore
 import by.tigre.audiobook.settings.RateAppConfigRepository
 import by.tigre.logger.Log
+import by.tigre.media.platform.billing.AndroidBillingWarmup
 import by.tigre.media.platform.playback.di.AndroidBasePlaybackModule
 import by.tigre.media.platform.playback.di.BasePlaybackModule
 import by.tigre.media.platform.preferences.ThemePreferencesStorage
@@ -257,6 +258,7 @@ class ApplicationGraph(
                 scope = coroutineModule.scope,
                 catalogSource = audiobookCatalogModule.audiobookCatalogSource,
             )
+            AndroidBillingWarmup(context.applicationContext).warmUp()
             return ApplicationGraph(
                 appContext = context.applicationContext,
                 coroutineScope = coroutineModule.scope,
