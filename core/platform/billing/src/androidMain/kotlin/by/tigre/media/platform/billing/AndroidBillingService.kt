@@ -100,7 +100,13 @@ class AndroidBillingService(
     }
 
     override suspend fun queryActivePurchases(): List<PurchaseSnapshot> {
-        if (ensureStarted().responseCode != BillingClient.BillingResponseCode.OK) return emptyList()
+        val connectionResult = ensureStarted()
+        if (connectionResult.responseCode != BillingClient.BillingResponseCode.OK) {
+            error(
+                "Billing unavailable: code=${connectionResult.responseCode} " +
+                    "message=${connectionResult.debugMessage}",
+            )
+        }
 
         return queryPurchases(BillingClient.ProductType.SUBS).map { it.toSnapshot(isSubscription = true) } +
             queryPurchases(BillingClient.ProductType.INAPP).map { it.toSnapshot(isSubscription = false) }
