@@ -23,5 +23,13 @@ kotlin {
         commonTest.dependencies {
             implementation(kotlin("test"))
         }
+        androidMain.dependencies {
+            implementation(project(Project.Core.Platform.Billing.name))
+        }
     }
+}
+
+dependencies {
+    add("androidMainImplementation", platform(FirebaseLibrary.bom))
+    add("androidMainImplementation", FirebaseLibrary.FirebaseConfig.notation)
 }

@@ -28,4 +28,39 @@ class TierResolveTest {
     fun equalizerRequiresPlus() {
         assertEquals(Tier.Plus, Feature.Equalizer.minTier())
     }
+
+    @Test
+    fun musicProSubscriptionResolvesPro() {
+        assertEquals(
+            Tier.Pro,
+            resolveTier(setOf(SkuIds.Music.PRO), AppSku.Music),
+        )
+    }
+
+    @Test
+    fun audioBookPlusSubscriptionResolvesPlus() {
+        assertEquals(
+            Tier.Plus,
+            resolveTier(setOf(SkuIds.AudioBook.PLUS), AppSku.AudioBook),
+        )
+    }
+
+    @Test
+    fun proWinsWhenBothSubscriptionsAreActive() {
+        assertEquals(
+            Tier.Pro,
+            resolveTier(
+                setOf(SkuIds.AudioBook.PLUS, SkuIds.AudioBook.PRO),
+                AppSku.AudioBook,
+            ),
+        )
+    }
+
+    @Test
+    fun otherAppSubscriptionsResolveFree() {
+        assertEquals(
+            Tier.Free,
+            resolveTier(setOf(SkuIds.AudioBook.PRO), AppSku.Music),
+        )
+    }
 }
