@@ -173,25 +173,43 @@ class AndroidBillingService(
     private suspend fun ensureStarted(): BillingResult {
         if (client.isReady) return readyResult
 
-        val deferred = connectionMutex.withLock {
-            if (client.isReady) return@withLock CompletableDeferred(readyResult)
-            connection ?: CompletableDeferred<BillingResult>().also { created ->
-                connection = created
-                client.startConnection(
-                    object : BillingClientStateListener {
-                        override fun onBillingSetupFinished(billingResult: BillingResult) {
-                            if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
+        var lastResult = disconnectedResult
+        repeat(MAX_CONNECTION_ATTEMPTS) {
+            val deferred = connectionMutex.withLock {
+                if (client.isReady) return readyResult
+                connection ?: CompletableDeferred<BillingResult>().also { created ->
+                    connection = created
+                    client.startConnection(
+                        object : BillingClientStateListener {
+                            override fun onBillingSetupFinished(billingResult: BillingResult) {
+                                if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
+                                    connection = null
+                                }
+                                created.complete(billingResult)
+                            }
+
+                            override fun onBillingServiceDisconnected() {
                                 connection = null
                             }
-                            created.complete(billingResult)
-                        }
-
-                        override fun onBillingServiceDisconnected() = Unit
-                    },
-                )
+                        },
+                    )
+                }
+            }
+            val result = deferred.await()
+            lastResult = result
+            if (
+                result.responseCode == BillingClient.BillingResponseCode.OK &&
+                client.isReady
+            ) {
+                return result
+            }
+            connectionMutex.withLock {
+                if (connection === deferred) {
+                    connection = null
+                }
             }
         }
-        return deferred.await()
+        return lastResult
     }
 
     private suspend fun queryProductType(
@@ -303,8 +321,15 @@ class AndroidBillingService(
     )
 
     private companion object {
+        const val MAX_CONNECTION_ATTEMPTS = 3
+
         val readyResult: BillingResult = BillingResult.newBuilder()
             .setResponseCode(BillingClient.BillingResponseCode.OK)
+            .build()
+
+        val disconnectedResult: BillingResult = BillingResult.newBuilder()
+            .setResponseCode(BillingClient.BillingResponseCode.SERVICE_DISCONNECTED)
+            .setDebugMessage("Billing service is disconnected.")
             .build()
     }
 }
