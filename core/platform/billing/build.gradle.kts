@@ -18,6 +18,12 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(Library.KotlinStd.notation)
+            implementation(Library.CoroutinesCore.notation)
+        }
+        val desktopTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
         }
         androidMain.dependencies {
             implementation(Library.BillingKtx.notation)
