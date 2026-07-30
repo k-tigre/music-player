@@ -32,6 +32,7 @@ class SettingsView(
     @Composable
     override fun Draw(modifier: Modifier) {
         val themeSettings by component.themeSettings.collectAsState()
+        val tipsCount by component.tipsCount.collectAsState()
         val title = stringResource(R.string.settings_title)
 
         Scaffold(
@@ -75,7 +76,7 @@ class SettingsView(
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.settings_tips)) },
                     supportingContent = {
-                        Text(stringResource(R.string.settings_tips_count, component.tipsCount.collectAsState().value))
+                        Text(stringResource(R.string.settings_tips_count, tipsCount))
                     },
                     trailingContent = {
                         TextButton(onClick = component::tips) {
@@ -83,6 +84,11 @@ class SettingsView(
                         }
                     },
                 )
+                if (tipsCount > 0) {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.settings_supporter_badge)) },
+                    )
+                }
                 ThemeSettingsContent(
                     themeMode = themeSettings.mode,
                     onThemeModeChange = component::setThemeMode,

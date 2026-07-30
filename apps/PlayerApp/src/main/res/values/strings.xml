@@ -40,6 +40,7 @@
     <string name="settings_restore">Restore purchases</string>
     <string name="settings_tips">Support the app</string>
     <string name="settings_tips_count">Tips given: %1$d</string>
+    <string name="settings_supporter_badge">Supporter</string>
 
     <string name="paywall_title">Unlock more listening</string>
     <string name="paywall_benefits">Plus adds the equalizer and more playlists. Pro also unlocks the home widget.</string>
