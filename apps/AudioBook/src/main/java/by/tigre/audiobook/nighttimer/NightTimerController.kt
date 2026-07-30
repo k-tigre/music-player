@@ -16,8 +16,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -36,6 +39,7 @@ interface NightTimerController : NightTimerShakeDebug {
 
     val selectedMinutes: StateFlow<Int>
     val fadeOutAtEnd: StateFlow<Boolean>
+    val advancedFeaturesAvailable: StateFlow<Boolean>
 
     fun setSelectedMinutes(minutes: Int)
     fun setFadeOutAtEnd(enabled: Boolean)
@@ -96,6 +100,15 @@ private class NightTimerControllerImpl(
 
     private val _fadeOutAtEnd = MutableStateFlow(loadFade() && hasSleepTimerAdvanced())
     override val fadeOutAtEnd: StateFlow<Boolean> = _fadeOutAtEnd.asStateFlow()
+
+    override val advancedFeaturesAvailable: StateFlow<Boolean> =
+        entitlementsRepository.tier
+            .map { hasSleepTimerAdvanced() }
+            .stateIn(
+                scope = scope,
+                started = SharingStarted.Eagerly,
+                initialValue = hasSleepTimerAdvanced(),
+            )
 
     private var timerJob: Job? = null
     private val endAtElapsedRealtime = AtomicLong(0L)

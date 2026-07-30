@@ -41,6 +41,7 @@ fun NightTimerSettingsScreen(
 ) {
     val selectedMinutes by controller.selectedMinutes.collectAsState()
     val fadeOut by controller.fadeOutAtEnd.collectAsState()
+    val advancedFeaturesAvailable by controller.advancedFeaturesAvailable.collectAsState()
     val ui by controller.uiState.collectAsState()
 
     Scaffold(
@@ -97,11 +98,14 @@ fun NightTimerSettingsScreen(
                 Switch(
                     checked = fadeOut,
                     onCheckedChange = controller::setFadeOutAtEnd,
+                    enabled = advancedFeaturesAvailable,
                     modifier = Modifier.align(Alignment.End),
                 )
             }
 
-            NightTimerFlipExtendHelp()
+            if (advancedFeaturesAvailable) {
+                NightTimerFlipExtendHelp()
+            }
 
             if (ui.isRunning) {
                 Button(

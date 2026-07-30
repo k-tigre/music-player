@@ -136,6 +136,7 @@ object MarketingScreenshotFixtures {
         )
         override val selectedMinutes: StateFlow<Int> = MutableStateFlow(15)
         override val fadeOutAtEnd: StateFlow<Boolean> = MutableStateFlow(true)
+        override val advancedFeaturesAvailable: StateFlow<Boolean> = MutableStateFlow(true)
         override val shakeConfig: StateFlow<NightTimerShakeConfig> =
             MutableStateFlow(NightTimerShakeConfig.Default)
         override val shakeConfigSource: StateFlow<NightTimerShakeConfigSource> =
