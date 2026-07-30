@@ -43,6 +43,11 @@ class MainActivity : AppCompatActivity() {
             audiobookGuideSettings = graph.audiobookGuideSettings,
             entitlementsRepository = graph.entitlementsRepository,
             onPaywallRequest = graph::requestPaywall,
+            paywallRequests = graph.paywallRequests,
+            activity = this,
+            billingService = graph.billingService,
+            onTipCompleted = graph::recordTip,
+            onBillingMessage = graph::showBillingMessage,
         )
 
         setContent {
@@ -60,6 +65,7 @@ class MainActivity : AppCompatActivity() {
                         playerViewProvider = PlayerViewProvider.Impl(),
                         audiobookCatalogViewProvider = AndroidAudiobookCatalogViewProvider(),
                         catalogScanCoordinator = graph.catalogScanCoordinator,
+                        billingMessages = graph.billingMessages,
                     ).Draw(Modifier)
                 }
             }

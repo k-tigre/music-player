@@ -4,6 +4,27 @@
     <string name="button_got_it">Понятно</string>
     <string name="button_continue">Продолжить</string>
 
+    <string name="paywall_title">Откройте больше возможностей</string>
+    <string name="paywall_benefits">Plus добавляет эквалайзер, расширенный ночной таймер и больше места в «Продолжить слушать». Pro также открывает виджет на главном экране.</string>
+    <string name="paywall_plans_heading">Выберите план</string>
+    <string name="paywall_plus">Plus</string>
+    <string name="paywall_plus_benefits">Эквалайзер, расширенный ночной таймер и безлимитное «Продолжить слушать».</string>
+    <string name="paywall_pro">Pro</string>
+    <string name="paywall_pro_benefits">Всё из Plus и виджет на главном экране.</string>
+    <string name="paywall_best_value">Выгоднее всего</string>
+    <string name="paywall_choose_plan">Выбрать · %1$s</string>
+    <string name="paywall_price_loading">Загружаем цену %1$s…</string>
+    <string name="paywall_tips_heading">Поддержать приложение</string>
+    <string name="paywall_tips_description">Разовая поддержка помогает развивать Audiobook Player.</string>
+    <string name="paywall_tip_coffee">Угостить кофе · %1$s</string>
+    <string name="paywall_tip_pizza">Угостить пиццей · %1$s</string>
+    <string name="paywall_restore">Восстановить</string>
+    <string name="paywall_maybe_later">Позже</string>
+    <string name="billing_restore_complete">Покупки восстановлены</string>
+    <string name="billing_restore_failed">Не удалось восстановить покупки</string>
+    <string name="billing_purchase_failed">Не удалось завершить покупку</string>
+    <string name="billing_tip_thanks">Спасибо за поддержку!</string>
+
     <string name="player_equalizer_menu">Эквалайзер</string>
     <string name="player_queue_menu">Очередь</string>
 

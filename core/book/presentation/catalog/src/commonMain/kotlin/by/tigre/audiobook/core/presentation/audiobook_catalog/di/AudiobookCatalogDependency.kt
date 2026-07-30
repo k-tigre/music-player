@@ -28,6 +28,10 @@ interface AudiobookCatalogDependency : BookAnalyticsDependency {
 
     val appVersionName: String
     val showRateApp: StateFlow<Boolean>
+    val tipsCount: StateFlow<Int>
     fun refreshRateAppFlag()
     fun onRateAppClick()
+    fun requestUpgrade()
+    fun restorePurchases()
+    fun requestTips()
 }

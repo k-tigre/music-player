@@ -7,10 +7,14 @@
     <string name="settings_hint_add_books">To add audiobooks, open Audiobook folders and tap +. Choose a folder on your device — the app will scan it for books.</string>
     <string name="settings_theme">Theme</string>
     <string name="settings_folders">Audiobook folders</string>
+    <string name="settings_upgrade">Upgrade</string>
+    <string name="settings_restore_purchases">Restore purchases</string>
+    <string name="settings_tips">Support the app</string>
     <string name="settings_about">About</string>
     <string name="about_app_name">Audiobook Player</string>
     <string name="about_version">Version %1$s</string>
     <string name="about_rate_on_play">Rate on Google Play</string>
+    <string name="about_supporter_badge">Supporter</string>
     <string name="folder_group_books_count">%1$d books</string>
     <string name="cd_expand_folder">Expand folder</string>
     <string name="cd_collapse_folder">Collapse folder</string>

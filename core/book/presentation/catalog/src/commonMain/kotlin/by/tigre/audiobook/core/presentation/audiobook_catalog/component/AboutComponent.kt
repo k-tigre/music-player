@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 interface AboutComponent {
     val appVersionName: String
     val showRateApp: StateFlow<Boolean>
+    val tipsCount: StateFlow<Int>
 
     fun onBack()
     fun onScreenShown()
@@ -21,6 +22,7 @@ interface AboutComponent {
 
         override val appVersionName: String = dependency.appVersionName
         override val showRateApp: StateFlow<Boolean> = dependency.showRateApp
+        override val tipsCount: StateFlow<Int> = dependency.tipsCount
 
         override fun onBack() = navigator.showPreviousScreen()
 

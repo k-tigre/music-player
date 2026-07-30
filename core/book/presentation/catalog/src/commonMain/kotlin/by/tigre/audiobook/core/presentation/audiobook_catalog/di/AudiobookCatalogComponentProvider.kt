@@ -67,7 +67,7 @@ interface AudiobookCatalogComponentProvider {
         override fun createSettingsHubComponent(
             context: BaseComponentContext,
             navigator: AudiobookCatalogNavigator
-        ): SettingsHubComponent = SettingsHubComponent.Impl(context, navigator, dependency.eventAnalytics)
+        ): SettingsHubComponent = SettingsHubComponent.Impl(context, navigator, dependency)
 
         override fun createThemeSettingsComponent(
             context: BaseComponentContext,

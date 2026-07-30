@@ -30,6 +30,7 @@ import by.tigre.media.platform.entitlements.AppSku
 import by.tigre.media.platform.entitlements.EntitlementsRepository
 import by.tigre.media.platform.entitlements.Feature
 import by.tigre.media.platform.entitlements.PlayEntitlementsRepository
+import by.tigre.media.platform.preferences.Preferences
 import by.tigre.media.platform.playback.di.AndroidBasePlaybackModule
 import by.tigre.media.platform.playback.di.BasePlaybackModule
 import by.tigre.media.platform.preferences.ThemePreferencesStorage
@@ -42,13 +43,16 @@ import by.tigre.media.platform.player.component.PlayerItem
 import by.tigre.media.platform.player.component.RepeatMode
 import by.tigre.media.platform.player.di.PlayerDependency
 import by.tigre.media.platform.tools.analytics.book.BookAnalyticsModule
+import by.tigre.media.platform.tools.analytics.book.AudiobookEvents
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
 import by.tigre.media.platform.tools.platform.compose.ContrastPreference
 import by.tigre.media.platform.tools.platform.compose.ThemeMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
@@ -73,6 +77,7 @@ class ApplicationGraph(
     override val catalogScanCoordinator: CatalogScanCoordinator,
     val billingService: AndroidBillingService,
     override val entitlementsRepository: EntitlementsRepository,
+    private val preferences: Preferences,
 ) : PlayerDependency,
     PlayerBackgroundDependency,
     AudiobookCatalogDependency,
@@ -83,9 +88,51 @@ class ApplicationGraph(
     private val _paywallRequests = MutableSharedFlow<PaywallRequest>(extraBufferCapacity = 1)
     val paywallRequests = _paywallRequests.asSharedFlow()
 
-    fun requestPaywall(feature: Feature) {
-        _paywallRequests.tryEmit(PaywallRequest(feature))
+    private val _billingMessages = MutableSharedFlow<Int>(extraBufferCapacity = 1)
+    val billingMessages = _billingMessages.asSharedFlow()
+
+    private val _tipsCount = MutableStateFlow(preferences.loadInt(TIPS_COUNT_KEY, 0))
+    override val tipsCount: StateFlow<Int> = _tipsCount.asStateFlow()
+
+    fun requestPaywall(
+        feature: Feature,
+        source: String = feature.name,
+        initialSection: PaywallSection = PaywallSection.Plans,
+    ) {
+        _paywallRequests.tryEmit(PaywallRequest(feature, source, initialSection))
         Log.i("Entitlements") { "Paywall requested for $feature" }
+    }
+
+    override fun requestUpgrade() = requestPaywall(Feature.Equalizer, source = "settings")
+
+    override fun requestTips() = requestPaywall(
+        feature = Feature.Equalizer,
+        source = "settings",
+        initialSection = PaywallSection.Tips,
+    )
+
+    override fun restorePurchases() {
+        coroutineScope.launch {
+            runCatching { entitlementsRepository.restore() }
+                .onSuccess {
+                    eventAnalytics.trackEvent(AudiobookEvents.Action.PurchaseRestored)
+                    _billingMessages.tryEmit(by.tigre.audiobook.R.string.billing_restore_complete)
+                }
+                .onFailure {
+                    Log.w("Entitlements") { "Purchase restore failed: ${it.message}" }
+                    _billingMessages.tryEmit(by.tigre.audiobook.R.string.billing_restore_failed)
+                }
+        }
+    }
+
+    fun recordTip() {
+        val updatedCount = _tipsCount.value + 1
+        preferences.saveInt(TIPS_COUNT_KEY, updatedCount)
+        _tipsCount.value = updatedCount
+    }
+
+    fun showBillingMessage(messageRes: Int) {
+        _billingMessages.tryEmit(messageRes)
     }
 
     override val playbackEqualizer = basePlaybackModule.playbackEqualizer
@@ -298,6 +345,7 @@ class ApplicationGraph(
                 catalogScanCoordinator = catalogScanCoordinator,
                 billingService = billingService,
                 entitlementsRepository = entitlementsRepository,
+                preferences = preferences,
             )
             requestPaywall = graph::requestPaywall
             coroutineModule.scope.launch {
@@ -306,5 +354,7 @@ class ApplicationGraph(
             }
             return graph
         }
+
+        private const val TIPS_COUNT_KEY = "tips_count"
     }
 }
