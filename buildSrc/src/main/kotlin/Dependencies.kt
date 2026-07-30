@@ -322,6 +322,7 @@ sealed class Project(id: String) {
             object Formatter : Platform("formatter")
             object Permission : Platform("permission")
             object Billing : Platform("billing")
+            object Entitlements : Platform("entitlements")
         }
 
         sealed class Domain(id: String) : Core("domain:$id")
