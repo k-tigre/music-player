@@ -35,4 +35,30 @@
     <string name="default_player_action_manual">Open Downloads</string>
     <string name="add_to_playlist_added_snackbar">Added to playlist</string>
     <string name="playlist_name_taken">A playlist with this name already exists</string>
+    <string name="settings_upgrade">Upgrade</string>
+    <string name="settings_upgrade_summary">Unlock the equalizer, more playlists, and the home widget.</string>
+    <string name="settings_restore">Restore purchases</string>
+    <string name="settings_tips">Support the app</string>
+    <string name="settings_tips_count">Tips given: %1$d</string>
+
+    <string name="paywall_title">Unlock more listening</string>
+    <string name="paywall_benefits">Plus adds the equalizer and more playlists. Pro also unlocks the home widget.</string>
+    <string name="paywall_plans_heading">Choose your plan</string>
+    <string name="paywall_plus">Plus</string>
+    <string name="paywall_plus_benefits">Equalizer and up to 10 playlists.</string>
+    <string name="paywall_pro">Pro</string>
+    <string name="paywall_pro_benefits">Everything in Plus, unlimited playlists, and the home-screen widget.</string>
+    <string name="paywall_best_value">Best value</string>
+    <string name="paywall_choose_plan">Choose · %1$s</string>
+    <string name="paywall_price_loading">%1$s price is loading…</string>
+    <string name="paywall_tips_heading">Support the app</string>
+    <string name="paywall_tips_description">A one-time tip helps keep Music Player improving.</string>
+    <string name="paywall_tip_coffee">Buy a coffee · %1$s</string>
+    <string name="paywall_tip_pizza">Buy a pizza · %1$s</string>
+    <string name="paywall_restore">Restore</string>
+    <string name="paywall_maybe_later">Maybe later</string>
+    <string name="billing_restore_complete">Purchases restored</string>
+    <string name="billing_restore_failed">Could not restore purchases</string>
+    <string name="billing_purchase_failed">Purchase could not be completed</string>
+    <string name="billing_tip_thanks">Thank you for your support!</string>
 </resources>

@@ -70,7 +70,8 @@ interface CurrentQueueComponent {
     class Impl(
         context: BaseComponentContext,
         dependency: CurrentQueueDependency,
-        private val navigator: QueueNavigator
+        private val navigator: QueueNavigator,
+        private val canCreatePlaylist: suspend () -> Boolean = { true },
     ) : CurrentQueueComponent, BaseComponentContext by context {
 
         private val playbackController: PlaybackController = dependency.playbackController
@@ -277,6 +278,7 @@ interface CurrentQueueComponent {
             val trimmedName = name.trim()
             if (trimmedName.isEmpty()) return
             launch {
+                if (!canCreatePlaylist()) return@launch
                 if (playlistRepository.isNameTaken(trimmedName)) {
                     _nameError.value = true
                     return@launch

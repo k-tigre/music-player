@@ -57,6 +57,11 @@ class MainActivity : AppCompatActivity() {
             currentQueueComponent = CurrentQueueComponentProvider.Impl(graph),
             playlistsComponentProvider = PlaylistsComponentProvider.Impl(graph),
             favoritesComponentProvider = FavoritesComponentProvider.Impl(graph),
+            paywallRequests = graph.paywallRequests,
+            activity = this,
+            billingService = graph.billingService,
+            onTipCompleted = graph::recordTip,
+            onBillingMessage = graph::showBillingMessage,
         )
 
         externalAudioIntentHandler = ExternalAudioIntentHandler(
@@ -99,6 +104,7 @@ class MainActivity : AppCompatActivity() {
                         playbackController = graph.playbackController,
                         addToPlaylistCoordinator = graph.addToPlaylistCoordinator,
                         eventAnalytics = graph.eventAnalytics,
+                        billingMessages = graph.billingMessages,
                     ).Draw(Modifier)
                 }
             }

@@ -1,5 +1,9 @@
 package by.tigre.music.player.presentation.root.component
 
+import android.app.Activity
+import by.tigre.media.platform.billing.BillingService
+import by.tigre.media.platform.entitlements.AppSku
+import by.tigre.media.platform.entitlements.Feature
 import by.tigre.media.platform.player.component.EqualizerComponent
 import by.tigre.media.platform.player.component.PlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.RootCatalogComponent
@@ -28,6 +32,10 @@ import by.tigre.media.platform.tools.analytics.common.CommonEvents
 import by.tigre.media.platform.tools.analytics.music.MusicEvents
 import by.tigre.music.player.presentation.root.di.RootDependency
 import by.tigre.music.player.presentation.settings.component.SettingsComponent
+import by.tigre.music.player.presentation.paywall.PaywallComponent
+import by.tigre.music.player.core.di.PaywallRequest
+import by.tigre.music.player.core.di.PaywallSection
+import kotlinx.coroutines.flow.first
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.bringToFront
@@ -49,6 +57,7 @@ interface Root {
     val onStartServiceEvent: Flow<Unit>
 
     val showDefaultPlayerPrompt: StateFlow<Boolean>
+    val paywallComponent: StateFlow<PaywallComponent?>
 
     val pages: Value<ChildStack<*, PageComponentChild>>
     val mainComponent: Value<ChildStack<*, MainComponentChild>>
@@ -60,6 +69,7 @@ interface Root {
     fun dismissDefaultPlayerPrompt()
 
     fun confirmDefaultPlayerPrompt()
+    suspend fun canCreatePlaylist(): Boolean
 
     sealed interface PageComponentChild {
         class Queue(val component: CurrentQueueComponent) : PageComponentChild
@@ -77,12 +87,17 @@ interface Root {
 
     class Impl(
         context: BaseComponentContext,
-        dependency: RootDependency,
+        private val dependency: RootDependency,
         catalogComponentProvider: CatalogComponentProvider,
         playerComponentProvider: PlayerComponentProvider,
         currentQueueComponent: CurrentQueueComponentProvider,
         playlistsComponentProvider: PlaylistsComponentProvider,
         favoritesComponentProvider: FavoritesComponentProvider,
+        private val paywallRequests: Flow<PaywallRequest>,
+        private val activity: Activity,
+        private val billingService: BillingService,
+        private val onTipCompleted: () -> Unit,
+        private val onBillingMessage: (Int) -> Unit,
     ) : Root, BaseComponentContext by context {
 
         private val eventAnalytics = dependency.eventAnalytics
@@ -90,9 +105,12 @@ interface Root {
         private val playbackQueueStorage: PlaybackQueueStorage = dependency.playbackQueueStorage
         private val playerSettings = dependency.playerSettings
         private val themeSettingsStore = dependency.themeSettingsStore
+        private val entitlementsRepository = dependency.entitlementsRepository
 
         private val showDefaultPlayerPromptState = MutableStateFlow(playerSettings.shouldShowPrompt())
         override val showDefaultPlayerPrompt: StateFlow<Boolean> = showDefaultPlayerPromptState.asStateFlow()
+        private val paywallComponentState = MutableStateFlow<PaywallComponent?>(null)
+        override val paywallComponent: StateFlow<PaywallComponent?> = paywallComponentState.asStateFlow()
 
         private val pagesNavigation = StackNavigation<PagesConfig>()
         private val mainNavigation = StackNavigation<MainConfig>()
@@ -110,6 +128,10 @@ interface Root {
             }
 
             override fun showEqualizer() {
+                if (!entitlementsRepository.has(Feature.Equalizer)) {
+                    dependency.requestPaywall(Feature.Equalizer)
+                    return
+                }
                 eventAnalytics.trackEvent(CommonEvents.Action.NavOpenEqualizer)
                 mainNavigation.pushToFront(MainConfig.Equalizer)
             }
@@ -201,6 +223,7 @@ interface Root {
             playlistsComponentProvider.createRootPlaylistsComponent(
                 context = appChildContext("playlists"),
                 navigator = playlistsNavigator,
+                canCreatePlaylist = ::canCreatePlaylist,
             )
 
         private val favoritesComponent: FavoritesComponent =
@@ -229,7 +252,8 @@ interface Root {
                     PagesConfig.Queue -> PageComponentChild.Queue(
                         currentQueueComponent.createCurrentQueueComponent(
                             componentContext,
-                            navigator = queueNavigator
+                            navigator = queueNavigator,
+                            canCreatePlaylist = ::canCreatePlaylist,
                         )
                     )
                 }
@@ -261,6 +285,10 @@ interface Root {
                     MainConfig.Settings -> MainComponentChild.Settings(
                         SettingsComponent.Impl(
                             themeSettingsStore = themeSettingsStore,
+                            tipsCount = dependency.tipsCount,
+                            onUpgrade = dependency::requestUpgrade,
+                            onRestorePurchases = dependency::restorePurchases,
+                            onTips = dependency::requestTips,
                             onClose = playerNavigator::closeSettings,
                         )
                     )
@@ -313,6 +341,13 @@ interface Root {
             showDefaultPlayerPromptState.value = false
         }
 
+        override suspend fun canCreatePlaylist(): Boolean {
+            val currentCount = dependency.playlistRepository.allPlaylists.first().size
+            if (currentCount < entitlementsRepository.playlistLimit()) return true
+            dependency.requestPaywall(Feature.UnlimitedPlaylists, source = "playlist_limit")
+            return false
+        }
+
         private fun openCatalogFromFavorites(navigate: () -> Unit) {
             catalogReturnPageIndex = 2
             pagesNavigation.bringToFront(PagesConfig.Catalog)
@@ -322,6 +357,22 @@ interface Root {
         init {
             if (showDefaultPlayerPromptState.value) {
                 eventAnalytics.trackEvent(MusicEvents.Action.DefaultPlayerPromptShown)
+            }
+            launch {
+                paywallRequests.collect { request ->
+                    paywallComponentState.value = PaywallComponent.Impl(
+                        context = this@Impl,
+                        app = AppSku.Music,
+                        request = request,
+                        activity = activity,
+                        billing = billingService,
+                        entitlements = entitlementsRepository,
+                        eventAnalytics = eventAnalytics,
+                        onTipCompleted = onTipCompleted,
+                        onMessage = onBillingMessage,
+                        onDismiss = { paywallComponentState.value = null },
+                    )
+                }
             }
             launch {
                 pages.trackScreens<PagesConfig, MusicEvents.Screen>(

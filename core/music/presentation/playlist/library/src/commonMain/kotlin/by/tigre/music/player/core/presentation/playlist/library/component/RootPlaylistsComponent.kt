@@ -38,6 +38,7 @@ interface RootPlaylistsComponent {
         dependency: PlaylistsDependency,
         private val componentProvider: PlaylistsComponentProvider,
         private val externalNavigator: PlaylistsNavigator,
+        private val canCreatePlaylist: suspend () -> Boolean = { true },
     ) : RootPlaylistsComponent, BaseComponentContext by context {
 
         private val screenAnalytics = dependency.screenAnalytics
@@ -133,6 +134,7 @@ interface RootPlaylistsComponent {
                     componentProvider.createPlaylistsListComponent(
                         context = context,
                         navigator = navigator,
+                        canCreatePlaylist = canCreatePlaylist,
                     )
                 )
             }

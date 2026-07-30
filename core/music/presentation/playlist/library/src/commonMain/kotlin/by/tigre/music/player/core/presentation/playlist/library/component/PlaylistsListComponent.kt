@@ -39,6 +39,7 @@ interface PlaylistsListComponent {
         context: BaseComponentContext,
         dependency: PlaylistsDependency,
         private val navigator: PlaylistsNavigator,
+        private val canCreatePlaylist: suspend () -> Boolean = { true },
     ) : PlaylistsListComponent, BaseComponentContext by context {
 
         private val playlistRepository = dependency.playlistRepository
@@ -71,6 +72,7 @@ interface PlaylistsListComponent {
             val trimmedName = name.trim()
             if (trimmedName.isEmpty()) return
             launch {
+                if (!canCreatePlaylist()) return@launch
                 if (playlistRepository.isNameTaken(trimmedName)) {
                     _nameError.value = true
                     return@launch

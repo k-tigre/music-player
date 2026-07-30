@@ -8,8 +8,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -48,18 +50,49 @@ class SettingsView(
                 )
             },
         ) { padding ->
-            ThemeSettingsContent(
+            androidx.compose.foundation.layout.Column(
                 modifier = Modifier
                     .padding(padding)
                     .verticalScroll(rememberScrollState()),
-                themeMode = themeSettings.mode,
-                onThemeModeChange = component::setThemeMode,
-                dynamicColorEnabled = themeSettings.dynamicColor,
-                onDynamicColorChange = component::setDynamicColor,
-                dynamicColorAvailable = isDynamicColorSupported(),
-                contrast = themeSettings.contrast,
-                onContrastChange = component::setContrast,
-            )
+            ) {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.settings_upgrade)) },
+                    supportingContent = { Text(stringResource(R.string.settings_upgrade_summary)) },
+                    trailingContent = {
+                        TextButton(onClick = component::upgrade) {
+                            Text(stringResource(R.string.settings_upgrade))
+                        }
+                    },
+                )
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.settings_restore)) },
+                    trailingContent = {
+                        TextButton(onClick = component::restorePurchases) {
+                            Text(stringResource(R.string.settings_restore))
+                        }
+                    },
+                )
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.settings_tips)) },
+                    supportingContent = {
+                        Text(stringResource(R.string.settings_tips_count, component.tipsCount.collectAsState().value))
+                    },
+                    trailingContent = {
+                        TextButton(onClick = component::tips) {
+                            Text(stringResource(R.string.settings_tips))
+                        }
+                    },
+                )
+                ThemeSettingsContent(
+                    themeMode = themeSettings.mode,
+                    onThemeModeChange = component::setThemeMode,
+                    dynamicColorEnabled = themeSettings.dynamicColor,
+                    onDynamicColorChange = component::setDynamicColor,
+                    dynamicColorAvailable = isDynamicColorSupported(),
+                    contrast = themeSettings.contrast,
+                    onContrastChange = component::setContrast,
+                )
+            }
         }
     }
 }

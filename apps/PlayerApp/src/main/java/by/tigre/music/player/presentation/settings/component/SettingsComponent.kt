@@ -8,13 +8,21 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface SettingsComponent {
     val themeSettings: StateFlow<ThemeSettings>
+    val tipsCount: StateFlow<Int>
     fun setThemeMode(mode: ThemeMode)
     fun setDynamicColor(enabled: Boolean)
     fun setContrast(contrast: ContrastPreference)
+    fun upgrade()
+    fun restorePurchases()
+    fun tips()
     fun close()
 
     class Impl(
         private val themeSettingsStore: ThemeSettingsStore,
+        override val tipsCount: StateFlow<Int>,
+        private val onUpgrade: () -> Unit,
+        private val onRestorePurchases: () -> Unit,
+        private val onTips: () -> Unit,
         private val onClose: () -> Unit,
     ) : SettingsComponent {
         override val themeSettings: StateFlow<ThemeSettings> = themeSettingsStore.state
@@ -30,6 +38,12 @@ interface SettingsComponent {
         override fun setContrast(contrast: ContrastPreference) {
             themeSettingsStore.setContrast(contrast)
         }
+
+        override fun upgrade() = onUpgrade()
+
+        override fun restorePurchases() = onRestorePurchases()
+
+        override fun tips() = onTips()
 
         override fun close() = onClose()
     }
