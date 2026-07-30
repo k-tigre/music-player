@@ -25,7 +25,11 @@ import by.tigre.audiobook.platform.AudiobookGuideSettingsImpl
 import by.tigre.audiobook.platform.ThemeSettingsStore
 import by.tigre.audiobook.settings.RateAppConfigRepository
 import by.tigre.logger.Log
-import by.tigre.media.platform.billing.AndroidBillingWarmup
+import by.tigre.media.platform.billing.AndroidBillingService
+import by.tigre.media.platform.entitlements.AppSku
+import by.tigre.media.platform.entitlements.EntitlementsRepository
+import by.tigre.media.platform.entitlements.Feature
+import by.tigre.media.platform.entitlements.PlayEntitlementsRepository
 import by.tigre.media.platform.playback.di.AndroidBasePlaybackModule
 import by.tigre.media.platform.playback.di.BasePlaybackModule
 import by.tigre.media.platform.preferences.ThemePreferencesStorage
@@ -43,12 +47,15 @@ import by.tigre.media.platform.tools.platform.compose.ContrastPreference
 import by.tigre.media.platform.tools.platform.compose.ThemeMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
@@ -64,12 +71,22 @@ class ApplicationGraph(
     val themeSettingsStore: ThemeSettingsStore,
     private val rateAppConfigRepository: RateAppConfigRepository,
     override val catalogScanCoordinator: CatalogScanCoordinator,
+    val billingService: AndroidBillingService,
+    override val entitlementsRepository: EntitlementsRepository,
 ) : PlayerDependency,
     PlayerBackgroundDependency,
     AudiobookCatalogDependency,
     BookAnalyticsModule by analyticsModule,
     AudiobookCatalogModule by audiobookCatalogModule,
     AudiobookPlaybackModule by audiobookPlaybackModule {
+
+    private val _paywallRequests = MutableSharedFlow<PaywallRequest>(extraBufferCapacity = 1)
+    val paywallRequests = _paywallRequests.asSharedFlow()
+
+    fun requestPaywall(feature: Feature) {
+        _paywallRequests.tryEmit(PaywallRequest(feature))
+        Log.i("Entitlements") { "Paywall requested for $feature" }
+    }
 
     override val playbackEqualizer = basePlaybackModule.playbackEqualizer
 
@@ -241,6 +258,13 @@ class ApplicationGraph(
             )
 
             val preferences = preferencesModule.preferences
+            val billingService = AndroidBillingService(context.applicationContext)
+            val entitlementsRepository = PlayEntitlementsRepository(
+                context = context.applicationContext,
+                billing = billingService,
+                app = AppSku.AudioBook,
+            )
+            lateinit var requestPaywall: (Feature) -> Unit
             val appPlaybackVolume = requireNotNull(basePlaybackModule.appPlaybackVolume) {
                 "Audiobook requires in-app playback volume"
             }
@@ -250,6 +274,8 @@ class ApplicationGraph(
                 playbackController = audiobookPlaybackModule.audiobookPlaybackController,
                 appPlaybackVolume = appPlaybackVolume,
                 scope = coroutineModule.scope,
+                entitlementsRepository = entitlementsRepository,
+                onPaywallRequest = { feature -> requestPaywall(feature) },
             )
             val themeSettingsStore = ThemeSettingsStore(ThemePreferencesStorage(preferences))
             val rateAppConfigRepository = RateAppConfigRepository(coroutineModule.scope)
@@ -258,8 +284,7 @@ class ApplicationGraph(
                 scope = coroutineModule.scope,
                 catalogSource = audiobookCatalogModule.audiobookCatalogSource,
             )
-            AndroidBillingWarmup(context.applicationContext).warmUp()
-            return ApplicationGraph(
+            val graph = ApplicationGraph(
                 appContext = context.applicationContext,
                 coroutineScope = coroutineModule.scope,
                 basePlaybackModule = basePlaybackModule,
@@ -271,7 +296,15 @@ class ApplicationGraph(
                 themeSettingsStore = themeSettingsStore,
                 rateAppConfigRepository = rateAppConfigRepository,
                 catalogScanCoordinator = catalogScanCoordinator,
+                billingService = billingService,
+                entitlementsRepository = entitlementsRepository,
             )
+            requestPaywall = graph::requestPaywall
+            coroutineModule.scope.launch {
+                billingService.start()
+                entitlementsRepository.refresh()
+            }
+            return graph
         }
     }
 }

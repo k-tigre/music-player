@@ -5,6 +5,8 @@ import android.os.Looper
 import android.os.SystemClock
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
 import by.tigre.audiobook.nighttimer.NightTimerControllerImpl.Companion.SHAKE_GATE_SECONDS
+import by.tigre.media.platform.entitlements.EntitlementsRepository
+import by.tigre.media.platform.entitlements.Feature
 import by.tigre.media.platform.playback.AppPlaybackVolume
 import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.media.platform.preferences.Preferences
@@ -48,6 +50,8 @@ fun createNightTimerController(
     playbackController: AudiobookPlaybackController,
     appPlaybackVolume: AppPlaybackVolume,
     scope: CoreScope,
+    entitlementsRepository: EntitlementsRepository,
+    onPaywallRequest: (Feature) -> Unit,
 ): NightTimerController {
     val shakeConfigRepository = NightTimerShakeConfigRepository(preferences, scope)
     return NightTimerControllerImpl(
@@ -57,6 +61,8 @@ fun createNightTimerController(
         appPlaybackVolume,
         scope,
         shakeConfigRepository,
+        entitlementsRepository,
+        onPaywallRequest,
     )
 }
 
@@ -67,6 +73,8 @@ private class NightTimerControllerImpl(
     private val appPlaybackVolume: AppPlaybackVolume,
     private val scope: CoreScope,
     private val shakeConfigRepository: NightTimerShakeConfigRepository,
+    private val entitlementsRepository: EntitlementsRepository,
+    private val onPaywallRequest: (Feature) -> Unit,
 ) : NightTimerController {
 
     private val shakeExtender = NightTimerShakeExtender(
@@ -86,7 +94,7 @@ private class NightTimerControllerImpl(
     private val _selectedMinutes = MutableStateFlow(loadMinutes())
     override val selectedMinutes: StateFlow<Int> = _selectedMinutes.asStateFlow()
 
-    private val _fadeOutAtEnd = MutableStateFlow(loadFade())
+    private val _fadeOutAtEnd = MutableStateFlow(loadFade() && hasSleepTimerAdvanced())
     override val fadeOutAtEnd: StateFlow<Boolean> = _fadeOutAtEnd.asStateFlow()
 
     private var timerJob: Job? = null
@@ -106,22 +114,29 @@ private class NightTimerControllerImpl(
     }
 
     override fun setFadeOutAtEnd(enabled: Boolean) {
-        _fadeOutAtEnd.value = enabled
-        preferences.saveBoolean(PREF_FADE, enabled)
+        val canUseAdvancedTimer = hasSleepTimerAdvanced()
+        if (enabled && !canUseAdvancedTimer) {
+            onPaywallRequest(Feature.SleepTimerAdvanced)
+        }
+        _fadeOutAtEnd.value = enabled && canUseAdvancedTimer
+        preferences.saveBoolean(PREF_FADE, enabled && canUseAdvancedTimer)
     }
 
     override fun startTimer() {
         cancelTimerInternal(restoreVolume = true)
         val minutes = _selectedMinutes.value
-        val fade = _fadeOutAtEnd.value
+        val advancedTimerEnabled = hasSleepTimerAdvanced()
+        val fade = _fadeOutAtEnd.value && advancedTimerEnabled
         volumeBeforeTimer = appPlaybackVolume.playbackVolume.value
         fadeBaseCaptured = false
         shakeGateEntered = false
         endAtElapsedRealtime.set(SystemClock.elapsedRealtime() + minutes * 60_000L)
-        shakeExtender.start()
+        if (advancedTimerEnabled) {
+            shakeExtender.start()
+        }
         timerJob = scope.launch {
             try {
-                runTimerLoop(fade)
+                runTimerLoop(fade, advancedTimerEnabled)
             } finally {
                 shakeExtender.stop()
             }
@@ -163,12 +178,12 @@ private class NightTimerControllerImpl(
         _uiState.value = NightTimerUiState(isRunning = false, remainingSeconds = 0)
     }
 
-    private suspend fun runTimerLoop(fadeEnabled: Boolean) {
+    private suspend fun runTimerLoop(fadeEnabled: Boolean, shakeEnabled: Boolean) {
         while (true) {
             val remaining = computeRemainingSeconds()
             _uiState.value = NightTimerUiState(isRunning = true, remainingSeconds = remaining)
 
-            if (remaining < SHAKE_GATE_SECONDS) {
+            if (shakeEnabled && remaining < SHAKE_GATE_SECONDS) {
                 if (!shakeGateEntered) {
                     shakeGateEntered = true
                     shakeExtender.enable()
@@ -212,6 +227,7 @@ private class NightTimerControllerImpl(
     }
 
     private fun extendByShake() {
+        if (!hasSleepTimerAdvanced()) return
         if (timerJob?.isActive != true) return
         if (computeRemainingSeconds() >= SHAKE_GATE_SECONDS) return
         endAtElapsedRealtime.addAndGet(SHAKE_EXTRA_MS)
@@ -271,6 +287,9 @@ private class NightTimerControllerImpl(
     }
 
     private fun loadFade(): Boolean = preferences.loadBoolean(PREF_FADE, DEFAULT_FADE)
+
+    private fun hasSleepTimerAdvanced(): Boolean =
+        entitlementsRepository.has(Feature.SleepTimerAdvanced)
 
     private companion object {
         const val TAG = "NightTimer"

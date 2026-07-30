@@ -48,6 +48,7 @@ kotlin {
             implementation(project(Project.Core.Book.Data.Catalog.name))
             implementation(project(Project.Core.Book.Data.Playback.name))
             implementation(project(Project.Core.Book.Entity.Catalog.name))
+            implementation(project(Project.Core.Platform.Entitlements.name))
         }
         androidMain.dependencies {
             implementation(Library.AndroidXDocumentFile.notation)

@@ -67,7 +67,8 @@ interface BookListComponent {
             expandedState,
             continueListeningExpandedState,
             scrollToBookNonce,
-        ) { catalog, expanded, continueExpanded, scrollNonce ->
+            dependency.entitlementsRepository.tier,
+        ) { catalog, expanded, continueExpanded, scrollNonce, _ ->
             val (books, continueListeningBooks, currentBook) = catalog
             val currentBookId = currentBook?.id
             val rootBooks = books.filter { it.subPath.isEmpty() }
@@ -79,7 +80,8 @@ interface BookListComponent {
                 .map { it.key to it.value }
             ScreenContentState.Content(
                 BookListUiState(
-                    continueListeningBooks = continueListeningBooks,
+                    continueListeningBooks = continueListeningBooks
+                        .take(dependency.entitlementsRepository.continueListeningLimit()),
                     continueListeningExpanded = continueExpanded,
                     rootBooks = rootBooks,
                     grouped = grouped,
