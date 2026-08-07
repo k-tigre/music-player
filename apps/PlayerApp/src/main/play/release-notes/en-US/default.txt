@@ -1,1 +1,3 @@
-• Play Billing stub so subscriptions can be configured in Play Console
+• Optional Plus/Pro subscriptions: more user playlists and equalizer (Plus), home widget (Pro); catalog, queue, and player stay free
+• Soft paywall, restore purchases, and tip jar in Settings
+• Faster artist list loading in the catalog
