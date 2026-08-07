@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.BaseColumns
 import android.provider.MediaStore
+import by.tigre.music.player.core.data.catalog.MediaStoreStrings
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.CatalogSearchResult
@@ -55,7 +56,10 @@ interface DbHelper {
                     artists.add(
                         Artist(
                             id = Artist.Id(cursor.getLong(idColumn)),
-                            name = cursor.getString(nameColumn),
+                            name = MediaStoreStrings.orDefault(
+                                cursor.getString(nameColumn),
+                                MediaStoreStrings.UNKNOWN_ARTIST,
+                            ),
                             songCount = cursor.getInt(songCountColumn),
                             albumCount = cursor.getInt(albumCountColumn)
                         )
@@ -88,7 +92,10 @@ interface DbHelper {
                 if (cursor.moveToFirst()) {
                     Artist(
                         id = Artist.Id(cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists._ID))),
-                        name = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.ARTIST)),
+                        name = MediaStoreStrings.orDefault(
+                            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.ARTIST)),
+                            MediaStoreStrings.UNKNOWN_ARTIST,
+                        ),
                         songCount = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.NUMBER_OF_TRACKS)),
                         albumCount = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.NUMBER_OF_ALBUMS))
                     )
@@ -143,7 +150,10 @@ interface DbHelper {
                     albums.add(
                         Album(
                             id = Album.Id(cursor.getLong(idColumn)),
-                            name = cursor.getString(nameColumn),
+                            name = MediaStoreStrings.orDefault(
+                                cursor.getString(nameColumn),
+                                MediaStoreStrings.UNKNOWN_ALBUM,
+                            ),
                             songCount = cursor.getInt(countColumn),
                             years = years
                         )
@@ -229,7 +239,10 @@ interface DbHelper {
                     artists.add(
                         Artist(
                             id = Artist.Id(cursor.getLong(idColumn)),
-                            name = cursor.getString(nameColumn),
+                            name = MediaStoreStrings.orDefault(
+                                cursor.getString(nameColumn),
+                                MediaStoreStrings.UNKNOWN_ARTIST,
+                            ),
                             songCount = cursor.getInt(songCountColumn),
                             albumCount = cursor.getInt(albumCountColumn)
                         )
@@ -321,11 +334,20 @@ interface DbHelper {
             artistIdColumn: Int
         ): Song = Song(
             id = Song.Id(cursor.getLong(idColumn)),
-            name = cursor.getString(nameColumn),
+            name = MediaStoreStrings.orDefault(
+                cursor.getString(nameColumn),
+                MediaStoreStrings.UNKNOWN_TITLE,
+            ),
             index = cursor.getString(trackColumn) ?: "",
-            album = cursor.getString(albumColumn),
-            artist = cursor.getString(artistColumn),
-            path = cursor.getString(dataColumn),
+            album = MediaStoreStrings.orDefault(
+                cursor.getString(albumColumn),
+                MediaStoreStrings.UNKNOWN_ALBUM,
+            ),
+            artist = MediaStoreStrings.orDefault(
+                cursor.getString(artistColumn),
+                MediaStoreStrings.UNKNOWN_ARTIST,
+            ),
+            path = cursor.getString(dataColumn) ?: "",
             artistId = Artist.Id(cursor.getLong(artistIdColumn)),
             albumId = Album.Id(cursor.getLong(albumIdColumn))
         )
