@@ -21,9 +21,12 @@ Auto-generated from `@AnalyticsScope` annotations. Regenerate:
 | book | screen | `book_screen_playback_speed` | PlaybackSpeedSettings |  | ✓ |  |  | Playback speed settings |
 | book | screen | `book_screen_settings` | Settings |  | ✓ |  |  | App settings hub |
 | book | screen | `book_screen_theme_settings` | ThemeSettings |  | ✓ |  |  | Theme settings |
+| common | action | `common_feature_gate_blocked` | FeatureGateBlocked | ✓ | ✓ |  |  | Paid or unavailable feature blocked |
 | common | action | `common_nav_open_equalizer` | NavOpenEqualizer | ✓ | ✓ | ✓ |  | Open equalizer screen |
 | common | action | `common_nav_open_player` | NavOpenPlayer | ✓ | ✓ | ✓ |  | Open full player screen |
 | common | action | `common_nav_open_settings` | NavOpenSettings | ✓ |  |  |  | Open settings screen |
+| common | action | `common_paywall_dismissed` | PaywallDismissed | ✓ | ✓ |  |  | Dismiss paywall without purchasing |
+| common | action | `common_paywall_shown` | PaywallShown | ✓ | ✓ |  |  | Show purchase paywall |
 | common | action | `common_player_next` | PlayerNext | ✓ | ✓ | ✓ |  | Skip to next track or chapter |
 | common | action | `common_player_pause` | PlayerPause | ✓ | ✓ | ✓ |  | Pause playback |
 | common | action | `common_player_play` | PlayerPlay | ✓ | ✓ | ✓ |  | Play / resume playback |
@@ -34,6 +37,13 @@ Auto-generated from `@AnalyticsScope` annotations. Regenerate:
 | common | action | `common_player_seek_forward_15` | PlayerSeekForward15 | ✓ | ✓ | ✓ |  | Seek forward 15 seconds |
 | common | action | `common_player_seek_forward_60` | PlayerSeekForward60 | ✓ | ✓ | ✓ |  | Seek forward 60 seconds |
 | common | action | `common_player_shuffle_toggle` | PlayerShuffleToggle | ✓ |  | ✓ |  | Toggle shuffle mode |
+| common | action | `common_purchase_cancelled` | PurchaseCancelled | ✓ | ✓ |  |  | User cancelled purchase or tip flow |
+| common | action | `common_purchase_completed` | PurchaseCompleted | ✓ | ✓ |  |  | Complete subscription purchase |
+| common | action | `common_purchase_failed` | PurchaseFailed | ✓ | ✓ |  |  | Purchase or tip billing flow failed |
+| common | action | `common_purchase_restored` | PurchaseRestored | ✓ | ✓ |  |  | Restore previous purchases |
+| common | action | `common_purchase_started` | PurchaseStarted | ✓ | ✓ |  |  | Start purchase or tip billing flow |
+| common | action | `common_subscription_tier_changed` | SubscriptionTierChanged | ✓ | ✓ |  |  | Subscription tier changed |
+| common | action | `common_tip_completed` | TipCompleted | ✓ | ✓ |  |  | Complete tip purchase |
 | common | screen | `common_screen_equalizer` | Equalizer | ✓ | ✓ | ✓ |  | Equalizer screen |
 | common | screen | `common_screen_player` | Player | ✓ | ✓ | ✓ |  | Full player screen |
 | common | screen | `common_screen_root_overlay` | RootOverlay | ✓ |  | ✓ | yes | Root overlay without a dedicated screen (not sent to analytics) |
