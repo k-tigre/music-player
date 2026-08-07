@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.map
 import java.io.File
 
 class DesktopApplicationGraph(
-    playbackModule: PlaybackModule,
+    private val playbackModule: PlaybackModule,
     playbackQueueModule: DesktopPlaybackQueueModule,
     private val desktopCatalogModule: DesktopCatalogModule,
     analyticsModule: MusicAnalyticsModule,
@@ -53,6 +53,9 @@ class DesktopApplicationGraph(
         get() = playlistModule.addToPlaylistCoordinator
 
     override val appPlaybackVolume = playbackModule.appPlaybackVolume
+
+    override val eqProfileController = playbackModule.eqProfileController
+    override val eqProfileRepository = playbackModule.eqProfileRepository
 
     override val basePlaybackController: BasePlaybackController by lazy {
         val controller = playbackController
@@ -96,7 +99,11 @@ class DesktopApplicationGraph(
             val desktopCatalogModule = DesktopCatalogModule(dbDir, preferencesModule.preferences)
             val coroutineModule = CoroutineModule.Impl()
             val playbackQueueModule = DesktopPlaybackQueueModule(dbDir, coroutineModule, preferencesModule)
-            val basePlaybackModule = DesktopBasePlaybackModule(preferencesModule.preferences)
+            val basePlaybackModule = DesktopBasePlaybackModule(
+                preferences = preferencesModule.preferences,
+                coroutineModule = coroutineModule,
+                dbDir = dbDir,
+            )
             val playbackModule =
                 PlaybackModule.Impl(coroutineModule, playbackQueueModule, desktopCatalogModule, basePlaybackModule)
             val analyticsModule = MusicAnalyticsModuleImpl.create(

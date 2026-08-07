@@ -11,6 +11,7 @@ object FeatureModesRemoteConfig {
 
     fun Feature.jsonKey(): String = when (this) {
         Feature.Equalizer -> "equalizer"
+        Feature.EqDeviceProfiles -> "eq_device_profiles"
         Feature.SleepTimerAdvanced -> "sleep_timer_advanced"
         Feature.HomeWidget -> "home_widget"
         Feature.ContinueListeningExpanded -> "continue_listening_expanded"

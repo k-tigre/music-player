@@ -16,6 +16,8 @@ interface PlaybackModule {
     val playbackPlayer: PlaybackPlayer
     val playbackEqualizer: PlaybackEqualizer
     val appPlaybackVolume: AppPlaybackVolume?
+    val eqProfileController: by.tigre.media.platform.playback.eq.EqProfileController
+    val eqProfileRepository: by.tigre.media.platform.playback.eq.EqProfileRepository
 
     class Impl(
         coroutineModule: CoroutineModule,
@@ -37,5 +39,9 @@ interface PlaybackModule {
         override val playbackEqualizer: PlaybackEqualizer = basePlaybackModule.playbackEqualizer
 
         override val appPlaybackVolume: AppPlaybackVolume? = basePlaybackModule.appPlaybackVolume
+
+        override val eqProfileController = basePlaybackModule.eqProfileController
+
+        override val eqProfileRepository = basePlaybackModule.eqProfileRepository
     }
 }

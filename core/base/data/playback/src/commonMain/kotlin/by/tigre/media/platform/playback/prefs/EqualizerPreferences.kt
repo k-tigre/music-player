@@ -23,9 +23,17 @@ internal class EqualizerPreferences(
         preferences.saveString(KEY_CUSTOM_GAINS, gains.joinToString(",") { it.toString() })
     }
 
+    fun loadSuggestSetup(default: Boolean = true): Boolean =
+        preferences.loadBoolean(KEY_SUGGEST_SETUP, default)
+
+    fun saveSuggestSetup(enabled: Boolean) {
+        preferences.saveBoolean(KEY_SUGGEST_SETUP, enabled)
+    }
+
     companion object {
         private const val KEY_SELECTED_PRESET = "playback_equalizer_selected_preset_index"
         private const val KEY_CUSTOM_GAINS = "playback_equalizer_custom_band_gains_db"
+        private const val KEY_SUGGEST_SETUP = "playback_equalizer_suggest_setup"
     }
 }
 

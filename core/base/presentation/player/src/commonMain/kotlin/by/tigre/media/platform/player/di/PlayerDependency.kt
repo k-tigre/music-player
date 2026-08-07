@@ -2,6 +2,8 @@ package by.tigre.media.platform.player.di
 
 import by.tigre.media.platform.playback.AppPlaybackVolume
 import by.tigre.media.platform.playback.PlaybackEqualizer
+import by.tigre.media.platform.playback.eq.EqProfileController
+import by.tigre.media.platform.playback.eq.EqProfileRepository
 import by.tigre.media.platform.player.component.BasePlaybackController
 import by.tigre.media.platform.player.component.PlaybackSpeedSource
 import by.tigre.media.platform.tools.analytics.common.CommonAnalyticsDependency
@@ -12,4 +14,10 @@ interface PlayerDependency : CommonAnalyticsDependency {
     val appPlaybackVolume: AppPlaybackVolume?
     val playbackSpeedSource: PlaybackSpeedSource?
         get() = null
+
+    val eqProfileController: EqProfileController
+    val eqProfileRepository: EqProfileRepository
+    /** Max profiles for current app; Music default 8, Book 16. */
+    val eqProfileMaxCount: Int
+        get() = 8
 }

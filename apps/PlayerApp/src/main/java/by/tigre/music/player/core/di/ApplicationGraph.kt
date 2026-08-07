@@ -105,6 +105,9 @@ class ApplicationGraph(
 
     override val appPlaybackVolume = playbackModule.appPlaybackVolume
 
+    override val eqProfileController = playbackModule.eqProfileController
+    override val eqProfileRepository = playbackModule.eqProfileRepository
+
     override fun requestPaywall(
         feature: Feature,
         source: String,
@@ -274,6 +277,8 @@ class ApplicationGraph(
             val playbackQueueModule = AndroidPlaybackQueueModule(context, coroutineModule, preferencesModule)
             val basePlaybackModule =
                 AndroidBasePlaybackModule(context, coroutineModule, preferencesModule.preferences)
+            // Start EQ profile apply (device-only for Music).
+            basePlaybackModule.eqProfileController
             val playbackModule =
                 PlaybackModule.Impl(coroutineModule, playbackQueueModule, catalogModule, basePlaybackModule)
 

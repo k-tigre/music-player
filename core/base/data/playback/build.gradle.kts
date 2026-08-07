@@ -2,6 +2,7 @@ plugins {
     id(Plugin.Id.KotlinMultiplatform.value)
     id(Plugin.Id.AndroidKmpLibrary.value)
     id(Plugin.Id.KotlinSerialization.value)
+    id(Plugin.Id.SQLDelight.value)
 }
 
 kotlin {
@@ -20,13 +21,18 @@ kotlin {
         commonMain.dependencies {
             implementation(Library.KotlinStd.notation)
             implementation(Library.CoroutinesCore.notation)
+            implementation(Library.SQLDelightCoroutines.notation)
             implementation(project(Project.Tools.Coroutines.name))
             implementation(TigreLogger.Artifact.Core.notation)
             implementation(project(Project.Core.Data.Storage.Preferences.name))
         }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
         androidMain.dependencies {
             implementation(Library.MediaCommon.notation)
             implementation(Library.MediaPlayer.notation)
+            implementation(Library.SQLDelightAndroid.notation)
         }
         val desktopMain by getting {
             dependencies {
@@ -34,8 +40,22 @@ kotlin {
                 implementation(Library.JAudioTagger.notation)
                 implementation(Library.JavaCv.notation)
                 implementation(Library.FfmpegPlatform.notation)
+                implementation(Library.SQLDelightJvm.notation)
+            }
+        }
+        val desktopTest by getting {
+            dependencies {
+                implementation(Library.SQLDelightJvm.notation)
             }
         }
     }
 }
 
+sqldelight {
+    databases {
+        create("DatabaseEqProfiles") {
+            packageName = "by.tigre.media.platform.playback.eq.db"
+            generateAsync = true
+        }
+    }
+}

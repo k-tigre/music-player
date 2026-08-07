@@ -30,6 +30,11 @@ class TierResolveTest {
     }
 
     @Test
+    fun eqDeviceProfilesRequiresPro() {
+        assertEquals(Tier.Pro, Feature.EqDeviceProfiles.minTier())
+    }
+
+    @Test
     fun musicProSubscriptionResolvesPro() {
         assertEquals(
             Tier.Pro,

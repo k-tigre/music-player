@@ -1,0 +1,41 @@
+CREATE TABLE EqProfileRow(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    route_key TEXT NOT NULL,
+    content_kind TEXT NOT NULL,
+    content_key TEXT NOT NULL,
+    preset_index INTEGER,
+    gains_csv TEXT NOT NULL,
+    title TEXT,
+    updated_at_ms INTEGER NOT NULL,
+    UNIQUE(route_key, content_kind, content_key)
+);
+
+selectAll:
+SELECT *
+FROM EqProfileRow
+ORDER BY updated_at_ms DESC;
+
+selectById:
+SELECT *
+FROM EqProfileRow
+WHERE id = ?;
+
+selectByRouteContent:
+SELECT *
+FROM EqProfileRow
+WHERE route_key = ? AND content_kind = ? AND content_key = ?;
+
+insert:
+INSERT INTO EqProfileRow(route_key, content_kind, content_key, preset_index, gains_csv, title, updated_at_ms)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+updateById:
+UPDATE EqProfileRow
+SET preset_index = ?, gains_csv = ?, title = ?, updated_at_ms = ?
+WHERE id = ?;
+
+deleteById:
+DELETE FROM EqProfileRow WHERE id = ?;
+
+countAll:
+SELECT count(*) FROM EqProfileRow;

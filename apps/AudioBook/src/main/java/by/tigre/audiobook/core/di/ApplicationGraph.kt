@@ -162,6 +162,10 @@ class ApplicationGraph(
 
     override val playbackEqualizer = basePlaybackModule.playbackEqualizer
 
+    override val eqProfileController get() = basePlaybackModule.eqProfileController
+    override val eqProfileRepository get() = basePlaybackModule.eqProfileRepository
+    override val eqProfileMaxCount: Int get() = 16
+
     override val appPlaybackVolume = basePlaybackModule.appPlaybackVolume
 
     override val themeSettings: StateFlow<CatalogThemeSettings> =
@@ -346,8 +350,14 @@ class ApplicationGraph(
         ): ApplicationGraph {
             val preferencesModule = AndroidPreferencesModule(context)
             val coroutineModule = CoroutineModule.Impl()
+            val eqContentKeys = by.tigre.media.platform.playback.eq.MutableEqContentKeyProvider()
             val basePlaybackModule =
-                AndroidBasePlaybackModule(context, coroutineModule, preferencesModule.preferences)
+                AndroidBasePlaybackModule(
+                    context,
+                    coroutineModule,
+                    preferencesModule.preferences,
+                    contentKeyProvider = eqContentKeys,
+                )
 
             val audiobookStorageModule = AndroidAudiobookCatalogStorageModule(context, coroutineModule)
             val audiobookCatalogModule = AndroidAudiobookCatalogModule(context, audiobookStorageModule)
@@ -358,6 +368,21 @@ class ApplicationGraph(
                 preferences = preferencesModule.preferences,
                 coroutineModule = coroutineModule
             )
+            coroutineModule.scope.launch {
+                // Touch controller so route/content EQ apply starts, and bind book keys.
+                basePlaybackModule.eqProfileController
+                audiobookPlaybackModule.audiobookPlaybackController.currentBook.collect { book ->
+                    if (book == null) {
+                        eqContentKeys.clear()
+                    } else {
+                        eqContentKeys.setBook(
+                            bookId = book.id.value,
+                            folderUri = book.folderUri,
+                            subPath = book.subPath,
+                        )
+                    }
+                }
+            }
 
             val preferences = preferencesModule.preferences
             val billingService = AndroidBillingService(context.applicationContext)
