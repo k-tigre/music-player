@@ -136,7 +136,14 @@ interface Root {
                     }
                     FeatureAccess.RequiresPurchase ->
                         dependency.requestPaywall(Feature.Equalizer)
-                    FeatureAccess.Unavailable -> Unit
+                    FeatureAccess.Unavailable -> {
+                        eventAnalytics.trackEvent(
+                            CommonEvents.Action.FeatureGateBlocked(
+                                feature = Feature.Equalizer.name,
+                                reason = "unavailable",
+                            ),
+                        )
+                    }
                 }
             }
 
@@ -350,8 +357,19 @@ interface Root {
         override suspend fun canCreatePlaylist(): Boolean {
             val currentCount = dependency.playlistRepository.allPlaylists.first().size
             if (currentCount < entitlementsRepository.playlistLimit()) return true
-            if (entitlementsRepository.access(Feature.UnlimitedPlaylists) == FeatureAccess.RequiresPurchase) {
-                dependency.requestPaywall(Feature.UnlimitedPlaylists, source = "playlist_limit")
+            when (entitlementsRepository.access(Feature.UnlimitedPlaylists)) {
+                FeatureAccess.RequiresPurchase ->
+                    dependency.requestPaywall(Feature.UnlimitedPlaylists, source = "playlist_limit")
+                FeatureAccess.Unavailable -> {
+                    eventAnalytics.trackEvent(
+                        CommonEvents.Action.FeatureGateBlocked(
+                            feature = Feature.UnlimitedPlaylists.name,
+                            reason = "unavailable",
+                            source = "playlist_limit",
+                        ),
+                    )
+                }
+                FeatureAccess.Allowed -> Unit
             }
             return false
         }

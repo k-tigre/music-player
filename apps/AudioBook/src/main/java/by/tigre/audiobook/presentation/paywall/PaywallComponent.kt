@@ -13,8 +13,8 @@ import by.tigre.media.platform.entitlements.EntitlementsRepository
 import by.tigre.media.platform.entitlements.SkuIds
 import by.tigre.media.platform.entitlements.Tier
 import by.tigre.media.platform.presentation.BaseComponentContext
-import by.tigre.media.platform.tools.analytics.book.AudiobookEvents
-import by.tigre.media.platform.tools.analytics.book.BookEventAnalytics
+import by.tigre.media.platform.tools.analytics.common.CommonEventAnalytics
+import by.tigre.media.platform.tools.analytics.common.CommonEvents
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -48,7 +48,7 @@ interface PaywallComponent {
         private val activity: Activity,
         private val billing: BillingService,
         private val entitlements: EntitlementsRepository,
-        private val eventAnalytics: BookEventAnalytics,
+        private val eventAnalytics: CommonEventAnalytics,
         private val onTipCompleted: () -> Unit,
         private val onMessage: (Int) -> Unit,
         private val onDismiss: () -> Unit,
@@ -67,7 +67,12 @@ interface PaywallComponent {
 
         init {
             check(app == AppSku.AudioBook)
-            eventAnalytics.trackEvent(AudiobookEvents.Action.PaywallShown(request.source))
+            eventAnalytics.trackEvent(
+                CommonEvents.Action.PaywallShown(
+                    source = request.source,
+                    feature = request.feature.name,
+                ),
+            )
             launch {
                 billing.queryProducts(
                     SkuIds.AudioBook.subscriptions +
@@ -78,9 +83,9 @@ interface PaywallComponent {
 
         override fun purchaseSubscription(productId: String, offerToken: String, basePlanId: String?) {
             launch {
-                eventAnalytics.trackEvent(AudiobookEvents.Action.PurchaseStarted(productId))
+                eventAnalytics.trackEvent(CommonEvents.Action.PurchaseStarted(productId))
                 when (
-                    billing.purchaseSubscription(
+                    val result = billing.purchaseSubscription(
                         host = BillingPurchaseHost.from(activity),
                         productId = productId,
                         offerToken = offerToken,
@@ -91,28 +96,35 @@ interface PaywallComponent {
                             entitlements.rememberSubscriptionBasePlan(productId, basePlanId)
                         }
                         entitlements.refresh()
-                        eventAnalytics.trackEvent(AudiobookEvents.Action.PurchaseCompleted(productId))
+                        eventAnalytics.trackEvent(CommonEvents.Action.PurchaseCompleted(productId))
                         thanksState.value = PaywallThanks.Subscription
                     }
 
-                    PurchaseResult.Cancelled -> Unit
-                    is PurchaseResult.Error -> onMessage(R.string.billing_purchase_failed)
+                    PurchaseResult.Cancelled ->
+                        eventAnalytics.trackEvent(CommonEvents.Action.PurchaseCancelled(productId))
+
+                    is PurchaseResult.Error -> {
+                        eventAnalytics.trackEvent(
+                            CommonEvents.Action.PurchaseFailed(productId = productId, code = result.code),
+                        )
+                        onMessage(R.string.billing_purchase_failed)
+                    }
                 }
             }
         }
 
         override fun purchaseTip(productId: String) {
             launch {
-                eventAnalytics.trackEvent(AudiobookEvents.Action.PurchaseStarted(productId))
+                eventAnalytics.trackEvent(CommonEvents.Action.PurchaseStarted(productId))
                 when (
-                    billing.purchaseConsumable(
+                    val result = billing.purchaseConsumable(
                         host = BillingPurchaseHost.from(activity),
                         productId = productId,
                     )
                 ) {
                     PurchaseResult.Success -> {
                         onTipCompleted()
-                        eventAnalytics.trackEvent(AudiobookEvents.Action.TipCompleted(productId))
+                        eventAnalytics.trackEvent(CommonEvents.Action.TipCompleted(productId))
                         thanksState.value = when (productId) {
                             SkuIds.AudioBook.TIP_COFFEE -> PaywallThanks.Coffee
                             SkuIds.AudioBook.TIP_PIZZA -> PaywallThanks.Pizza
@@ -120,8 +132,15 @@ interface PaywallComponent {
                         }
                     }
 
-                    PurchaseResult.Cancelled -> Unit
-                    is PurchaseResult.Error -> onMessage(R.string.billing_purchase_failed)
+                    PurchaseResult.Cancelled ->
+                        eventAnalytics.trackEvent(CommonEvents.Action.PurchaseCancelled(productId))
+
+                    is PurchaseResult.Error -> {
+                        eventAnalytics.trackEvent(
+                            CommonEvents.Action.PurchaseFailed(productId = productId, code = result.code),
+                        )
+                        onMessage(R.string.billing_purchase_failed)
+                    }
                 }
             }
         }
@@ -130,13 +149,21 @@ interface PaywallComponent {
             launch {
                 runCatching { entitlements.restore() }
                     .onSuccess {
-                        eventAnalytics.trackEvent(AudiobookEvents.Action.PurchaseRestored)
+                        eventAnalytics.trackEvent(CommonEvents.Action.PurchaseRestored)
                         onMessage(R.string.billing_restore_complete)
                     }
                     .onFailure { onMessage(R.string.billing_restore_failed) }
             }
         }
 
-        override fun dismiss() = onDismiss()
+        override fun dismiss() {
+            eventAnalytics.trackEvent(
+                CommonEvents.Action.PaywallDismissed(
+                    source = request.source,
+                    feature = request.feature.name,
+                ),
+            )
+            onDismiss()
+        }
     }
 }

@@ -10,8 +10,8 @@ import by.tigre.media.platform.entitlements.EntitlementsRepository
 import by.tigre.media.platform.entitlements.SkuIds
 import by.tigre.media.platform.entitlements.Tier
 import by.tigre.media.platform.presentation.BaseComponentContext
-import by.tigre.media.platform.tools.analytics.music.MusicEventAnalytics
-import by.tigre.media.platform.tools.analytics.music.MusicEvents
+import by.tigre.media.platform.tools.analytics.common.CommonEventAnalytics
+import by.tigre.media.platform.tools.analytics.common.CommonEvents
 import by.tigre.music.player.R
 import by.tigre.music.player.core.di.PaywallRequest
 import by.tigre.music.player.core.di.PaywallSection
@@ -48,7 +48,7 @@ interface PaywallComponent {
         private val activity: Activity,
         private val billing: BillingService,
         private val entitlements: EntitlementsRepository,
-        private val eventAnalytics: MusicEventAnalytics,
+        private val eventAnalytics: CommonEventAnalytics,
         private val onTipCompleted: () -> Unit,
         private val onMessage: (Int) -> Unit,
         private val onDismiss: () -> Unit,
@@ -67,7 +67,12 @@ interface PaywallComponent {
 
         init {
             check(app == AppSku.Music)
-            eventAnalytics.trackEvent(MusicEvents.Action.PaywallShown(request.source))
+            eventAnalytics.trackEvent(
+                CommonEvents.Action.PaywallShown(
+                    source = request.source,
+                    feature = request.feature.name,
+                ),
+            )
             launch {
                 billing.queryProducts(
                     SkuIds.Music.subscriptions +
@@ -78,37 +83,49 @@ interface PaywallComponent {
 
         override fun purchaseSubscription(productId: String, offerToken: String, basePlanId: String?) {
             launch {
-                eventAnalytics.trackEvent(MusicEvents.Action.PurchaseStarted(productId))
-                when (billing.purchaseSubscription(BillingPurchaseHost.from(activity), productId, offerToken)) {
+                eventAnalytics.trackEvent(CommonEvents.Action.PurchaseStarted(productId))
+                when (val result = billing.purchaseSubscription(BillingPurchaseHost.from(activity), productId, offerToken)) {
                     PurchaseResult.Success -> {
                         if (!basePlanId.isNullOrBlank()) {
                             entitlements.rememberSubscriptionBasePlan(productId, basePlanId)
                         }
                         entitlements.refresh()
-                        eventAnalytics.trackEvent(MusicEvents.Action.PurchaseCompleted(productId))
+                        eventAnalytics.trackEvent(CommonEvents.Action.PurchaseCompleted(productId))
                         thanksState.value = PaywallThanks.Subscription
                     }
-                    PurchaseResult.Cancelled -> Unit
-                    is PurchaseResult.Error -> onMessage(R.string.billing_purchase_failed)
+                    PurchaseResult.Cancelled ->
+                        eventAnalytics.trackEvent(CommonEvents.Action.PurchaseCancelled(productId))
+                    is PurchaseResult.Error -> {
+                        eventAnalytics.trackEvent(
+                            CommonEvents.Action.PurchaseFailed(productId = productId, code = result.code),
+                        )
+                        onMessage(R.string.billing_purchase_failed)
+                    }
                 }
             }
         }
 
         override fun purchaseTip(productId: String) {
             launch {
-                eventAnalytics.trackEvent(MusicEvents.Action.PurchaseStarted(productId))
-                when (billing.purchaseConsumable(BillingPurchaseHost.from(activity), productId)) {
+                eventAnalytics.trackEvent(CommonEvents.Action.PurchaseStarted(productId))
+                when (val result = billing.purchaseConsumable(BillingPurchaseHost.from(activity), productId)) {
                     PurchaseResult.Success -> {
                         onTipCompleted()
-                        eventAnalytics.trackEvent(MusicEvents.Action.TipCompleted(productId))
+                        eventAnalytics.trackEvent(CommonEvents.Action.TipCompleted(productId))
                         thanksState.value = when (productId) {
                             SkuIds.Music.TIP_COFFEE -> PaywallThanks.Coffee
                             SkuIds.Music.TIP_PIZZA -> PaywallThanks.Pizza
                             else -> PaywallThanks.Coffee
                         }
                     }
-                    PurchaseResult.Cancelled -> Unit
-                    is PurchaseResult.Error -> onMessage(R.string.billing_purchase_failed)
+                    PurchaseResult.Cancelled ->
+                        eventAnalytics.trackEvent(CommonEvents.Action.PurchaseCancelled(productId))
+                    is PurchaseResult.Error -> {
+                        eventAnalytics.trackEvent(
+                            CommonEvents.Action.PurchaseFailed(productId = productId, code = result.code),
+                        )
+                        onMessage(R.string.billing_purchase_failed)
+                    }
                 }
             }
         }
@@ -117,13 +134,21 @@ interface PaywallComponent {
             launch {
                 runCatching { entitlements.restore() }
                     .onSuccess {
-                        eventAnalytics.trackEvent(MusicEvents.Action.PurchaseRestored)
+                        eventAnalytics.trackEvent(CommonEvents.Action.PurchaseRestored)
                         onMessage(R.string.billing_restore_complete)
                     }
                     .onFailure { onMessage(R.string.billing_restore_failed) }
             }
         }
 
-        override fun dismiss() = onDismiss()
+        override fun dismiss() {
+            eventAnalytics.trackEvent(
+                CommonEvents.Action.PaywallDismissed(
+                    source = request.source,
+                    feature = request.feature.name,
+                ),
+            )
+            onDismiss()
+        }
     }
 }

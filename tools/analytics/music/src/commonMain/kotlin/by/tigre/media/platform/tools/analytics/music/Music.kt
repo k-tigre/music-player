@@ -120,34 +120,6 @@ object MusicEvents {
         @AnalyticsScope(AnalyticsApp.PLAYER)
         @AnalyticsDoc("Default player onboarding prompt action clicked")
         data object DefaultPlayerPromptClicked : Action("music_default_player_prompt_clicked")
-
-        @AnalyticsScope(AnalyticsApp.PLAYER)
-        @AnalyticsDoc("Show purchase paywall")
-        data class PaywallShown(private val source: String) : Action("music_paywall_shown"), WithPayload {
-            override val payload: Map<String, String> = mapOf("source" to source)
-        }
-
-        @AnalyticsScope(AnalyticsApp.PLAYER)
-        @AnalyticsDoc("Start purchase flow")
-        data class PurchaseStarted(private val productId: String) : Action("music_purchase_started"), WithPayload {
-            override val payload: Map<String, String> = mapOf("product_id" to productId)
-        }
-
-        @AnalyticsScope(AnalyticsApp.PLAYER)
-        @AnalyticsDoc("Complete purchase flow")
-        data class PurchaseCompleted(private val productId: String) : Action("music_purchase_completed"), WithPayload {
-            override val payload: Map<String, String> = mapOf("product_id" to productId)
-        }
-
-        @AnalyticsScope(AnalyticsApp.PLAYER)
-        @AnalyticsDoc("Restore previous purchases")
-        data object PurchaseRestored : Action("music_purchase_restored")
-
-        @AnalyticsScope(AnalyticsApp.PLAYER)
-        @AnalyticsDoc("Complete tip purchase")
-        data class TipCompleted(private val productId: String) : Action("music_tip_completed"), WithPayload {
-            override val payload: Map<String, String> = mapOf("product_id" to productId)
-        }
     }
 
     enum class QueryLengthBucket(val analyticsValue: String) {

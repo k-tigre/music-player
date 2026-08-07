@@ -47,7 +47,7 @@ import by.tigre.media.platform.player.component.PlayerItem
 import by.tigre.media.platform.player.component.RepeatMode
 import by.tigre.media.platform.player.di.PlayerDependency
 import by.tigre.media.platform.tools.analytics.book.BookAnalyticsModule
-import by.tigre.media.platform.tools.analytics.book.AudiobookEvents
+import by.tigre.media.platform.tools.analytics.common.CommonEvents
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
 import by.tigre.media.platform.tools.platform.compose.ContrastPreference
 import by.tigre.media.platform.tools.platform.compose.ThemeMode
@@ -61,6 +61,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
@@ -112,6 +113,15 @@ class ApplicationGraph(
         source: String,
         initialSection: PaywallSection,
     ) {
+        if (source != "settings") {
+            eventAnalytics.trackEvent(
+                CommonEvents.Action.FeatureGateBlocked(
+                    feature = feature.name,
+                    reason = "requires_purchase",
+                    source = source,
+                ),
+            )
+        }
         _paywallRequests.tryEmit(PaywallRequest(feature, source, initialSection))
         Log.i("Entitlements") { "Paywall requested for $feature" }
     }
@@ -130,7 +140,7 @@ class ApplicationGraph(
         coroutineScope.launch {
             runCatching { entitlementsRepository.restore() }
                 .onSuccess {
-                    eventAnalytics.trackEvent(AudiobookEvents.Action.PurchaseRestored)
+                    eventAnalytics.trackEvent(CommonEvents.Action.PurchaseRestored)
                     _billingMessages.tryEmit(by.tigre.audiobook.R.string.billing_restore_complete)
                 }
                 .onFailure {
@@ -393,6 +403,22 @@ class ApplicationGraph(
                 preferences = preferences,
             )
             requestPaywall = graph::requestPaywall
+            coroutineModule.scope.launch {
+                var previousTier = entitlementsRepository.tier.value
+                entitlementsRepository.tier
+                    .drop(1)
+                    .collect { tier ->
+                        if (tier != previousTier) {
+                            graph.eventAnalytics.trackEvent(
+                                CommonEvents.Action.SubscriptionTierChanged(
+                                    from = previousTier.name,
+                                    to = tier.name,
+                                ),
+                            )
+                            previousTier = tier
+                        }
+                    }
+            }
             coroutineModule.scope.launch {
                 billingService.start()
                 entitlementsRepository.refresh()

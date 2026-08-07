@@ -121,7 +121,14 @@ interface Root {
                     }
                     FeatureAccess.RequiresPurchase ->
                         onPaywallRequest(Feature.Equalizer)
-                    FeatureAccess.Unavailable -> Unit
+                    FeatureAccess.Unavailable -> {
+                        eventAnalytics.trackEvent(
+                            CommonEvents.Action.FeatureGateBlocked(
+                                feature = Feature.Equalizer.name,
+                                reason = "unavailable",
+                            ),
+                        )
+                    }
                 }
             }
 

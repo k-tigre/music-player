@@ -37,6 +37,7 @@ import by.tigre.music.player.core.data.favorites.di.FavoritesModule
 import by.tigre.music.player.core.presentation.favorites.di.FavoritesDependency
 import by.tigre.music.player.core.data.playlist.di.PlaylistModule
 import by.tigre.music.player.core.presentation.playlist.library.di.PlaylistsDependency
+import by.tigre.media.platform.tools.analytics.common.CommonEvents
 import by.tigre.media.platform.tools.analytics.music.MusicAnalyticsModule
 import by.tigre.media.platform.tools.analytics.music.MusicEvents
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
@@ -51,10 +52,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
+
 class ApplicationGraph(
     val appContext: Context,
     private val coroutineScope: kotlinx.coroutines.CoroutineScope,
@@ -107,6 +110,15 @@ class ApplicationGraph(
         source: String,
         initialSection: PaywallSection,
     ) {
+        if (source != "settings") {
+            eventAnalytics.trackEvent(
+                CommonEvents.Action.FeatureGateBlocked(
+                    feature = feature.name,
+                    reason = "requires_purchase",
+                    source = source,
+                ),
+            )
+        }
         _paywallRequests.tryEmit(PaywallRequest(feature, source, initialSection))
     }
 
@@ -123,7 +135,7 @@ class ApplicationGraph(
         coroutineScope.launch {
             runCatching { entitlementsRepository.restore() }
                 .onSuccess {
-                    eventAnalytics.trackEvent(MusicEvents.Action.PurchaseRestored)
+                    eventAnalytics.trackEvent(CommonEvents.Action.PurchaseRestored)
                     _billingMessages.tryEmit(R.string.billing_restore_complete)
                 }
                 .onFailure {
@@ -282,6 +294,22 @@ class ApplicationGraph(
                 billingService = billingService,
                 entitlementsRepository = entitlementsRepository,
             )
+            coroutineModule.scope.launch {
+                var previousTier = entitlementsRepository.tier.value
+                entitlementsRepository.tier
+                    .drop(1)
+                    .collect { tier ->
+                        if (tier != previousTier) {
+                            graph.eventAnalytics.trackEvent(
+                                CommonEvents.Action.SubscriptionTierChanged(
+                                    from = previousTier.name,
+                                    to = tier.name,
+                                ),
+                            )
+                            previousTier = tier
+                        }
+                    }
+            }
             coroutineModule.scope.launch {
                 billingService.start()
                 entitlementsRepository.refresh()

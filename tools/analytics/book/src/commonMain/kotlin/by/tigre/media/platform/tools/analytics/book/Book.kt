@@ -5,7 +5,6 @@ import by.tigre.media.platform.tools.analytics.common.AnalyticsApp
 import by.tigre.media.platform.tools.analytics.common.AnalyticsDoc
 import by.tigre.media.platform.tools.analytics.common.AnalyticsScope
 import by.tigre.media.platform.tools.analytics.common.AnalyticsScreen
-import by.tigre.media.platform.tools.analytics.common.WithPayload
 
 object AudiobookEvents {
 
@@ -30,34 +29,6 @@ object AudiobookEvents {
         @AnalyticsScope(AnalyticsApp.AUDIOBOOK)
         @AnalyticsDoc("Open app settings hub from library")
         data object CatalogOpenSettings : Action("book_catalog_open_settings")
-
-        @AnalyticsScope(AnalyticsApp.AUDIOBOOK)
-        @AnalyticsDoc("Show purchase paywall")
-        data class PaywallShown(private val source: String) : Action("book_paywall_shown"), WithPayload {
-            override val payload: Map<String, String> = mapOf("source" to source)
-        }
-
-        @AnalyticsScope(AnalyticsApp.AUDIOBOOK)
-        @AnalyticsDoc("Start purchase flow")
-        data class PurchaseStarted(private val productId: String) : Action("book_purchase_started"), WithPayload {
-            override val payload: Map<String, String> = mapOf("product_id" to productId)
-        }
-
-        @AnalyticsScope(AnalyticsApp.AUDIOBOOK)
-        @AnalyticsDoc("Complete subscription purchase")
-        data class PurchaseCompleted(private val productId: String) : Action("book_purchase_completed"), WithPayload {
-            override val payload: Map<String, String> = mapOf("product_id" to productId)
-        }
-
-        @AnalyticsScope(AnalyticsApp.AUDIOBOOK)
-        @AnalyticsDoc("Restore purchases")
-        data object PurchaseRestored : Action("book_purchase_restored")
-
-        @AnalyticsScope(AnalyticsApp.AUDIOBOOK)
-        @AnalyticsDoc("Complete tip purchase")
-        data class TipCompleted(private val productId: String) : Action("book_tip_completed"), WithPayload {
-            override val payload: Map<String, String> = mapOf("product_id" to productId)
-        }
     }
 
     sealed class Screen(
