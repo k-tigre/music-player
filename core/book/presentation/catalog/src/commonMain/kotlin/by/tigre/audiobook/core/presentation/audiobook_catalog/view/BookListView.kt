@@ -65,6 +65,7 @@ import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening
 import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening_show_more
 import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening_title
 import by.tigre.audiobook.core.presentation.catalog.resources.folder_group_books_count
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
@@ -73,6 +74,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_add_books
+import by.tigre.audiobook.core.presentation.catalog.resources.library_space_add_folder
+import by.tigre.audiobook.core.presentation.catalog.resources.library_space_add_selected
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_create
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_create_upsell
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_create_upsell_hint
@@ -80,6 +83,9 @@ import by.tigre.audiobook.core.presentation.catalog.resources.library_space_empt
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_empty_title
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_kids_suggestion
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_new_name_hint
+import by.tigre.audiobook.core.presentation.catalog.resources.library_space_picker_empty
+import by.tigre.audiobook.core.presentation.catalog.resources.library_space_picker_title
+import by.tigre.audiobook.core.presentation.catalog.resources.library_space_root_folder
 import by.tigre.audiobook.core.presentation.catalog.resources.library_spaces_sheet_title
 import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.tools.platform.compose.ComposableView
@@ -142,12 +148,16 @@ class BookListView(
             content = { paddingValues ->
                 val screenState by component.screenState.collectAsState()
                 val spaceSheetVisible by component.spaceSheetVisible.collectAsState()
+                val addBooksSheetVisible by component.addBooksSheetVisible.collectAsState()
 
                 if (spaceSheetVisible) {
                     val content = (screenState as? ScreenContentState.Content)?.value
                     if (content != null) {
                         SpaceSwitcherSheet(content)
                     }
+                }
+                if (addBooksSheetVisible) {
+                    AddBooksSheet()
                 }
 
                 AnimatedContent(
@@ -353,9 +363,10 @@ class BookListView(
                         placeholder = { Text(stringResource(Res.string.library_space_kids_suggestion)) },
                         singleLine = true,
                     )
+                    val kidsSuggestion = stringResource(Res.string.library_space_kids_suggestion)
                     TextButton(
                         onClick = {
-                            component.onConfirmCreateSpace(name)
+                            component.onConfirmCreateSpace(name.ifBlank { kidsSuggestion })
                             creating = false
                         },
                     ) {
@@ -386,6 +397,98 @@ class BookListView(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 4.dp),
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun AddBooksSheet() {
+        val picker by component.addBooksPicker.collectAsState()
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
+            onDismissRequest = component::dismissAddBooksSheet,
+            sheetState = sheetState,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 24.dp),
+            ) {
+                Text(
+                    text = stringResource(Res.string.library_space_picker_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+                if (picker.candidates.isEmpty()) {
+                    Text(
+                        text = stringResource(Res.string.library_space_picker_empty),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 16.dp),
+                    )
+                } else {
+                    if (picker.folders.isNotEmpty()) {
+                        Text(
+                            text = stringResource(Res.string.library_space_add_folder),
+                            style = MaterialTheme.typography.labelLarge,
+                            modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
+                        )
+                        picker.folders.forEach { (path, count) ->
+                            val label = if (path.isEmpty()) {
+                                stringResource(Res.string.library_space_root_folder)
+                            } else {
+                                path
+                            }
+                            Text(
+                                text = "$label ($count)",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { component.addPickerFolder(path) }
+                                    .padding(vertical = 8.dp),
+                            )
+                        }
+                    }
+                    picker.candidates.forEach { book ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { component.togglePickerBook(book.id) }
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Checkbox(
+                                checked = book.id in picker.selectedIds,
+                                onCheckedChange = { component.togglePickerBook(book.id) },
+                            )
+                            Column(modifier = Modifier.padding(start = 4.dp)) {
+                                Text(text = book.title, style = MaterialTheme.typography.bodyLarge)
+                                if (book.subPath.isNotEmpty()) {
+                                    Text(
+                                        text = book.subPath,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    TextButton(
+                        onClick = component::confirmAddSelectedBooks,
+                        enabled = picker.selectedIds.isNotEmpty(),
+                        modifier = Modifier.padding(top = 8.dp),
+                    ) {
+                        Text(
+                            text = stringResource(
+                                Res.string.library_space_add_selected,
+                                picker.selectedIds.size,
+                            ),
                         )
                     }
                 }

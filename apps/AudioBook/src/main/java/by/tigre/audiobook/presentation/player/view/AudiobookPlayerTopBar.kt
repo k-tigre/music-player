@@ -1,11 +1,14 @@
 package by.tigre.audiobook.presentation.player.view
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.LibraryBooks
@@ -22,6 +25,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -40,6 +44,8 @@ fun AudiobookPlayerTopBar(
     onOpenPlaybackSpeedSettings: () -> Unit,
     onShowEqualizer: () -> Unit,
     modifier: Modifier = Modifier,
+    spaceChipLabel: String? = null,
+    onSpaceChipClick: (() -> Unit)? = null,
 ) {
     val currentItem by playerComponent.currentItem.collectAsState()
     val eqAvailable by playerComponent.playbackEqualizer.isAvailable.collectAsState()
@@ -57,6 +63,22 @@ fun AudiobookPlayerTopBar(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(R.string.player_back_to_library_cd),
+            )
+        }
+
+        if (spaceChipLabel != null && onSpaceChipClick != null) {
+            Text(
+                text = spaceChipLabel,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .widthIn(max = 96.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .clickable(onClick = onSpaceChipClick)
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
             )
         }
 
@@ -122,10 +144,10 @@ fun AudiobookPlayerTopBar(
 
             if (eqAvailable) {
                 IconButton(onClick = onShowEqualizer) {
-                        Icon(
-                            imageVector = Icons.Filled.GraphicEq,
-                            contentDescription = stringResource(R.string.player_open_equalizer_cd),
-                        )
+                    Icon(
+                        imageVector = Icons.Filled.GraphicEq,
+                        contentDescription = stringResource(R.string.player_open_equalizer_cd),
+                    )
                 }
             }
         }

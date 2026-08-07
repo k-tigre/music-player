@@ -37,6 +37,10 @@
     <string name="library_space_empty_hint">Добавьте книги из библиотеки без повторного сканирования.</string>
     <string name="library_space_add_books">Добавить книги</string>
     <string name="library_space_add_folder">Добавить всю папку</string>
+    <string name="library_space_add_selected">Добавить выбранные (%1$d)</string>
+    <string name="library_space_picker_title">Добавить в пространство</string>
+    <string name="library_space_picker_empty">Все книги уже в этом пространстве</string>
+    <string name="library_space_root_folder">Корень</string>
     <string name="library_space_default_name">Основное</string>
     <string name="library_space_new_name_hint">Название</string>
     <string name="library_space_kids_suggestion">Детское</string>

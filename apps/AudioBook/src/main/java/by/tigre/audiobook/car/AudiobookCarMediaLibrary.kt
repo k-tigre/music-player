@@ -2,6 +2,7 @@ package by.tigre.audiobook.car
 
 import android.net.Uri
 import by.tigre.audiobook.core.data.audiobook.AudiobookCatalogSource
+import by.tigre.audiobook.core.data.audiobook.spaces.LibrarySpaceRepository
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
 import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.entity.catalog.Chapter
@@ -15,6 +16,7 @@ class AudiobookCarMediaLibrary(
     private val scope: CoroutineScope,
     private val catalog: AudiobookCatalogSource,
     private val playback: AudiobookPlaybackController,
+    private val librarySpaceRepository: LibrarySpaceRepository,
     private val booksTabTitle: String,
 ) : CarMediaLibrary {
 
@@ -22,7 +24,7 @@ class AudiobookCarMediaLibrary(
         CarMediaIds.ROOT -> listOf(
             CarBrowseItem(
                 id = CarMediaIds.TAB_BOOKS,
-                title = booksTabTitle,
+                title = booksTabTitleForActiveSpace(),
                 isBrowsable = true,
                 isPlayable = false,
             )
@@ -56,6 +58,14 @@ class AudiobookCarMediaLibrary(
             val book = catalog.getBook(Book.Id(bookId)) ?: return null
             return bookItem(book)
         }
+        if (mediaId == CarMediaIds.TAB_BOOKS) {
+            return CarBrowseItem(
+                id = CarMediaIds.TAB_BOOKS,
+                title = booksTabTitleForActiveSpace(),
+                isBrowsable = true,
+                isPlayable = false,
+            )
+        }
         return null
     }
 
@@ -65,6 +75,15 @@ class AudiobookCarMediaLibrary(
         return catalog.getBooks()
             .filter { it.title.contains(trimmed, ignoreCase = true) }
             .map { bookItem(it) }
+    }
+
+    private fun booksTabTitleForActiveSpace(): String {
+        val space = librarySpaceRepository.activeSpace.value
+        return if (space != null && !space.isDefault) {
+            "${space.name} · $booksTabTitle"
+        } else {
+            booksTabTitle
+        }
     }
 
     private fun bookItem(book: Book): CarBrowseItem = CarBrowseItem(

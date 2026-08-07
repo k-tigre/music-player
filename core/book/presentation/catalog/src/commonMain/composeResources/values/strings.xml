@@ -37,6 +37,10 @@
     <string name="library_space_empty_hint">Add books from your library without scanning again.</string>
     <string name="library_space_add_books">Add books</string>
     <string name="library_space_add_folder">Add entire folder</string>
+    <string name="library_space_add_selected">Add selected (%1$d)</string>
+    <string name="library_space_picker_title">Add to space</string>
+    <string name="library_space_picker_empty">All books are already in this space</string>
+    <string name="library_space_root_folder">Root</string>
     <string name="library_space_default_name">Main</string>
     <string name="library_space_new_name_hint">Space name</string>
     <string name="library_space_kids_suggestion">Kids</string>

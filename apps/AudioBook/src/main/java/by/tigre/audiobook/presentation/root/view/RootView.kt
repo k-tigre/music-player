@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import by.tigre.audiobook.R
+import by.tigre.audiobook.core.data.audiobook.spaces.LibrarySpaceRepository
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogViewProvider
 import by.tigre.audiobook.core.presentation.audiobook_catalog.scan.CatalogScanCoordinator
@@ -56,6 +57,9 @@ import by.tigre.audiobook.presentation.paywall.PaywallView
 import by.tigre.audiobook.presentation.player.view.AudiobookPlayerTopBar
 import by.tigre.audiobook.presentation.root.component.Root
 import by.tigre.logger.Log
+import by.tigre.media.platform.entitlements.EntitlementsRepository
+import by.tigre.media.platform.entitlements.Feature
+import by.tigre.media.platform.entitlements.FeatureAccess
 import by.tigre.media.platform.player.di.PlayerViewProvider
 import by.tigre.media.platform.player.view.PlayerView
 import by.tigre.media.platform.player.view.SmallPlayerView
@@ -72,6 +76,8 @@ class RootView(
     private val component: Root,
     private val nightTimerController: NightTimerController,
     private val audiobookPlaybackController: AudiobookPlaybackController,
+    private val librarySpaceRepository: LibrarySpaceRepository,
+    private val entitlementsRepository: EntitlementsRepository,
     private val playerViewProvider: PlayerViewProvider,
     private val audiobookCatalogViewProvider: AudiobookCatalogViewProvider,
     private val catalogScanCoordinator: CatalogScanCoordinator,
@@ -200,6 +206,9 @@ class RootView(
                                 )
                             },
                             topBarContent = {
+                                val activeSpace by librarySpaceRepository.activeSpace.collectAsState()
+                                val spacesAccess = entitlementsRepository.access(Feature.BookSpaces)
+                                val showSpaceChip = spacesAccess != FeatureAccess.Unavailable && activeSpace != null
                                 AudiobookPlayerTopBar(
                                     playerComponent = child.component,
                                     nightTimerController = nightTimerController,
@@ -207,6 +216,8 @@ class RootView(
                                     onOpenNightTimerSettings = component::onOpenNightTimerSettings,
                                     onOpenPlaybackSpeedSettings = component::onOpenPlaybackSpeedSettings,
                                     onShowEqualizer = child.component::showEqualizer,
+                                    spaceChipLabel = activeSpace?.name.takeIf { showSpaceChip },
+                                    onSpaceChipClick = component::onShowCatalog.takeIf { showSpaceChip },
                                 )
                             },
                         ).Draw(Modifier.fillMaxSize())

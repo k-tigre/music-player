@@ -72,6 +72,8 @@ class MainActivity : AppCompatActivity() {
                         component = root,
                         nightTimerController = graph.nightTimerController,
                         audiobookPlaybackController = graph.audiobookPlaybackController,
+                        librarySpaceRepository = graph.librarySpaceRepository,
+                        entitlementsRepository = graph.entitlementsRepository,
                         playerViewProvider = PlayerViewProvider.Impl(),
                         audiobookCatalogViewProvider = AndroidAudiobookCatalogViewProvider(),
                         catalogScanCoordinator = graph.catalogScanCoordinator,

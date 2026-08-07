@@ -26,6 +26,8 @@ interface BookListComponent {
 
     val screenState: StateFlow<ScreenContentState<BookListUiState>>
     val spaceSheetVisible: StateFlow<Boolean>
+    val addBooksSheetVisible: StateFlow<Boolean>
+    val addBooksPicker: StateFlow<AddBooksPickerState>
 
     fun onBookClicked(book: Book)
     fun onOpenSettings()
@@ -42,6 +44,10 @@ interface BookListComponent {
     fun onCreateSpaceClicked()
     fun onConfirmCreateSpace(name: String)
     fun onAddBooksClicked()
+    fun dismissAddBooksSheet()
+    fun togglePickerBook(bookId: Book.Id)
+    fun confirmAddSelectedBooks()
+    fun addPickerFolder(subPath: String)
 
     data class BookListUiState(
         val continueListeningBooks: List<Book>,
@@ -58,6 +64,12 @@ interface BookListComponent {
         val spaces: List<LibrarySpace>,
         val canManageSpaces: Boolean,
         val emptySpaceNeedsBooks: Boolean,
+    )
+
+    data class AddBooksPickerState(
+        val candidates: List<Book> = emptyList(),
+        val selectedIds: Set<Book.Id> = emptySet(),
+        val folders: List<Pair<String, Int>> = emptyList(),
     )
 
     class Impl(
@@ -78,6 +90,8 @@ interface BookListComponent {
         private val continueListeningExpandedState = MutableStateFlow(true)
         private val scrollToBookNonce = MutableStateFlow(0L)
         override val spaceSheetVisible = MutableStateFlow(false)
+        override val addBooksSheetVisible = MutableStateFlow(false)
+        override val addBooksPicker = MutableStateFlow(AddBooksPickerState())
 
         override val screenState: StateFlow<ScreenContentState<BookListUiState>> = combine(
             combine(
@@ -200,7 +214,7 @@ interface BookListComponent {
 
         override fun onCreateSpaceClicked() {
             when (entitlementsRepository.access(Feature.BookSpaces)) {
-                FeatureAccess.Allowed -> Unit // sheet shows name field via UI flag
+                FeatureAccess.Allowed -> Unit
                 FeatureAccess.RequiresPurchase -> {
                     spaceSheetVisible.value = false
                     requestPaywall(Feature.BookSpaces, "library_spaces")
@@ -211,7 +225,7 @@ interface BookListComponent {
 
         override fun onConfirmCreateSpace(name: String) {
             launch {
-                val id = spaceRepository.createSpace(name = name.ifBlank { "Kids" })
+                val id = spaceRepository.createSpace(name = name.trim().ifBlank { "Kids" })
                 if (id != null) {
                     spaceRepository.setActiveSpace(id)
                     spaceSheetVisible.value = false
@@ -224,13 +238,52 @@ interface BookListComponent {
         }
 
         override fun onAddBooksClicked() {
+            launch { openAddBooksPicker() }
+        }
+
+        override fun dismissAddBooksSheet() {
+            addBooksSheetVisible.value = false
+            addBooksPicker.value = AddBooksPickerState()
+        }
+
+        override fun togglePickerBook(bookId: Book.Id) {
+            addBooksPicker.update { state ->
+                val next = if (bookId in state.selectedIds) state.selectedIds - bookId else state.selectedIds + bookId
+                state.copy(selectedIds = next)
+            }
+        }
+
+        override fun confirmAddSelectedBooks() {
             launch {
                 val spaceId = spaceRepository.activeSpaceId.value
-                val global = spaceRepository.getBooksGlobal()
-                if (global.isNotEmpty()) {
-                    spaceRepository.addBooks(spaceId, global.map { it.id })
+                val selected = addBooksPicker.value.selectedIds.toList()
+                if (selected.isNotEmpty()) {
+                    spaceRepository.addBooks(spaceId, selected)
                 }
+                dismissAddBooksSheet()
             }
+        }
+
+        override fun addPickerFolder(subPath: String) {
+            launch {
+                spaceRepository.addBooksBySubPath(spaceRepository.activeSpaceId.value, subPath)
+                openAddBooksPicker()
+            }
+        }
+
+        private suspend fun openAddBooksPicker() {
+            val inSpace = catalogSource.getBooks().map { it.id }.toSet()
+            val candidates = spaceRepository.getBooksGlobal().filter { it.id !in inSpace }
+            val folders = candidates
+                .groupBy { it.subPath }
+                .map { (path, books) -> path to books.size }
+                .sortedBy { it.first }
+            addBooksPicker.value = AddBooksPickerState(
+                candidates = candidates,
+                selectedIds = emptySet(),
+                folders = folders,
+            )
+            addBooksSheetVisible.value = true
         }
 
         private data class SpacesUi(

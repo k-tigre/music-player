@@ -274,6 +274,7 @@ class ApplicationGraph(
             scope = coroutineScope,
             catalog = audiobookCatalogSource,
             playback = audiobookPlaybackController,
+            librarySpaceRepository = librarySpaceRepository,
             booksTabTitle = appContext.getString(R.string.car_tab_books),
         )
     }
