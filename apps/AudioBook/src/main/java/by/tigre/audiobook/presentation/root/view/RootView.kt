@@ -52,6 +52,7 @@ import by.tigre.audiobook.core.presentation.audiobook_catalog.view.formatCatalog
 import by.tigre.audiobook.nighttimer.NightTimerController
 import by.tigre.audiobook.nighttimer.NightTimerSettingsScreen
 import by.tigre.audiobook.playback.PlaybackSpeedSettingsScreen
+import by.tigre.audiobook.presentation.paywall.PaywallView
 import by.tigre.audiobook.presentation.player.view.AudiobookPlayerTopBar
 import by.tigre.audiobook.presentation.root.component.Root
 import by.tigre.logger.Log
@@ -65,6 +66,7 @@ import by.tigre.media.platform.tools.platform.compose.view.LocalBottomBarHeight
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
+import kotlinx.coroutines.flow.Flow
 
 class RootView(
     private val component: Root,
@@ -73,11 +75,13 @@ class RootView(
     private val playerViewProvider: PlayerViewProvider,
     private val audiobookCatalogViewProvider: AudiobookCatalogViewProvider,
     private val catalogScanCoordinator: CatalogScanCoordinator,
+    private val billingMessages: Flow<Int>,
 ) : ComposableView {
 
     @Composable
     override fun Draw(modifier: Modifier) {
         val scanUi by catalogScanCoordinator.catalogScanUi.collectAsState()
+        val paywallComponent by component.paywallComponent.collectAsState()
         val snackbarHostState = remember { SnackbarHostState() }
         val context = LocalContext.current
         val completedSummaryText = scanUi.completedSummary?.let { formatCatalogScanSummary(it) }
@@ -116,6 +120,12 @@ class RootView(
             wasScanActive = scanUi.active
         }
 
+        LaunchedEffect(billingMessages) {
+            billingMessages.collect { messageRes ->
+                snackbarHostState.showSnackbar(context.getString(messageRes))
+            }
+        }
+
         Box(modifier = modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize()) {
                 CatalogScanProgressBanner(
@@ -135,6 +145,9 @@ class RootView(
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
             DrawGettingStartedGuide()
+            paywallComponent?.let { paywall ->
+                PaywallView(paywall, paywall.initialSection).Draw(Modifier)
+            }
         }
 
         // After DrawMain so this wins over PlayerBackdropSystemBarEffect (transparent).

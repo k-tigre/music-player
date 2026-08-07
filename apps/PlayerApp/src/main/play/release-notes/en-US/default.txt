@@ -1,1 +1,1 @@
-• Artist avatars in the catalog and favorites (name-based lookup with local cache)
+• Play Billing stub so subscriptions can be configured in Play Console

@@ -10,12 +10,14 @@ import by.tigre.music.player.core.presentation.playlist.library.navigation.Playl
 interface PlaylistsComponentProvider {
     fun createRootPlaylistsComponent(
         context: BaseComponentContext,
-        navigator: PlaylistsNavigator
+        navigator: PlaylistsNavigator,
+        canCreatePlaylist: suspend () -> Boolean = { true },
     ): RootPlaylistsComponent
 
     fun createPlaylistsListComponent(
         context: BaseComponentContext,
-        navigator: PlaylistsNavigator
+        navigator: PlaylistsNavigator,
+        canCreatePlaylist: suspend () -> Boolean = { true },
     ): PlaylistsListComponent
 
     fun createPlaylistDetailComponent(
@@ -29,13 +31,17 @@ interface PlaylistsComponentProvider {
     ) : PlaylistsComponentProvider {
         override fun createRootPlaylistsComponent(
             context: BaseComponentContext,
-            navigator: PlaylistsNavigator
-        ): RootPlaylistsComponent = RootPlaylistsComponent.Impl(context, dependency, this, navigator)
+            navigator: PlaylistsNavigator,
+            canCreatePlaylist: suspend () -> Boolean,
+        ): RootPlaylistsComponent =
+            RootPlaylistsComponent.Impl(context, dependency, this, navigator, canCreatePlaylist)
 
         override fun createPlaylistsListComponent(
             context: BaseComponentContext,
-            navigator: PlaylistsNavigator
-        ): PlaylistsListComponent = PlaylistsListComponent.Impl(context, dependency, navigator)
+            navigator: PlaylistsNavigator,
+            canCreatePlaylist: suspend () -> Boolean,
+        ): PlaylistsListComponent =
+            PlaylistsListComponent.Impl(context, dependency, navigator, canCreatePlaylist)
 
         override fun createPlaylistDetailComponent(
             context: BaseComponentContext,

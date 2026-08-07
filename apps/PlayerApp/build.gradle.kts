@@ -132,6 +132,8 @@ dependencies {
     implementation(Project.Core.Music.Presentation.Favorites)
     implementation(Project.Core.Base.Presentation.BackgroundPlayer)
     implementation(Project.Core.Platform.Permission)
+    implementation(Project.Core.Platform.Billing)
+    implementation(Project.Core.Platform.Entitlements)
     implementation(Project.Core.Data.Storage.Preferences)
     implementation(Project.Core.Music.Data.Storage.Database)
     implementation(Project.Core.Music.Data.Playback)
@@ -142,7 +144,7 @@ dependencies {
     implementation(Project.Core.Music.Entity.Playlist)
     implementation(Project.Core.Music.Entity.Playback)
     implementation(Library.AccompanistPermission)
-    implementation(FirebaseLibrary.FirebaseAnalytics, FirebaseLibrary.FirebaseCrashLytics)
+    implementation(FirebaseLibrary.FirebaseAnalytics, FirebaseLibrary.FirebaseCrashLytics, FirebaseLibrary.FirebaseConfig, FirebaseLibrary.FirebaseInstallations)
 
     implementation(TigreLogger.Artifact.Core)
     implementation(TigreLogger.Artifact.Crashlytics)

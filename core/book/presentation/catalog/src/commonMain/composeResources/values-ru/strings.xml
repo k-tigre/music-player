@@ -7,10 +7,14 @@
     <string name="settings_hint_add_books">Чтобы добавить аудиокниги, откройте «Папки с книгами» и нажмите +. Выберите папку на устройстве — приложение просканирует её.</string>
     <string name="settings_theme">Тема</string>
     <string name="settings_folders">Папки с книгами</string>
+    <string name="settings_upgrade">Улучшить подписку</string>
+    <string name="settings_restore_purchases">Восстановить покупки</string>
+    <string name="settings_tips">Поддержать приложение</string>
     <string name="settings_about">О приложении</string>
     <string name="about_app_name">Audiobook Player</string>
     <string name="about_version">Версия %1$s</string>
     <string name="about_rate_on_play">Оценить в Google Play</string>
+    <string name="about_supporter_badge">Поддержал приложение</string>
     <string name="folder_group_books_count">%1$d книг</string>
     <string name="cd_expand_folder">Развернуть папку</string>
     <string name="cd_collapse_folder">Свернуть папку</string>
@@ -21,6 +25,7 @@
     <string name="book_progress_listened">Прослушано %1$d%</string>
     <string name="continue_listening_title">Продолжить слушать</string>
     <string name="continue_listening_books_count">%1$d книг</string>
+    <string name="continue_listening_show_more">Показать больше с Plus</string>
     <string name="cd_dismiss_continue_listening">Убрать из «Продолжить слушать»</string>
     <string name="book_currently_playing">Сейчас играет</string>
     <string name="chapters_sheet_title">Главы</string>

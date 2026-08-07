@@ -3,6 +3,8 @@ package by.tigre.audiobook.core.presentation.audiobook_catalog.di
 import by.tigre.audiobook.core.data.audiobook.AudiobookCatalogSource
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
 import by.tigre.audiobook.core.presentation.audiobook_catalog.scan.CatalogScanCoordinator
+import by.tigre.media.platform.entitlements.EntitlementsRepository
+import by.tigre.media.platform.entitlements.Feature
 import by.tigre.media.platform.tools.analytics.book.BookAnalyticsDependency
 import by.tigre.media.platform.tools.platform.compose.ContrastPreference
 import by.tigre.media.platform.tools.platform.compose.ThemeMode
@@ -18,6 +20,7 @@ interface AudiobookCatalogDependency : BookAnalyticsDependency {
     val audiobookCatalogSource: AudiobookCatalogSource
     val audiobookPlaybackController: AudiobookPlaybackController
     val catalogScanCoordinator: CatalogScanCoordinator
+    val entitlementsRepository: EntitlementsRepository
 
     val themeSettings: StateFlow<CatalogThemeSettings>
     fun setThemeMode(mode: ThemeMode)
@@ -26,6 +29,12 @@ interface AudiobookCatalogDependency : BookAnalyticsDependency {
 
     val appVersionName: String
     val showRateApp: StateFlow<Boolean>
+    val tipsCount: StateFlow<Int>
     fun refreshRateAppFlag()
     fun onRateAppClick()
+    fun requestUpgrade()
+    fun requestPaywall(feature: Feature, source: String = feature.name)
+    fun restorePurchases()
+    fun requestTips()
+    fun copyInstallationIdToClipboard()
 }

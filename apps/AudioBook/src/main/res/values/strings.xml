@@ -4,6 +4,40 @@
     <string name="button_got_it">Got It</string>
     <string name="button_continue">Continue</string>
 
+    <string name="paywall_title">Unlock more listening</string>
+    <string name="paywall_benefits">Plus adds the equalizer, advanced sleep timer, and more listening space. Pro also unlocks the home widget.</string>
+    <string name="paywall_plans_heading">Choose your plan</string>
+    <string name="paywall_plus">Plus</string>
+    <string name="paywall_plus_benefits">Equalizer, advanced sleep timer, and unlimited Continue Listening.</string>
+    <string name="paywall_pro">Pro</string>
+    <string name="paywall_pro_benefits">Everything in Plus, plus the home-screen widget.</string>
+    <string name="paywall_best_value">Best value</string>
+    <string name="paywall_period_monthly">Monthly</string>
+    <string name="paywall_period_yearly">Yearly</string>
+    <string name="paywall_tier_period">%1$s · %2$s</string>
+    <string name="paywall_choose_plan">Choose · %1$s</string>
+    <string name="paywall_choose_plan_period">Choose · %1$s / %2$s</string>
+    <string name="paywall_price_loading">%1$s price is loading…</string>
+    <string name="paywall_tips_heading">Support the app</string>
+    <string name="paywall_tips_description">A one-time tip helps keep Audiobook Player improving.</string>
+    <string name="paywall_tip_coffee">Buy a coffee · %1$s</string>
+    <string name="paywall_tip_pizza">Buy a pizza · %1$s</string>
+    <string name="paywall_restore">Restore</string>
+    <string name="paywall_maybe_later">Maybe later</string>
+    <string name="paywall_thanks_title_coffee">Thanks for the coffee!</string>
+    <string name="paywall_thanks_message_coffee">Your support keeps Audiobook Player going. Really appreciate it.</string>
+    <string name="paywall_thanks_title_pizza">Thanks for the pizza!</string>
+    <string name="paywall_thanks_message_pizza">That hit the spot. Your tip helps ship better listening.</string>
+    <string name="paywall_thanks_title_subscription">You\'re in!</string>
+    <string name="paywall_thanks_message_subscription">Thanks for subscribing. Enjoy the extras — they\'re unlocked now.</string>
+    <string name="paywall_thanks_done">Continue</string>
+    <string name="billing_restore_complete">Purchases restored</string>
+    <string name="billing_restore_failed">Could not restore purchases</string>
+    <string name="installation_id_copied">Device ID copied</string>
+    <string name="installation_id_copy_failed">Could not copy device ID</string>
+    <string name="billing_purchase_failed">Purchase could not be completed</string>
+    <string name="billing_tip_thanks">Thank you for your support!</string>
+
     <string name="player_equalizer_menu">Equalizer</string>
     <string name="player_queue_menu">Queue</string>
 
@@ -34,6 +68,7 @@
     <string name="night_timer_minutes_option">%d min</string>
     <string name="night_timer_fade_label">Fade out volume</string>
     <string name="night_timer_fade_description">In the last stretch before stop, volume eases down on a quick-then-gentle curve. After stopping, rewind 30 seconds if playback was running so you don’t miss the ending.</string>
+    <string name="night_timer_advanced_locked">Plus unlocks fade-out and flip-to-extend. Tap to upgrade.</string>
     <string name="night_timer_flip_extend_label">Extend by shaking</string>
     <string name="night_timer_flip_extend_description">In the last minute before stop, shake the phone twice while it lies on the surface — adds 5 minutes and restores volume. Flipping it over and back works too.</string>
     <string name="night_timer_flip_step_rest">Lying still</string>

@@ -6,9 +6,13 @@ import by.tigre.audiobook.MainActivity
 import by.tigre.audiobook.widget.AudiobookPlaybackWidget
 import by.tigre.media.platform.background.di.PlayerBackgroundDependency
 import by.tigre.media.platform.background.presentation.platform.PlaybackService
+import by.tigre.media.platform.entitlements.Feature
 
 class BackgroundService : PlaybackService() {
     override fun onProviderMainIntent(): Intent = Intent(this, MainActivity::class.java)
     override fun onProviderDependency(): PlayerBackgroundDependency = (application as App).graph
-    override fun playbackWidgetProviderClass() = AudiobookPlaybackWidget::class.java
+    override fun playbackWidgetProviderClass() =
+        AudiobookPlaybackWidget::class.java.takeIf {
+            (application as App).graph.entitlementsRepository.has(Feature.HomeWidget)
+        }
 }

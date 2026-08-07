@@ -6,8 +6,19 @@
 ## [Unreleased]
 
 ### RU
+- Опциональные подписки Plus/Pro: расширенный ночной таймер и эквалайзер (Plus), виджет (Pro); библиотека и воспроизведение остаются бесплатными
+- Мягкий paywall, восстановление покупок и разовые «спасибо» в настройках
 
 ### EN
+- Optional Plus/Pro subscriptions: advanced sleep timer and equalizer (Plus), home widget (Pro); library and playback stay free
+- Soft paywall, restore purchases, and tip jar in Settings
+
+## [0.8.2] - 2026-07-26
+### RU
+- Подготовка Play Billing (stub) для настройки подписок в Console
+
+### EN
+- Play Billing stub so subscriptions can be configured in Play Console
 
 ## [0.8.1] - 2026-07-20
 ### RU

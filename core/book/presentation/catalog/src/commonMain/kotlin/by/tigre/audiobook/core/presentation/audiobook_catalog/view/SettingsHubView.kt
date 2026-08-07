@@ -11,8 +11,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Restore
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -30,8 +33,11 @@ import by.tigre.audiobook.core.presentation.catalog.resources.Res
 import by.tigre.audiobook.core.presentation.catalog.resources.settings_about
 import by.tigre.audiobook.core.presentation.catalog.resources.settings_folders
 import by.tigre.audiobook.core.presentation.catalog.resources.settings_hint_add_books
+import by.tigre.audiobook.core.presentation.catalog.resources.settings_restore_purchases
 import by.tigre.audiobook.core.presentation.catalog.resources.settings_theme
 import by.tigre.audiobook.core.presentation.catalog.resources.settings_title
+import by.tigre.audiobook.core.presentation.catalog.resources.settings_tips
+import by.tigre.audiobook.core.presentation.catalog.resources.settings_upgrade
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.appTopBarWindowInsets
 import org.jetbrains.compose.resources.stringResource
@@ -97,6 +103,35 @@ class SettingsHubView(
                     },
                     modifier = Modifier.clickable(onClick = component::onFoldersClick),
                 )
+                HorizontalDivider()
+                ListItem(
+                    headlineContent = { Text(stringResource(Res.string.settings_upgrade)) },
+                    leadingContent = {
+                        Icon(Icons.Filled.Star, contentDescription = null)
+                    },
+                    trailingContent = {
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+                    },
+                    modifier = Modifier.clickable(onClick = component::onUpgradeClick),
+                )
+                ListItem(
+                    headlineContent = { Text(stringResource(Res.string.settings_restore_purchases)) },
+                    leadingContent = {
+                        Icon(Icons.Filled.Restore, contentDescription = null)
+                    },
+                    modifier = Modifier.clickable(onClick = component::onRestoreClick),
+                )
+                ListItem(
+                    headlineContent = { Text(stringResource(Res.string.settings_tips)) },
+                    leadingContent = {
+                        Icon(Icons.Filled.Favorite, contentDescription = null)
+                    },
+                    trailingContent = {
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+                    },
+                    modifier = Modifier.clickable(onClick = component::onTipsClick),
+                )
+                HorizontalDivider()
                 ListItem(
                     headlineContent = { Text(stringResource(Res.string.settings_about)) },
                     leadingContent = {

@@ -40,6 +40,8 @@ include(":core:book:data:playback")
 include(":core:book:data:storage:database")
 include(":core:data:storage:preferences")
 include(":core:platform:permission")
+include(":core:platform:billing")
+include(":core:platform:entitlements")
 
 include(":core:music:entity:catalog")
 include(":core:music:entity:playlist")

@@ -4,6 +4,40 @@
     <string name="button_got_it">Понятно</string>
     <string name="button_continue">Продолжить</string>
 
+    <string name="paywall_title">Откройте больше возможностей</string>
+    <string name="paywall_benefits">Plus добавляет эквалайзер, расширенный ночной таймер и больше места в «Продолжить слушать». Pro также открывает виджет на главном экране.</string>
+    <string name="paywall_plans_heading">Выберите план</string>
+    <string name="paywall_plus">Plus</string>
+    <string name="paywall_plus_benefits">Эквалайзер, расширенный ночной таймер и безлимитное «Продолжить слушать».</string>
+    <string name="paywall_pro">Pro</string>
+    <string name="paywall_pro_benefits">Всё из Plus и виджет на главном экране.</string>
+    <string name="paywall_best_value">Выгоднее всего</string>
+    <string name="paywall_period_monthly">Ежемесячно</string>
+    <string name="paywall_period_yearly">Ежегодно</string>
+    <string name="paywall_tier_period">%1$s · %2$s</string>
+    <string name="paywall_choose_plan">Выбрать · %1$s</string>
+    <string name="paywall_choose_plan_period">Выбрать · %1$s / %2$s</string>
+    <string name="paywall_price_loading">Загружаем цену %1$s…</string>
+    <string name="paywall_tips_heading">Поддержать приложение</string>
+    <string name="paywall_tips_description">Разовая поддержка помогает развивать Audiobook Player.</string>
+    <string name="paywall_tip_coffee">Угостить кофе · %1$s</string>
+    <string name="paywall_tip_pizza">Угостить пиццей · %1$s</string>
+    <string name="paywall_restore">Восстановить</string>
+    <string name="paywall_maybe_later">Позже</string>
+    <string name="paywall_thanks_title_coffee">Спасибо за кофе!</string>
+    <string name="paywall_thanks_message_coffee">Твоя поддержка помогает развивать Audiobook Player. Очень приятно.</string>
+    <string name="paywall_thanks_title_pizza">Спасибо за пиццу!</string>
+    <string name="paywall_thanks_message_pizza">Это было вкусно. Чаевые помогают делать плеер лучше.</string>
+    <string name="paywall_thanks_title_subscription">Готово!</string>
+    <string name="paywall_thanks_message_subscription">Спасибо за подписку. Дополнительные возможности уже открыты.</string>
+    <string name="paywall_thanks_done">Продолжить</string>
+    <string name="billing_restore_complete">Покупки восстановлены</string>
+    <string name="billing_restore_failed">Не удалось восстановить покупки</string>
+    <string name="installation_id_copied">ID устройства скопирован</string>
+    <string name="installation_id_copy_failed">Не удалось скопировать ID устройства</string>
+    <string name="billing_purchase_failed">Не удалось завершить покупку</string>
+    <string name="billing_tip_thanks">Спасибо за поддержку!</string>
+
     <string name="player_equalizer_menu">Эквалайзер</string>
     <string name="player_queue_menu">Очередь</string>
 
@@ -34,6 +68,7 @@
     <string name="night_timer_minutes_option">%d мин</string>
     <string name="night_timer_fade_label">Приглушать громкость</string>
     <string name="night_timer_fade_description">Перед остановкой громкость плавно снижается по кривой: сначала быстрее, к концу мягче. После остановки — отмотка на 30 секунд, если книга ещё играла, чтобы не пропустить конец.</string>
+    <string name="night_timer_advanced_locked">Plus открывает плавное затухание и продление переворотом. Нажмите, чтобы оформить.</string>
     <string name="night_timer_flip_extend_label">Продлить встряхиванием</string>
     <string name="night_timer_flip_extend_description">В течение минуты до остановки дважды встряхните телефон, пока он лежит на поверхности — таймер продлится на 5 минут, громкость восстановится. Можно и перевернуть туда-обратно.</string>
     <string name="night_timer_flip_step_rest">Лежит неподвижно</string>

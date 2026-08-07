@@ -55,6 +55,96 @@ object CommonEvents {
         @AnalyticsScope(AnalyticsApp.PLAYER)
         @AnalyticsDoc("Open settings screen")
         data object NavOpenSettings : Action("common_nav_open_settings")
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK)
+        @AnalyticsDoc("Show purchase paywall")
+        data class PaywallShown(
+            private val source: String,
+            private val feature: String,
+        ) : Action("common_paywall_shown"), WithPayload {
+            override val payload: Map<String, String> = mapOf(
+                "source" to source,
+                "feature" to feature,
+            )
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK)
+        @AnalyticsDoc("Dismiss paywall without purchasing")
+        data class PaywallDismissed(
+            private val source: String,
+            private val feature: String,
+        ) : Action("common_paywall_dismissed"), WithPayload {
+            override val payload: Map<String, String> = mapOf(
+                "source" to source,
+                "feature" to feature,
+            )
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK)
+        @AnalyticsDoc("Start purchase or tip billing flow")
+        data class PurchaseStarted(private val productId: String) : Action("common_purchase_started"), WithPayload {
+            override val payload: Map<String, String> = mapOf("product_id" to productId)
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK)
+        @AnalyticsDoc("Complete subscription purchase")
+        data class PurchaseCompleted(private val productId: String) : Action("common_purchase_completed"), WithPayload {
+            override val payload: Map<String, String> = mapOf("product_id" to productId)
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK)
+        @AnalyticsDoc("User cancelled purchase or tip flow")
+        data class PurchaseCancelled(private val productId: String) : Action("common_purchase_cancelled"), WithPayload {
+            override val payload: Map<String, String> = mapOf("product_id" to productId)
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK)
+        @AnalyticsDoc("Purchase or tip billing flow failed")
+        data class PurchaseFailed(
+            private val productId: String,
+            private val code: Int,
+        ) : Action("common_purchase_failed"), WithPayload {
+            override val payload: Map<String, String> = mapOf(
+                "product_id" to productId,
+                "code" to code.toString(),
+            )
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK)
+        @AnalyticsDoc("Restore previous purchases")
+        data object PurchaseRestored : Action("common_purchase_restored")
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK)
+        @AnalyticsDoc("Complete tip purchase")
+        data class TipCompleted(private val productId: String) : Action("common_tip_completed"), WithPayload {
+            override val payload: Map<String, String> = mapOf("product_id" to productId)
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK)
+        @AnalyticsDoc("Paid or unavailable feature blocked")
+        data class FeatureGateBlocked(
+            private val feature: String,
+            private val reason: String,
+            private val source: String = "",
+        ) : Action("common_feature_gate_blocked"), WithPayload {
+            override val payload: Map<String, String> = buildMap {
+                put("feature", feature)
+                put("reason", reason)
+                if (source.isNotEmpty()) put("source", source)
+            }
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK)
+        @AnalyticsDoc("Subscription tier changed")
+        data class SubscriptionTierChanged(
+            private val from: String,
+            private val to: String,
+        ) : Action("common_subscription_tier_changed"), WithPayload {
+            override val payload: Map<String, String> = mapOf(
+                "from" to from,
+                "to" to to,
+            )
+        }
     }
 
     sealed class Screen(

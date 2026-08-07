@@ -6,6 +6,8 @@ import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogDependency
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.AudiobookCatalogNavigator
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.OnBookSelectedListener
+import by.tigre.media.platform.entitlements.Feature
+import by.tigre.media.platform.entitlements.FeatureAccess
 import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.media.platform.tools.analytics.book.AudiobookEvents
 import by.tigre.media.platform.tools.analytics.book.BookEventAnalytics
@@ -30,9 +32,12 @@ interface BookListComponent {
     fun onScreenShown()
     fun focusCurrentBook()
     fun dismissContinueListening(book: Book)
+    fun requestMoreContinueListening()
 
     data class BookListUiState(
         val continueListeningBooks: List<Book>,
+        val continueListeningTotalCount: Int,
+        val continueListeningHasMore: Boolean,
         val continueListeningExpanded: Boolean,
         val rootBooks: List<Book>,
         val grouped: List<Pair<String, List<Book>>>,
@@ -51,6 +56,8 @@ interface BookListComponent {
         private val catalogSource: AudiobookCatalogSource = dependency.audiobookCatalogSource
         private val playbackController: AudiobookPlaybackController = dependency.audiobookPlaybackController
         private val eventAnalytics: BookEventAnalytics = dependency.eventAnalytics
+        private val entitlementsRepository = dependency.entitlementsRepository
+        private val requestPaywall = dependency::requestPaywall
 
         private val expandedState = MutableStateFlow(emptySet<String>())
         private val continueListeningExpandedState = MutableStateFlow(true)
@@ -67,7 +74,8 @@ interface BookListComponent {
             expandedState,
             continueListeningExpandedState,
             scrollToBookNonce,
-        ) { catalog, expanded, continueExpanded, scrollNonce ->
+            dependency.entitlementsRepository.tier,
+        ) { catalog, expanded, continueExpanded, scrollNonce, _ ->
             val (books, continueListeningBooks, currentBook) = catalog
             val currentBookId = currentBook?.id
             val rootBooks = books.filter { it.subPath.isEmpty() }
@@ -77,9 +85,13 @@ interface BookListComponent {
                 .entries
                 .sortedBy { it.key }
                 .map { it.key to it.value }
+            val limit = entitlementsRepository.continueListeningLimit()
+            val visibleContinue = continueListeningBooks.take(limit)
             ScreenContentState.Content(
                 BookListUiState(
-                    continueListeningBooks = continueListeningBooks,
+                    continueListeningBooks = visibleContinue,
+                    continueListeningTotalCount = continueListeningBooks.size,
+                    continueListeningHasMore = continueListeningBooks.size > visibleContinue.size,
                     continueListeningExpanded = continueExpanded,
                     rootBooks = rootBooks,
                     grouped = grouped,
@@ -132,6 +144,14 @@ interface BookListComponent {
         override fun dismissContinueListening(book: Book) {
             launch {
                 catalogSource.setHiddenFromContinueListening(book.id, hidden = true)
+            }
+        }
+
+        override fun requestMoreContinueListening() {
+            if (entitlementsRepository.access(Feature.ContinueListeningExpanded) ==
+                FeatureAccess.RequiresPurchase
+            ) {
+                requestPaywall(Feature.ContinueListeningExpanded, "continue_listening")
             }
         }
     }

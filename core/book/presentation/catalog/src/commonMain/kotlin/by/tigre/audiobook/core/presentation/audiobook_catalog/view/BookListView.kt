@@ -62,6 +62,7 @@ import by.tigre.audiobook.core.presentation.catalog.resources.cd_dismiss_continu
 import by.tigre.audiobook.core.presentation.catalog.resources.cd_expand_folder
 import by.tigre.audiobook.core.presentation.catalog.resources.cd_open_settings
 import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening_books_count
+import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening_show_more
 import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening_title
 import by.tigre.audiobook.core.presentation.catalog.resources.folder_group_books_count
 import by.tigre.media.platform.presentation.ScreenContentState
@@ -174,7 +175,7 @@ class BookListView(
                 if (state.continueListeningBooks.isNotEmpty()) {
                     stickyHeader(key = "continue_header") {
                         ContinueListeningHeader(
-                            bookCount = state.continueListeningBooks.size,
+                            bookCount = state.continueListeningTotalCount,
                             isExpanded = state.continueListeningExpanded,
                             onClick = component::toggleContinueListening,
                         )
@@ -189,6 +190,19 @@ class BookListView(
                                 isCurrent = book.id == state.currentBookId,
                                 onDismiss = { component.dismissContinueListening(book) },
                             )
+                        }
+                        if (state.continueListeningHasMore) {
+                            item(key = "continue_show_more") {
+                                Text(
+                                    text = stringResource(Res.string.continue_listening_show_more),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable(onClick = component::requestMoreContinueListening)
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                )
+                            }
                         }
                     }
                     item(key = "continue_spacer") {

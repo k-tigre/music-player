@@ -22,6 +22,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,6 +60,7 @@ import by.tigre.music.player.presentation.root.component.Root
 import by.tigre.media.platform.tools.analytics.music.MusicEventAnalytics
 import by.tigre.media.platform.tools.analytics.music.MusicEvents
 import by.tigre.music.player.presentation.settings.view.SettingsView
+import by.tigre.music.player.presentation.paywall.PaywallView
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.view.BottomBarContainer
 import by.tigre.media.platform.tools.platform.compose.view.BottomBarNavigationBarInsets
@@ -87,6 +89,7 @@ class RootView(
     private val playbackController: PlaybackController,
     private val addToPlaylistCoordinator: AddToPlaylistCoordinator,
     private val eventAnalytics: MusicEventAnalytics,
+    private val billingMessages: kotlinx.coroutines.flow.Flow<Int>,
 ) : ComposableView {
 
     @OptIn(ExperimentalPermissionsApi::class)
@@ -112,10 +115,18 @@ class RootView(
     private fun DrawMain() {
         val addToPlaylistRequest by addToPlaylistCoordinator.request.collectAsState()
         val playlists by playlistRepository.allPlaylists.collectAsState(initial = emptyList())
+        val paywallComponent by component.paywallComponent.collectAsState()
         val snackbarHostState = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
         val addToPlaylistAddedMessage = stringResource(R.string.add_to_playlist_added_snackbar)
         val playlistNameTakenMessage = stringResource(R.string.playlist_name_taken)
+        val context = LocalContext.current
+
+        LaunchedEffect(billingMessages) {
+            billingMessages.collect { messageRes ->
+                snackbarHostState.showSnackbar(context.getString(messageRes))
+            }
+        }
 
         Children(
             stack = component.mainComponent,
@@ -171,6 +182,7 @@ class RootView(
             onCreateAndAdd = { playlistName ->
                 val request = addToPlaylistRequest ?: return@AddToPlaylistBottomSheet
                 scope.launch {
+                    if (!component.canCreatePlaylist()) return@launch
                     val trimmedName = playlistName.trim()
                     if (trimmedName.isEmpty()) return@launch
                     if (playlistRepository.isNameTaken(trimmedName)) {
@@ -186,6 +198,9 @@ class RootView(
                 }
             },
         )
+        paywallComponent?.let { paywall ->
+            PaywallView(paywall, paywall.initialSection).Draw(Modifier)
+        }
     }
 
     @Composable

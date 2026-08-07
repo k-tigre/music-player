@@ -1,10 +1,14 @@
 package by.tigre.audiobook.core.di
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.media3.common.MediaMetadata
 import by.tigre.audiobook.BuildConfig
+import by.tigre.audiobook.R as AppR
 import by.tigre.audiobook.core.data.audiobook.di.AndroidAudiobookCatalogModule
 import by.tigre.audiobook.core.data.audiobook.di.AudiobookCatalogModule
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
@@ -25,6 +29,12 @@ import by.tigre.audiobook.platform.AudiobookGuideSettingsImpl
 import by.tigre.audiobook.platform.ThemeSettingsStore
 import by.tigre.audiobook.settings.RateAppConfigRepository
 import by.tigre.logger.Log
+import by.tigre.media.platform.billing.AndroidBillingService
+import by.tigre.media.platform.entitlements.AppSku
+import by.tigre.media.platform.entitlements.EntitlementsRepository
+import by.tigre.media.platform.entitlements.Feature
+import by.tigre.media.platform.entitlements.PlayEntitlementsRepository
+import by.tigre.media.platform.preferences.Preferences
 import by.tigre.media.platform.playback.di.AndroidBasePlaybackModule
 import by.tigre.media.platform.playback.di.BasePlaybackModule
 import by.tigre.media.platform.preferences.ThemePreferencesStorage
@@ -37,20 +47,29 @@ import by.tigre.media.platform.player.component.PlayerItem
 import by.tigre.media.platform.player.component.RepeatMode
 import by.tigre.media.platform.player.di.PlayerDependency
 import by.tigre.media.platform.tools.analytics.book.BookAnalyticsModule
+import by.tigre.media.platform.tools.analytics.common.CommonEvents
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
 import by.tigre.media.platform.tools.platform.compose.ContrastPreference
 import by.tigre.media.platform.tools.platform.compose.ThemeMode
+import com.google.android.gms.tasks.Tasks
+import com.google.firebase.installations.FirebaseInstallations
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-
+import java.util.concurrent.TimeUnit
 class ApplicationGraph(
     private val appContext: Context,
     private val coroutineScope: kotlinx.coroutines.CoroutineScope,
@@ -63,12 +82,83 @@ class ApplicationGraph(
     val themeSettingsStore: ThemeSettingsStore,
     private val rateAppConfigRepository: RateAppConfigRepository,
     override val catalogScanCoordinator: CatalogScanCoordinator,
+    val billingService: AndroidBillingService,
+    override val entitlementsRepository: EntitlementsRepository,
+    private val preferences: Preferences,
 ) : PlayerDependency,
     PlayerBackgroundDependency,
     AudiobookCatalogDependency,
     BookAnalyticsModule by analyticsModule,
     AudiobookCatalogModule by audiobookCatalogModule,
     AudiobookPlaybackModule by audiobookPlaybackModule {
+
+    private val _paywallRequests = MutableSharedFlow<PaywallRequest>(extraBufferCapacity = 1)
+    val paywallRequests = _paywallRequests.asSharedFlow()
+
+    private val _billingMessages = MutableSharedFlow<Int>(extraBufferCapacity = 1)
+    val billingMessages = _billingMessages.asSharedFlow()
+
+    private val _tipsCount = MutableStateFlow(preferences.loadInt(TIPS_COUNT_KEY, 0))
+    override val tipsCount: StateFlow<Int> = _tipsCount.asStateFlow()
+
+    override fun requestPaywall(
+        feature: Feature,
+        source: String,
+    ) {
+        emitPaywallRequest(feature, source, PaywallSection.Plans)
+    }
+
+    private fun emitPaywallRequest(
+        feature: Feature,
+        source: String,
+        initialSection: PaywallSection,
+    ) {
+        if (source != "settings") {
+            eventAnalytics.trackEvent(
+                CommonEvents.Action.FeatureGateBlocked(
+                    feature = feature.name,
+                    reason = "requires_purchase",
+                    source = source,
+                ),
+            )
+        }
+        _paywallRequests.tryEmit(PaywallRequest(feature, source, initialSection))
+        Log.i("Entitlements") { "Paywall requested for $feature" }
+    }
+
+    override fun requestUpgrade() = requestPaywall(Feature.Equalizer, source = "settings")
+
+    override fun requestTips() {
+        emitPaywallRequest(
+            feature = Feature.Equalizer,
+            source = "settings",
+            initialSection = PaywallSection.Tips,
+        )
+    }
+
+    override fun restorePurchases() {
+        coroutineScope.launch {
+            runCatching { entitlementsRepository.restore() }
+                .onSuccess {
+                    eventAnalytics.trackEvent(CommonEvents.Action.PurchaseRestored)
+                    _billingMessages.tryEmit(by.tigre.audiobook.R.string.billing_restore_complete)
+                }
+                .onFailure {
+                    Log.w("Entitlements") { "Purchase restore failed: ${it.message}" }
+                    _billingMessages.tryEmit(by.tigre.audiobook.R.string.billing_restore_failed)
+                }
+        }
+    }
+
+    fun recordTip() {
+        val updatedCount = _tipsCount.value + 1
+        preferences.saveInt(TIPS_COUNT_KEY, updatedCount)
+        _tipsCount.value = updatedCount
+    }
+
+    fun showBillingMessage(messageRes: Int) {
+        _billingMessages.tryEmit(messageRes)
+    }
 
     override val playbackEqualizer = basePlaybackModule.playbackEqualizer
 
@@ -120,6 +210,36 @@ class ApplicationGraph(
                 Uri.parse("https://play.google.com/store/apps/details?id=$packageName"),
             ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             appContext.startActivity(webIntent)
+        }
+    }
+
+    override fun copyInstallationIdToClipboard() {
+        coroutineScope.launch {
+            val id = runCatching {
+                withContext(Dispatchers.IO) {
+                    Tasks.await(FirebaseInstallations.getInstance().id, 5, TimeUnit.SECONDS)
+                }
+            }.getOrNull()
+            if (id.isNullOrBlank()) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        appContext,
+                        AppR.string.installation_id_copy_failed,
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+                return@launch
+            }
+            withContext(Dispatchers.Main) {
+                val clipboard =
+                    appContext.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                clipboard.setPrimaryClip(ClipData.newPlainText("installation_id", id))
+                Toast.makeText(
+                    appContext,
+                    AppR.string.installation_id_copied,
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
         }
     }
 
@@ -240,6 +360,13 @@ class ApplicationGraph(
             )
 
             val preferences = preferencesModule.preferences
+            val billingService = AndroidBillingService(context.applicationContext)
+            val entitlementsRepository = PlayEntitlementsRepository(
+                context = context.applicationContext,
+                billing = billingService,
+                app = AppSku.AudioBook,
+            )
+            lateinit var requestPaywall: (Feature) -> Unit
             val appPlaybackVolume = requireNotNull(basePlaybackModule.appPlaybackVolume) {
                 "Audiobook requires in-app playback volume"
             }
@@ -249,6 +376,8 @@ class ApplicationGraph(
                 playbackController = audiobookPlaybackModule.audiobookPlaybackController,
                 appPlaybackVolume = appPlaybackVolume,
                 scope = coroutineModule.scope,
+                entitlementsRepository = entitlementsRepository,
+                onPaywallRequest = { feature -> requestPaywall(feature) },
             )
             val themeSettingsStore = ThemeSettingsStore(ThemePreferencesStorage(preferences))
             val rateAppConfigRepository = RateAppConfigRepository(coroutineModule.scope)
@@ -257,7 +386,7 @@ class ApplicationGraph(
                 scope = coroutineModule.scope,
                 catalogSource = audiobookCatalogModule.audiobookCatalogSource,
             )
-            return ApplicationGraph(
+            val graph = ApplicationGraph(
                 appContext = context.applicationContext,
                 coroutineScope = coroutineModule.scope,
                 basePlaybackModule = basePlaybackModule,
@@ -269,7 +398,34 @@ class ApplicationGraph(
                 themeSettingsStore = themeSettingsStore,
                 rateAppConfigRepository = rateAppConfigRepository,
                 catalogScanCoordinator = catalogScanCoordinator,
+                billingService = billingService,
+                entitlementsRepository = entitlementsRepository,
+                preferences = preferences,
             )
+            requestPaywall = graph::requestPaywall
+            coroutineModule.scope.launch {
+                var previousTier = entitlementsRepository.tier.value
+                entitlementsRepository.tier
+                    .drop(1)
+                    .collect { tier ->
+                        if (tier != previousTier) {
+                            graph.eventAnalytics.trackEvent(
+                                CommonEvents.Action.SubscriptionTierChanged(
+                                    from = previousTier.name,
+                                    to = tier.name,
+                                ),
+                            )
+                            previousTier = tier
+                        }
+                    }
+            }
+            coroutineModule.scope.launch {
+                billingService.start()
+                entitlementsRepository.refresh()
+            }
+            return graph
         }
+
+        private const val TIPS_COUNT_KEY = "tips_count"
     }
 }

@@ -1,5 +1,6 @@
 package by.tigre.audiobook.nighttimer
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -41,6 +42,7 @@ fun NightTimerSettingsScreen(
 ) {
     val selectedMinutes by controller.selectedMinutes.collectAsState()
     val fadeOut by controller.fadeOutAtEnd.collectAsState()
+    val advancedFeaturesAvailable by controller.advancedFeaturesAvailable.collectAsState()
     val ui by controller.uiState.collectAsState()
 
     Scaffold(
@@ -101,7 +103,23 @@ fun NightTimerSettingsScreen(
                 )
             }
 
-            NightTimerFlipExtendHelp()
+            if (advancedFeaturesAvailable) {
+                NightTimerFlipExtendHelp()
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { controller.setFadeOutAtEnd(true) },
+                ) {
+                    NightTimerFlipExtendHelp()
+                    Text(
+                        text = stringResource(R.string.night_timer_advanced_locked),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+            }
 
             if (ui.isRunning) {
                 Button(

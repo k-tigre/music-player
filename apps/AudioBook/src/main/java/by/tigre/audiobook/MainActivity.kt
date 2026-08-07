@@ -1,17 +1,21 @@
 package by.tigre.audiobook
 
 import android.content.ComponentName
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import by.tigre.audiobook.core.di.PaywallIntents
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogComponentProvider
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AndroidAudiobookCatalogViewProvider
 import by.tigre.audiobook.presentation.background.BackgroundService
@@ -41,10 +45,23 @@ class MainActivity : AppCompatActivity() {
             screenAnalytics = graph.screenAnalytics,
             eventAnalytics = graph.eventAnalytics,
             audiobookGuideSettings = graph.audiobookGuideSettings,
+            entitlementsRepository = graph.entitlementsRepository,
+            onPaywallRequest = graph::requestPaywall,
+            paywallRequests = graph.paywallRequests,
+            activity = this,
+            billingService = graph.billingService,
+            onTipCompleted = graph::recordTip,
+            onBillingMessage = graph::showBillingMessage,
         )
+
+        handlePaywallIntent(intent)
 
         setContent {
             val themeSettings by graph.themeSettingsStore.state.collectAsState()
+            val currentIntent = rememberUpdatedState(intent)
+            LaunchedEffect(currentIntent.value) {
+                handlePaywallIntent(currentIntent.value)
+            }
             AppTheme(
                 darkTheme = resolveDarkTheme(themeSettings.mode),
                 dynamicColor = themeSettings.dynamicColor,
@@ -58,12 +75,31 @@ class MainActivity : AppCompatActivity() {
                         playerViewProvider = PlayerViewProvider.Impl(),
                         audiobookCatalogViewProvider = AndroidAudiobookCatalogViewProvider(),
                         catalogScanCoordinator = graph.catalogScanCoordinator,
+                        billingMessages = graph.billingMessages,
                     ).Draw(Modifier)
                 }
             }
         }
 
         initializeController()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handlePaywallIntent(intent)
+    }
+
+    private fun handlePaywallIntent(intent: Intent?) {
+        val feature = PaywallIntents.featureFrom(intent?.getStringExtra(PaywallIntents.EXTRA_FEATURE))
+            ?: return
+        val source = intent?.getStringExtra(PaywallIntents.EXTRA_SOURCE) ?: feature.name
+        (application as App).graph.requestPaywall(
+            feature = feature,
+            source = source,
+        )
+        intent?.removeExtra(PaywallIntents.EXTRA_FEATURE)
+        intent?.removeExtra(PaywallIntents.EXTRA_SOURCE)
     }
 
     private fun initializeController() {

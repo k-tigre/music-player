@@ -67,6 +67,7 @@ enum class Library(group: String, artifact: String, version: Version) {
     Jnativehook("com.github.kwhat", "jnativehook", Version.Jnativehook),
 
     Mixpanel("com.mixpanel.android", "mixpanel-android", Version.Mixpanel),
+    BillingKtx("com.android.billingclient", "billing-ktx", Version.BillingClient),
 
     ComposeUiTestJunit4("androidx.compose.ui", "ui-test-junit4", Version.Compose),
     ComposeUiTestManifest("androidx.compose.ui", "ui-test-manifest", Version.Compose),
@@ -125,6 +126,7 @@ enum class Library(group: String, artifact: String, version: Version) {
         Reorderable("3.1.0"),
         Jnativehook("2.2.2"),
         Mixpanel("8.9.0"),
+        BillingClient("9.1.0"),
         JUnit4("4.13.2"),
         AndroidXTest("1.7.0"),
         Robolectric("4.16.1"),
@@ -181,6 +183,7 @@ enum class FirebaseLibrary(group: String, artifact: String) {
     FirebaseCrashLytics("com.google.firebase", "firebase-crashlytics"),
     FirebaseAnalytics("com.google.firebase", "firebase-analytics"),
     FirebaseConfig("com.google.firebase", "firebase-config"),
+    FirebaseInstallations("com.google.firebase", "firebase-installations"),
     ;
 
     val notation = "$group:$artifact"
@@ -319,6 +322,8 @@ sealed class Project(id: String) {
             object Resources : Platform("resources")
             object Formatter : Platform("formatter")
             object Permission : Platform("permission")
+            object Billing : Platform("billing")
+            object Entitlements : Platform("entitlements")
         }
 
         sealed class Domain(id: String) : Core("domain:$id")

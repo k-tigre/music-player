@@ -6,8 +6,19 @@
 ## [Unreleased]
 
 ### RU
+- Опциональные подписки Plus/Pro: больше пользовательских плейлистов и эквалайзер (Plus), виджет (Pro); каталог, очередь и плеер остаются бесплатными
+- Мягкий paywall, восстановление покупок и разовые «спасибо» в настройках
 
 ### EN
+- Optional Plus/Pro subscriptions: more user playlists and equalizer (Plus), home widget (Pro); catalog, queue, and player stay free
+- Soft paywall, restore purchases, and tip jar in Settings
+
+## [0.22.1] - 2026-07-26
+### RU
+- Подготовка Play Billing (stub) для настройки подписок в Console
+
+### EN
+- Play Billing stub so subscriptions can be configured in Play Console
 
 ## [0.22.0] - 2026-07-19
 ### RU

@@ -5,7 +5,11 @@ import by.tigre.music.player.core.presentation.playlist.current.navigation.Queue
 import by.tigre.media.platform.presentation.BaseComponentContext
 
 interface CurrentQueueComponentProvider {
-    fun createCurrentQueueComponent(context: BaseComponentContext, navigator: QueueNavigator): CurrentQueueComponent
+    fun createCurrentQueueComponent(
+        context: BaseComponentContext,
+        navigator: QueueNavigator,
+        canCreatePlaylist: suspend () -> Boolean = { true },
+    ): CurrentQueueComponent
 
     class Impl(
         private val dependency: CurrentQueueDependency
@@ -13,8 +17,10 @@ interface CurrentQueueComponentProvider {
 
         override fun createCurrentQueueComponent(
             context: BaseComponentContext,
-            navigator: QueueNavigator
-        ): CurrentQueueComponent = CurrentQueueComponent.Impl(context, dependency, navigator)
+            navigator: QueueNavigator,
+            canCreatePlaylist: suspend () -> Boolean,
+        ): CurrentQueueComponent =
+            CurrentQueueComponent.Impl(context, dependency, navigator, canCreatePlaylist)
     }
 
 }

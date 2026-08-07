@@ -39,6 +39,7 @@ interface PlaylistsListComponent {
         context: BaseComponentContext,
         dependency: PlaylistsDependency,
         private val navigator: PlaylistsNavigator,
+        private val canCreatePlaylist: suspend () -> Boolean = { true },
     ) : PlaylistsListComponent, BaseComponentContext by context {
 
         private val playlistRepository = dependency.playlistRepository
@@ -63,14 +64,18 @@ interface PlaylistsListComponent {
         }
 
         override fun onCreateClicked() {
-            _nameError.value = false
-            _dialogState.value = PlaylistsDialogState.Create
+            launch {
+                if (!canCreatePlaylist()) return@launch
+                _nameError.value = false
+                _dialogState.value = PlaylistsDialogState.Create
+            }
         }
 
         override fun onCreateConfirmed(name: String) {
             val trimmedName = name.trim()
             if (trimmedName.isEmpty()) return
             launch {
+                if (!canCreatePlaylist()) return@launch
                 if (playlistRepository.isNameTaken(trimmedName)) {
                     _nameError.value = true
                     return@launch

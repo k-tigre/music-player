@@ -1,14 +1,22 @@
 package by.tigre.audiobook.presentation.root.component
 
+import android.app.Activity
 import by.tigre.audiobook.core.presentation.audiobook_catalog.component.RootAudiobookCatalogComponent
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogComponentProvider
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.OnBookSelectedListener
 import by.tigre.audiobook.platform.AudiobookGuideSettings
+import by.tigre.audiobook.core.di.PaywallRequest
+import by.tigre.audiobook.presentation.paywall.PaywallComponent
+import by.tigre.media.platform.billing.BillingService
+import by.tigre.media.platform.entitlements.AppSku
 import by.tigre.media.platform.player.component.EqualizerComponent
 import by.tigre.media.platform.player.component.PlayerComponent
 import by.tigre.media.platform.player.component.SmallPlayerComponent
 import by.tigre.media.platform.player.di.PlayerComponentProvider
 import by.tigre.media.platform.player.navigation.PlayerNavigator
+import by.tigre.media.platform.entitlements.EntitlementsRepository
+import by.tigre.media.platform.entitlements.Feature
+import by.tigre.media.platform.entitlements.FeatureAccess
 import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.media.platform.presentation.appChildContext
 import by.tigre.media.platform.presentation.appChildStack
@@ -39,6 +47,7 @@ interface Root {
     val onStartServiceEvent: Flow<Unit>
 
     val showGettingStartedGuide: StateFlow<Boolean>
+    val paywallComponent: StateFlow<PaywallComponent?>
 
     val mainComponent: Value<ChildStack<*, MainComponentChild>>
 
@@ -75,12 +84,22 @@ interface Root {
         screenAnalytics: BookScreenAnalytics,
         private val eventAnalytics: BookEventAnalytics,
         private val audiobookGuideSettings: AudiobookGuideSettings,
+        private val entitlementsRepository: EntitlementsRepository,
+        private val onPaywallRequest: (Feature) -> Unit,
+        private val paywallRequests: Flow<PaywallRequest>,
+        private val activity: Activity,
+        private val billingService: BillingService,
+        private val onTipCompleted: () -> Unit,
+        private val onBillingMessage: (Int) -> Unit,
     ) : Root, BaseComponentContext by context {
 
         private val showGettingStartedGuideState =
             MutableStateFlow(audiobookGuideSettings.shouldShowGuide())
         override val showGettingStartedGuide: StateFlow<Boolean> =
             showGettingStartedGuideState.asStateFlow()
+
+        private val paywallComponentState = MutableStateFlow<PaywallComponent?>(null)
+        override val paywallComponent: StateFlow<PaywallComponent?> = paywallComponentState.asStateFlow()
 
         private val mainNavigation = StackNavigation<MainConfig>()
 
@@ -95,8 +114,22 @@ interface Root {
             }
 
             override fun showEqualizer() {
-                eventAnalytics.trackEvent(CommonEvents.Action.NavOpenEqualizer)
-                mainNavigation.pushToFront(MainConfig.Equalizer)
+                when (entitlementsRepository.access(Feature.Equalizer)) {
+                    FeatureAccess.Allowed -> {
+                        eventAnalytics.trackEvent(CommonEvents.Action.NavOpenEqualizer)
+                        mainNavigation.pushToFront(MainConfig.Equalizer)
+                    }
+                    FeatureAccess.RequiresPurchase ->
+                        onPaywallRequest(Feature.Equalizer)
+                    FeatureAccess.Unavailable -> {
+                        eventAnalytics.trackEvent(
+                            CommonEvents.Action.FeatureGateBlocked(
+                                feature = Feature.Equalizer.name,
+                                reason = "unavailable",
+                            ),
+                        )
+                    }
+                }
             }
 
             override fun closeEqualizer() {
@@ -197,6 +230,22 @@ interface Root {
         }
 
         init {
+            launch {
+                paywallRequests.collect { request ->
+                    paywallComponentState.value = PaywallComponent.Impl(
+                        context = this@Impl,
+                        app = AppSku.AudioBook,
+                        request = request,
+                        activity = activity,
+                        billing = billingService,
+                        entitlements = entitlementsRepository,
+                        eventAnalytics = eventAnalytics,
+                        onTipCompleted = onTipCompleted,
+                        onMessage = onBillingMessage,
+                        onDismiss = { paywallComponentState.value = null },
+                    )
+                }
+            }
             launch {
                 mainComponent.trackScreens<MainConfig, AnalyticsScreen>(
                     trackScreen = { screen ->

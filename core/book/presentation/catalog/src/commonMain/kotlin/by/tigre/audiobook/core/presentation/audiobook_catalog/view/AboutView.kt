@@ -1,5 +1,6 @@
 package by.tigre.audiobook.core.presentation.audiobook_catalog.view
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +25,7 @@ import by.tigre.audiobook.core.presentation.audiobook_catalog.component.AboutCom
 import by.tigre.audiobook.core.presentation.catalog.resources.Res
 import by.tigre.audiobook.core.presentation.catalog.resources.about_app_name
 import by.tigre.audiobook.core.presentation.catalog.resources.about_rate_on_play
+import by.tigre.audiobook.core.presentation.catalog.resources.about_supporter_badge
 import by.tigre.audiobook.core.presentation.catalog.resources.about_version
 import by.tigre.audiobook.core.presentation.catalog.resources.settings_about
 import by.tigre.media.platform.tools.platform.compose.ComposableView
@@ -38,6 +40,7 @@ class AboutView(
     @Composable
     override fun Draw(modifier: Modifier) {
         val showRateApp by component.showRateApp.collectAsState()
+        val tipsCount by component.tipsCount.collectAsState()
 
         LaunchedEffect(Unit) {
             component.onScreenShown()
@@ -74,8 +77,18 @@ class AboutView(
                     text = stringResource(Res.string.about_version, component.appVersionName),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 8.dp),
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .clickable(onClick = component::onVersionClick),
                 )
+                if (tipsCount > 0) {
+                    Text(
+                        text = stringResource(Res.string.about_supporter_badge),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = 12.dp),
+                    )
+                }
                 if (showRateApp) {
                     Button(
                         onClick = component::onRateAppClick,
