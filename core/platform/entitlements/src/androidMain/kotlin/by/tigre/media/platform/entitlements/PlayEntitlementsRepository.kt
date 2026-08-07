@@ -71,6 +71,12 @@ class PlayEntitlementsRepository(
         return remoteConfig.continueListeningLimit(effectiveTier)
     }
 
+    override fun spacesMax(): Int {
+        val mode = modeOrDefault(featureModes, Feature.BookSpaces)
+        val effectiveTier = limitTier(mode)
+        return remoteConfig.spacesMax(effectiveTier)
+    }
+
     override fun rememberSubscriptionBasePlan(productId: String, basePlanId: String) {
         cache.rememberBasePlan(productId, basePlanId)
         _ownedBasePlanIds.value = cache.loadBasePlanIds()

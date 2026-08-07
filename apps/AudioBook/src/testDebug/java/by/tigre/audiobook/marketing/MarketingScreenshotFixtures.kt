@@ -59,9 +59,16 @@ object MarketingScreenshotFixtures {
                             expanded = setOf(classicsPath),
                             currentBookId = warPeaceId,
                             scrollToBookNonce = 0L,
+                            spacesVisible = false,
+                            activeSpace = null,
+                            spaces = emptyList(),
+                            canManageSpaces = false,
+                            emptySpaceNeedsBooks = false,
                         )
                     )
                 )
+
+            override val spaceSheetVisible: StateFlow<Boolean> = MutableStateFlow(false)
 
             override fun onBookClicked(book: Book) = Unit
             override fun onOpenSettings() = Unit
@@ -72,6 +79,12 @@ object MarketingScreenshotFixtures {
             override fun focusCurrentBook() = Unit
             override fun dismissContinueListening(book: Book) = Unit
             override fun requestMoreContinueListening() = Unit
+            override fun onSpaceChipClicked() = Unit
+            override fun dismissSpaceSheet() = Unit
+            override fun onSpaceSelected(spaceId: by.tigre.audiobook.core.entity.catalog.LibrarySpace.Id) = Unit
+            override fun onCreateSpaceClicked() = Unit
+            override fun onConfirmCreateSpace(name: String) = Unit
+            override fun onAddBooksClicked() = Unit
         }
 
     fun playerComponent(context: Context, locale: MarketingScreenshotLocale): PlayerComponent {

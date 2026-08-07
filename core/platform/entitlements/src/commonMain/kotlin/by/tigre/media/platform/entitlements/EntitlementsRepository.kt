@@ -16,6 +16,8 @@ interface EntitlementsRepository {
 
     fun continueListeningLimit(): Int
 
+    fun spacesMax(): Int
+
     fun rememberSubscriptionBasePlan(productId: String, basePlanId: String)
 
     suspend fun refresh()

@@ -27,6 +27,7 @@ interface AudiobookPlaybackModule {
                 catalog = audiobookCatalogModule.audiobookCatalogSource,
                 storage = audiobookCatalogStorageModule.audiobookPlaybackStorage,
                 speedPreferences = AudiobookPlaybackSpeedPreferences(preferences),
+                librarySpaceRepository = audiobookCatalogModule.librarySpaceRepository,
                 scope = coroutineModule.scope
             )
         }

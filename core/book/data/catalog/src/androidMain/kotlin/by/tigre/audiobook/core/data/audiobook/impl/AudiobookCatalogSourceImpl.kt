@@ -9,6 +9,7 @@ import by.tigre.audiobook.core.data.audiobook.CatalogScanDetail
 import by.tigre.audiobook.core.data.audiobook.CatalogScanSummary
 import by.tigre.audiobook.core.data.audiobook.CatalogScanUi
 import by.tigre.audiobook.core.data.audiobook.FolderSourceAccessHealth
+import by.tigre.audiobook.core.data.audiobook.spaces.LibrarySpaceRepository
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.AudiobookCatalogStorage
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.AudiobookCatalogStorage.ScannedBook
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.AudiobookCatalogStorage.ScannedChapter
@@ -18,22 +19,38 @@ import by.tigre.audiobook.core.entity.catalog.FolderSource
 import by.tigre.logger.Log
 import by.tigre.media.platform.tools.platform.utils.CoverArtCache
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.coroutineContext
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class AudiobookCatalogSourceImpl(
     private val context: Context,
-    private val storage: AudiobookCatalogStorage
+    private val storage: AudiobookCatalogStorage,
+    private val librarySpaceRepository: LibrarySpaceRepository,
+    scope: CoroutineScope,
 ) : AudiobookCatalogSource {
 
-    override val books: Flow<List<Book>> = storage.books
-    override val continueListeningBooks: Flow<List<Book>> = storage.continueListeningBooks
+    override val books: Flow<List<Book>> =
+        librarySpaceRepository.activeSpaceId
+            .flatMapLatest { storage.observeBooksInSpace(it) }
+            .stateIn(scope, SharingStarted.WhileSubscribed(), emptyList())
+
+    override val continueListeningBooks: Flow<List<Book>> =
+        librarySpaceRepository.activeSpaceId
+            .flatMapLatest { storage.observeContinueListeningInSpace(it) }
+            .stateIn(scope, SharingStarted.WhileSubscribed(), emptyList())
+
     override val folderSources: Flow<List<FolderSource>> = storage.folderSources
 
     private val _catalogScanUi = MutableStateFlow(CatalogScanUi())
@@ -187,15 +204,21 @@ class AudiobookCatalogSourceImpl(
         }
     }
 
-    override suspend fun getBooks(): List<Book> = storage.getBooks()
+    override suspend fun getBooks(): List<Book> =
+        storage.getBooksInSpace(librarySpaceRepository.activeSpaceId.value)
 
-    override suspend fun getBook(bookId: Book.Id): Book? = storage.getBook(bookId)
+    override suspend fun getBook(bookId: Book.Id): Book? =
+        storage.getBookInSpace(librarySpaceRepository.activeSpaceId.value, bookId)
 
     override suspend fun getChapters(bookId: Book.Id): List<Chapter> = storage.getChaptersByBook(bookId)
 
     override suspend fun setHiddenFromContinueListening(bookId: Book.Id, hidden: Boolean) =
         withContext(Dispatchers.IO) {
-            storage.setHiddenFromContinue(bookId, hidden)
+            storage.setHiddenFromContinue(
+                spaceId = librarySpaceRepository.activeSpaceId.value,
+                bookId = bookId,
+                hidden = hidden,
+            )
         }
 
     override suspend fun updateBookCoverUriIfEmpty(bookId: Book.Id, coverUri: String) =

@@ -18,6 +18,8 @@ class FreeEntitlementsRepository : EntitlementsRepository {
     override fun continueListeningLimit(): Int =
         EntitlementLimits.defaultContinueListeningLimit(Tier.Pro)
 
+    override fun spacesMax(): Int = EntitlementLimits.defaultSpacesMax(Tier.Pro)
+
     override fun rememberSubscriptionBasePlan(productId: String, basePlanId: String) = Unit
 
     override suspend fun refresh() = Unit

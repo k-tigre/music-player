@@ -38,6 +38,7 @@ object FeatureModesRemoteConfig {
         Feature.HomeWidget -> "home_widget"
         Feature.ContinueListeningExpanded -> "continue_listening_expanded"
         Feature.UnlimitedPlaylists -> "unlimited_playlists"
+        Feature.BookSpaces -> "book_spaces"
     }
 
     fun featureFromJsonKey(key: String): Feature? =

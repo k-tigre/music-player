@@ -1,34 +1,58 @@
-CREATE TABLE AudiobookPlaybackPosition (
-    book_id    INTEGER NOT NULL PRIMARY KEY,
+CREATE TABLE SpacePlaybackPosition (
+    space_id INTEGER NOT NULL,
+    book_id INTEGER NOT NULL,
     chapter_id INTEGER NOT NULL,
-    position_ms INTEGER NOT NULL DEFAULT 0
-);
-
-upsertPosition:
-INSERT OR REPLACE INTO AudiobookPlaybackPosition(book_id, chapter_id, position_ms)
-VALUES(?, ?, ?);
-
-getPosition:
-SELECT chapter_id, position_ms
-FROM AudiobookPlaybackPosition
-WHERE book_id = ?;
-
-CREATE TABLE IF NOT EXISTS AudiobookLastPlayed (
-    id INTEGER NOT NULL PRIMARY KEY DEFAULT 1,
-    book_id INTEGER NOT NULL
-);
-
-upsertLastPlayed:
-INSERT OR REPLACE INTO AudiobookLastPlayed(id, book_id) VALUES(1, ?);
-
-getLastPlayed:
-SELECT book_id FROM AudiobookLastPlayed WHERE id = 1;
-
-CREATE TABLE AudiobookRecentBook (
-    book_id INTEGER NOT NULL PRIMARY KEY,
-    last_started_at INTEGER NOT NULL,
+    position_ms INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (space_id, book_id),
+    FOREIGN KEY (space_id) REFERENCES LibrarySpace(id) ON DELETE CASCADE,
     FOREIGN KEY (book_id) REFERENCES Book(id) ON DELETE CASCADE
 );
 
-upsertRecentBook:
-INSERT OR REPLACE INTO AudiobookRecentBook(book_id, last_started_at) VALUES(?, ?);
+upsertSpacePosition:
+INSERT OR REPLACE INTO SpacePlaybackPosition(space_id, book_id, chapter_id, position_ms)
+VALUES(?, ?, ?, ?);
+
+getSpacePosition:
+SELECT chapter_id, position_ms
+FROM SpacePlaybackPosition
+WHERE space_id = ? AND book_id = ?;
+
+deleteSpacePosition:
+DELETE FROM SpacePlaybackPosition WHERE space_id = ? AND book_id = ?;
+
+deletePositionsForSpace:
+DELETE FROM SpacePlaybackPosition WHERE space_id = ?;
+
+CREATE TABLE SpaceLastPlayed (
+    space_id INTEGER NOT NULL PRIMARY KEY,
+    book_id INTEGER NOT NULL,
+    FOREIGN KEY (space_id) REFERENCES LibrarySpace(id) ON DELETE CASCADE,
+    FOREIGN KEY (book_id) REFERENCES Book(id) ON DELETE CASCADE
+);
+
+upsertSpaceLastPlayed:
+INSERT OR REPLACE INTO SpaceLastPlayed(space_id, book_id) VALUES(?, ?);
+
+getSpaceLastPlayed:
+SELECT book_id FROM SpaceLastPlayed WHERE space_id = ?;
+
+deleteLastPlayedForSpace:
+DELETE FROM SpaceLastPlayed WHERE space_id = ?;
+
+CREATE TABLE SpaceRecentBook (
+    space_id INTEGER NOT NULL,
+    book_id INTEGER NOT NULL,
+    last_started_at INTEGER NOT NULL,
+    PRIMARY KEY (space_id, book_id),
+    FOREIGN KEY (space_id) REFERENCES LibrarySpace(id) ON DELETE CASCADE,
+    FOREIGN KEY (book_id) REFERENCES Book(id) ON DELETE CASCADE
+);
+
+upsertSpaceRecentBook:
+INSERT OR REPLACE INTO SpaceRecentBook(space_id, book_id, last_started_at) VALUES(?, ?, ?);
+
+deleteRecentForSpaceBook:
+DELETE FROM SpaceRecentBook WHERE space_id = ? AND book_id = ?;
+
+deleteRecentForSpace:
+DELETE FROM SpaceRecentBook WHERE space_id = ?;

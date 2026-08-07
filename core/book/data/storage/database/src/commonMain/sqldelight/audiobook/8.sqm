@@ -1,0 +1,100 @@
+PRAGMA foreign_keys=OFF;
+
+CREATE TABLE LibrarySpace(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    icon TEXT NOT NULL DEFAULT 'home',
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    is_default INTEGER NOT NULL DEFAULT 0
+);
+
+INSERT INTO LibrarySpace(name, icon, sort_order, is_default) VALUES('Основное', 'home', 0, 1);
+
+CREATE TABLE BookInSpace(
+    space_id INTEGER NOT NULL,
+    book_id INTEGER NOT NULL,
+    PRIMARY KEY (space_id, book_id),
+    FOREIGN KEY (space_id) REFERENCES LibrarySpace(id) ON DELETE CASCADE,
+    FOREIGN KEY (book_id) REFERENCES Book(id) ON DELETE CASCADE
+);
+
+INSERT INTO BookInSpace(space_id, book_id)
+SELECT (SELECT id FROM LibrarySpace WHERE is_default = 1 LIMIT 1), id FROM Book;
+
+CREATE TABLE SpaceBookProgress(
+    space_id INTEGER NOT NULL,
+    book_id INTEGER NOT NULL,
+    listened_duration_ms INTEGER NOT NULL DEFAULT 0,
+    is_completed INTEGER NOT NULL DEFAULT 0,
+    hidden_from_continue INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (space_id, book_id),
+    FOREIGN KEY (space_id) REFERENCES LibrarySpace(id) ON DELETE CASCADE,
+    FOREIGN KEY (book_id) REFERENCES Book(id) ON DELETE CASCADE
+);
+
+INSERT INTO SpaceBookProgress(space_id, book_id, listened_duration_ms, is_completed, hidden_from_continue)
+SELECT (SELECT id FROM LibrarySpace WHERE is_default = 1 LIMIT 1), id, listened_duration_ms, is_completed, hidden_from_continue
+FROM Book;
+
+CREATE TABLE SpacePlaybackPosition (
+    space_id INTEGER NOT NULL,
+    book_id INTEGER NOT NULL,
+    chapter_id INTEGER NOT NULL,
+    position_ms INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (space_id, book_id),
+    FOREIGN KEY (space_id) REFERENCES LibrarySpace(id) ON DELETE CASCADE,
+    FOREIGN KEY (book_id) REFERENCES Book(id) ON DELETE CASCADE
+);
+
+INSERT INTO SpacePlaybackPosition(space_id, book_id, chapter_id, position_ms)
+SELECT (SELECT id FROM LibrarySpace WHERE is_default = 1 LIMIT 1), book_id, chapter_id, position_ms
+FROM AudiobookPlaybackPosition;
+
+CREATE TABLE SpaceLastPlayed (
+    space_id INTEGER NOT NULL PRIMARY KEY,
+    book_id INTEGER NOT NULL,
+    FOREIGN KEY (space_id) REFERENCES LibrarySpace(id) ON DELETE CASCADE,
+    FOREIGN KEY (book_id) REFERENCES Book(id) ON DELETE CASCADE
+);
+
+INSERT INTO SpaceLastPlayed(space_id, book_id)
+SELECT (SELECT id FROM LibrarySpace WHERE is_default = 1 LIMIT 1), book_id
+FROM AudiobookLastPlayed;
+
+CREATE TABLE SpaceRecentBook (
+    space_id INTEGER NOT NULL,
+    book_id INTEGER NOT NULL,
+    last_started_at INTEGER NOT NULL,
+    PRIMARY KEY (space_id, book_id),
+    FOREIGN KEY (space_id) REFERENCES LibrarySpace(id) ON DELETE CASCADE,
+    FOREIGN KEY (book_id) REFERENCES Book(id) ON DELETE CASCADE
+);
+
+INSERT INTO SpaceRecentBook(space_id, book_id, last_started_at)
+SELECT (SELECT id FROM LibrarySpace WHERE is_default = 1 LIMIT 1), book_id, last_started_at
+FROM AudiobookRecentBook;
+
+DROP TABLE AudiobookPlaybackPosition;
+DROP TABLE AudiobookLastPlayed;
+DROP TABLE AudiobookRecentBook;
+
+CREATE TABLE Book_new(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    folder_uri TEXT NOT NULL,
+    folder_source_id INTEGER NOT NULL,
+    sub_path TEXT NOT NULL DEFAULT '',
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+    total_duration_ms INTEGER NOT NULL DEFAULT 0,
+    cover_uri TEXT,
+    FOREIGN KEY (folder_source_id) REFERENCES FolderSource(id) ON DELETE CASCADE
+);
+
+INSERT INTO Book_new(id, title, folder_uri, folder_source_id, sub_path, created_at, total_duration_ms, cover_uri)
+SELECT id, title, folder_uri, folder_source_id, sub_path, created_at, total_duration_ms, cover_uri
+FROM Book;
+
+DROP TABLE Book;
+ALTER TABLE Book_new RENAME TO Book;
+
+PRAGMA foreign_keys=ON;

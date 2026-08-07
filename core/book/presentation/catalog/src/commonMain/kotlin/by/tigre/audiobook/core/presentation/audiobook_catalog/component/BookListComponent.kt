@@ -1,8 +1,10 @@
 package by.tigre.audiobook.core.presentation.audiobook_catalog.component
 
 import by.tigre.audiobook.core.data.audiobook.AudiobookCatalogSource
+import by.tigre.audiobook.core.data.audiobook.spaces.LibrarySpaceRepository
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
 import by.tigre.audiobook.core.entity.catalog.Book
+import by.tigre.audiobook.core.entity.catalog.LibrarySpace
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogDependency
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.AudiobookCatalogNavigator
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.OnBookSelectedListener
@@ -23,6 +25,7 @@ import kotlinx.coroutines.launch
 interface BookListComponent {
 
     val screenState: StateFlow<ScreenContentState<BookListUiState>>
+    val spaceSheetVisible: StateFlow<Boolean>
 
     fun onBookClicked(book: Book)
     fun onOpenSettings()
@@ -33,6 +36,12 @@ interface BookListComponent {
     fun focusCurrentBook()
     fun dismissContinueListening(book: Book)
     fun requestMoreContinueListening()
+    fun onSpaceChipClicked()
+    fun dismissSpaceSheet()
+    fun onSpaceSelected(spaceId: LibrarySpace.Id)
+    fun onCreateSpaceClicked()
+    fun onConfirmCreateSpace(name: String)
+    fun onAddBooksClicked()
 
     data class BookListUiState(
         val continueListeningBooks: List<Book>,
@@ -44,6 +53,11 @@ interface BookListComponent {
         val expanded: Set<String>,
         val currentBookId: Book.Id?,
         val scrollToBookNonce: Long,
+        val spacesVisible: Boolean,
+        val activeSpace: LibrarySpace?,
+        val spaces: List<LibrarySpace>,
+        val canManageSpaces: Boolean,
+        val emptySpaceNeedsBooks: Boolean,
     )
 
     class Impl(
@@ -55,6 +69,7 @@ interface BookListComponent {
 
         private val catalogSource: AudiobookCatalogSource = dependency.audiobookCatalogSource
         private val playbackController: AudiobookPlaybackController = dependency.audiobookPlaybackController
+        private val spaceRepository: LibrarySpaceRepository = dependency.librarySpaceRepository
         private val eventAnalytics: BookEventAnalytics = dependency.eventAnalytics
         private val entitlementsRepository = dependency.entitlementsRepository
         private val requestPaywall = dependency::requestPaywall
@@ -62,6 +77,7 @@ interface BookListComponent {
         private val expandedState = MutableStateFlow(emptySet<String>())
         private val continueListeningExpandedState = MutableStateFlow(true)
         private val scrollToBookNonce = MutableStateFlow(0L)
+        override val spaceSheetVisible = MutableStateFlow(false)
 
         override val screenState: StateFlow<ScreenContentState<BookListUiState>> = combine(
             combine(
@@ -71,11 +87,17 @@ interface BookListComponent {
             ) { books, continueListeningBooks, currentBook ->
                 Triple(books, continueListeningBooks, currentBook)
             },
-            expandedState,
-            continueListeningExpandedState,
-            scrollToBookNonce,
+            combine(
+                expandedState,
+                continueListeningExpandedState,
+                scrollToBookNonce,
+                spaceRepository.activeSpace,
+                spaceRepository.spaces,
+            ) { expanded, continueExpanded, scrollNonce, activeSpace, spaces ->
+                SpacesUi(expanded, continueExpanded, scrollNonce, activeSpace, spaces)
+            },
             dependency.entitlementsRepository.tier,
-        ) { catalog, expanded, continueExpanded, scrollNonce, _ ->
+        ) { catalog, spacesUi, _ ->
             val (books, continueListeningBooks, currentBook) = catalog
             val currentBookId = currentBook?.id
             val rootBooks = books.filter { it.subPath.isEmpty() }
@@ -87,17 +109,27 @@ interface BookListComponent {
                 .map { it.key to it.value }
             val limit = entitlementsRepository.continueListeningLimit()
             val visibleContinue = continueListeningBooks.take(limit)
+            val spacesAccess = entitlementsRepository.access(Feature.BookSpaces)
+            val spacesVisible = spacesAccess != FeatureAccess.Unavailable
+            val canManage = spacesAccess == FeatureAccess.Allowed
             ScreenContentState.Content(
                 BookListUiState(
                     continueListeningBooks = visibleContinue,
                     continueListeningTotalCount = continueListeningBooks.size,
                     continueListeningHasMore = continueListeningBooks.size > visibleContinue.size,
-                    continueListeningExpanded = continueExpanded,
+                    continueListeningExpanded = spacesUi.continueExpanded,
                     rootBooks = rootBooks,
                     grouped = grouped,
-                    expanded = expanded,
+                    expanded = spacesUi.expanded,
                     currentBookId = currentBookId,
-                    scrollToBookNonce = scrollNonce,
+                    scrollToBookNonce = spacesUi.scrollNonce,
+                    spacesVisible = spacesVisible,
+                    activeSpace = spacesUi.activeSpace,
+                    spaces = spacesUi.spaces,
+                    canManageSpaces = canManage,
+                    emptySpaceNeedsBooks = books.isEmpty() &&
+                        spacesUi.activeSpace != null &&
+                        spacesUi.activeSpace?.isDefault != true,
                 )
             )
         }
@@ -114,9 +146,7 @@ interface BookListComponent {
             navigator.showSettings()
         }
 
-        override fun retry() {
-
-        }
+        override fun retry() = Unit
 
         override fun toggleGroup(path: String) {
             expandedState.update { current ->
@@ -154,5 +184,61 @@ interface BookListComponent {
                 requestPaywall(Feature.ContinueListeningExpanded, "continue_listening")
             }
         }
+
+        override fun onSpaceChipClicked() {
+            spaceSheetVisible.value = true
+        }
+
+        override fun dismissSpaceSheet() {
+            spaceSheetVisible.value = false
+        }
+
+        override fun onSpaceSelected(spaceId: LibrarySpace.Id) {
+            spaceRepository.setActiveSpace(spaceId)
+            spaceSheetVisible.value = false
+        }
+
+        override fun onCreateSpaceClicked() {
+            when (entitlementsRepository.access(Feature.BookSpaces)) {
+                FeatureAccess.Allowed -> Unit // sheet shows name field via UI flag
+                FeatureAccess.RequiresPurchase -> {
+                    spaceSheetVisible.value = false
+                    requestPaywall(Feature.BookSpaces, "library_spaces")
+                }
+                FeatureAccess.Unavailable -> spaceSheetVisible.value = false
+            }
+        }
+
+        override fun onConfirmCreateSpace(name: String) {
+            launch {
+                val id = spaceRepository.createSpace(name = name.ifBlank { "Kids" })
+                if (id != null) {
+                    spaceRepository.setActiveSpace(id)
+                    spaceSheetVisible.value = false
+                } else if (entitlementsRepository.access(Feature.BookSpaces) ==
+                    FeatureAccess.RequiresPurchase
+                ) {
+                    requestPaywall(Feature.BookSpaces, "library_spaces_limit")
+                }
+            }
+        }
+
+        override fun onAddBooksClicked() {
+            launch {
+                val spaceId = spaceRepository.activeSpaceId.value
+                val global = spaceRepository.getBooksGlobal()
+                if (global.isNotEmpty()) {
+                    spaceRepository.addBooks(spaceId, global.map { it.id })
+                }
+            }
+        }
+
+        private data class SpacesUi(
+            val expanded: Set<String>,
+            val continueExpanded: Boolean,
+            val scrollNonce: Long,
+            val activeSpace: LibrarySpace?,
+            val spaces: List<LibrarySpace>,
+        )
     }
 }

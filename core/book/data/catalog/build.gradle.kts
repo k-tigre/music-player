@@ -24,6 +24,8 @@ kotlin {
             implementation(TigreLogger.Artifact.Core.notation)
             implementation(project(Project.Core.Book.Entity.Catalog.name))
             implementation(project(Project.Core.Book.Data.Storage.Database.name))
+            implementation(project(Project.Core.Data.Storage.Preferences.name))
+            implementation(project(Project.Core.Platform.Entitlements.name))
         }
         androidMain.dependencies {
             implementation(Library.AndroidXDocumentFile.notation)

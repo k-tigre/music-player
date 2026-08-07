@@ -361,24 +361,37 @@ class ApplicationGraph(
         ): ApplicationGraph {
             val preferencesModule = AndroidPreferencesModule(context)
             val coroutineModule = CoroutineModule.Impl()
+            val preferences = preferencesModule.preferences
+            val billingService = AndroidBillingService(context.applicationContext)
+            val entitlementsRepository = PlayEntitlementsRepository(
+                context = context.applicationContext,
+                billing = billingService,
+                app = AppSku.AudioBook,
+            )
             val eqContentKeys = MutableEqContentKeyProvider()
             val basePlaybackModule =
                 AndroidBasePlaybackModule(
                     context,
                     coroutineModule,
-                    preferencesModule.preferences,
+                    preferences,
                     contentKeyProvider = eqContentKeys,
                     uiEqConfig = UiEqConfig.audiobookSpeech(),
                     maxAutoProfiles = EqProfileController.MAX_AUTO_AUDIOBOOK,
                 )
 
             val audiobookStorageModule = AndroidAudiobookCatalogStorageModule(context, coroutineModule)
-            val audiobookCatalogModule = AndroidAudiobookCatalogModule(context, audiobookStorageModule)
+            val audiobookCatalogModule = AndroidAudiobookCatalogModule(
+                context = context,
+                audiobookCatalogStorageModule = audiobookStorageModule,
+                preferences = preferences,
+                entitlementsRepository = entitlementsRepository,
+                coroutineModule = coroutineModule,
+            )
             val audiobookPlaybackModule = AudiobookPlaybackModule.Impl(
                 audiobookCatalogStorageModule = audiobookStorageModule,
                 audiobookCatalogModule = audiobookCatalogModule,
                 basePlaybackModule = basePlaybackModule,
-                preferences = preferencesModule.preferences,
+                preferences = preferences,
                 coroutineModule = coroutineModule
             )
             coroutineModule.scope.launch {
@@ -398,14 +411,6 @@ class ApplicationGraph(
                     }
                 }
             }
-
-            val preferences = preferencesModule.preferences
-            val billingService = AndroidBillingService(context.applicationContext)
-            val entitlementsRepository = PlayEntitlementsRepository(
-                context = context.applicationContext,
-                billing = billingService,
-                app = AppSku.AudioBook,
-            )
             lateinit var requestPaywall: (Feature) -> Unit
             val appPlaybackVolume = requireNotNull(basePlaybackModule.appPlaybackVolume) {
                 "Audiobook requires in-app playback volume"

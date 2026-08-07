@@ -1,0 +1,88 @@
+CREATE TABLE LibrarySpace(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    icon TEXT NOT NULL DEFAULT 'home',
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    is_default INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE BookInSpace(
+    space_id INTEGER NOT NULL,
+    book_id INTEGER NOT NULL,
+    PRIMARY KEY (space_id, book_id),
+    FOREIGN KEY (space_id) REFERENCES LibrarySpace(id) ON DELETE CASCADE,
+    FOREIGN KEY (book_id) REFERENCES Book(id) ON DELETE CASCADE
+);
+
+CREATE TABLE SpaceBookProgress(
+    space_id INTEGER NOT NULL,
+    book_id INTEGER NOT NULL,
+    listened_duration_ms INTEGER NOT NULL DEFAULT 0,
+    is_completed INTEGER NOT NULL DEFAULT 0,
+    hidden_from_continue INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (space_id, book_id),
+    FOREIGN KEY (space_id) REFERENCES LibrarySpace(id) ON DELETE CASCADE,
+    FOREIGN KEY (book_id) REFERENCES Book(id) ON DELETE CASCADE
+);
+
+insertSpace:
+INSERT INTO LibrarySpace(name, icon, sort_order, is_default) VALUES(?, ?, ?, ?);
+
+updateSpace:
+UPDATE LibrarySpace SET name = ?, icon = ?, sort_order = ? WHERE id = ?;
+
+deleteSpace:
+DELETE FROM LibrarySpace WHERE id = ? AND is_default = 0;
+
+selectAllSpaces:
+SELECT id, name, icon, sort_order, is_default
+FROM LibrarySpace
+ORDER BY sort_order, id;
+
+selectSpaceById:
+SELECT id, name, icon, sort_order, is_default
+FROM LibrarySpace
+WHERE id = ?;
+
+selectDefaultSpaceId:
+SELECT id FROM LibrarySpace WHERE is_default = 1 LIMIT 1;
+
+countSpaces:
+SELECT COUNT(*) FROM LibrarySpace;
+
+lastSpaceInsertId:
+SELECT last_insert_rowid();
+
+insertBookInSpace:
+INSERT OR IGNORE INTO BookInSpace(space_id, book_id) VALUES(?, ?);
+
+deleteBookInSpace:
+DELETE FROM BookInSpace WHERE space_id = ? AND book_id = ?;
+
+deleteMembershipsForSpace:
+DELETE FROM BookInSpace WHERE space_id = ?;
+
+selectBookIdsInSpace:
+SELECT book_id FROM BookInSpace WHERE space_id = ?;
+
+isBookInSpace:
+SELECT 1 FROM BookInSpace WHERE space_id = ? AND book_id = ? LIMIT 1;
+
+upsertSpaceProgress:
+INSERT OR REPLACE INTO SpaceBookProgress(space_id, book_id, listened_duration_ms, is_completed, hidden_from_continue)
+VALUES(?, ?, ?, ?, ?);
+
+setHiddenFromContinueInSpace:
+INSERT OR REPLACE INTO SpaceBookProgress(space_id, book_id, listened_duration_ms, is_completed, hidden_from_continue)
+VALUES(?, ?, ?, ?, ?);
+
+getSpaceProgress:
+SELECT listened_duration_ms, is_completed, hidden_from_continue
+FROM SpaceBookProgress
+WHERE space_id = ? AND book_id = ?;
+
+deleteProgressForSpaceBook:
+DELETE FROM SpaceBookProgress WHERE space_id = ? AND book_id = ?;
+
+deleteProgressForSpace:
+DELETE FROM SpaceBookProgress WHERE space_id = ?;

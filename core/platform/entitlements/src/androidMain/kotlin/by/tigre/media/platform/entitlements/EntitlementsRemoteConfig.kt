@@ -70,6 +70,23 @@ class EntitlementsRemoteConfig(
         )
     }
 
+    fun spacesMax(tier: Tier): Int = when (tier) {
+        Tier.Free -> remoteLimit(
+            EntitlementLimits.RC_SPACES_MAX_FREE,
+            EntitlementLimits.defaultSpacesMax(tier),
+        )
+
+        Tier.Plus -> remoteLimit(
+            EntitlementLimits.RC_SPACES_MAX_PLUS,
+            EntitlementLimits.defaultSpacesMax(tier),
+        )
+
+        Tier.Pro -> remoteLimit(
+            EntitlementLimits.RC_SPACES_MAX_PRO,
+            EntitlementLimits.defaultSpacesMax(tier),
+        )
+    }
+
     private fun remoteLimit(key: String, default: Int): Int =
         remoteConfig.getLong(key).toInt().takeIf { it > 0 } ?: default
 

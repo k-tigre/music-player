@@ -4,11 +4,13 @@ import by.tigre.audiobook.core.data.audiobook.AudiobookCatalogSource
 import by.tigre.audiobook.core.data.audiobook.CatalogScanDetail
 import by.tigre.audiobook.core.data.audiobook.CatalogScanUi
 import by.tigre.audiobook.core.data.audiobook.FolderSourceAccessHealth
+import by.tigre.audiobook.core.data.audiobook.spaces.LibrarySpaceRepository
 import by.tigre.audiobook.core.data.audiobook_playback.prefs.AudiobookPlaybackSpeedPreferences
 import by.tigre.audiobook.core.data.storage.audiobook_playback.AudiobookPlaybackStorage
 import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.entity.catalog.Chapter
 import by.tigre.audiobook.core.entity.catalog.FolderSource
+import by.tigre.audiobook.core.entity.catalog.LibrarySpace
 import by.tigre.media.platform.playback.MediaItemWrapper
 import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.media.platform.preferences.Preferences
@@ -45,6 +47,7 @@ class AudiobookPlaybackControllerImplTest {
             catalog = FakeCatalog(book, listOf(chapter1, chapter2)),
             storage = FakeStorage(lastBookId = book.id, position = AudiobookPlaybackStorage.PlaybackPosition(chapter1.id, 59_000)),
             speedPreferences = AudiobookPlaybackSpeedPreferences(FakePreferences()),
+            librarySpaceRepository = FakeSpaceRepository(),
             scope = TestCoreScope(),
         )
 
@@ -75,6 +78,7 @@ class AudiobookPlaybackControllerImplTest {
             catalog = FakeCatalog(book, listOf(chapter1)),
             storage = FakeStorage(lastBookId = book.id, position = AudiobookPlaybackStorage.PlaybackPosition(chapter1.id, 10_000)),
             speedPreferences = AudiobookPlaybackSpeedPreferences(FakePreferences()),
+            librarySpaceRepository = FakeSpaceRepository(),
             scope = TestCoreScope(),
         )
 
@@ -139,17 +143,53 @@ class AudiobookPlaybackControllerImplTest {
         private val lastBookId: Book.Id?,
         private var position: AudiobookPlaybackStorage.PlaybackPosition?,
     ) : AudiobookPlaybackStorage {
-        override suspend fun savePosition(bookId: Book.Id, chapterId: Chapter.Id, positionMs: Long) {
+        override suspend fun savePosition(
+            spaceId: LibrarySpace.Id,
+            bookId: Book.Id,
+            chapterId: Chapter.Id,
+            positionMs: Long,
+        ) {
             position = AudiobookPlaybackStorage.PlaybackPosition(chapterId, positionMs)
         }
 
-        override suspend fun getPosition(bookId: Book.Id): AudiobookPlaybackStorage.PlaybackPosition? = position
+        override suspend fun getPosition(
+            spaceId: LibrarySpace.Id,
+            bookId: Book.Id,
+        ): AudiobookPlaybackStorage.PlaybackPosition? = position
 
-        override suspend fun saveBookProgress(bookId: Book.Id, listenedDurationMs: Long, isCompleted: Boolean) = Unit
+        override suspend fun saveBookProgress(
+            spaceId: LibrarySpace.Id,
+            bookId: Book.Id,
+            listenedDurationMs: Long,
+            isCompleted: Boolean,
+        ) = Unit
 
-        override suspend fun saveLastPlayedBook(bookId: Book.Id) = Unit
+        override suspend fun saveLastPlayedBook(spaceId: LibrarySpace.Id, bookId: Book.Id) = Unit
 
-        override suspend fun getLastPlayedBookId(): Book.Id? = lastBookId
+        override suspend fun getLastPlayedBookId(spaceId: LibrarySpace.Id): Book.Id? = lastBookId
+    }
+
+    private class FakeSpaceRepository : LibrarySpaceRepository {
+        private val space = LibrarySpace(
+            id = LibrarySpace.Id(1),
+            name = LibrarySpace.DEFAULT_NAME,
+            icon = LibrarySpace.DEFAULT_ICON,
+            sortOrder = 0,
+            isDefault = true,
+        )
+        override val activeSpaceId = MutableStateFlow(space.id)
+        override val spaces = MutableStateFlow(listOf(space))
+        override val activeSpace = MutableStateFlow(space)
+        override suspend fun ensureInitialized() = Unit
+        override fun setActiveSpace(id: LibrarySpace.Id) = Unit
+        override suspend fun refreshSpaces() = Unit
+        override suspend fun createSpace(name: String, icon: String): LibrarySpace.Id? = null
+        override suspend fun renameSpace(id: LibrarySpace.Id, name: String, icon: String) = Unit
+        override suspend fun deleteSpace(id: LibrarySpace.Id) = Unit
+        override suspend fun addBooks(spaceId: LibrarySpace.Id, bookIds: List<Book.Id>) = Unit
+        override suspend fun addBooksBySubPath(spaceId: LibrarySpace.Id, subPath: String) = Unit
+        override suspend fun removeBook(spaceId: LibrarySpace.Id, bookId: Book.Id) = Unit
+        override suspend fun getBooksGlobal(): List<Book> = emptyList()
     }
 
     private class FakeCatalog(
@@ -172,6 +212,7 @@ class AudiobookPlaybackControllerImplTest {
         override suspend fun getBook(bookId: Book.Id): Book? = book.takeIf { it.id == bookId }
         override suspend fun getChapters(bookId: Book.Id): List<Chapter> = chapters
         override suspend fun setHiddenFromContinueListening(bookId: Book.Id, hidden: Boolean) = Unit
+        override suspend fun updateBookCoverUriIfEmpty(bookId: Book.Id, coverUri: String) = Unit
     }
 
     private class FakePlaybackPlayer(

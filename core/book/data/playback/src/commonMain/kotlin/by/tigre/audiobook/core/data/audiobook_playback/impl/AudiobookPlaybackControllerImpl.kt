@@ -1,12 +1,14 @@
 package by.tigre.audiobook.core.data.audiobook_playback.impl
 
 import by.tigre.audiobook.core.data.audiobook.AudiobookCatalogSource
+import by.tigre.audiobook.core.data.audiobook.spaces.LibrarySpaceRepository
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackConfig
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
 import by.tigre.audiobook.core.data.audiobook_playback.prefs.AudiobookPlaybackSpeedPreferences
 import by.tigre.audiobook.core.data.storage.audiobook_playback.AudiobookPlaybackStorage
 import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.entity.catalog.Chapter
+import by.tigre.audiobook.core.entity.catalog.LibrarySpace
 import by.tigre.media.platform.playback.MediaItemWrapper
 import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.media.platform.playback.PlaybackSpeed
@@ -31,6 +33,7 @@ internal class AudiobookPlaybackControllerImpl(
     private val catalog: AudiobookCatalogSource,
     private val storage: AudiobookPlaybackStorage,
     private val speedPreferences: AudiobookPlaybackSpeedPreferences,
+    private val librarySpaceRepository: LibrarySpaceRepository,
     private val scope: CoreScope
 ) : AudiobookPlaybackController {
 
@@ -40,6 +43,9 @@ internal class AudiobookPlaybackControllerImpl(
     override val bookFinishedBannerVisible = MutableStateFlow(false)
     override val playbackSpeed = player.playbackSpeed
     private val isPlaying = MutableStateFlow(false)
+
+    /** Space that owns progress for the current playback session. */
+    private var launchSpaceId: LibrarySpace.Id? = null
 
     /** Monotonic mark when [pause] was invoked; used to rewind on [resume]. */
     private var pauseStartedAt: TimeMark? = null
@@ -119,6 +125,7 @@ internal class AudiobookPlaybackControllerImpl(
     override fun playBookChapter(bookId: Book.Id, chapterId: Chapter.Id) {
         Log.d(TAG) { "playBookChapter: bookId=$bookId chapterId=$chapterId" }
         scope.launch {
+            launchSpaceId = librarySpaceRepository.activeSpaceId.value
             val book = catalog.getBook(bookId) ?: return@launch
             val chapterList = catalog.getChapters(bookId)
             val chapter = chapterList.firstOrNull { it.id == chapterId } ?: return@launch
@@ -128,7 +135,7 @@ internal class AudiobookPlaybackControllerImpl(
             currentBook.value = book
             loadCanonicalListenedMs = null
             mayPersistBelowCanonical = false
-            storage.saveLastPlayedBook(book.id)
+            storage.saveLastPlayedBook(spaceId(), book.id)
             setChapter(chapter, 0L)
             isPlaying.value = true
             applyRewindBeforePlaybackResume()
@@ -138,6 +145,7 @@ internal class AudiobookPlaybackControllerImpl(
     }
 
     private suspend fun loadBookInternal(book: Book, autoPlay: Boolean) {
+        launchSpaceId = librarySpaceRepository.activeSpaceId.value
         val chapterList = catalog.getChapters(book.id)
         if (chapterList.isEmpty()) {
             Log.w(TAG) { "No chapters for book: ${book.title}" }
@@ -148,7 +156,7 @@ internal class AudiobookPlaybackControllerImpl(
         chapters.value = chapterList
         currentBook.value = book
 
-        val savedPosition = storage.getPosition(book.id)
+        val savedPosition = storage.getPosition(spaceId(), book.id)
         val startChapter = if (savedPosition != null) {
             chapterList.firstOrNull { it.id == savedPosition.chapterId } ?: chapterList.first()
         } else {
@@ -159,7 +167,7 @@ internal class AudiobookPlaybackControllerImpl(
         setChapter(startChapter, startPosition)
         loadCanonicalListenedMs = null
         mayPersistBelowCanonical = false
-        storage.saveLastPlayedBook(book.id)
+        storage.saveLastPlayedBook(spaceId(), book.id)
 
         if (autoPlay) {
             isPlaying.value = true
@@ -169,7 +177,10 @@ internal class AudiobookPlaybackControllerImpl(
     }
 
     private suspend fun restoreLastPlayedBook() {
-        val bookId = storage.getLastPlayedBookId() ?: return
+        librarySpaceRepository.ensureInitialized()
+        val spaceId = librarySpaceRepository.activeSpaceId.value
+        launchSpaceId = spaceId
+        val bookId = storage.getLastPlayedBookId(spaceId) ?: return
         val book = catalog.getBook(bookId) ?: return
         Log.d(TAG) { "Restoring last played book: ${book.title}" }
         loadBookInternal(book, autoPlay = false)
@@ -205,7 +216,12 @@ internal class AudiobookPlaybackControllerImpl(
                     Log.d(TAG) { "Book finished" }
                     currentBook.value?.let { book ->
                         val lastChapter = chapterList.last()
-                        storage.savePosition(book.id, lastChapter.id, lastChapter.duration.coerceAtLeast(0L))
+                        storage.savePosition(
+                            spaceId(),
+                            book.id,
+                            lastChapter.id,
+                            lastChapter.duration.coerceAtLeast(0L),
+                        )
                         saveBookProgressCompleted(book, chapterList)
                     }
                     isPlaying.value = false
@@ -414,10 +430,10 @@ internal class AudiobookPlaybackControllerImpl(
             }
         }
         if (position > 0) {
-            storage.savePosition(book.id, chapter.id, position)
+            storage.savePosition(spaceId(), book.id, chapter.id, position)
             Log.d(TAG) { "Saved position: book=${book.title}, chapter=${chapter.title}, pos=$position" }
         } else {
-            storage.savePosition(book.id, chapter.id, 0L)
+            storage.savePosition(spaceId(), book.id, chapter.id, 0L)
         }
         saveBookProgress(book, chapter, position)
     }
@@ -435,7 +451,7 @@ internal class AudiobookPlaybackControllerImpl(
         val remainingInChapter = (currentChapter.duration - currentPositionMs).coerceAtLeast(0)
         val isCompleted = isLastChapter && remainingInChapter < AudiobookPlaybackConfig.BOOK_COMPLETION_THRESHOLD_MS
 
-        storage.saveBookProgress(book.id, listenedDurationMs, isCompleted)
+        storage.saveBookProgress(spaceId(), book.id, listenedDurationMs, isCompleted)
         Log.d(TAG) { "Saved book progress: book=${book.title}, listened=$listenedDurationMs, completed=$isCompleted" }
     }
 
@@ -593,9 +609,12 @@ internal class AudiobookPlaybackControllerImpl(
 
     private suspend fun saveBookProgressCompleted(book: Book, chapterList: List<Chapter>) {
         val totalDurationMs = chapterList.sumOf { it.duration }
-        storage.saveBookProgress(book.id, totalDurationMs, isCompleted = true)
+        storage.saveBookProgress(spaceId(), book.id, totalDurationMs, isCompleted = true)
         Log.d(TAG) { "Marked book as completed: ${book.title}" }
     }
+
+    private fun spaceId(): LibrarySpace.Id =
+        launchSpaceId ?: librarySpaceRepository.activeSpaceId.value
 
     private fun dismissBookFinishedBanner() {
         bookFinishedBannerVisible.value = false

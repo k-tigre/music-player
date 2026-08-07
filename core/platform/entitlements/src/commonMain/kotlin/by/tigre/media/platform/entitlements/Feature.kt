@@ -7,6 +7,7 @@ enum class Feature {
     HomeWidget,
     ContinueListeningExpanded,
     UnlimitedPlaylists,
+    BookSpaces,
     ;
 }
 
@@ -17,4 +18,5 @@ fun Feature.minTier(): Tier = when (this) {
     Feature.HomeWidget -> Tier.Pro
     Feature.ContinueListeningExpanded -> Tier.Plus
     Feature.UnlimitedPlaylists -> Tier.Pro
+    Feature.BookSpaces -> Tier.Pro
 }

@@ -65,6 +65,22 @@ import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening
 import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening_show_more
 import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening_title
 import by.tigre.audiobook.core.presentation.catalog.resources.folder_group_books_count
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import by.tigre.audiobook.core.presentation.catalog.resources.library_space_add_books
+import by.tigre.audiobook.core.presentation.catalog.resources.library_space_create
+import by.tigre.audiobook.core.presentation.catalog.resources.library_space_create_upsell
+import by.tigre.audiobook.core.presentation.catalog.resources.library_space_create_upsell_hint
+import by.tigre.audiobook.core.presentation.catalog.resources.library_space_empty_hint
+import by.tigre.audiobook.core.presentation.catalog.resources.library_space_empty_title
+import by.tigre.audiobook.core.presentation.catalog.resources.library_space_kids_suggestion
+import by.tigre.audiobook.core.presentation.catalog.resources.library_space_new_name_hint
+import by.tigre.audiobook.core.presentation.catalog.resources.library_spaces_sheet_title
 import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.appTopBarWindowInsets
@@ -94,6 +110,25 @@ class BookListView(
                         )
                     },
                     windowInsets = appTopBarWindowInsets(),
+                    navigationIcon = {
+                        val screenState by component.screenState.collectAsState()
+                        val content = (screenState as? ScreenContentState.Content)?.value
+                        if (content?.spacesVisible == true && content.activeSpace != null) {
+                            Text(
+                                text = content.activeSpace.name,
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .padding(start = 8.dp)
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(MaterialTheme.colorScheme.primaryContainer)
+                                    .clickable(onClick = component::onSpaceChipClicked)
+                                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    },
                     actions = {
                         IconButton(onClick = component::onOpenSettings) {
                             Icon(
@@ -106,6 +141,14 @@ class BookListView(
             },
             content = { paddingValues ->
                 val screenState by component.screenState.collectAsState()
+                val spaceSheetVisible by component.spaceSheetVisible.collectAsState()
+
+                if (spaceSheetVisible) {
+                    val content = (screenState as? ScreenContentState.Content)?.value
+                    if (content != null) {
+                        SpaceSwitcherSheet(content)
+                    }
+                }
 
                 AnimatedContent(
                     modifier = Modifier
@@ -149,18 +192,39 @@ class BookListView(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = stringResource(Res.string.audiobooks_empty_title),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                Text(
-                    text = stringResource(Res.string.audiobooks_empty_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (state.emptySpaceNeedsBooks) {
+                    Text(
+                        text = stringResource(Res.string.library_space_empty_title),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Text(
+                        text = stringResource(Res.string.library_space_empty_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 16.dp),
+                    )
+                    Text(
+                        text = stringResource(Res.string.library_space_add_books),
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.clickable(onClick = component::onAddBooksClicked),
+                    )
+                } else {
+                    Text(
+                        text = stringResource(Res.string.audiobooks_empty_title),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Text(
+                        text = stringResource(Res.string.audiobooks_empty_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-        } else {
+            return
+        }
+
             val listState = rememberLazyListState()
             LaunchedEffect(state.scrollToBookNonce) {
                 if (state.scrollToBookNonce > 0L) {
@@ -239,6 +303,90 @@ class BookListView(
                                 isCurrent = book.id == state.currentBookId,
                             )
                         }
+                    }
+                }
+            }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun SpaceSwitcherSheet(state: BookListComponent.BookListUiState) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        var creating by remember { mutableStateOf(false) }
+        var name by remember { mutableStateOf("") }
+        ModalBottomSheet(
+            onDismissRequest = component::dismissSpaceSheet,
+            sheetState = sheetState,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(bottom = 24.dp),
+            ) {
+                Text(
+                    text = stringResource(Res.string.library_spaces_sheet_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 12.dp),
+                )
+                state.spaces.forEach { space ->
+                    val selected = space.id == state.activeSpace?.id
+                    Text(
+                        text = space.name,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { component.onSpaceSelected(space.id) }
+                            .padding(vertical = 12.dp),
+                    )
+                }
+                if (creating && state.canManageSpaces) {
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        label = { Text(stringResource(Res.string.library_space_new_name_hint)) },
+                        placeholder = { Text(stringResource(Res.string.library_space_kids_suggestion)) },
+                        singleLine = true,
+                    )
+                    TextButton(
+                        onClick = {
+                            component.onConfirmCreateSpace(name)
+                            creating = false
+                        },
+                    ) {
+                        Text(stringResource(Res.string.library_space_create))
+                    }
+                } else {
+                    TextButton(
+                        onClick = {
+                            if (state.canManageSpaces) {
+                                creating = true
+                                name = ""
+                            } else {
+                                component.onCreateSpaceClicked()
+                            }
+                        },
+                        modifier = Modifier.padding(top = 8.dp),
+                    ) {
+                        Text(
+                            text = stringResource(
+                                if (state.canManageSpaces) Res.string.library_space_create
+                                else Res.string.library_space_create_upsell,
+                            ),
+                        )
+                    }
+                    if (!state.canManageSpaces) {
+                        Text(
+                            text = stringResource(Res.string.library_space_create_upsell_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
                     }
                 }
             }
