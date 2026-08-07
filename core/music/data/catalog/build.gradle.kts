@@ -44,6 +44,9 @@ kotlin {
             implementation(Library.CoroutinesAndroid.notation)
             implementation(Library.KtorClientOkHttp.notation)
         }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
     }
 }
 

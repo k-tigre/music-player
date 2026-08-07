@@ -25,11 +25,12 @@ internal class CatalogSourceImpl(
     ) { local, hiddenRev, backendRev -> local + hiddenRev + backendRev }
 
     override suspend fun getArtists(): List<Artist> =
-        backend.getArtists().filter { artist -> getAlbums(artist.id).isNotEmpty() }
+        filterArtistsWithVisibleAlbums(backend.getArtists())
 
     override suspend fun getArtistById(id: Artist.Id): Artist? {
         val artist = backend.getArtistById(id) ?: return null
-        return if (getAlbums(id).isEmpty()) null else artist
+        if (id !in hidden.artistIdsWithHiddenAlbums()) return artist
+        return if (hasVisibleAlbums(id)) artist else null
     }
 
     override suspend fun getAlbums(artistId: Artist.Id): List<Album> =
@@ -60,7 +61,7 @@ internal class CatalogSourceImpl(
     override suspend fun search(query: String): CatalogSearchResult {
         val raw = backend.search(query)
         return CatalogSearchResult(
-            artists = raw.artists.filter { artist -> getAlbums(artist.id).isNotEmpty() },
+            artists = filterArtistsWithVisibleAlbums(raw.artists),
             songs = raw.songs.filterVisible()
         )
     }
@@ -90,6 +91,17 @@ internal class CatalogSourceImpl(
         }
         return emptyList()
     }
+
+    private suspend fun filterArtistsWithVisibleAlbums(artists: List<Artist>): List<Artist> {
+        val affected = hidden.artistIdsWithHiddenAlbums()
+        if (affected.isEmpty()) return artists
+        return artists.filter { artist ->
+            artist.id !in affected || hasVisibleAlbums(artist.id)
+        }
+    }
+
+    private suspend fun hasVisibleAlbums(artistId: Artist.Id): Boolean =
+        getAlbums(artistId).isNotEmpty()
 
     private fun List<Song>.filterVisible(): List<Song> =
         filter { song -> !hidden.isSongHidden(song.id) }

@@ -12,6 +12,8 @@ interface HiddenCatalogStorage {
     val revision: Flow<Long>
     fun isSongHidden(id: Song.Id): Boolean
     fun isAlbumHidden(artistId: Artist.Id, albumId: Album.Id): Boolean
+    /** Artist ids that have at least one hidden album (for avoiding N+1 MediaStore queries). */
+    fun artistIdsWithHiddenAlbums(): Set<Artist.Id>
     fun hideSong(id: Song.Id)
     fun hideAlbum(artistId: Artist.Id, albumId: Album.Id, songIds: List<Song.Id>)
 }
@@ -27,6 +29,11 @@ internal class HiddenCatalogStorageImpl(
 
     override fun isAlbumHidden(artistId: Artist.Id, albumId: Album.Id): Boolean =
         loadAlbumKeys().contains(albumKey(artistId, albumId))
+
+    override fun artistIdsWithHiddenAlbums(): Set<Artist.Id> =
+        loadAlbumKeys().mapNotNullTo(mutableSetOf()) { key ->
+            key.substringBefore('_').toLongOrNull()?.let(Artist::Id)
+        }
 
     override fun hideSong(id: Song.Id) {
         val ids = loadSongIds()
