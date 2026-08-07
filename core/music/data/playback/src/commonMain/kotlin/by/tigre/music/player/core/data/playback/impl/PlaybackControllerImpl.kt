@@ -65,7 +65,9 @@ internal class PlaybackControllerImpl(
         .map { queue ->
             queue.firstOrNull { it.state == PlaybackQueueStorage.QueueItem.State.Playing }
                 ?.let { item ->
-                    catalog.getSongById(id = item.songsId)
+                    // Catalog/MediaStore can throw on broken OEM storage volumes;
+                    // never let that kill the playback state collector.
+                    runCatching { catalog.getSongById(id = item.songsId) }.getOrNull()
                         ?.let { song ->
                             SongInQueueItem(id = item.id, song = song, isPlaying = true)
                         }
@@ -86,7 +88,8 @@ internal class PlaybackControllerImpl(
                 }
                 .distinctUntilChanged()
                 .map { ids ->
-                    catalog.getSongsByIds(ids).associateBy { it.id }
+                    runCatching { catalog.getSongsByIds(ids) }.getOrDefault(emptyList())
+                        .associateBy { it.id }
                 },
             storage.currentQueue
         ) { songs, currentQueue ->

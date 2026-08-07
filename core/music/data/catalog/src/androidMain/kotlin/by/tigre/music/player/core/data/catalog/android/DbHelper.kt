@@ -2,11 +2,13 @@ package by.tigre.music.player.core.data.catalog.android
 
 import android.content.ContentUris
 import android.content.Context
+import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.provider.BaseColumns
 import android.provider.MediaStore
 import by.tigre.music.player.core.data.catalog.MediaStoreStrings
+import by.tigre.music.player.core.data.catalog.MediaStoreVolumes
 import by.tigre.music.player.core.entiry.catalog.Album
 import by.tigre.music.player.core.entiry.catalog.Artist
 import by.tigre.music.player.core.entiry.catalog.CatalogSearchResult
@@ -34,14 +36,9 @@ interface DbHelper {
                 MediaStore.Audio.Artists.NUMBER_OF_ALBUMS
             )
             val artists = mutableListOf<Artist>()
+            val collection = artistsCollection() ?: return emptyList()
 
-            val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                MediaStore.Audio.Artists.getContentUri(MediaStore.VOLUME_EXTERNAL)
-            } else {
-                MediaStore.Audio.Artists.getContentUri("external")
-            }
-
-            context.contentResolver.query(
+            querySafely(
                 collection,
                 projection,
                 null,
@@ -77,12 +74,8 @@ interface DbHelper {
                 MediaStore.Audio.Artists.NUMBER_OF_TRACKS,
                 MediaStore.Audio.Artists.NUMBER_OF_ALBUMS
             )
-            val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                MediaStore.Audio.Artists.getContentUri(MediaStore.VOLUME_EXTERNAL)
-            } else {
-                MediaStore.Audio.Artists.getContentUri("external")
-            }
-            return context.contentResolver.query(
+            val collection = artistsCollection() ?: return null
+            return querySafely(
                 collection,
                 projection,
                 "${MediaStore.Audio.Artists._ID} = ?",
@@ -121,14 +114,9 @@ interface DbHelper {
                 MediaStore.Audio.Artists.Albums.LAST_YEAR
             )
             val albums = mutableListOf<Album>()
+            val collection = artistAlbumsCollection(artistId.value) ?: return emptyList()
 
-            val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                MediaStore.Audio.Artists.Albums.getContentUri(MediaStore.VOLUME_EXTERNAL, artistId.value)
-            } else {
-                MediaStore.Audio.Artists.Albums.getContentUri("external", artistId.value)
-            }
-
-            context.contentResolver.query(
+            querySafely(
                 collection,
                 projection,
                 null,
@@ -172,13 +160,10 @@ interface DbHelper {
             )
 
         override suspend fun getSongById(id: Song.Id): Song? {
-            val projection = songProjection()
-
-            val collection = mediaCollection()
-
-            return context.contentResolver.query(
+            val collection = mediaCollectionForRead() ?: return null
+            return querySafely(
                 collection,
-                projection,
+                songProjection(),
                 "${MediaStore.Audio.Media.IS_MUSIC} != ? AND ${MediaStore.Audio.Media._ID} == ?",
                 arrayOf("0", id.value.toString()),
                 null
@@ -214,39 +199,37 @@ interface DbHelper {
             if (trimmed.isEmpty()) return CatalogSearchResult(emptyList(), emptyList())
             val like = "%$trimmed%"
             val artists = mutableListOf<Artist>()
-            val artistCollection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                MediaStore.Audio.Artists.getContentUri(MediaStore.VOLUME_EXTERNAL)
-            } else {
-                MediaStore.Audio.Artists.getContentUri("external")
-            }
-            context.contentResolver.query(
-                artistCollection,
-                arrayOf(
-                    MediaStore.Audio.Artists._ID,
-                    MediaStore.Audio.Artists.ARTIST,
-                    MediaStore.Audio.Artists.NUMBER_OF_TRACKS,
-                    MediaStore.Audio.Artists.NUMBER_OF_ALBUMS
-                ),
-                "${MediaStore.Audio.Artists.ARTIST} LIKE ?",
-                arrayOf(like),
-                MediaStore.Audio.Artists.ARTIST + " ASC"
-            )?.use { cursor ->
-                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists._ID)
-                val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.ARTIST)
-                val songCountColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.NUMBER_OF_TRACKS)
-                val albumCountColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.NUMBER_OF_ALBUMS)
-                while (cursor.moveToNext()) {
-                    artists.add(
-                        Artist(
-                            id = Artist.Id(cursor.getLong(idColumn)),
-                            name = MediaStoreStrings.orDefault(
-                                cursor.getString(nameColumn),
-                                MediaStoreStrings.UNKNOWN_ARTIST,
-                            ),
-                            songCount = cursor.getInt(songCountColumn),
-                            albumCount = cursor.getInt(albumCountColumn)
+            val artistCollection = artistsCollection()
+            if (artistCollection != null) {
+                querySafely(
+                    artistCollection,
+                    arrayOf(
+                        MediaStore.Audio.Artists._ID,
+                        MediaStore.Audio.Artists.ARTIST,
+                        MediaStore.Audio.Artists.NUMBER_OF_TRACKS,
+                        MediaStore.Audio.Artists.NUMBER_OF_ALBUMS
+                    ),
+                    "${MediaStore.Audio.Artists.ARTIST} LIKE ?",
+                    arrayOf(like),
+                    MediaStore.Audio.Artists.ARTIST + " ASC"
+                )?.use { cursor ->
+                    val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists._ID)
+                    val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.ARTIST)
+                    val songCountColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.NUMBER_OF_TRACKS)
+                    val albumCountColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.NUMBER_OF_ALBUMS)
+                    while (cursor.moveToNext()) {
+                        artists.add(
+                            Artist(
+                                id = Artist.Id(cursor.getLong(idColumn)),
+                                name = MediaStoreStrings.orDefault(
+                                    cursor.getString(nameColumn),
+                                    MediaStoreStrings.UNKNOWN_ARTIST,
+                                ),
+                                songCount = cursor.getInt(songCountColumn),
+                                albumCount = cursor.getInt(albumCountColumn)
+                            )
                         )
-                    )
+                    }
                 }
             }
             val songs = querySongs(
@@ -258,14 +241,16 @@ interface DbHelper {
         }
 
         override suspend fun deleteSong(id: Song.Id): Boolean {
-            val uri = ContentUris.withAppendedId(mediaCollection(), id.value)
+            val collection = mediaCollectionForWrite() ?: return false
+            val uri = ContentUris.withAppendedId(collection, id.value)
             return deleteUris(listOf(uri))
         }
 
         override suspend fun deleteAlbum(artistId: Artist.Id, albumId: Album.Id): Boolean {
             val songs = getSongsByAlbum(artistId, albumId)
             if (songs.isEmpty()) return false
-            val uris = songs.map { song -> ContentUris.withAppendedId(mediaCollection(), song.id.value) }
+            val collection = mediaCollectionForWrite() ?: return false
+            val uris = songs.map { song -> ContentUris.withAppendedId(collection, song.id.value) }
             return deleteUris(uris)
         }
 
@@ -284,10 +269,53 @@ interface DbHelper {
             MediaStore.Audio.Media.ALBUM_ID,
         )
 
-        private fun mediaCollection() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
-        } else {
-            MediaStore.Audio.Media.getContentUri("external")
+        private fun availableExternalVolumes(): Set<String> =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                MediaStore.getExternalVolumeNames(context)
+            } else {
+                setOf(MediaStoreVolumes.EXTERNAL)
+            }
+
+        private fun mediaCollectionForRead(): Uri? {
+            val volume = MediaStoreVolumes.resolveForRead(availableExternalVolumes()) ?: return null
+            return MediaStore.Audio.Media.getContentUri(volume)
+        }
+
+        private fun mediaCollectionForWrite(): Uri? {
+            val volume = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                MediaStoreVolumes.resolveForWrite(availableExternalVolumes())
+            } else {
+                MediaStoreVolumes.EXTERNAL
+            } ?: return null
+            return MediaStore.Audio.Media.getContentUri(volume)
+        }
+
+        private fun artistsCollection(): Uri? {
+            val volume = MediaStoreVolumes.resolveForRead(availableExternalVolumes()) ?: return null
+            return MediaStore.Audio.Artists.getContentUri(volume)
+        }
+
+        private fun artistAlbumsCollection(artistId: Long): Uri? {
+            val volume = MediaStoreVolumes.resolveForRead(availableExternalVolumes()) ?: return null
+            return MediaStore.Audio.Artists.Albums.getContentUri(volume, artistId)
+        }
+
+        /**
+         * MediaProvider throws [IllegalArgumentException] when the target volume
+         * is missing (e.g. "Volume external_primary not found") — treat as empty.
+         */
+        private fun querySafely(
+            uri: Uri,
+            projection: Array<String>,
+            selection: String?,
+            selectionArgs: Array<String>?,
+            sortOrder: String?,
+        ): Cursor? = try {
+            context.contentResolver.query(uri, projection, selection, selectionArgs, sortOrder)
+        } catch (_: IllegalArgumentException) {
+            null
+        } catch (_: SecurityException) {
+            null
         }
 
         private fun querySongs(
@@ -295,9 +323,10 @@ interface DbHelper {
             selectionArgs: Array<String>,
             sortOrder: String?
         ): List<Song> {
+            val collection = mediaCollectionForRead() ?: return emptyList()
             val songs = mutableListOf<Song>()
-            context.contentResolver.query(
-                mediaCollection(),
+            querySafely(
+                collection,
                 songProjection(),
                 selection,
                 selectionArgs,
@@ -310,7 +339,7 @@ interface DbHelper {
             return songs
         }
 
-        private fun mapSongRowFromCursor(cursor: android.database.Cursor): Song = mapSongRow(
+        private fun mapSongRowFromCursor(cursor: Cursor): Song = mapSongRow(
             cursor = cursor,
             idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID),
             nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE),
@@ -323,7 +352,7 @@ interface DbHelper {
         )
 
         private fun mapSongRow(
-            cursor: android.database.Cursor,
+            cursor: Cursor,
             idColumn: Int,
             nameColumn: Int,
             trackColumn: Int,
