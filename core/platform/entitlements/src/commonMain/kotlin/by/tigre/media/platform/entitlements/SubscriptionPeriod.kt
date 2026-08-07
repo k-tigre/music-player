@@ -6,15 +6,24 @@ enum class SubscriptionPeriod {
     Unknown,
 }
 
+/**
+ * Console base-plan IDs: `{monthly|yearly}-{productId}` e.g. `yearly-music-pro`.
+ * Also accepts bare `monthly` / `yearly` and legacy `month-*` / `year-*`.
+ */
 fun parseSubscriptionPeriod(basePlanId: String?): SubscriptionPeriod {
     val id = basePlanId?.lowercase().orEmpty()
     if (id.isEmpty()) return SubscriptionPeriod.Unknown
-    val yearly = id == "yearly" || id == "year" || id == "annual" ||
-        id.contains("year") || id.contains("annual")
-    val monthly = id == "monthly" || id == "month" || id.contains("month")
     return when {
-        yearly -> SubscriptionPeriod.Yearly
-        monthly -> SubscriptionPeriod.Monthly
+        id == "yearly" || id == "year" || id == "annual" ||
+            id.startsWith("yearly-") || id.startsWith("year-") || id.startsWith("annual") ||
+            id.contains("year") || id.contains("annual") ->
+            SubscriptionPeriod.Yearly
+
+        id == "monthly" || id == "month" ||
+            id.startsWith("monthly-") || id.startsWith("month-") ||
+            id.contains("month") ->
+            SubscriptionPeriod.Monthly
+
         else -> SubscriptionPeriod.Unknown
     }
 }
