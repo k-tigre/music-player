@@ -76,4 +76,43 @@ class FeatureModesTest {
             parseUnlockInstallationIds(" abc, def , "),
         )
     }
+
+    @Test
+    fun effectiveModeUnlockBeatsForcePaid() {
+        assertEquals(
+            FeatureMode.On,
+            effectiveFeatureMode(
+                feature = Feature.HomeWidget,
+                modes = mapOf(Feature.HomeWidget to FeatureMode.Off),
+                unlocked = true,
+                forcePaid = true,
+            ),
+        )
+    }
+
+    @Test
+    fun effectiveModeForcePaidOverridesJsonOn() {
+        assertEquals(
+            FeatureMode.Paid,
+            effectiveFeatureMode(
+                feature = Feature.Equalizer,
+                modes = mapOf(Feature.Equalizer to FeatureMode.On),
+                unlocked = false,
+                forcePaid = true,
+            ),
+        )
+    }
+
+    @Test
+    fun effectiveModeUsesJsonWhenNoOverrides() {
+        assertEquals(
+            FeatureMode.Off,
+            effectiveFeatureMode(
+                feature = Feature.HomeWidget,
+                modes = mapOf(Feature.HomeWidget to FeatureMode.Off),
+                unlocked = false,
+                forcePaid = false,
+            ),
+        )
+    }
 }

@@ -34,6 +34,11 @@ class EntitlementsRemoteConfig(
             remoteConfig.getString(FeatureModesRemoteConfig.RC_UNLOCK_INSTALLATION_IDS),
         )
 
+    fun forcePaidInstallationIds(): Set<String> =
+        parseUnlockInstallationIds(
+            remoteConfig.getString(FeatureModesRemoteConfig.RC_FORCE_PAID_INSTALLATION_IDS),
+        )
+
     fun playlistLimit(tier: Tier): Int = when (tier) {
         Tier.Free -> remoteLimit(
             EntitlementLimits.RC_PLAYLIST_LIMIT_FREE,

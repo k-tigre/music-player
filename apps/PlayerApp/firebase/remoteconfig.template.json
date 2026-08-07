@@ -22,30 +22,17 @@
       "description": "CSV Firebase Installation IDs → force all features to paid (test paywall). Replace XXX with real Installation ID from About (7 taps on version).",
       "valueType": "STRING"
     },
-    "entitlements_continue_listening_free": {
+    "entitlements_playlist_limit_free": {
       "defaultValue": {
         "value": "3"
       },
       "valueType": "NUMBER"
     },
-    "entitlements_continue_listening_plus": {
-      "defaultValue": {
-        "value": "5"
-      },
-      "valueType": "NUMBER"
-    },
-    "entitlements_continue_listening_pro": {
+    "entitlements_playlist_limit_plus": {
       "defaultValue": {
         "value": "10"
       },
       "valueType": "NUMBER"
-    },
-    "audiobook_night_timer_shake_config": {
-      "defaultValue": {
-        "value": "{\"gForceThreshold\":1.45,\"debounceMs\":150,\"pairMaxGapMs\":10000}"
-      },
-      "description": "Night timer shake detection settings (JSON).",
-      "valueType": "JSON"
     }
   }
 }
