@@ -16,6 +16,7 @@ import by.tigre.media.platform.player.di.PlayerComponentProvider
 import by.tigre.media.platform.player.navigation.PlayerNavigator
 import by.tigre.media.platform.entitlements.EntitlementsRepository
 import by.tigre.media.platform.entitlements.Feature
+import by.tigre.media.platform.entitlements.FeatureAccess
 import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.media.platform.presentation.appChildContext
 import by.tigre.media.platform.presentation.appChildStack
@@ -113,12 +114,15 @@ interface Root {
             }
 
             override fun showEqualizer() {
-                if (!entitlementsRepository.has(Feature.Equalizer)) {
-                    onPaywallRequest(Feature.Equalizer)
-                    return
+                when (entitlementsRepository.access(Feature.Equalizer)) {
+                    FeatureAccess.Allowed -> {
+                        eventAnalytics.trackEvent(CommonEvents.Action.NavOpenEqualizer)
+                        mainNavigation.pushToFront(MainConfig.Equalizer)
+                    }
+                    FeatureAccess.RequiresPurchase ->
+                        onPaywallRequest(Feature.Equalizer)
+                    FeatureAccess.Unavailable -> Unit
                 }
-                eventAnalytics.trackEvent(CommonEvents.Action.NavOpenEqualizer)
-                mainNavigation.pushToFront(MainConfig.Equalizer)
             }
 
             override fun closeEqualizer() {

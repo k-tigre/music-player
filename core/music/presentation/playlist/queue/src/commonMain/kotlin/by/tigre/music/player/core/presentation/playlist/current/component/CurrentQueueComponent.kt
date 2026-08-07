@@ -262,6 +262,7 @@ interface CurrentQueueComponent {
 
                     QueueSession.Plain -> {
                         if (playbackController.currentQueue.first().isEmpty()) return@launch
+                        if (!canCreatePlaylist()) return@launch
                         _nameError.value = false
                         _saveDialogState.value = SaveDialogState(
                             defaultName = getString(

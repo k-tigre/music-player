@@ -25,6 +25,7 @@
     <string name="book_progress_listened">%1$d% listened</string>
     <string name="continue_listening_title">Continue listening</string>
     <string name="continue_listening_books_count">%1$d books</string>
+    <string name="continue_listening_show_more">Show more with Plus</string>
     <string name="cd_dismiss_continue_listening">Remove from continue listening</string>
     <string name="book_currently_playing">Now playing</string>
     <string name="chapters_sheet_title">Chapters</string>

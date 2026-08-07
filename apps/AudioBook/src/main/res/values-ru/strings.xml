@@ -33,6 +33,8 @@
     <string name="paywall_thanks_done">Продолжить</string>
     <string name="billing_restore_complete">Покупки восстановлены</string>
     <string name="billing_restore_failed">Не удалось восстановить покупки</string>
+    <string name="installation_id_copied">ID устройства скопирован</string>
+    <string name="installation_id_copy_failed">Не удалось скопировать ID устройства</string>
     <string name="billing_purchase_failed">Не удалось завершить покупку</string>
     <string name="billing_tip_thanks">Спасибо за поддержку!</string>
 
@@ -66,6 +68,7 @@
     <string name="night_timer_minutes_option">%d мин</string>
     <string name="night_timer_fade_label">Приглушать громкость</string>
     <string name="night_timer_fade_description">Перед остановкой громкость плавно снижается по кривой: сначала быстрее, к концу мягче. После остановки — отмотка на 30 секунд, если книга ещё играла, чтобы не пропустить конец.</string>
+    <string name="night_timer_advanced_locked">Plus открывает плавное затухание и продление переворотом. Нажмите, чтобы оформить.</string>
     <string name="night_timer_flip_extend_label">Продлить встряхиванием</string>
     <string name="night_timer_flip_extend_description">В течение минуты до остановки дважды встряхните телефон, пока он лежит на поверхности — таймер продлится на 5 минут, громкость восстановится. Можно и перевернуть туда-обратно.</string>
     <string name="night_timer_flip_step_rest">Лежит неподвижно</string>

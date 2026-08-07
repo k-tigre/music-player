@@ -64,8 +64,11 @@ interface PlaylistsListComponent {
         }
 
         override fun onCreateClicked() {
-            _nameError.value = false
-            _dialogState.value = PlaylistsDialogState.Create
+            launch {
+                if (!canCreatePlaylist()) return@launch
+                _nameError.value = false
+                _dialogState.value = PlaylistsDialogState.Create
+            }
         }
 
         override fun onCreateConfirmed(name: String) {

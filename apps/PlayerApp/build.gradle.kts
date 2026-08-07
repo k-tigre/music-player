@@ -144,7 +144,7 @@ dependencies {
     implementation(Project.Core.Music.Entity.Playlist)
     implementation(Project.Core.Music.Entity.Playback)
     implementation(Library.AccompanistPermission)
-    implementation(FirebaseLibrary.FirebaseAnalytics, FirebaseLibrary.FirebaseCrashLytics, FirebaseLibrary.FirebaseConfig)
+    implementation(FirebaseLibrary.FirebaseAnalytics, FirebaseLibrary.FirebaseCrashLytics, FirebaseLibrary.FirebaseConfig, FirebaseLibrary.FirebaseInstallations)
 
     implementation(TigreLogger.Artifact.Core)
     implementation(TigreLogger.Artifact.Crashlytics)

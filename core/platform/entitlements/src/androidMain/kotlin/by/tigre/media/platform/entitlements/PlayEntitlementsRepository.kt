@@ -2,9 +2,14 @@ package by.tigre.media.platform.entitlements
 
 import android.content.Context
 import by.tigre.media.platform.billing.BillingService
+import com.google.android.gms.tasks.Tasks
+import com.google.firebase.installations.FirebaseInstallations
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.withContext
+import java.util.concurrent.TimeUnit
 
 class PlayEntitlementsRepository(
     context: Context,
@@ -12,18 +17,41 @@ class PlayEntitlementsRepository(
     private val app: AppSku,
     private val cache: EntitlementsCache = EntitlementsCache(context),
     private val remoteConfig: EntitlementsRemoteConfig = EntitlementsRemoteConfig(),
+    private val installations: FirebaseInstallations = FirebaseInstallations.getInstance(),
 ) : EntitlementsRepository {
     private val _tier = MutableStateFlow(cache.load())
     private val _ownedBasePlanIds = MutableStateFlow(cache.loadBasePlanIds())
 
+    @Volatile
+    private var featureModes: Map<Feature, FeatureMode> = emptyMap()
+
+    @Volatile
+    private var unlocked: Boolean = false
+
     override val tier: StateFlow<Tier> = _tier.asStateFlow()
     override val ownedBasePlanIds: StateFlow<Map<String, String>> = _ownedBasePlanIds.asStateFlow()
 
-    override fun has(feature: Feature): Boolean = tier.value.includes(feature.minTier())
+    override fun has(feature: Feature): Boolean = access(feature) == FeatureAccess.Allowed
 
-    override fun playlistLimit(): Int = remoteConfig.playlistLimit(tier.value)
+    override fun access(feature: Feature): FeatureAccess =
+        resolveFeatureAccess(
+            feature = feature,
+            tier = _tier.value,
+            mode = modeOrDefault(featureModes, feature),
+            unlocked = unlocked,
+        )
 
-    override fun continueListeningLimit(): Int = remoteConfig.continueListeningLimit(tier.value)
+    override fun playlistLimit(): Int {
+        val mode = modeOrDefault(featureModes, Feature.UnlimitedPlaylists)
+        val effectiveTier = limitTier(mode)
+        return remoteConfig.playlistLimit(effectiveTier)
+    }
+
+    override fun continueListeningLimit(): Int {
+        val mode = modeOrDefault(featureModes, Feature.ContinueListeningExpanded)
+        val effectiveTier = limitTier(mode)
+        return remoteConfig.continueListeningLimit(effectiveTier)
+    }
 
     override fun rememberSubscriptionBasePlan(productId: String, basePlanId: String) {
         cache.rememberBasePlan(productId, basePlanId)
@@ -54,7 +82,21 @@ class PlayEntitlementsRepository(
             // Retain the last known entitlement while Billing is unavailable.
         }
         remoteConfig.refresh()
+        featureModes = remoteConfig.featureModes()
+        val installationId = runCatching { fetchInstallationId() }.getOrNull()
+        unlocked = installationId != null &&
+            installationId in remoteConfig.unlockInstallationIds()
     }
 
     override suspend fun restore() = refresh()
+
+    private fun limitTier(mode: FeatureMode): Tier = when {
+        unlocked || mode == FeatureMode.On -> Tier.Pro
+        mode == FeatureMode.Off -> Tier.Free
+        else -> _tier.value
+    }
+
+    private suspend fun fetchInstallationId(): String? = withContext(Dispatchers.IO) {
+        Tasks.await(installations.id, 5, TimeUnit.SECONDS)
+    }
 }

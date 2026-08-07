@@ -10,6 +10,8 @@ interface EntitlementsRepository {
 
     fun has(feature: Feature): Boolean
 
+    fun access(feature: Feature): FeatureAccess
+
     fun playlistLimit(): Int
 
     fun continueListeningLimit(): Int

@@ -7,12 +7,16 @@ class FreeEntitlementsRepository : EntitlementsRepository {
     override val tier: StateFlow<Tier> = MutableStateFlow(Tier.Free)
     override val ownedBasePlanIds: StateFlow<Map<String, String>> = MutableStateFlow(emptyMap())
 
-    override fun has(feature: Feature): Boolean = tier.value.includes(feature.minTier())
+    override fun has(feature: Feature): Boolean = access(feature) == FeatureAccess.Allowed
 
-    override fun playlistLimit(): Int = EntitlementLimits.defaultPlaylistLimit(tier.value)
+    override fun access(feature: Feature): FeatureAccess =
+        // Desktop has no billing; treat all features as available (transition default = on).
+        FeatureAccess.Allowed
+
+    override fun playlistLimit(): Int = EntitlementLimits.defaultPlaylistLimit(Tier.Pro)
 
     override fun continueListeningLimit(): Int =
-        EntitlementLimits.defaultContinueListeningLimit(tier.value)
+        EntitlementLimits.defaultContinueListeningLimit(Tier.Pro)
 
     override fun rememberSubscriptionBasePlan(productId: String, basePlanId: String) = Unit
 

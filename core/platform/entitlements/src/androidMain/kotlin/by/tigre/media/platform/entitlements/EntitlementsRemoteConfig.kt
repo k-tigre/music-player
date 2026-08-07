@@ -9,9 +9,11 @@ class EntitlementsRemoteConfig(
     private val remoteConfig: FirebaseRemoteConfig = FirebaseRemoteConfig.getInstance(),
 ) {
     init {
-        remoteConfig.setDefaultsAsync(
-            EntitlementLimits.remoteConfigDefaults.mapValues { (_, value) -> value as Any },
-        )
+        val defaults = buildMap<String, Any> {
+            putAll(EntitlementLimits.remoteConfigDefaults)
+            putAll(FeatureModesRemoteConfig.remoteConfigDefaults)
+        }
+        remoteConfig.setDefaultsAsync(defaults)
     }
 
     suspend fun refresh() {
@@ -23,6 +25,14 @@ class EntitlementsRemoteConfig(
             // Hardcoded defaults remain active while Remote Config is unavailable.
         }
     }
+
+    fun featureModes(): Map<Feature, FeatureMode> =
+        parseFeatureModes(remoteConfig.getString(FeatureModesRemoteConfig.RC_FEATURE_MODES))
+
+    fun unlockInstallationIds(): Set<String> =
+        parseUnlockInstallationIds(
+            remoteConfig.getString(FeatureModesRemoteConfig.RC_UNLOCK_INSTALLATION_IDS),
+        )
 
     fun playlistLimit(tier: Tier): Int = when (tier) {
         Tier.Free -> remoteLimit(

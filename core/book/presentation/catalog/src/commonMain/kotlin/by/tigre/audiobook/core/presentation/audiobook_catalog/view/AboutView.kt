@@ -1,5 +1,6 @@
 package by.tigre.audiobook.core.presentation.audiobook_catalog.view
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -76,7 +77,9 @@ class AboutView(
                     text = stringResource(Res.string.about_version, component.appVersionName),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 8.dp),
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .clickable(onClick = component::onVersionClick),
                 )
                 if (tipsCount > 0) {
                     Text(

@@ -4,6 +4,7 @@ import android.app.Activity
 import by.tigre.media.platform.billing.BillingService
 import by.tigre.media.platform.entitlements.AppSku
 import by.tigre.media.platform.entitlements.Feature
+import by.tigre.media.platform.entitlements.FeatureAccess
 import by.tigre.media.platform.player.component.EqualizerComponent
 import by.tigre.media.platform.player.component.PlayerComponent
 import by.tigre.music.player.core.presentation.catalog.component.RootCatalogComponent
@@ -128,12 +129,15 @@ interface Root {
             }
 
             override fun showEqualizer() {
-                if (!entitlementsRepository.has(Feature.Equalizer)) {
-                    dependency.requestPaywall(Feature.Equalizer)
-                    return
+                when (entitlementsRepository.access(Feature.Equalizer)) {
+                    FeatureAccess.Allowed -> {
+                        eventAnalytics.trackEvent(CommonEvents.Action.NavOpenEqualizer)
+                        mainNavigation.pushToFront(MainConfig.Equalizer)
+                    }
+                    FeatureAccess.RequiresPurchase ->
+                        dependency.requestPaywall(Feature.Equalizer)
+                    FeatureAccess.Unavailable -> Unit
                 }
-                eventAnalytics.trackEvent(CommonEvents.Action.NavOpenEqualizer)
-                mainNavigation.pushToFront(MainConfig.Equalizer)
             }
 
             override fun closeEqualizer() {
@@ -286,10 +290,12 @@ interface Root {
                         SettingsComponent.Impl(
                             themeSettingsStore = themeSettingsStore,
                             tipsCount = dependency.tipsCount,
+                            appVersionName = dependency.appVersionName,
                             onUpgrade = dependency::requestUpgrade,
                             onRestorePurchases = dependency::restorePurchases,
                             onTips = dependency::requestTips,
                             onClose = playerNavigator::closeSettings,
+                            onCopyInstallationId = dependency::copyInstallationIdToClipboard,
                         )
                     )
                 }
@@ -344,7 +350,9 @@ interface Root {
         override suspend fun canCreatePlaylist(): Boolean {
             val currentCount = dependency.playlistRepository.allPlaylists.first().size
             if (currentCount < entitlementsRepository.playlistLimit()) return true
-            dependency.requestPaywall(Feature.UnlimitedPlaylists, source = "playlist_limit")
+            if (entitlementsRepository.access(Feature.UnlimitedPlaylists) == FeatureAccess.RequiresPurchase) {
+                dependency.requestPaywall(Feature.UnlimitedPlaylists, source = "playlist_limit")
+            }
             return false
         }
 

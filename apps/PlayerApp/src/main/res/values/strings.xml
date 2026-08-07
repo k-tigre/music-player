@@ -41,6 +41,9 @@
     <string name="settings_tips">Support the app</string>
     <string name="settings_tips_count">Tips given: %1$d</string>
     <string name="settings_supporter_badge">Supporter</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="installation_id_copied">Device ID copied</string>
+    <string name="installation_id_copy_failed">Could not copy device ID</string>
 
     <string name="paywall_title">Unlock more listening</string>
     <string name="paywall_benefits">Plus adds the equalizer and more playlists. Pro also unlocks the home widget.</string>

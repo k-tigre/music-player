@@ -27,6 +27,8 @@ import by.tigre.music.player.core.presentation.playlist.library.di.PlaylistsComp
 import by.tigre.music.player.core.presentation.playlist.library.di.PlaylistsViewProvider
 import by.tigre.music.player.core.data.catalog.android.ActivityMediaDeleteHandler
 import by.tigre.music.player.core.data.catalog.android.MediaDeleteHandlerRegistry
+import by.tigre.music.player.core.di.PaywallIntents
+import by.tigre.music.player.core.di.PaywallSection
 import by.tigre.music.player.platform.ExternalAudioIntentHandler
 import by.tigre.music.player.presentation.background.BackgroundService
 import by.tigre.media.platform.presentation.BaseComponentContextImpl
@@ -71,6 +73,8 @@ class MainActivity : AppCompatActivity() {
             onExternalAudioOpened = root::dismissDefaultPlayerPrompt,
         )
 
+        handlePaywallIntent(intent)
+
         setContent {
             val themeSettings by graph.themeSettingsStore.state.collectAsState()
             val darkTheme = resolveDarkTheme(themeSettings.mode)
@@ -83,6 +87,7 @@ class MainActivity : AppCompatActivity() {
                 val currentIntent = rememberUpdatedState(intent)
                 LaunchedEffect(currentIntent.value) {
                     externalAudioIntentHandler.handle(currentIntent.value)
+                    handlePaywallIntent(currentIntent.value)
                 }
 
                 Surface(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
@@ -119,6 +124,20 @@ class MainActivity : AppCompatActivity() {
         if (::externalAudioIntentHandler.isInitialized) {
             externalAudioIntentHandler.handle(intent)
         }
+        handlePaywallIntent(intent)
+    }
+
+    private fun handlePaywallIntent(intent: Intent?) {
+        val feature = PaywallIntents.featureFrom(intent?.getStringExtra(PaywallIntents.EXTRA_FEATURE))
+            ?: return
+        val source = intent?.getStringExtra(PaywallIntents.EXTRA_SOURCE) ?: feature.name
+        (application as App).graph.requestPaywall(
+            feature = feature,
+            source = source,
+            initialSection = PaywallSection.Plans,
+        )
+        intent?.removeExtra(PaywallIntents.EXTRA_FEATURE)
+        intent?.removeExtra(PaywallIntents.EXTRA_SOURCE)
     }
 
     private fun initializeController() {

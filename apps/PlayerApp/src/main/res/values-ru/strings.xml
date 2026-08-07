@@ -41,6 +41,9 @@
     <string name="settings_tips">Поддержать приложение</string>
     <string name="settings_tips_count">Поддержек: %1$d</string>
     <string name="settings_supporter_badge">Поддержал приложение</string>
+    <string name="settings_version">Версия %1$s</string>
+    <string name="installation_id_copied">ID устройства скопирован</string>
+    <string name="installation_id_copy_failed">Не удалось скопировать ID устройства</string>
 
     <string name="paywall_title">Откройте больше возможностей</string>
     <string name="paywall_benefits">Plus добавляет эквалайзер и больше плейлистов. Pro также открывает виджет на главном экране.</string>

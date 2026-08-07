@@ -24,4 +24,6 @@ interface RootDependency : MusicAnalyticsDependency {
     fun requestUpgrade()
     fun restorePurchases()
     fun requestTips()
+    val appVersionName: String
+    fun copyInstallationIdToClipboard()
 }

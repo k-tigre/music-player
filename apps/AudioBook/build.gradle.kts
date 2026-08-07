@@ -136,7 +136,7 @@ dependencies {
     implementation(Project.Core.Platform.Billing)
     implementation(Project.Core.Platform.Entitlements)
     implementation(Project.Core.Data.Storage.Preferences)
-    implementation(FirebaseLibrary.FirebaseAnalytics, FirebaseLibrary.FirebaseCrashLytics, FirebaseLibrary.FirebaseConfig)
+    implementation(FirebaseLibrary.FirebaseAnalytics, FirebaseLibrary.FirebaseCrashLytics, FirebaseLibrary.FirebaseConfig, FirebaseLibrary.FirebaseInstallations)
 
     implementation(TigreLogger.Artifact.Core)
     implementation(TigreLogger.Artifact.Crashlytics)

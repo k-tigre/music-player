@@ -51,6 +51,8 @@ object MarketingScreenshotFixtures {
                     ScreenContentState.Content(
                         BookListComponent.BookListUiState(
                             continueListeningBooks = books.filter { it.id == warPeaceId || it.id == sherlockId },
+                            continueListeningTotalCount = 2,
+                            continueListeningHasMore = false,
                             continueListeningExpanded = true,
                             rootBooks = books.filter { it.subPath.isEmpty() },
                             grouped = listOf(classicsPath to books.filter { it.subPath.isNotEmpty() }),
@@ -69,6 +71,7 @@ object MarketingScreenshotFixtures {
             override fun onScreenShown() = Unit
             override fun focusCurrentBook() = Unit
             override fun dismissContinueListening(book: Book) = Unit
+            override fun requestMoreContinueListening() = Unit
         }
 
     fun playerComponent(context: Context, locale: MarketingScreenshotLocale): PlayerComponent {

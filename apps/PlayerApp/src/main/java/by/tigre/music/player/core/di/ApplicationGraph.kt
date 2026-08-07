@@ -1,6 +1,10 @@
 package by.tigre.music.player.core.di
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
+import android.widget.Toast
+import by.tigre.music.player.BuildConfig
 import by.tigre.music.player.core.data.catalog.di.AndroidCatalogModule
 import by.tigre.music.player.core.data.catalog.di.CatalogModule
 import by.tigre.media.platform.billing.AndroidBillingService
@@ -38,6 +42,9 @@ import by.tigre.media.platform.tools.analytics.music.MusicEvents
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
 import by.tigre.music.player.core.data.playback.ActivePlaybackSource
 import by.tigre.music.player.R
+import com.google.android.gms.tasks.Tasks
+import com.google.firebase.installations.FirebaseInstallations
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -46,7 +53,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-
+import kotlinx.coroutines.withContext
+import java.util.concurrent.TimeUnit
 class ApplicationGraph(
     val appContext: Context,
     private val coroutineScope: kotlinx.coroutines.CoroutineScope,
@@ -121,6 +129,38 @@ class ApplicationGraph(
                 .onFailure {
                     _billingMessages.tryEmit(R.string.billing_restore_failed)
                 }
+        }
+    }
+
+    override val appVersionName: String = BuildConfig.VERSION_NAME
+
+    override fun copyInstallationIdToClipboard() {
+        coroutineScope.launch {
+            val id = runCatching {
+                withContext(Dispatchers.IO) {
+                    Tasks.await(FirebaseInstallations.getInstance().id, 5, TimeUnit.SECONDS)
+                }
+            }.getOrNull()
+            if (id.isNullOrBlank()) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        appContext,
+                        R.string.installation_id_copy_failed,
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+                return@launch
+            }
+            withContext(Dispatchers.Main) {
+                val clipboard =
+                    appContext.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                clipboard.setPrimaryClip(ClipData.newPlainText("installation_id", id))
+                Toast.makeText(
+                    appContext,
+                    R.string.installation_id_copied,
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
         }
     }
 

@@ -7,6 +7,7 @@ import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackControll
 import by.tigre.audiobook.nighttimer.NightTimerControllerImpl.Companion.SHAKE_GATE_SECONDS
 import by.tigre.media.platform.entitlements.EntitlementsRepository
 import by.tigre.media.platform.entitlements.Feature
+import by.tigre.media.platform.entitlements.FeatureAccess
 import by.tigre.media.platform.playback.AppPlaybackVolume
 import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.media.platform.preferences.Preferences
@@ -127,8 +128,9 @@ private class NightTimerControllerImpl(
     }
 
     override fun setFadeOutAtEnd(enabled: Boolean) {
-        val canUseAdvancedTimer = hasSleepTimerAdvanced()
-        if (enabled && !canUseAdvancedTimer) {
+        val access = entitlementsRepository.access(Feature.SleepTimerAdvanced)
+        val canUseAdvancedTimer = access == FeatureAccess.Allowed
+        if (enabled && access == FeatureAccess.RequiresPurchase) {
             onPaywallRequest(Feature.SleepTimerAdvanced)
         }
         _fadeOutAtEnd.value = enabled && canUseAdvancedTimer

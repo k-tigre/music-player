@@ -183,6 +183,7 @@ enum class FirebaseLibrary(group: String, artifact: String) {
     FirebaseCrashLytics("com.google.firebase", "firebase-crashlytics"),
     FirebaseAnalytics("com.google.firebase", "firebase-analytics"),
     FirebaseConfig("com.google.firebase", "firebase-config"),
+    FirebaseInstallations("com.google.firebase", "firebase-installations"),
     ;
 
     val notation = "$group:$artifact"

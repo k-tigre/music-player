@@ -1,10 +1,14 @@
 package by.tigre.audiobook.core.di
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.media3.common.MediaMetadata
 import by.tigre.audiobook.BuildConfig
+import by.tigre.audiobook.R as AppR
 import by.tigre.audiobook.core.data.audiobook.di.AndroidAudiobookCatalogModule
 import by.tigre.audiobook.core.data.audiobook.di.AudiobookCatalogModule
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
@@ -47,6 +51,8 @@ import by.tigre.media.platform.tools.analytics.book.AudiobookEvents
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
 import by.tigre.media.platform.tools.platform.compose.ContrastPreference
 import by.tigre.media.platform.tools.platform.compose.ThemeMode
+import com.google.android.gms.tasks.Tasks
+import com.google.firebase.installations.FirebaseInstallations
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -62,7 +68,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-
+import java.util.concurrent.TimeUnit
 class ApplicationGraph(
     private val appContext: Context,
     private val coroutineScope: kotlinx.coroutines.CoroutineScope,
@@ -94,10 +100,17 @@ class ApplicationGraph(
     private val _tipsCount = MutableStateFlow(preferences.loadInt(TIPS_COUNT_KEY, 0))
     override val tipsCount: StateFlow<Int> = _tipsCount.asStateFlow()
 
-    fun requestPaywall(
+    override fun requestPaywall(
         feature: Feature,
-        source: String = feature.name,
-        initialSection: PaywallSection = PaywallSection.Plans,
+        source: String,
+    ) {
+        emitPaywallRequest(feature, source, PaywallSection.Plans)
+    }
+
+    private fun emitPaywallRequest(
+        feature: Feature,
+        source: String,
+        initialSection: PaywallSection,
     ) {
         _paywallRequests.tryEmit(PaywallRequest(feature, source, initialSection))
         Log.i("Entitlements") { "Paywall requested for $feature" }
@@ -105,11 +118,13 @@ class ApplicationGraph(
 
     override fun requestUpgrade() = requestPaywall(Feature.Equalizer, source = "settings")
 
-    override fun requestTips() = requestPaywall(
-        feature = Feature.Equalizer,
-        source = "settings",
-        initialSection = PaywallSection.Tips,
-    )
+    override fun requestTips() {
+        emitPaywallRequest(
+            feature = Feature.Equalizer,
+            source = "settings",
+            initialSection = PaywallSection.Tips,
+        )
+    }
 
     override fun restorePurchases() {
         coroutineScope.launch {
@@ -185,6 +200,36 @@ class ApplicationGraph(
                 Uri.parse("https://play.google.com/store/apps/details?id=$packageName"),
             ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             appContext.startActivity(webIntent)
+        }
+    }
+
+    override fun copyInstallationIdToClipboard() {
+        coroutineScope.launch {
+            val id = runCatching {
+                withContext(Dispatchers.IO) {
+                    Tasks.await(FirebaseInstallations.getInstance().id, 5, TimeUnit.SECONDS)
+                }
+            }.getOrNull()
+            if (id.isNullOrBlank()) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        appContext,
+                        AppR.string.installation_id_copy_failed,
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+                return@launch
+            }
+            withContext(Dispatchers.Main) {
+                val clipboard =
+                    appContext.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                clipboard.setPrimaryClip(ClipData.newPlainText("installation_id", id))
+                Toast.makeText(
+                    appContext,
+                    AppR.string.installation_id_copied,
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
         }
     }
 
