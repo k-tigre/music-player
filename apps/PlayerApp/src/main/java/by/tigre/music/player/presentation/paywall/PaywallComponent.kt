@@ -8,14 +8,23 @@ import by.tigre.media.platform.billing.PurchaseResult
 import by.tigre.media.platform.entitlements.AppSku
 import by.tigre.media.platform.entitlements.EntitlementsRepository
 import by.tigre.media.platform.entitlements.SkuIds
+import by.tigre.media.platform.entitlements.Tier
 import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.media.platform.tools.analytics.music.MusicEventAnalytics
 import by.tigre.media.platform.tools.analytics.music.MusicEvents
 import by.tigre.music.player.R
 import by.tigre.music.player.core.di.PaywallRequest
 import by.tigre.music.player.core.di.PaywallSection
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+
+enum class PaywallThanks {
+    Coffee,
+    Pizza,
+    Subscription,
+}
 
 interface PaywallComponent {
     val initialSection: PaywallSection
@@ -23,8 +32,11 @@ interface PaywallComponent {
     val proProduct: StateFlow<ProductUi?>
     val coffeeTip: StateFlow<ProductUi?>
     val pizzaTip: StateFlow<ProductUi?>
+    val tier: StateFlow<Tier>
+    val ownedBasePlanIds: StateFlow<Map<String, String>>
+    val thanks: StateFlow<PaywallThanks?>
 
-    fun purchaseSubscription(productId: String, offerToken: String)
+    fun purchaseSubscription(productId: String, offerToken: String, basePlanId: String?)
     fun purchaseTip(productId: String)
     fun restorePurchases()
     fun dismiss()
@@ -47,6 +59,11 @@ interface PaywallComponent {
         override val proProduct = billing.productDetails(SkuIds.Music.PRO)
         override val coffeeTip = billing.productDetails(SkuIds.Music.TIP_COFFEE)
         override val pizzaTip = billing.productDetails(SkuIds.Music.TIP_PIZZA)
+        override val tier = entitlements.tier
+        override val ownedBasePlanIds = entitlements.ownedBasePlanIds
+
+        private val thanksState = MutableStateFlow<PaywallThanks?>(null)
+        override val thanks: StateFlow<PaywallThanks?> = thanksState.asStateFlow()
 
         init {
             check(app == AppSku.Music)
@@ -59,14 +76,17 @@ interface PaywallComponent {
             }
         }
 
-        override fun purchaseSubscription(productId: String, offerToken: String) {
+        override fun purchaseSubscription(productId: String, offerToken: String, basePlanId: String?) {
             launch {
                 eventAnalytics.trackEvent(MusicEvents.Action.PurchaseStarted(productId))
                 when (billing.purchaseSubscription(BillingPurchaseHost.from(activity), productId, offerToken)) {
                     PurchaseResult.Success -> {
+                        if (!basePlanId.isNullOrBlank()) {
+                            entitlements.rememberSubscriptionBasePlan(productId, basePlanId)
+                        }
                         entitlements.refresh()
                         eventAnalytics.trackEvent(MusicEvents.Action.PurchaseCompleted(productId))
-                        onDismiss()
+                        thanksState.value = PaywallThanks.Subscription
                     }
                     PurchaseResult.Cancelled -> Unit
                     is PurchaseResult.Error -> onMessage(R.string.billing_purchase_failed)
@@ -81,7 +101,11 @@ interface PaywallComponent {
                     PurchaseResult.Success -> {
                         onTipCompleted()
                         eventAnalytics.trackEvent(MusicEvents.Action.TipCompleted(productId))
-                        onMessage(R.string.billing_tip_thanks)
+                        thanksState.value = when (productId) {
+                            SkuIds.Music.TIP_COFFEE -> PaywallThanks.Coffee
+                            SkuIds.Music.TIP_PIZZA -> PaywallThanks.Pizza
+                            else -> PaywallThanks.Coffee
+                        }
                     }
                     PurchaseResult.Cancelled -> Unit
                     is PurchaseResult.Error -> onMessage(R.string.billing_purchase_failed)

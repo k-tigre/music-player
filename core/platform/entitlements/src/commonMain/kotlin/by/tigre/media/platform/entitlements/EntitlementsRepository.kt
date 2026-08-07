@@ -5,11 +5,16 @@ import kotlinx.coroutines.flow.StateFlow
 interface EntitlementsRepository {
     val tier: StateFlow<Tier>
 
+    /** productId → basePlanId for active subscriptions (empty if unknown / free). */
+    val ownedBasePlanIds: StateFlow<Map<String, String>>
+
     fun has(feature: Feature): Boolean
 
     fun playlistLimit(): Int
 
     fun continueListeningLimit(): Int
+
+    fun rememberSubscriptionBasePlan(productId: String, basePlanId: String)
 
     suspend fun refresh()
 

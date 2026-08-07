@@ -12,7 +12,11 @@
     <string name="paywall_pro">Pro</string>
     <string name="paywall_pro_benefits">Всё из Plus и виджет на главном экране.</string>
     <string name="paywall_best_value">Выгоднее всего</string>
+    <string name="paywall_period_monthly">Ежемесячно</string>
+    <string name="paywall_period_yearly">Ежегодно</string>
+    <string name="paywall_tier_period">%1$s · %2$s</string>
     <string name="paywall_choose_plan">Выбрать · %1$s</string>
+    <string name="paywall_choose_plan_period">Выбрать · %1$s / %2$s</string>
     <string name="paywall_price_loading">Загружаем цену %1$s…</string>
     <string name="paywall_tips_heading">Поддержать приложение</string>
     <string name="paywall_tips_description">Разовая поддержка помогает развивать Audiobook Player.</string>
@@ -20,6 +24,13 @@
     <string name="paywall_tip_pizza">Угостить пиццей · %1$s</string>
     <string name="paywall_restore">Восстановить</string>
     <string name="paywall_maybe_later">Позже</string>
+    <string name="paywall_thanks_title_coffee">Спасибо за кофе!</string>
+    <string name="paywall_thanks_message_coffee">Твоя поддержка помогает развивать Audiobook Player. Очень приятно.</string>
+    <string name="paywall_thanks_title_pizza">Спасибо за пиццу!</string>
+    <string name="paywall_thanks_message_pizza">Это было вкусно. Чаевые помогают делать плеер лучше.</string>
+    <string name="paywall_thanks_title_subscription">Готово!</string>
+    <string name="paywall_thanks_message_subscription">Спасибо за подписку. Дополнительные возможности уже открыты.</string>
+    <string name="paywall_thanks_done">Продолжить</string>
     <string name="billing_restore_complete">Покупки восстановлены</string>
     <string name="billing_restore_failed">Не удалось восстановить покупки</string>
     <string name="billing_purchase_failed">Не удалось завершить покупку</string>

@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 class FreeEntitlementsRepository : EntitlementsRepository {
     override val tier: StateFlow<Tier> = MutableStateFlow(Tier.Free)
+    override val ownedBasePlanIds: StateFlow<Map<String, String>> = MutableStateFlow(emptyMap())
 
     override fun has(feature: Feature): Boolean = tier.value.includes(feature.minTier())
 
@@ -12,6 +13,8 @@ class FreeEntitlementsRepository : EntitlementsRepository {
 
     override fun continueListeningLimit(): Int =
         EntitlementLimits.defaultContinueListeningLimit(tier.value)
+
+    override fun rememberSubscriptionBasePlan(productId: String, basePlanId: String) = Unit
 
     override suspend fun refresh() = Unit
 

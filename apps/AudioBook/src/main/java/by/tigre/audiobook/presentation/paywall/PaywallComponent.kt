@@ -11,11 +11,20 @@ import by.tigre.media.platform.billing.PurchaseResult
 import by.tigre.media.platform.entitlements.AppSku
 import by.tigre.media.platform.entitlements.EntitlementsRepository
 import by.tigre.media.platform.entitlements.SkuIds
+import by.tigre.media.platform.entitlements.Tier
 import by.tigre.media.platform.presentation.BaseComponentContext
 import by.tigre.media.platform.tools.analytics.book.AudiobookEvents
 import by.tigre.media.platform.tools.analytics.book.BookEventAnalytics
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+
+enum class PaywallThanks {
+    Coffee,
+    Pizza,
+    Subscription,
+}
 
 interface PaywallComponent {
     val initialSection: PaywallSection
@@ -23,8 +32,11 @@ interface PaywallComponent {
     val proProduct: StateFlow<ProductUi?>
     val coffeeTip: StateFlow<ProductUi?>
     val pizzaTip: StateFlow<ProductUi?>
+    val tier: StateFlow<Tier>
+    val ownedBasePlanIds: StateFlow<Map<String, String>>
+    val thanks: StateFlow<PaywallThanks?>
 
-    fun purchaseSubscription(productId: String, offerToken: String)
+    fun purchaseSubscription(productId: String, offerToken: String, basePlanId: String?)
     fun purchaseTip(productId: String)
     fun restorePurchases()
     fun dismiss()
@@ -47,6 +59,11 @@ interface PaywallComponent {
         override val proProduct: StateFlow<ProductUi?> = billing.productDetails(SkuIds.AudioBook.PRO)
         override val coffeeTip: StateFlow<ProductUi?> = billing.productDetails(SkuIds.AudioBook.TIP_COFFEE)
         override val pizzaTip: StateFlow<ProductUi?> = billing.productDetails(SkuIds.AudioBook.TIP_PIZZA)
+        override val tier = entitlements.tier
+        override val ownedBasePlanIds = entitlements.ownedBasePlanIds
+
+        private val thanksState = MutableStateFlow<PaywallThanks?>(null)
+        override val thanks: StateFlow<PaywallThanks?> = thanksState.asStateFlow()
 
         init {
             check(app == AppSku.AudioBook)
@@ -59,7 +76,7 @@ interface PaywallComponent {
             }
         }
 
-        override fun purchaseSubscription(productId: String, offerToken: String) {
+        override fun purchaseSubscription(productId: String, offerToken: String, basePlanId: String?) {
             launch {
                 eventAnalytics.trackEvent(AudiobookEvents.Action.PurchaseStarted(productId))
                 when (
@@ -70,9 +87,12 @@ interface PaywallComponent {
                     )
                 ) {
                     PurchaseResult.Success -> {
+                        if (!basePlanId.isNullOrBlank()) {
+                            entitlements.rememberSubscriptionBasePlan(productId, basePlanId)
+                        }
                         entitlements.refresh()
                         eventAnalytics.trackEvent(AudiobookEvents.Action.PurchaseCompleted(productId))
-                        onDismiss()
+                        thanksState.value = PaywallThanks.Subscription
                     }
 
                     PurchaseResult.Cancelled -> Unit
@@ -93,7 +113,11 @@ interface PaywallComponent {
                     PurchaseResult.Success -> {
                         onTipCompleted()
                         eventAnalytics.trackEvent(AudiobookEvents.Action.TipCompleted(productId))
-                        onMessage(R.string.billing_tip_thanks)
+                        thanksState.value = when (productId) {
+                            SkuIds.AudioBook.TIP_COFFEE -> PaywallThanks.Coffee
+                            SkuIds.AudioBook.TIP_PIZZA -> PaywallThanks.Pizza
+                            else -> PaywallThanks.Coffee
+                        }
                     }
 
                     PurchaseResult.Cancelled -> Unit

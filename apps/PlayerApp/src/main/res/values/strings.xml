@@ -50,7 +50,11 @@
     <string name="paywall_pro">Pro</string>
     <string name="paywall_pro_benefits">Everything in Plus, unlimited playlists, and the home-screen widget.</string>
     <string name="paywall_best_value">Best value</string>
+    <string name="paywall_period_monthly">Monthly</string>
+    <string name="paywall_period_yearly">Yearly</string>
+    <string name="paywall_tier_period">%1$s · %2$s</string>
     <string name="paywall_choose_plan">Choose · %1$s</string>
+    <string name="paywall_choose_plan_period">Choose · %1$s / %2$s</string>
     <string name="paywall_price_loading">%1$s price is loading…</string>
     <string name="paywall_tips_heading">Support the app</string>
     <string name="paywall_tips_description">A one-time tip helps keep Music Player improving.</string>
@@ -58,6 +62,13 @@
     <string name="paywall_tip_pizza">Buy a pizza · %1$s</string>
     <string name="paywall_restore">Restore</string>
     <string name="paywall_maybe_later">Maybe later</string>
+    <string name="paywall_thanks_title_coffee">Thanks for the coffee!</string>
+    <string name="paywall_thanks_message_coffee">Your support keeps Music Player brewing. Really appreciate it.</string>
+    <string name="paywall_thanks_title_pizza">Thanks for the pizza!</string>
+    <string name="paywall_thanks_message_pizza">That hit the spot. Your tip helps ship better listening.</string>
+    <string name="paywall_thanks_title_subscription">You\'re in!</string>
+    <string name="paywall_thanks_message_subscription">Thanks for subscribing. Enjoy the extras — they\'re unlocked now.</string>
+    <string name="paywall_thanks_done">Continue</string>
     <string name="billing_restore_complete">Purchases restored</string>
     <string name="billing_restore_failed">Could not restore purchases</string>
     <string name="billing_purchase_failed">Purchase could not be completed</string>

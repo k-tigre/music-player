@@ -68,12 +68,16 @@ class AndroidBillingService(
         host: BillingPurchaseHost,
         productId: String,
         offerToken: String,
-    ): PurchaseResult = launchPurchase(
-        host = host,
-        product = cachedProducts[productId],
-        offerToken = offerToken,
-        expectedType = BillingClient.ProductType.SUBS,
-    )
+    ): PurchaseResult {
+        val existingSubscription = findExistingSubscriptionForUpdate(productId)
+        return launchPurchase(
+            host = host,
+            product = cachedProducts[productId],
+            offerToken = offerToken,
+            expectedType = BillingClient.ProductType.SUBS,
+            subscriptionUpdate = existingSubscription,
+        )
+    }
 
     override suspend fun purchaseConsumable(
         host: BillingPurchaseHost,
@@ -87,6 +91,7 @@ class AndroidBillingService(
                 ?.firstOrNull()
                 ?.offerToken,
             expectedType = BillingClient.ProductType.INAPP,
+            subscriptionUpdate = null,
         )
         if (result is PurchaseResult.Success) {
             val purchase = completedPurchase
@@ -143,6 +148,7 @@ class AndroidBillingService(
         product: CachedProduct?,
         offerToken: String?,
         expectedType: String,
+        subscriptionUpdate: SubscriptionUpdateTarget?,
     ): PurchaseResult = purchaseMutex.withLock {
         val connectionResult = ensureStarted()
         if (connectionResult.responseCode != BillingClient.BillingResponseCode.OK) {
@@ -155,13 +161,31 @@ class AndroidBillingService(
             )
         }
 
-        val productParams = BillingFlowParams.ProductDetailsParams.newBuilder()
+        val productParamsBuilder = BillingFlowParams.ProductDetailsParams.newBuilder()
             .setProductDetails(product.details)
             .apply { offerToken?.let(::setOfferToken) }
-            .build()
-        val params = BillingFlowParams.newBuilder()
-            .setProductDetailsParamsList(listOf(productParams))
-            .build()
+        if (subscriptionUpdate != null) {
+            productParamsBuilder.setSubscriptionProductReplacementParams(
+                BillingFlowParams.ProductDetailsParams.SubscriptionProductReplacementParams
+                    .newBuilder()
+                    .setOldProductId(subscriptionUpdate.oldProductId)
+                    .setReplacementMode(
+                        BillingFlowParams.ProductDetailsParams.SubscriptionProductReplacementParams
+                            .ReplacementMode.CHARGE_FULL_PRICE,
+                    )
+                    .build(),
+            )
+        }
+        val paramsBuilder = BillingFlowParams.newBuilder()
+            .setProductDetailsParamsList(listOf(productParamsBuilder.build()))
+        if (subscriptionUpdate != null) {
+            paramsBuilder.setSubscriptionUpdateParams(
+                BillingFlowParams.SubscriptionUpdateParams.newBuilder()
+                    .setOldPurchaseToken(subscriptionUpdate.oldPurchaseToken)
+                    .build(),
+            )
+        }
+        val params = paramsBuilder.build()
         val deferred = CompletableDeferred<PurchaseResult>()
         completedPurchase = null
         pendingPurchase = deferred
@@ -174,6 +198,30 @@ class AndroidBillingService(
         } finally {
             pendingPurchase = null
         }
+    }
+
+    /**
+     * Base-plan change (monthly→yearly) and Plus→Pro both need the old purchase token.
+     * Prefer a purchase that already contains [newProductId]; otherwise any active subscription.
+     */
+    private suspend fun findExistingSubscriptionForUpdate(
+        newProductId: String,
+    ): SubscriptionUpdateTarget? {
+        if (ensureStarted().responseCode != BillingClient.BillingResponseCode.OK) return null
+        val purchases = queryPurchases(BillingClient.ProductType.SUBS)
+        val sameProduct = purchases.firstOrNull { newProductId in it.products }
+        if (sameProduct != null) {
+            return SubscriptionUpdateTarget(
+                oldPurchaseToken = sameProduct.purchaseToken,
+                oldProductId = newProductId,
+            )
+        }
+        val other = purchases.firstOrNull() ?: return null
+        val oldProductId = other.products.firstOrNull() ?: return null
+        return SubscriptionUpdateTarget(
+            oldPurchaseToken = other.purchaseToken,
+            oldProductId = oldProductId,
+        )
     }
 
     private suspend fun ensureStarted(): BillingResult {
@@ -324,6 +372,11 @@ class AndroidBillingService(
     private data class CachedProduct(
         val details: ProductDetails,
         val type: String,
+    )
+
+    private data class SubscriptionUpdateTarget(
+        val oldPurchaseToken: String,
+        val oldProductId: String,
     )
 
     private companion object {
