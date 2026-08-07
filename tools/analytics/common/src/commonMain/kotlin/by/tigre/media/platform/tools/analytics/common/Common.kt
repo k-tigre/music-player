@@ -134,6 +134,42 @@ object CommonEvents {
             }
         }
 
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("EQ device/content profile saved")
+        data class EqProfileSaved(
+            private val target: String,
+            private val route: String,
+        ) : Action("common_eq_profile_saved"), WithPayload {
+            override val payload: Map<String, String> = mapOf(
+                "target" to target,
+                "route" to route,
+            )
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("EQ profile save failed (limit or missing content)")
+        data class EqProfileSaveFailed(
+            private val reason: String,
+            private val target: String,
+        ) : Action("common_eq_profile_save_failed"), WithPayload {
+            override val payload: Map<String, String> = mapOf(
+                "reason" to reason,
+                "target" to target,
+            )
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("EQ profile deleted")
+        data object EqProfileDeleted : Action("common_eq_profile_deleted")
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("User dismissed EQ setup prompt")
+        data class EqProfilePromptDismissed(
+            private val route: String,
+        ) : Action("common_eq_profile_prompt_dismissed"), WithPayload {
+            override val payload: Map<String, String> = mapOf("route" to route)
+        }
+
         @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK)
         @AnalyticsDoc("Subscription tier changed")
         data class SubscriptionTierChanged(

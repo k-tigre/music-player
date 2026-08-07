@@ -108,6 +108,13 @@ class ApplicationGraph(
     override val eqProfileController = playbackModule.eqProfileController
     override val eqProfileRepository = playbackModule.eqProfileRepository
 
+    override fun hasEqDeviceProfilesAccess(): Boolean =
+        entitlementsRepository.has(Feature.EqDeviceProfiles)
+
+    override fun requestEqDeviceProfilesPaywall() {
+        requestPaywall(Feature.EqDeviceProfiles, source = "equalizer_save")
+    }
+
     override fun requestPaywall(
         feature: Feature,
         source: String,

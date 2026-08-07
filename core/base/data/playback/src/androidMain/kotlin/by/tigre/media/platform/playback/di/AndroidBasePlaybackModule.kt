@@ -115,7 +115,8 @@ class AndroidBasePlaybackModule(
             routeMonitor = audioRouteMonitor,
             contentKeyProvider = eqContentKeyProvider,
             playbackEqualizer = equalizer,
-            suggestEnabled = { equalizerPreferences.loadSuggestSetup(true) },
+            loadSuggestEnabled = { equalizerPreferences.loadSuggestSetup(true) },
+            saveSuggestEnabled = { equalizerPreferences.saveSuggestSetup(it) },
         )
     }
 

@@ -165,6 +165,14 @@ class ApplicationGraph(
     override val eqProfileController get() = basePlaybackModule.eqProfileController
     override val eqProfileRepository get() = basePlaybackModule.eqProfileRepository
     override val eqProfileMaxCount: Int get() = 16
+    override val eqSupportsContentProfiles: Boolean get() = true
+
+    override fun hasEqDeviceProfilesAccess(): Boolean =
+        entitlementsRepository.has(Feature.EqDeviceProfiles)
+
+    override fun requestEqDeviceProfilesPaywall() {
+        requestPaywall(Feature.EqDeviceProfiles, source = "equalizer_save")
+    }
 
     override val appPlaybackVolume = basePlaybackModule.appPlaybackVolume
 

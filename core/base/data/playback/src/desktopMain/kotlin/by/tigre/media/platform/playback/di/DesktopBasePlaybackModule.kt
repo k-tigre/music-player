@@ -99,7 +99,8 @@ class DesktopBasePlaybackModule(
             routeMonitor = audioRouteMonitor,
             contentKeyProvider = eqContentKeyProvider,
             playbackEqualizer = playbackEqualizer,
-            suggestEnabled = { equalizerPreferences.loadSuggestSetup(true) },
+            loadSuggestEnabled = { equalizerPreferences.loadSuggestSetup(true) },
+            saveSuggestEnabled = { equalizerPreferences.saveSuggestSetup(it) },
         )
     }
 }

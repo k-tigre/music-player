@@ -9,9 +9,15 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
+enum class EqSaveTarget {
+    Device,
+    Book,
+    Folder,
+}
+
 /**
  * Applies the best matching EQ profile when route or content changes.
- * Writes to DB only via [saveCurrent] / repository delete — never on slider moves.
+ * Writes to DB only via [saveAs] / repository delete — never on slider moves.
  */
 class EqProfileController(
     private val scope: CoroutineScope,
@@ -19,12 +25,19 @@ class EqProfileController(
     private val routeMonitor: AudioRouteMonitor,
     private val contentKeyProvider: EqContentKeyProvider,
     private val playbackEqualizer: PlaybackEqualizer,
-    private val suggestEnabled: () -> Boolean = { true },
+    private val loadSuggestEnabled: () -> Boolean = { true },
+    private val saveSuggestEnabled: (Boolean) -> Unit = {},
 ) {
     private val _lastResolve = MutableStateFlow(EqResolveResult(null, EqMatchLevel.None))
     val lastResolve: StateFlow<EqResolveResult> = _lastResolve.asStateFlow()
 
     val currentRoute: StateFlow<AudioRouteId> = routeMonitor.currentRoute
+    val profiles: StateFlow<List<EqProfile>> = repository.profiles
+    val bookId: StateFlow<Long?> = contentKeyProvider.bookId
+    val folderKey: StateFlow<EqContentKey.Folder?> = contentKeyProvider.folderKey
+
+    private val _suggestEnabled = MutableStateFlow(loadSuggestEnabled())
+    val suggestEnabled: StateFlow<Boolean> = _suggestEnabled.asStateFlow()
 
     private val _needsSetupPrompt = MutableStateFlow(false)
     val needsSetupPrompt: StateFlow<Boolean> = _needsSetupPrompt.asStateFlow()
@@ -50,16 +63,48 @@ class EqProfileController(
         }
     }
 
+    fun setSuggestEnabled(enabled: Boolean) {
+        saveSuggestEnabled(enabled)
+        _suggestEnabled.value = enabled
+        if (!enabled) {
+            _needsSetupPrompt.value = false
+        }
+    }
+
     fun dismissSetupPrompt() {
         val route = routeMonitor.currentRoute.value
         dismissedPair = promptKey(route, contentKeyProvider.contentKey.value)
         _needsSetupPrompt.value = false
     }
 
+    fun availableSaveTargets(includeContent: Boolean): List<EqSaveTarget> = buildList {
+        add(EqSaveTarget.Device)
+        if (includeContent) {
+            if (contentKeyProvider.bookId.value != null) add(EqSaveTarget.Book)
+            if (contentKeyProvider.folderKey.value != null) add(EqSaveTarget.Folder)
+        }
+    }
+
     /**
-     * Persist current EQ bands for [content] on the active route.
+     * Persist current EQ bands for [target] on the active route.
      * @return false if profile limit reached for a new key
      */
+    suspend fun saveAs(
+        target: EqSaveTarget,
+        maxProfiles: Int,
+        title: String? = null,
+    ): Boolean {
+        val content = when (target) {
+            EqSaveTarget.Device -> EqContentKey.None
+            EqSaveTarget.Book -> {
+                val id = contentKeyProvider.bookId.value ?: return false
+                EqContentKey.Book(id)
+            }
+            EqSaveTarget.Folder -> contentKeyProvider.folderKey.value ?: return false
+        }
+        return saveCurrent(content, maxProfiles, title)
+    }
+
     suspend fun saveCurrent(
         content: EqContentKey,
         maxProfiles: Int,
@@ -85,10 +130,14 @@ class EqProfileController(
         return ok
     }
 
-    /** Default save target: existing match content, else device-only. */
+    /** Default: update active match, else device profile. */
     suspend fun saveForActiveMatch(maxProfiles: Int): Boolean {
         val content = _lastResolve.value.profile?.content ?: EqContentKey.None
         return saveCurrent(content, maxProfiles)
+    }
+
+    suspend fun deleteProfile(id: Long) {
+        repository.delete(id)
     }
 
     private fun applyResolve(input: ResolveInput) {
@@ -116,7 +165,7 @@ class EqProfileController(
             applyProfile(profile)
         } else {
             val key = promptKey(input.route, input.content)
-            _needsSetupPrompt.value = suggestEnabled() && dismissedPair != key
+            _needsSetupPrompt.value = _suggestEnabled.value && dismissedPair != key
         }
     }
 

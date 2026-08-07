@@ -20,4 +20,12 @@ interface PlayerDependency : CommonAnalyticsDependency {
     /** Max profiles for current app; Music default 8, Book 16. */
     val eqProfileMaxCount: Int
         get() = 8
+
+    /** Book app: allow Save as book/folder. Music: device only. */
+    val eqSupportsContentProfiles: Boolean
+        get() = false
+
+    fun hasEqDeviceProfilesAccess(): Boolean = true
+
+    fun requestEqDeviceProfilesPaywall() {}
 }

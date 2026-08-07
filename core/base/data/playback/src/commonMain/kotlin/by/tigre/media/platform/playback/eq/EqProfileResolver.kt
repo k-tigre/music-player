@@ -14,30 +14,20 @@ object EqProfileResolver {
         val routeKey = route.storageKey()
         val forRoute = profiles.filter { it.route.storageKey() == routeKey }
 
-        when (content) {
-            is EqContentKey.Book -> {
-                forRoute.firstOrNull {
-                    it.content is EqContentKey.Book &&
-                        (it.content as EqContentKey.Book).bookId == content.bookId
-                }?.let { return EqResolveResult(it, EqMatchLevel.Book) }
-            }
-            is EqContentKey.Folder -> {
-                // book branch not applicable
-            }
-            EqContentKey.None -> Unit
+        if (content is EqContentKey.Book) {
+            forRoute.firstOrNull { profile ->
+                val key = profile.content
+                key is EqContentKey.Book && key.bookId == content.bookId
+            }?.let { return EqResolveResult(it, EqMatchLevel.Book) }
         }
 
-        val folderKey: EqContentKey.Folder? = when (content) {
-            is EqContentKey.Book -> null // caller may also pass folder via dual resolve
-            is EqContentKey.Folder -> content
-            EqContentKey.None -> null
-        }
-
+        val folderKey = content as? EqContentKey.Folder
         if (folderKey != null) {
-            forRoute.firstOrNull {
-                it.content is EqContentKey.Folder &&
-                    (it.content as EqContentKey.Folder).folderUri == folderKey.folderUri &&
-                    (it.content as EqContentKey.Folder).subPath == folderKey.subPath
+            forRoute.firstOrNull { profile ->
+                val key = profile.content
+                key is EqContentKey.Folder &&
+                    key.folderUri == folderKey.folderUri &&
+                    key.subPath == folderKey.subPath
             }?.let { return EqResolveResult(it, EqMatchLevel.Folder) }
         }
 
