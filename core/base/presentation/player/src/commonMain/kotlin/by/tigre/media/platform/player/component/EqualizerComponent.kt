@@ -3,9 +3,7 @@ package by.tigre.media.platform.player.component
 import by.tigre.media.platform.playback.AppPlaybackVolume
 import by.tigre.media.platform.playback.PlaybackEqualizer
 import by.tigre.media.platform.playback.eq.AudioRouteId
-import by.tigre.media.platform.playback.eq.EqContentKey
 import by.tigre.media.platform.playback.eq.EqMatchLevel
-import by.tigre.media.platform.playback.eq.EqProfile
 import by.tigre.media.platform.playback.eq.EqProfileController
 import by.tigre.media.platform.playback.eq.EqSaveTarget
 import by.tigre.media.platform.player.di.PlayerDependency
@@ -24,26 +22,18 @@ interface EqualizerComponent {
     val appPlaybackVolume: AppPlaybackVolume?
     val profileStatus: StateFlow<ProfileStatus>
     val needsSetupPrompt: StateFlow<Boolean>
-    val suggestEnabled: StateFlow<Boolean>
-    val savedProfiles: StateFlow<List<SavedProfileRow>>
-    val saveTargets: StateFlow<List<EqSaveTarget>>
+    val preferredSaveTarget: StateFlow<EqSaveTarget>
 
     fun dismissSetupPrompt()
-    fun setSuggestEnabled(enabled: Boolean)
-    fun saveAs(target: EqSaveTarget)
-    fun deleteProfile(id: Long)
+    fun savePreferred()
     fun close()
 
     data class ProfileStatus(
         val route: AudioRouteId,
         val matchLevel: EqMatchLevel,
         val hasProfile: Boolean,
-    )
-
-    data class SavedProfileRow(
-        val id: Long,
-        val routeLabel: String,
-        val contentLabel: String,
+        /** Last folder path segment when match is folder / for copy. */
+        val folderName: String?,
     )
 
     class Impl(
@@ -56,13 +46,20 @@ interface EqualizerComponent {
         private val controller: EqProfileController = dependency.eqProfileController
         private val maxProfiles = dependency.eqProfileMaxCount
         private val analytics = dependency.eventAnalytics
+        private val includeContent = dependency.eqSupportsContentProfiles
 
         override val profileStatus: StateFlow<ProfileStatus> =
-            combine(controller.lastResolve, controller.currentRoute) { resolve, route ->
+            combine(
+                controller.lastResolve,
+                controller.currentRoute,
+                controller.folderKey,
+            ) { resolve, route, folder ->
                 ProfileStatus(
                     route = route,
                     matchLevel = resolve.matchLevel,
                     hasProfile = resolve.profile != null,
+                    folderName = folder?.subPath?.substringAfterLast('/')?.takeIf { it.isNotBlank() }
+                        ?: folder?.subPath?.takeIf { it.isNotBlank() },
                 )
             }.stateIn(
                 scope,
@@ -71,24 +68,19 @@ interface EqualizerComponent {
                     route = controller.currentRoute.value,
                     matchLevel = controller.lastResolve.value.matchLevel,
                     hasProfile = controller.lastResolve.value.profile != null,
+                    folderName = null,
                 ),
             )
 
         override val needsSetupPrompt: StateFlow<Boolean> = controller.needsSetupPrompt
-        override val suggestEnabled: StateFlow<Boolean> = controller.suggestEnabled
 
-        override val savedProfiles: StateFlow<List<SavedProfileRow>> =
-            combine(controller.profiles, controller.currentRoute) { profiles, _ ->
-                profiles.map { it.toRow() }
-            }.stateIn(scope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-        override val saveTargets: StateFlow<List<EqSaveTarget>> =
+        override val preferredSaveTarget: StateFlow<EqSaveTarget> =
             combine(controller.bookId, controller.folderKey) { _, _ ->
-                controller.availableSaveTargets(dependency.eqSupportsContentProfiles)
+                controller.preferredSaveTarget(includeContent)
             }.stateIn(
                 scope,
                 SharingStarted.WhileSubscribed(5_000),
-                controller.availableSaveTargets(dependency.eqSupportsContentProfiles),
+                controller.preferredSaveTarget(includeContent),
             )
 
         override fun dismissSetupPrompt() {
@@ -100,11 +92,8 @@ interface EqualizerComponent {
             controller.dismissSetupPrompt()
         }
 
-        override fun setSuggestEnabled(enabled: Boolean) {
-            controller.setSuggestEnabled(enabled)
-        }
-
-        override fun saveAs(target: EqSaveTarget) {
+        override fun savePreferred() {
+            val target = preferredSaveTarget.value
             if (!dependency.hasEqDeviceProfilesAccess()) {
                 analytics.trackEvent(
                     CommonEvents.Action.FeatureGateBlocked(
@@ -136,29 +125,6 @@ interface EqualizerComponent {
             }
         }
 
-        override fun deleteProfile(id: Long) {
-            scope.launch {
-                controller.deleteProfile(id)
-                analytics.trackEvent(CommonEvents.Action.EqProfileDeleted)
-            }
-        }
-
         override fun close() = onClose()
-
-        private fun EqProfile.toRow(): SavedProfileRow {
-            val contentLabel = when (val c = content) {
-                EqContentKey.None -> "device"
-                is EqContentKey.Book -> "book:${c.bookId}"
-                is EqContentKey.Folder -> {
-                    val path = c.subPath.ifBlank { "/" }
-                    "folder:$path"
-                }
-            }
-            return SavedProfileRow(
-                id = id,
-                routeLabel = route.storageKey(),
-                contentLabel = contentLabel,
-            )
-        }
     }
 }

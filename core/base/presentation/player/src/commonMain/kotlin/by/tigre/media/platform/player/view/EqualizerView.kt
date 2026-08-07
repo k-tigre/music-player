@@ -26,14 +26,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -54,6 +53,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
+import by.tigre.media.platform.playback.eq.AudioRouteId
 import by.tigre.media.platform.playback.eq.EqMatchLevel
 import by.tigre.media.platform.playback.eq.EqSaveTarget
 import by.tigre.media.platform.player.component.EqualizerComponent
@@ -62,19 +62,24 @@ import by.tigre.media.platform.tools.platform.compose.resources.Res
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_app_volume
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_app_volume_cd
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_custom
-import by.tigre.media.platform.tools.platform.compose.resources.equalizer_delete_profile_cd
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_preset_picker
-import by.tigre.media.platform.tools.platform.compose.resources.equalizer_profile_match_book
-import by.tigre.media.platform.tools.platform.compose.resources.equalizer_profile_match_device
-import by.tigre.media.platform.tools.platform.compose.resources.equalizer_profile_match_folder
-import by.tigre.media.platform.tools.platform.compose.resources.equalizer_profile_match_none
-import by.tigre.media.platform.tools.platform.compose.resources.equalizer_save_for_book
-import by.tigre.media.platform.tools.platform.compose.resources.equalizer_save_for_device
-import by.tigre.media.platform.tools.platform.compose.resources.equalizer_save_for_folder
-import by.tigre.media.platform.tools.platform.compose.resources.equalizer_saved_profiles
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_route_bluetooth
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_route_desktop
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_route_other
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_route_speaker
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_route_wired
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_save
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_save_for_headphones
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_save_for_speaker
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_save_for_this_book
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_save_for_this_folder
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_save_for_wired
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_setup_later
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_setup_prompt
-import by.tigre.media.platform.tools.platform.compose.resources.equalizer_suggest_setup
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_status_not_saved
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_status_saved_book
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_status_saved_device
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_status_saved_folder
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_title
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_unavailable
 import org.jetbrains.compose.resources.stringResource
@@ -166,13 +171,31 @@ class EqualizerView(
         val gainRange by component.playbackEqualizer.bandGainRangeDb.collectAsState()
         val profileStatus by component.profileStatus.collectAsState()
         val needsSetup by component.needsSetupPrompt.collectAsState()
-        val suggestEnabled by component.suggestEnabled.collectAsState()
-        val saveTargets by component.saveTargets.collectAsState()
-        val savedProfiles by component.savedProfiles.collectAsState()
+        val preferredTarget by component.preferredSaveTarget.collectAsState()
 
         val bodyScroll = rememberScrollState()
         val presetScrollState = rememberScrollState()
         val bandsScrollState = rememberScrollState()
+
+        val routeLabel = routeLabel(profileStatus.route.kind)
+        val statusText = when {
+            !profileStatus.hasProfile -> stringResource(Res.string.equalizer_status_not_saved)
+            profileStatus.matchLevel == EqMatchLevel.Book ->
+                stringResource(Res.string.equalizer_status_saved_book)
+            profileStatus.matchLevel == EqMatchLevel.Folder ->
+                stringResource(Res.string.equalizer_status_saved_folder)
+            else -> stringResource(Res.string.equalizer_status_saved_device)
+        }
+        val saveLabel = when (preferredTarget) {
+            EqSaveTarget.Book -> stringResource(Res.string.equalizer_save_for_this_book)
+            EqSaveTarget.Folder -> stringResource(Res.string.equalizer_save_for_this_folder)
+            EqSaveTarget.Device -> when (profileStatus.route.kind) {
+                AudioRouteId.Kind.Bluetooth -> stringResource(Res.string.equalizer_save_for_headphones)
+                AudioRouteId.Kind.Speaker -> stringResource(Res.string.equalizer_save_for_speaker)
+                AudioRouteId.Kind.Wired -> stringResource(Res.string.equalizer_save_for_wired)
+                else -> stringResource(Res.string.equalizer_save)
+            }
+        }
 
         Column(
             modifier = modifier
@@ -182,53 +205,21 @@ class EqualizerView(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            val matchLabel = when (profileStatus.matchLevel) {
-                EqMatchLevel.Book -> stringResource(Res.string.equalizer_profile_match_book)
-                EqMatchLevel.Folder -> stringResource(Res.string.equalizer_profile_match_folder)
-                EqMatchLevel.Device -> stringResource(Res.string.equalizer_profile_match_device)
-                EqMatchLevel.None -> stringResource(Res.string.equalizer_profile_match_none)
-            }
             Text(
-                text = "${profileStatus.route.kind.name}: ${profileStatus.route.stableKey} · $matchLabel",
-                style = MaterialTheme.typography.bodySmall,
+                text = routeLabel,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                text = statusText,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
             )
 
-            Row(
+            Button(
+                onClick = component::savePreferred,
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
             ) {
-                saveTargets.forEach { target ->
-                    val label = when (target) {
-                        EqSaveTarget.Device -> stringResource(Res.string.equalizer_save_for_device)
-                        EqSaveTarget.Book -> stringResource(Res.string.equalizer_save_for_book)
-                        EqSaveTarget.Folder -> stringResource(Res.string.equalizer_save_for_folder)
-                    }
-                    FilterChip(
-                        selected = false,
-                        onClick = { component.saveAs(target) },
-                        label = { Text(label) },
-                    )
-                }
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = stringResource(Res.string.equalizer_suggest_setup),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.weight(1f),
-                )
-                Switch(
-                    checked = suggestEnabled,
-                    onCheckedChange = component::setSuggestEnabled,
-                )
+                Text(saveLabel)
             }
 
             if (needsSetup) {
@@ -322,36 +313,16 @@ class EqualizerView(
                     )
                 }
             }
-
-            if (savedProfiles.isNotEmpty()) {
-                Text(
-                    text = stringResource(Res.string.equalizer_saved_profiles),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                val deleteCd = stringResource(Res.string.equalizer_delete_profile_cd)
-                savedProfiles.forEach { row ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Text(
-                            text = "${row.routeLabel} · ${row.contentLabel}",
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.weight(1f),
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        IconButton(onClick = { component.deleteProfile(row.id) }) {
-                            Icon(
-                                imageVector = Icons.Filled.Delete,
-                                contentDescription = deleteCd,
-                            )
-                        }
-                    }
-                }
-            }
         }
+    }
+
+    @Composable
+    private fun routeLabel(kind: AudioRouteId.Kind): String = when (kind) {
+        AudioRouteId.Kind.Bluetooth -> stringResource(Res.string.equalizer_route_bluetooth)
+        AudioRouteId.Kind.Speaker -> stringResource(Res.string.equalizer_route_speaker)
+        AudioRouteId.Kind.Wired -> stringResource(Res.string.equalizer_route_wired)
+        AudioRouteId.Kind.Desktop -> stringResource(Res.string.equalizer_route_desktop)
+        AudioRouteId.Kind.Other -> stringResource(Res.string.equalizer_route_other)
     }
 
     @Composable

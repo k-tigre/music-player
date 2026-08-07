@@ -2,12 +2,14 @@ package by.tigre.media.platform.playback.eq
 
 import by.tigre.media.platform.playback.PlaybackEqualizer
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 enum class EqSaveTarget {
     Device,
@@ -18,6 +20,7 @@ enum class EqSaveTarget {
 /**
  * Applies the best matching EQ profile when route or content changes.
  * Writes to DB only via [saveAs] / repository delete — never on slider moves.
+ * Hardware EQ is always touched on Main (ExoPlayer / Android Equalizer requirement).
  */
 class EqProfileController(
     private val scope: CoroutineScope,
@@ -58,7 +61,9 @@ class EqProfileController(
             }
                 .distinctUntilChanged()
                 .collect { input ->
-                    applyResolve(input)
+                    withContext(Dispatchers.Main.immediate) {
+                        applyResolve(input)
+                    }
                 }
         }
     }
@@ -82,6 +87,16 @@ class EqProfileController(
         if (includeContent) {
             if (contentKeyProvider.bookId.value != null) add(EqSaveTarget.Book)
             if (contentKeyProvider.folderKey.value != null) add(EqSaveTarget.Folder)
+        }
+    }
+
+    /** One-tap save: book → folder → device (most specific available). */
+    fun preferredSaveTarget(includeContent: Boolean): EqSaveTarget {
+        val targets = availableSaveTargets(includeContent)
+        return when {
+            EqSaveTarget.Book in targets -> EqSaveTarget.Book
+            EqSaveTarget.Folder in targets -> EqSaveTarget.Folder
+            else -> EqSaveTarget.Device
         }
     }
 
@@ -126,6 +141,17 @@ class EqProfileController(
         if (ok) {
             dismissedPair = null
             _needsSetupPrompt.value = false
+            withContext(Dispatchers.Main.immediate) {
+                applyResolve(
+                    ResolveInput(
+                        profiles = repository.profiles.value,
+                        route = routeMonitor.currentRoute.value,
+                        content = contentKeyProvider.contentKey.value,
+                        folder = contentKeyProvider.folderKey.value,
+                        bookId = contentKeyProvider.bookId.value,
+                    ),
+                )
+            }
         }
         return ok
     }
