@@ -1,17 +1,20 @@
 package by.tigre.media.platform.playback.impl
 
 import android.media.audiofx.Equalizer
+import android.os.Looper
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import by.tigre.logger.Log
 import by.tigre.media.platform.playback.AndroidPlaybackPlayer
 import by.tigre.media.platform.playback.PlaybackEqualizer
 import by.tigre.media.platform.playback.prefs.EqualizerPreferences
 import by.tigre.media.platform.playback.prefs.alignGainsToBandCount
-import by.tigre.logger.Log
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.runBlocking
 import kotlin.math.ln
 
 internal class AndroidPlaybackEqualizer(
@@ -68,10 +71,18 @@ internal class AndroidPlaybackEqualizer(
     }
 
     init {
-        exoPlayer.addListener(listener)
-        val sid = exoPlayer.audioSessionId
-        if (sid != C.AUDIO_SESSION_ID_UNSET) {
-            attachForSession(sid)
+        // ExoPlayer session APIs require the application thread; construction may happen off-main.
+        fun attachToPlayer() {
+            exoPlayer.addListener(listener)
+            val sid = exoPlayer.audioSessionId
+            if (sid != C.AUDIO_SESSION_ID_UNSET) {
+                attachForSession(sid)
+            }
+        }
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            attachToPlayer()
+        } else {
+            runBlocking(Dispatchers.Main) { attachToPlayer() }
         }
     }
 

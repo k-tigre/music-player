@@ -8,44 +8,43 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.media3.common.MediaMetadata
 import by.tigre.audiobook.BuildConfig
-import by.tigre.audiobook.R as AppR
+import by.tigre.audiobook.car.AudiobookCarMediaLibrary
 import by.tigre.audiobook.core.data.audiobook.di.AndroidAudiobookCatalogModule
 import by.tigre.audiobook.core.data.audiobook.di.AudiobookCatalogModule
 import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
 import by.tigre.audiobook.core.data.audiobook_playback.di.AudiobookPlaybackModule
 import by.tigre.audiobook.core.data.storage.audiobook_catalog.di.AndroidAudiobookCatalogStorageModule
-import by.tigre.audiobook.car.AudiobookCarMediaLibrary
 import by.tigre.audiobook.core.entity.catalog.Book
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogDependency
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.CatalogThemeSettings
 import by.tigre.audiobook.core.presentation.audiobook_catalog.scan.CatalogScanCoordinator
-import by.tigre.audiobook.scan.CatalogScanCoordinatorImpl
-import by.tigre.media.platform.background.R
-import by.tigre.media.platform.background.car.CarMediaLibrary
 import by.tigre.audiobook.nighttimer.NightTimerController
 import by.tigre.audiobook.nighttimer.createNightTimerController
 import by.tigre.audiobook.platform.AudiobookGuideSettings
 import by.tigre.audiobook.platform.AudiobookGuideSettingsImpl
 import by.tigre.audiobook.platform.ThemeSettingsStore
+import by.tigre.audiobook.scan.CatalogScanCoordinatorImpl
 import by.tigre.audiobook.settings.RateAppConfigRepository
 import by.tigre.logger.Log
+import by.tigre.media.platform.background.R
+import by.tigre.media.platform.background.car.CarMediaLibrary
+import by.tigre.media.platform.background.di.PlayerBackgroundDependency
+import by.tigre.media.platform.background.widget.WidgetArtworkCache
 import by.tigre.media.platform.billing.AndroidBillingService
 import by.tigre.media.platform.entitlements.AppSku
 import by.tigre.media.platform.entitlements.EntitlementsRepository
 import by.tigre.media.platform.entitlements.Feature
 import by.tigre.media.platform.entitlements.PlayEntitlementsRepository
-import by.tigre.media.platform.preferences.Preferences
 import by.tigre.media.platform.playback.di.AndroidBasePlaybackModule
 import by.tigre.media.platform.playback.di.BasePlaybackModule
-import by.tigre.media.platform.preferences.ThemePreferencesStorage
-import by.tigre.media.platform.preferences.di.AndroidPreferencesModule
-import by.tigre.media.platform.background.di.PlayerBackgroundDependency
-import by.tigre.media.platform.background.widget.WidgetArtworkCache
 import by.tigre.media.platform.player.component.BasePlaybackController
 import by.tigre.media.platform.player.component.PlaybackSpeedSource
 import by.tigre.media.platform.player.component.PlayerItem
 import by.tigre.media.platform.player.component.RepeatMode
 import by.tigre.media.platform.player.di.PlayerDependency
+import by.tigre.media.platform.preferences.Preferences
+import by.tigre.media.platform.preferences.ThemePreferencesStorage
+import by.tigre.media.platform.preferences.di.AndroidPreferencesModule
 import by.tigre.media.platform.tools.analytics.book.BookAnalyticsModule
 import by.tigre.media.platform.tools.analytics.common.CommonEvents
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
@@ -54,12 +53,12 @@ import by.tigre.media.platform.tools.platform.compose.ThemeMode
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.installations.FirebaseInstallations
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flowOf
@@ -70,6 +69,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.concurrent.TimeUnit
+import by.tigre.audiobook.R as AppR
+
 class ApplicationGraph(
     private val appContext: Context,
     private val coroutineScope: kotlinx.coroutines.CoroutineScope,
@@ -377,8 +378,10 @@ class ApplicationGraph(
                 coroutineModule = coroutineModule
             )
             coroutineModule.scope.launch {
-                // Touch controller so route/content EQ apply starts, and bind book keys.
-                basePlaybackModule.eqProfileController
+                // Warm EQ on Main — constructing Equalizer touches ExoPlayer (main-thread only).
+                withContext(Dispatchers.Main) {
+                    basePlaybackModule.eqProfileController
+                }
                 audiobookPlaybackModule.audiobookPlaybackController.currentBook.collect { book ->
                     if (book == null) {
                         eqContentKeys.clear()
