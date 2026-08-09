@@ -2,8 +2,22 @@ package by.tigre.media.platform.billing
 
 import kotlinx.coroutines.flow.StateFlow
 
+enum class BillingStoreAvailability {
+    /** Setup not finished yet (or never attempted). */
+    Unknown,
+
+    /** Play Billing connected and ready for queries / purchases. */
+    Available,
+
+    /** No Play Store / blocked / disconnected after retries — purchases must not be offered as loading. */
+    Unavailable,
+}
+
 interface BillingService {
     suspend fun start()
+
+    /** Reflects last successful/failed connection to Play Billing (not product catalog). */
+    val storeAvailability: StateFlow<BillingStoreAvailability>
 
     fun productDetails(productId: String): StateFlow<ProductUi?>
 

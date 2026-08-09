@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import by.tigre.media.platform.billing.BillingStoreAvailability
 import by.tigre.media.platform.billing.OfferUi
 import by.tigre.media.platform.billing.ProductUi
 import by.tigre.media.platform.entitlements.SkuIds
@@ -50,6 +51,7 @@ class PaywallView(
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Draw(modifier: Modifier) {
+        val storeAvailability by component.storeAvailability.collectAsState()
         val plusProduct by component.plusProduct.collectAsState()
         val proProduct by component.proProduct.collectAsState()
         val coffeeTip by component.coffeeTip.collectAsState()
@@ -90,6 +92,7 @@ class PaywallView(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     PlansContent(
+                        storeAvailability = storeAvailability,
                         plusProduct = plusProduct,
                         proProduct = proProduct,
                         coffeeTip = coffeeTip,
@@ -122,6 +125,7 @@ class PaywallView(
 
     @Composable
     private fun PlansContent(
+        storeAvailability: BillingStoreAvailability,
         plusProduct: ProductUi?,
         proProduct: ProductUi?,
         coffeeTip: ProductUi?,
@@ -135,22 +139,32 @@ class PaywallView(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        if (initialSection == PaywallSection.Tips) {
-            TipsSection(coffeeTip, pizzaTip)
-            HorizontalDivider()
-        }
-        Text(stringResource(R.string.paywall_plans_heading), style = MaterialTheme.typography.titleMedium)
-        SubscriptionPlans(plusProduct, proProduct, tier, ownedBasePlanIds)
-        if (initialSection != PaywallSection.Tips) {
-            HorizontalDivider()
-            TipsSection(coffeeTip, pizzaTip)
+        if (storeAvailability == BillingStoreAvailability.Unavailable) {
+            Text(
+                stringResource(R.string.billing_store_unavailable),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+            )
+        } else {
+            if (initialSection == PaywallSection.Tips) {
+                TipsSection(coffeeTip, pizzaTip)
+                HorizontalDivider()
+            }
+            Text(stringResource(R.string.paywall_plans_heading), style = MaterialTheme.typography.titleMedium)
+            SubscriptionPlans(plusProduct, proProduct, tier, ownedBasePlanIds)
+            if (initialSection != PaywallSection.Tips) {
+                HorizontalDivider()
+                TipsSection(coffeeTip, pizzaTip)
+            }
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            OutlinedButton(onClick = component::restorePurchases, modifier = Modifier.weight(1f)) {
-                Text(stringResource(R.string.paywall_restore))
+            if (storeAvailability != BillingStoreAvailability.Unavailable) {
+                OutlinedButton(onClick = component::restorePurchases, modifier = Modifier.weight(1f)) {
+                    Text(stringResource(R.string.paywall_restore))
+                }
             }
             OutlinedButton(onClick = component::dismiss, modifier = Modifier.weight(1f)) {
                 Text(stringResource(R.string.paywall_maybe_later))

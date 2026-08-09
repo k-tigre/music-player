@@ -75,5 +75,6 @@
     <string name="billing_restore_complete">Purchases restored</string>
     <string name="billing_restore_failed">Could not restore purchases</string>
     <string name="billing_purchase_failed">Purchase could not be completed</string>
+    <string name="billing_store_unavailable">Purchases are unavailable. Check that Google Play is installed and up to date.</string>
     <string name="billing_tip_thanks">Thank you for your support!</string>
 </resources>

@@ -5,8 +5,11 @@ import kotlinx.coroutines.flow.StateFlow
 
 object NoOpBillingService : BillingService {
     private val emptyProduct = MutableStateFlow<ProductUi?>(null)
+    private val availability = MutableStateFlow(BillingStoreAvailability.Unavailable)
 
     override suspend fun start() = Unit
+
+    override val storeAvailability: StateFlow<BillingStoreAvailability> = availability
 
     override fun productDetails(productId: String): StateFlow<ProductUi?> = emptyProduct
 

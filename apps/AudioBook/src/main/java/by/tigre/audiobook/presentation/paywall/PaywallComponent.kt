@@ -6,6 +6,7 @@ import by.tigre.audiobook.core.di.PaywallRequest
 import by.tigre.audiobook.core.di.PaywallSection
 import by.tigre.media.platform.billing.BillingPurchaseHost
 import by.tigre.media.platform.billing.BillingService
+import by.tigre.media.platform.billing.BillingStoreAvailability
 import by.tigre.media.platform.billing.ProductUi
 import by.tigre.media.platform.billing.PurchaseResult
 import by.tigre.media.platform.entitlements.AppSku
@@ -28,6 +29,7 @@ enum class PaywallThanks {
 
 interface PaywallComponent {
     val initialSection: PaywallSection
+    val storeAvailability: StateFlow<BillingStoreAvailability>
     val plusProduct: StateFlow<ProductUi?>
     val proProduct: StateFlow<ProductUi?>
     val coffeeTip: StateFlow<ProductUi?>
@@ -55,6 +57,7 @@ interface PaywallComponent {
     ) : PaywallComponent, BaseComponentContext by context {
 
         override val initialSection: PaywallSection = request.initialSection
+        override val storeAvailability = billing.storeAvailability
         override val plusProduct: StateFlow<ProductUi?> = billing.productDetails(SkuIds.AudioBook.PLUS)
         override val proProduct: StateFlow<ProductUi?> = billing.productDetails(SkuIds.AudioBook.PRO)
         override val coffeeTip: StateFlow<ProductUi?> = billing.productDetails(SkuIds.AudioBook.TIP_COFFEE)

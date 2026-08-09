@@ -36,6 +36,7 @@
     <string name="installation_id_copied">ID устройства скопирован</string>
     <string name="installation_id_copy_failed">Не удалось скопировать ID устройства</string>
     <string name="billing_purchase_failed">Не удалось завершить покупку</string>
+    <string name="billing_store_unavailable">Покупки недоступны. Проверьте, что Google Play установлен и обновлён.</string>
     <string name="billing_tip_thanks">Спасибо за поддержку!</string>
 
     <string name="player_equalizer_menu">Эквалайзер</string>

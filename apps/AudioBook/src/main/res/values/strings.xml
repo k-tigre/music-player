@@ -36,6 +36,7 @@
     <string name="installation_id_copied">Device ID copied</string>
     <string name="installation_id_copy_failed">Could not copy device ID</string>
     <string name="billing_purchase_failed">Purchase could not be completed</string>
+    <string name="billing_store_unavailable">Purchases are unavailable. Check that Google Play is installed and up to date.</string>
     <string name="billing_tip_thanks">Thank you for your support!</string>
 
     <string name="player_equalizer_menu">Equalizer</string>

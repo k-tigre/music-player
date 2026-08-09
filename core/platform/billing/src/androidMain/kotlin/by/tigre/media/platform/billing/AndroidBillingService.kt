@@ -30,6 +30,7 @@ class AndroidBillingService(
     private val cachedProducts = ConcurrentHashMap<String, CachedProduct>()
     private val connectionMutex = Mutex()
     private val purchaseMutex = Mutex()
+    private val _storeAvailability = MutableStateFlow(BillingStoreAvailability.Unknown)
 
     @Volatile
     private var connection: CompletableDeferred<BillingResult>? = null
@@ -49,6 +50,8 @@ class AndroidBillingService(
         )
         .enableAutoServiceReconnection()
         .build()
+
+    override val storeAvailability: StateFlow<BillingStoreAvailability> = _storeAvailability
 
     override suspend fun start() {
         ensureStarted()
@@ -151,8 +154,15 @@ class AndroidBillingService(
         subscriptionUpdate: SubscriptionUpdateTarget?,
     ): PurchaseResult = purchaseMutex.withLock {
         val connectionResult = ensureStarted()
-        if (connectionResult.responseCode != BillingClient.BillingResponseCode.OK) {
+        if (connectionResult.responseCode != BillingClient.BillingResponseCode.OK || !client.isReady) {
             return@withLock connectionResult.toPurchaseError()
+        }
+        val activity = host.activity
+        if (activity.isFinishing || activity.isDestroyed) {
+            return@withLock PurchaseResult.Error(
+                code = BillingClient.BillingResponseCode.ERROR,
+                message = "Host activity is not available for billing flow.",
+            )
         }
         if (product == null || product.type != expectedType) {
             return@withLock PurchaseResult.Error(
@@ -190,7 +200,14 @@ class AndroidBillingService(
         completedPurchase = null
         pendingPurchase = deferred
         try {
-            val launchResult = client.launchBillingFlow(host.activity, params)
+            val launchResult = runCatching {
+                client.launchBillingFlow(activity, params)
+            }.getOrElse { error ->
+                return@withLock PurchaseResult.Error(
+                    code = BillingClient.BillingResponseCode.ERROR,
+                    message = error.message ?: "launchBillingFlow failed",
+                )
+            }
             if (launchResult.responseCode != BillingClient.BillingResponseCode.OK) {
                 deferred.complete(launchResult.toPurchaseResult())
             }
@@ -225,12 +242,18 @@ class AndroidBillingService(
     }
 
     private suspend fun ensureStarted(): BillingResult {
-        if (client.isReady) return readyResult
+        if (client.isReady) {
+            markAvailability(available = true)
+            return readyResult
+        }
 
         var lastResult = disconnectedResult
         repeat(MAX_CONNECTION_ATTEMPTS) {
             val deferred = connectionMutex.withLock {
-                if (client.isReady) return readyResult
+                if (client.isReady) {
+                    markAvailability(available = true)
+                    return readyResult
+                }
                 connection ?: CompletableDeferred<BillingResult>().also { created ->
                     connection = created
                     client.startConnection(
@@ -244,6 +267,7 @@ class AndroidBillingService(
 
                             override fun onBillingServiceDisconnected() {
                                 connection = null
+                                markAvailability(available = false)
                             }
                         },
                     )
@@ -255,6 +279,7 @@ class AndroidBillingService(
                 result.responseCode == BillingClient.BillingResponseCode.OK &&
                 client.isReady
             ) {
+                markAvailability(available = true)
                 return result
             }
             connectionMutex.withLock {
@@ -263,7 +288,16 @@ class AndroidBillingService(
                 }
             }
         }
+        markAvailability(available = false)
         return lastResult
+    }
+
+    private fun markAvailability(available: Boolean) {
+        _storeAvailability.value = if (available) {
+            BillingStoreAvailability.Available
+        } else {
+            BillingStoreAvailability.Unavailable
+        }
     }
 
     private suspend fun queryProductType(

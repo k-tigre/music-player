@@ -15,6 +15,7 @@ class NoOpBillingServiceTest {
         service.queryProducts(listOf("tip"))
 
         assertNull(service.productDetails("tip").value)
+        assertEquals(BillingStoreAvailability.Unavailable, service.storeAvailability.value)
         assertEquals(
             PurchaseResult.Cancelled,
             service.purchaseConsumable(BillingPurchaseHost(), "tip"),

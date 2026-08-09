@@ -75,5 +75,6 @@
     <string name="billing_restore_complete">Покупки восстановлены</string>
     <string name="billing_restore_failed">Не удалось восстановить покупки</string>
     <string name="billing_purchase_failed">Не удалось завершить покупку</string>
+    <string name="billing_store_unavailable">Покупки недоступны. Проверьте, что Google Play установлен и обновлён.</string>
     <string name="billing_tip_thanks">Спасибо за поддержку!</string>
 </resources>

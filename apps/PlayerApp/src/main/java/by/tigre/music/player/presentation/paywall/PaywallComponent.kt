@@ -3,6 +3,7 @@ package by.tigre.music.player.presentation.paywall
 import android.app.Activity
 import by.tigre.media.platform.billing.BillingPurchaseHost
 import by.tigre.media.platform.billing.BillingService
+import by.tigre.media.platform.billing.BillingStoreAvailability
 import by.tigre.media.platform.billing.ProductUi
 import by.tigre.media.platform.billing.PurchaseResult
 import by.tigre.media.platform.entitlements.AppSku
@@ -28,6 +29,7 @@ enum class PaywallThanks {
 
 interface PaywallComponent {
     val initialSection: PaywallSection
+    val storeAvailability: StateFlow<BillingStoreAvailability>
     val plusProduct: StateFlow<ProductUi?>
     val proProduct: StateFlow<ProductUi?>
     val coffeeTip: StateFlow<ProductUi?>
@@ -55,6 +57,7 @@ interface PaywallComponent {
     ) : PaywallComponent, BaseComponentContext by context {
 
         override val initialSection = request.initialSection
+        override val storeAvailability = billing.storeAvailability
         override val plusProduct = billing.productDetails(SkuIds.Music.PLUS)
         override val proProduct = billing.productDetails(SkuIds.Music.PRO)
         override val coffeeTip = billing.productDetails(SkuIds.Music.TIP_COFFEE)
