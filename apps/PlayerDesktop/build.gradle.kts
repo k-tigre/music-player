@@ -60,13 +60,17 @@ compose {
     }
 }
 
+// Reuse Android MusicPlayer version; BUILD += minute-of-week for MSI reinstalls.
+// See process/kmp/desktop-windows-shortcuts.md
+val desktopPackageVersion = Application.MusicPlayer.version.desktopPackageVersion()
+
 compose.desktop {
     application {
         mainClass = "by.tigre.music.player.desktop.MainKt"
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "MusicPlayer"
-            packageVersion = "1.0.5"
+            packageVersion = desktopPackageVersion
             modules("java.sql")
             appResourcesRootDir.set(project.layout.projectDirectory.dir("packaging"))
 
