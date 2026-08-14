@@ -1,0 +1,343 @@
+# TigreMedia / music-player QA impact matrix (medium depth).
+# Schema: process/qa-impact (knowledge). Agent runs suggest.py — do not invent lists.
+# Apps: PlayerApp (MediaStore), AudioBook (SAF), PlayerDesktop (folder scan).
+version: 1
+checks:
+  # --- Playback (shared base + controllers) ---
+  PB-PLAY-CTRL:
+    title: Play / pause / next / prev
+    steps: |
+      Запустить трек/книгу: play/pause; next/prev (Music — skip item; AudioBook — seek ±60s на remote/Car).
+      Mini и full player отражают одно состояние; после kill+reopen фон/сессия не крашатся.
+    must_if:
+      - paths: ["**/BasePlayerComponent*", "**/PlayerComponent*", "**/SmallPlayerComponent*"]
+      - paths: ["**/PlaybackController*", "**/AudiobookPlaybackController*"]
+      - paths: ["**/base/data/playback/**/PlaybackPlayer*"]
+    should_if:
+      - paths: ["**/PlayerView*", "**/SmallPlayerView*"]
+
+  PB-SEEK:
+    title: Seek / progress
+    steps: |
+      Сдвинуть прогресс на full player; для AudioBook — кнопки ±15s / ±60s.
+      Позиция сохраняется/отображается корректно после паузы.
+    must_if:
+      - paths: ["**/PlayerProgressSlider*"]
+      - paths: ["**/BasePlayerComponent*", "**/PlayerView*"]
+        diff_any: ["seek", "Seek", "progress", "±15", "15Seconds", "1Minute"]
+      - paths: ["**/AudiobookPlaybackController*"]
+        diff_any: ["seek", "position", "chapter"]
+    should_if:
+      - paths: ["**/core/book/data/playback/**"]
+
+  PB-MINI:
+    title: Mini player → full
+    steps: |
+      Mini player виден из shell; tap открывает full Player; back возвращает без потери playback.
+    must_if:
+      - paths: ["**/SmallPlayerView*", "**/SmallPlayerComponent*"]
+    should_if:
+      - paths: ["**/apps/*/presentation/root/**", "**/PlayerDesktop/**/Root*"]
+
+  PB-BG-SESSION:
+    title: Background / MediaSession
+    steps: |
+      Android: свернуть app — playback продолжается; notification/MediaSession controls работают.
+      Не проверять Desktop (нет background_player).
+    must_if:
+      - paths: ["**/background_player/**", "**/PlaybackService*"]
+    should_if:
+      - paths: ["**/base/data/playback/src/androidMain/**"]
+
+  PB-EQ:
+    title: Equalizer
+    steps: |
+      Открыть EQ из player; сменить bands/профиль; звук меняется.
+      Android Free: RequiresPurchase → soft paywall; Desktop — без paywall.
+    must_if:
+      - paths: ["**/EqualizerComponent*", "**/EqualizerView*"]
+      - paths: ["**/base/data/playback/**/eq/**"]
+      - paths: ["**/EqualizerPreferences*"]
+    should_if:
+      - paths: ["**/AndroidPlaybackEqualizer*", "**/DesktopBasePlaybackModule*"]
+
+  # --- Queue / playlists / favorites (Music + Desktop) ---
+  Q-LIST:
+    title: Очередь (Queue tab)
+    steps: |
+      PlayerApp/Desktop: открыть Queue; play item; reorder/remove если доступно; текущий трек подсвечен.
+    must_if:
+      - paths: ["**/CurrentQueue*", "**/presentation/playlist/queue/**"]
+    should_if:
+      - paths: ["**/PlaybackQueueStorage*", "**/music/data/playback/**"]
+
+  Q-PERSIST:
+    title: Persist очереди
+    steps: |
+      Добавить items в очередь → kill app → reopen: очередь на месте; стартовый таб Queue если items есть (Music).
+    must_if:
+      - paths: ["**/PlaybackQueueStorage*", "**/Queue.sq", "**/music/data/storage/database/**"]
+        diff_any: ["queue", "Queue", "playbackOrder", "sortOrder"]
+    should_if:
+      - paths: ["**/CurrentQueue*", "**/PlaybackController*"]
+
+  PL-CRUD:
+    title: Playlists CRUD
+    steps: |
+      Создать плейлист, добавить треки, открыть detail, play, rename/delete.
+      Лимит Free/Plus: сверх лимита → paywall до диалога создания.
+    must_if:
+      - paths: ["**/PlaylistsList*", "**/PlaylistDetail*", "**/RootPlaylists*", "**/AddToPlaylist*"]
+      - paths: ["**/music/data/playlist/**"]
+    should_if:
+      - paths: ["**/music/presentation/playlist/library/**"]
+
+  PL-LIMIT:
+    title: UnlimitedPlaylists gate
+    steps: |
+      Free: создать сверх лимита (RC/код) → soft paywall Feature.UnlimitedPlaylists; Pro — без лимита.
+    must_if:
+      - paths: ["**/PlaylistsList*", "**/RootPlaylists*"]
+        diff_any: ["UnlimitedPlaylists", "paywall", "limit", "playlistLimit"]
+      - paths: ["**/entitlements/**"]
+        diff_any: ["UnlimitedPlaylists", "playlist"]
+    should_if:
+      - paths: ["**/apps/PlayerApp/**/paywall/**"]
+
+  FAV:
+    title: Favorites
+    steps: |
+      Добавить/убрать favorite трек/альбом/артист; вкладка Favorites обновляется; play из favorites ок.
+    must_if:
+      - paths: ["**/Favorites*", "**/music/presentation/favorites/**"]
+      - paths: ["**/music/data/favorites/**"]
+    should_if:
+      - paths: ["**/MusicPlayerFavoriteTopBar*"]
+
+  # --- Library: MediaStore / SAF / Desktop folders ---
+  LIB-MUSIC-CATALOG:
+    title: Music catalog (MediaStore)
+    steps: |
+      PlayerApp: Catalog Artists → Albums → Songs; play song; back stack корректен.
+    must_if:
+      - paths: ["**/music/presentation/catalog/**", "**/RootCatalog*", "**/ArtistList*", "**/AlbumList*", "**/SongsList*"]
+    should_if:
+      - paths: ["**/music/data/catalog/**"]
+
+  LIB-MUSIC-SOURCE:
+    title: MediaStore data / permission
+    steps: |
+      Android Music: permission на медиа; каталог заполняется; revoke/deny не крашит app.
+    must_if:
+      - paths: ["**/music/data/catalog/src/androidMain/**"]
+      - paths: ["**/platform/permission/**"]
+        diff_any: ["media", "READ_", "permission", "MediaStore"]
+    should_if:
+      - paths: ["**/apps/PlayerApp/**"]
+        diff_any: ["permission", "MediaStore", "READ_"]
+
+  LIB-BOOK-SAF:
+    title: AudioBook SAF folders
+    steps: |
+      Добавить SAF-папку; книги/главы появляются; cover heuristics ок; Getting started → add folder.
+    must_if:
+      - paths: ["**/FolderSelection*", "**/RootAudiobookCatalog*", "**/BookList*"]
+      - paths: ["**/book/data/catalog/**"]
+    should_if:
+      - paths: ["**/AudiobookGuideSettings*", "**/apps/AudioBook/**"]
+        diff_any: ["folder", "SAF", "guide", "Getting"]
+
+  LIB-BOOK-SCAN:
+    title: Book scan / lost SAF access
+    steps: |
+      Rescan папки; lost permission не должен sync-ить пустой listing как удаление всех книг.
+      Banner/progress scan отрабатывает без краша.
+    must_if:
+      - paths: ["**/AudiobookCatalogSource*", "**/CatalogScan*", "**/FolderSourceAccess*"]
+      - paths: ["**/AudiobookCatalogStorage*"]
+        diff_any: ["syncBooks", "rescan", "listing-failed", "lost", "0 books"]
+    should_if:
+      - paths: ["**/apps/AudioBook/**/scan/**"]
+
+  LIB-BOOK-CONTINUE:
+    title: Continue Listening
+    steps: |
+      Прослушать главу; в списке Continue Listening видна книга; resume с позиции.
+      Сверх лимита Free/Plus → paywall ContinueListeningExpanded.
+    must_if:
+      - paths: ["**/BookList*"]
+        diff_any: ["Continue", "continue", "ContinueListening"]
+      - paths: ["**/entitlements/**"]
+        diff_any: ["ContinueListening"]
+      - paths: ["**/AudiobookPlaybackStorage*", "**/AudiobookPlaybackController*"]
+        diff_any: ["progress", "position", "chapter"]
+    should_if:
+      - paths: ["**/book/presentation/catalog/**"]
+
+  LIB-DESK-FOLDER:
+    title: Desktop folder library
+    steps: |
+      PlayerDesktop: добавить папку с музыкой; library заполняется; play из library; данные под ~/.music-player.
+    must_if:
+      - paths: ["**/PlayerDesktop/**/LibraryWindow*", "**/music/data/catalog/src/desktopMain/**"]
+    should_if:
+      - paths: ["**/PlayerDesktop/**/Root*", "**/PlayerDesktop/**/ApplicationGraph*"]
+
+  # --- Settings / theme ---
+  SET-HUB:
+    title: Settings hub
+    steps: |
+      Music: Settings overlay — theme / about / upgrade; back закрывает.
+      AudioBook: SettingsHub из catalog; Theme / folders / about.
+    must_if:
+      - paths: ["**/apps/PlayerApp/**/settings/**", "**/SettingsComponent*", "**/SettingsView*"]
+      - paths: ["**/SettingsHub*", "**/book/**/ThemeSettings*"]
+    should_if:
+      - paths: ["**/PlayerSettings*", "**/ThemeSettingsStore*"]
+
+  SET-THEME:
+    title: Theme / dynamic color
+    steps: |
+      Сменить theme mode / dynamic color / contrast: UI обновляется без краша (оба Android apps).
+    must_if:
+      - paths: ["**/ThemeSettingsContent*", "**/ThemeSettings*"]
+      - paths: ["**/SettingsView*", "**/ThemeSettingsView*"]
+        diff_any: ["theme", "Theme", "dynamicColor", "contrast"]
+    should_if:
+      - paths: ["**/apps/*/platform/ThemeSettingsStore*"]
+
+  # --- Billing / paywall / entitlements (Android; Desktop NoOp) ---
+  BILL-PAYWALL:
+    title: Soft paywall sheet
+    steps: |
+      Gate action (EQ / playlist limit / widget / night advanced / continue): sheet Plans; Tips видны; dismiss не ломает ядро playback.
+      Music и AudioBook — свои SKU.
+    must_if:
+      - paths: ["**/apps/*/presentation/paywall/**", "**/PaywallComponent*", "**/PaywallView*"]
+      - paths: ["**/PaywallRequest*", "**/PaywallIntents*"]
+    should_if:
+      - paths: ["**/apps/*/presentation/root/**"]
+        diff_any: ["paywall", "Paywall", "requestPaywall"]
+
+  BILL-CORE:
+    title: Billing / entitlements resolve
+    steps: |
+      После покупки/restore tier обновляется без рестарта; Feature Allowed/RequiresPurchase/Unavailable по RC modes.
+      Desktop: NoOp billing + FreeEntitlements — фичи открыты.
+    must_if:
+      - paths: ["**/platform/billing/**", "**/platform/entitlements/**"]
+      - paths: ["**/AndroidBillingService*", "**/PlayEntitlementsRepository*", "**/FeatureModes*"]
+    should_if:
+      - paths: ["**/NoOpBilling*", "**/FreeEntitlementsRepository*"]
+
+  BILL-RESTORE:
+    title: Restore purchases
+    steps: |
+      Paywall → Restore: purchases подтягиваются; UI tier обновляется; ошибка сети не крашит.
+    must_if:
+      - paths: ["**/Paywall*"]
+        diff_any: ["restore", "Restore", "queryPurchases"]
+      - paths: ["**/AndroidBillingService*", "**/PlayEntitlementsRepository*"]
+        diff_any: ["restore", "queryPurchases", "refresh"]
+    should_if:
+      - paths: ["**/platform/billing/**"]
+
+  # --- AudioBook-only overlays ---
+  BOOK-NIGHT:
+    title: Night / sleep timer
+    steps: |
+      Включить night timer; fade/stop срабатывает; extend shake/flip если доступно.
+      Advanced options → Plus paywall (SleepTimerAdvanced).
+    must_if:
+      - paths: ["**/NightTimer*", "**/apps/AudioBook/**/nighttimer/**"]
+    should_if:
+      - paths: ["**/entitlements/**"]
+        diff_any: ["SleepTimer", "sleep_timer"]
+
+  BOOK-SPEED:
+    title: Playback speed
+    steps: |
+      AudioBook: открыть speed overlay; сменить скорость; playback отражает rate; закрытие сохраняет выбор.
+    must_if:
+      - paths: ["**/PlaybackSpeedSettings*", "**/apps/AudioBook/**/playback/**"]
+        diff_any: ["speed", "Speed", "playbackRate", "rate"]
+    should_if:
+      - paths: ["**/AudiobookPlaybackController*"]
+        diff_any: ["speed", "rate"]
+
+  # --- Android extras ---
+  AND-WIDGET:
+    title: Home playback widget
+    steps: |
+      Виджет play/pause/skip; без Pro tap → app + paywall HomeWidget; с Pro — controls ок.
+    must_if:
+      - paths: ["**/MusicPlaybackWidget*", "**/AudiobookPlaybackWidget*", "**/widget/**"]
+      - paths: ["**/playback_widget_info.xml"]
+    should_if:
+      - paths: ["**/entitlements/**"]
+        diff_any: ["HomeWidget", "home_widget"]
+
+  AND-CAR:
+    title: Android Auto / Car
+    steps: |
+      Car library browse/play (Music catalog или audiobook chapters); prev/next по правилам app.
+    must_if:
+      - paths: ["**/MusicCarMediaLibrary*", "**/AudiobookCarMediaLibrary*", "**/apps/*/car/**"]
+    should_if:
+      - paths: ["**/background_player/**"]
+
+  AND-OPEN-URI:
+    title: Open audio from other apps
+    steps: |
+      PlayerApp: открыть audio URI из Downloads/messenger — playback стартует / очередь обновляется.
+    must_if:
+      - paths: ["**/apps/PlayerApp/**/MainActivity*"]
+        diff_any: ["ACTION_VIEW", "intent", "uri", "Uri", "open"]
+      - paths: ["**/apps/PlayerApp/**"]
+        diff_any: ["external", "ACTION_VIEW", "content://"]
+    should_if:
+      - paths: ["**/PlaybackController*"]
+
+  # --- Desktop ---
+  DESK-WINDOWS:
+    title: Desktop multi-window
+    steps: |
+      Library / Player / EQ окна открываются и закрываются; playback общий; без Firebase/paywall.
+    must_if:
+      - paths: ["**/PlayerDesktop/**/LibraryWindow*", "**/PlayerDesktop/**/PlayerWindow*", "**/PlayerDesktop/**/EqualizerWindow*"]
+      - paths: ["**/PlayerDesktop/**/presentation/root/**"]
+    should_if:
+      - paths: ["**/PlayerDesktop/**/ApplicationGraph*"]
+
+  DESK-MEDIA-KEYS:
+    title: Desktop media keys / OS integration
+    steps: |
+      Media keys / SMTC (Win) / MPRIS / Now Playing: play/pause/next без краша.
+    must_if:
+      - paths: ["**/DesktopMediaKeys*", "**/WindowsSmtc*", "**/LinuxMpris*", "**/MacOsNowPlaying*", "**/DesktopNotification*"]
+    should_if:
+      - paths: ["**/PlayerDesktop/**"]
+        diff_any: ["media", "SMTC", "MPRIS", "NowPlaying"]
+
+  # --- Shell / root navigation ---
+  SH-MUSIC-TABS:
+    title: Music tabs Queue/Playlists/Favorites/Catalog
+    steps: |
+      Переключение 4 табов; overlays Player/EQ/Settings поверх Main; стартовый таб по правилам queue.
+    must_if:
+      - paths: ["**/apps/PlayerApp/**/presentation/root/**"]
+        diff_any: ["tab", "Tab", "Queue", "Catalog", "page", "Main"]
+      - paths: ["**/apps/PlayerApp/**/RootView*", "**/apps/PlayerApp/**/component/Root*"]
+    should_if:
+      - paths: ["**/apps/PlayerApp/**/ApplicationGraph*"]
+
+  SH-BOOK-ROOT:
+    title: AudioBook root (start on Player)
+    steps: |
+      Старт на full Player; catalog/settings/night/speed overlays открываются и закрываются back'ом.
+    must_if:
+      - paths: ["**/apps/AudioBook/**/presentation/root/**"]
+      - paths: ["**/apps/AudioBook/**/component/Root*"]
+        diff_any: ["Player", "initialStack", "Catalog", "Night", "Speed"]
+    should_if:
+      - paths: ["**/apps/AudioBook/**/ApplicationGraph*"]
