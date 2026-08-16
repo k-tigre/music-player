@@ -1,4 +1,4 @@
-PRAGMA foreign_keys=OFF;
+PRAGMA foreign_keys=0;
 
 CREATE TABLE LibrarySpace(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -97,4 +97,4 @@ FROM Book;
 DROP TABLE Book;
 ALTER TABLE Book_new RENAME TO Book;
 
-PRAGMA foreign_keys=ON;
+PRAGMA foreign_keys=1;
