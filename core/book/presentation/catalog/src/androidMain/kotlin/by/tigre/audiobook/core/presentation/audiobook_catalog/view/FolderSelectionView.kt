@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -60,6 +61,7 @@ import by.tigre.media.platform.tools.platform.compose.view.bottomBarListContentP
 import by.tigre.media.platform.tools.platform.compose.view.centeredScreenContentBottomPadding
 import `by`.tigre.audiobook.core.presentation.catalog.resources.Res
 import `by`.tigre.audiobook.core.presentation.catalog.resources.cd_add_folder
+import `by`.tigre.audiobook.core.presentation.catalog.resources.cd_remove_folder
 import `by`.tigre.audiobook.core.presentation.catalog.resources.cd_rescan_folders
 import `by`.tigre.audiobook.core.presentation.catalog.resources.folder_health_cannot_list
 import `by`.tigre.audiobook.core.presentation.catalog.resources.folder_health_empty_but_indexed
@@ -339,11 +341,11 @@ class FolderSelectionView(
                 }
             },
             trailingContent = {
-                TextButton(onClick = onRemove) {
-                    Text(
-                        text = stringResource(Res.string.folders_remove_from_library),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.labelLarge,
+                IconButton(onClick = onRemove) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = stringResource(Res.string.cd_remove_folder),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             },

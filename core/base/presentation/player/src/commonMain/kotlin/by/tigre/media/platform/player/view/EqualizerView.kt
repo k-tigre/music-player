@@ -286,8 +286,9 @@ class EqualizerView(
                             imageVector = Icons.Filled.Add,
                             contentDescription = addCustomCd,
                             modifier = Modifier
-                                .padding(horizontal = 14.dp, vertical = 6.dp)
-                                .size(28.dp),
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                                .size(20.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }

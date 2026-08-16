@@ -2,6 +2,7 @@ package by.tigre.media.platform.player.view
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -28,17 +29,29 @@ fun CrossfadeAsyncImage(
         animationSpec = tween(CoverCrossfadeMillis),
         label = "playerCoverCrossfade",
     ) { current ->
-        AsyncImage(
-            model = current,
-            contentDescription = contentDescription,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = contentScale,
-            placeholder = placeholder,
-            error = placeholder,
-            fallback = placeholder,
-            onError = { error ->
-                logCoverLoadError(current, error.result.throwable)
-            },
-        )
+        // Coil 3 throws NullRequestDataException if model is null; show placeholder instead.
+        if (current == null) {
+            if (placeholder != null) {
+                Image(
+                    painter = placeholder,
+                    contentDescription = contentDescription,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = contentScale,
+                )
+            }
+        } else {
+            AsyncImage(
+                model = current,
+                contentDescription = contentDescription,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = contentScale,
+                placeholder = placeholder,
+                error = placeholder,
+                fallback = placeholder,
+                onError = { error ->
+                    logCoverLoadError(current, error.result.throwable)
+                },
+            )
+        }
     }
 }
