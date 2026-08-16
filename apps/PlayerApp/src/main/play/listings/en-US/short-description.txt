@@ -1,1 +1,1 @@
-Local music: library, playlists, queue, favorites, and equalizer.
+Offline music player: local library, queue, playlists, equalizer, Auto.
