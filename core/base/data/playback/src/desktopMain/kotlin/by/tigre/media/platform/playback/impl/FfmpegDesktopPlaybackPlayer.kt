@@ -7,6 +7,7 @@ import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.media.platform.playback.PlaybackSpeed
 import by.tigre.media.platform.playback.impl.dsp.DesktopEqualizerPresets
 import by.tigre.media.platform.playback.impl.dsp.Pcm16EqualizerProcessor
+import by.tigre.media.platform.playback.prefs.CustomEqPresetBank
 import by.tigre.media.platform.playback.prefs.EqualizerPreferences
 import by.tigre.media.platform.playback.prefs.PlaybackVolumePreferences
 import by.tigre.media.platform.playback.prefs.alignGainsToBandCount
@@ -93,11 +94,15 @@ internal class FfmpegDesktopPlaybackPlayer private constructor(
     private var progressJob: Job? = null
 
     private val builtInPresetCount = DesktopEqualizerPresets.names.size
-    private val customPresetIdx get() = builtInPresetCount
+    private val firstCustom get() = builtInPresetCount
+    private val customBank = CustomEqPresetBank(
+        prefs = equalizerPrefs,
+        bandCount = { DesktopEqualizerPresets.bandCentersHz.size },
+    )
 
     private var currentEqGains: FloatArray = floatArrayOf()
 
-    private val _presetNames = MutableStateFlow(DesktopEqualizerPresets.names + "Custom")
+    private val _presetNames = MutableStateFlow(DesktopEqualizerPresets.names + customBank.titles)
     override val presetNames = _presetNames.asStateFlow()
 
     private val _available = MutableStateFlow(true)
@@ -116,8 +121,11 @@ internal class FfmpegDesktopPlaybackPlayer private constructor(
         MutableStateFlow(DesktopEqualizerPresets.allBuiltInBandGainsDb())
     override val builtInPresetBandGainsDb = _builtInPresetBandGainsDb.asStateFlow()
 
-    private val _customPresetIndex = MutableStateFlow(customPresetIdx)
+    private val _customPresetIndex = MutableStateFlow(firstCustom)
     override val customPresetIndex = _customPresetIndex.asStateFlow()
+
+    private val _customPresetCount = MutableStateFlow(customBank.count)
+    override val customPresetCount = _customPresetCount.asStateFlow()
 
     private val _bandGainRangeDb =
         MutableStateFlow(DesktopEqualizerPresets.GAIN_DB_MIN to DesktopEqualizerPresets.GAIN_DB_MAX)
@@ -127,18 +135,23 @@ internal class FfmpegDesktopPlaybackPlayer private constructor(
         restoreEqualizerFromPreferences()
     }
 
+    private fun refreshCustomMeta() {
+        _customPresetCount.value = customBank.count
+        _presetNames.value = DesktopEqualizerPresets.names + customBank.titles
+    }
+
     private fun restoreEqualizerFromPreferences() {
-        val bandN = DesktopEqualizerPresets.bandCentersHz.size
-        val savedIdx = equalizerPrefs.loadSelectedPresetIndex(0).coerceIn(0, customPresetIdx)
+        val maxIdx = (firstCustom + customBank.count - 1).coerceAtLeast(0)
+        val savedIdx = equalizerPrefs.loadSelectedPresetIndex(0).coerceIn(0, maxIdx)
         if (savedIdx < builtInPresetCount) {
             currentEqGains = DesktopEqualizerPresets.gainsForPreset(savedIdx)
             _selectedPreset.value = savedIdx
         } else {
-            currentEqGains =
-                alignGainsToBandCount(equalizerPrefs.loadCustomBandGainsDb(), bandN).toFloatArray()
-            _selectedPreset.value = customPresetIdx
+            currentEqGains = customBank.gains(savedIdx - firstCustom).toFloatArray()
+            _selectedPreset.value = savedIdx
         }
         _bandGainDb.value = currentEqGains.toList()
+        refreshCustomMeta()
     }
 
     override val state = MutableStateFlow(PlaybackPlayer.State.Idle)
@@ -240,7 +253,7 @@ internal class FfmpegDesktopPlaybackPlayer private constructor(
     }
 
     override fun selectPreset(index: Int) {
-        if (index !in 0..customPresetIdx) return
+        if (index !in _presetNames.value.indices) return
         _selectedPreset.value = index
         equalizerPrefs.saveSelectedPresetIndex(index)
         synchronized(grabberLock) {
@@ -249,11 +262,8 @@ internal class FfmpegDesktopPlaybackPlayer private constructor(
                 currentEqGains = DesktopEqualizerPresets.gainsForPreset(index)
                 eq?.setPreset(index)
             } else {
-                val bandN = DesktopEqualizerPresets.bandCentersHz.size
-                currentEqGains =
-                    alignGainsToBandCount(equalizerPrefs.loadCustomBandGainsDb(), bandN).toFloatArray()
+                currentEqGains = customBank.gains(index - firstCustom).toFloatArray()
                 eq?.setGains(currentEqGains.copyOf())
-                equalizerPrefs.saveCustomBandGainsDb(currentEqGains.toList())
             }
         }
         _bandGainDb.value = currentEqGains.toList()
@@ -263,13 +273,32 @@ internal class FfmpegDesktopPlaybackPlayer private constructor(
         if (bandIndex !in currentEqGains.indices) return
         currentEqGains[bandIndex] =
             gainDb.coerceIn(DesktopEqualizerPresets.GAIN_DB_MIN, DesktopEqualizerPresets.GAIN_DB_MAX)
-        _selectedPreset.value = customPresetIdx
-        equalizerPrefs.saveSelectedPresetIndex(customPresetIdx)
-        equalizerPrefs.saveCustomBandGainsDb(currentEqGains.toList())
+        val selected = _selectedPreset.value
+        val target = if (customBank.isCustomAbsolute(selected, firstCustom)) selected else firstCustom
+        val slot = target - firstCustom
+        _selectedPreset.value = target
+        equalizerPrefs.saveSelectedPresetIndex(target)
+        customBank.updateGains(slot, currentEqGains.toList())
+        refreshCustomMeta()
         synchronized(grabberLock) {
             pcmEqualizer?.setGains(currentEqGains.copyOf())
         }
         _bandGainDb.value = currentEqGains.toList()
+    }
+
+    override fun addCustomPreset(): Boolean {
+        val slot = customBank.addCopy(currentEqGains.toList())
+        if (slot < 0) return false
+        refreshCustomMeta()
+        selectPreset(firstCustom + slot)
+        return true
+    }
+
+    override fun renameCustomPreset(presetIndex: Int, title: String): Boolean {
+        if (!customBank.isCustomAbsolute(presetIndex, firstCustom)) return false
+        val ok = customBank.rename(presetIndex - firstCustom, title)
+        if (ok) refreshCustomMeta()
+        return ok
     }
 
     override suspend fun stop() {

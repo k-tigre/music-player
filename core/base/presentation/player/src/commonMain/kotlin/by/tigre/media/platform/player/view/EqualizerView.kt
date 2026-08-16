@@ -1,6 +1,7 @@
 package by.tigre.media.platform.player.view
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.horizontalScroll
@@ -8,6 +9,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,17 +29,24 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,6 +66,7 @@ import by.tigre.media.platform.playback.eq.EqContentKey
 import by.tigre.media.platform.player.component.EqualizerComponent
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.resources.Res
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_add_custom_cd
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_app_volume
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_app_volume_cd
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_autosave_hint
@@ -70,6 +81,9 @@ import by.tigre.media.platform.tools.platform.compose.resources.equalizer_preset
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_preset_picker
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_preset_voice
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_preset_warm
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_rename_cancel
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_rename_ok
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_rename_title
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_route_bluetooth
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_route_desktop
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_route_other
@@ -81,6 +95,7 @@ import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
 private const val MaxEqBandsDisplayed = 16
+private const val MaxCustomPresets = 3
 
 class EqualizerView(
     private val component: EqualizerComponent,
@@ -162,13 +177,15 @@ class EqualizerView(
         val selected by component.playbackEqualizer.selectedPresetIndex.collectAsState()
         val centers by component.playbackEqualizer.bandCenterHz.collectAsState()
         val gains by component.playbackEqualizer.bandGainDb.collectAsState()
-        val customIdx by component.playbackEqualizer.customPresetIndex.collectAsState()
+        val firstCustomIdx by component.playbackEqualizer.customPresetIndex.collectAsState()
+        val customCount by component.playbackEqualizer.customPresetCount.collectAsState()
         val gainRange by component.playbackEqualizer.bandGainRangeDb.collectAsState()
         val profileStatus by component.profileStatus.collectAsState()
 
         val bodyScroll = rememberScrollState()
-        val presetScrollState = rememberScrollState()
         val bandsScrollState = rememberScrollState()
+        var renameTargetIndex by remember { mutableStateOf<Int?>(null) }
+        var renameDraft by remember { mutableStateOf("") }
 
         val routeLabel = routeLabel(profileStatus.route.kind)
         val contentLabel = when (profileStatus.contentKind) {
@@ -179,6 +196,9 @@ class EqualizerView(
             EqContentKey.Kind.None -> null
         }
         val hintText = stringResource(Res.string.equalizer_autosave_hint)
+        val addCustomCd = stringResource(Res.string.equalizer_add_custom_cd)
+        val canAddCustom =
+            firstCustomIdx >= 0 && customCount in 1 until MaxCustomPresets
 
         Column(
             modifier = modifier
@@ -203,35 +223,106 @@ class EqualizerView(
                 style = MaterialTheme.typography.titleMedium,
             )
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(presetScrollState)
-                    .pointerInput(presetScrollState) {
-                        forwardWheelToHorizontalScroll(presetScrollState)
-                    },
+            @OptIn(ExperimentalLayoutApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 presetNames.forEachIndexed { index, name ->
+                    val isCustom =
+                        firstCustomIdx >= 0 &&
+                            index >= firstCustomIdx &&
+                            index < firstCustomIdx + customCount
                     val label =
-                        if (index == customIdx && customPresetLabel.isNotEmpty()) {
-                            customPresetLabel
+                        if (isCustom) {
+                            localizedCustomPresetLabel(name, customPresetLabel)
                         } else {
                             localizedEqPresetLabel(name)
                         }
-                    FilterChip(
-                        selected = selected == index,
-                        onClick = { component.playbackEqualizer.selectPreset(index) },
-                        label = {
-                            Text(
-                                text = label,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                style = MaterialTheme.typography.titleSmall,
-                            )
+                    val selectedChip = selected == index
+                    Surface(
+                        shape = MaterialTheme.shapes.small,
+                        color = if (selectedChip) {
+                            MaterialTheme.colorScheme.secondaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant
                         },
-                    )
+                        modifier = Modifier.combinedClickable(
+                            onClick = { component.playbackEqualizer.selectPreset(index) },
+                            onLongClick = if (isCustom) {
+                                {
+                                    renameTargetIndex = index
+                                    renameDraft = localizedCustomPresetLabel(name, customPresetLabel)
+                                }
+                            } else {
+                                null
+                            },
+                        ),
+                    ) {
+                        Text(
+                            text = label,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            color = if (selectedChip) {
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                        )
+                    }
                 }
+                if (canAddCustom) {
+                    Surface(
+                        shape = MaterialTheme.shapes.small,
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier.combinedClickable(
+                            onClick = { component.playbackEqualizer.addCustomPreset() },
+                        ),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = addCustomCd,
+                            modifier = Modifier
+                                .padding(horizontal = 14.dp, vertical = 6.dp)
+                                .size(28.dp),
+                        )
+                    }
+                }
+            }
+
+            renameTargetIndex?.let { target ->
+                AlertDialog(
+                    onDismissRequest = { renameTargetIndex = null },
+                    title = { Text(stringResource(Res.string.equalizer_rename_title)) },
+                    text = {
+                        OutlinedTextField(
+                            value = renameDraft,
+                            onValueChange = { renameDraft = it },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                val storageTitle =
+                                    customPresetTitleToStorage(renameDraft, customPresetLabel)
+                                component.playbackEqualizer.renameCustomPreset(target, storageTitle)
+                                renameTargetIndex = null
+                            },
+                        ) {
+                            Text(stringResource(Res.string.equalizer_rename_ok))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { renameTargetIndex = null }) {
+                            Text(stringResource(Res.string.equalizer_rename_cancel))
+                        }
+                    },
+                )
             }
 
             Row(
@@ -483,6 +574,40 @@ class EqualizerView(
     private fun formatDb(db: Float): String =
         if (db >= 0f) "+%.1f".format(db).replace(",", ".")
         else "%.1f".format(db).replace(",", ".")
+}
+
+private fun localizedCustomPresetLabel(storedName: String, localizedCustom: String): String {
+    val customPrefix = "Custom"
+    return when {
+        storedName.equals(customPrefix, ignoreCase = true) -> localizedCustom
+        storedName.startsWith("$customPrefix ", ignoreCase = true) -> {
+            val suffix = storedName.substring(customPrefix.length).trimStart()
+            if (suffix.isEmpty()) localizedCustom else "$localizedCustom $suffix"
+        }
+        else -> storedName
+    }
+}
+
+/** Maps dialog text back to stable storage ids for default custom slots. */
+private fun customPresetTitleToStorage(draft: String, localizedCustom: String): String {
+    val trimmed = draft.trim()
+    if (trimmed.isEmpty()) return "Custom"
+    if (trimmed.equals(localizedCustom, ignoreCase = true) ||
+        trimmed.equals("Custom", ignoreCase = true)
+    ) {
+        return "Custom"
+    }
+    val locPrefix = "$localizedCustom "
+    if (trimmed.startsWith(locPrefix, ignoreCase = true)) {
+        val suffix = trimmed.substring(locPrefix.length).trim()
+        return if (suffix.isEmpty()) "Custom" else "Custom $suffix"
+    }
+    val enPrefix = "Custom "
+    if (trimmed.startsWith(enPrefix, ignoreCase = true)) {
+        val suffix = trimmed.substring(enPrefix.length).trim()
+        return if (suffix.isEmpty()) "Custom" else "Custom $suffix"
+    }
+    return trimmed
 }
 
 @Composable

@@ -25,6 +25,10 @@
     <string name="equalizer_title">Эквалайзер</string>
     <string name="equalizer_preset_picker">Пресеты</string>
     <string name="equalizer_custom">Пользовательский</string>
+    <string name="equalizer_add_custom_cd">Добавить пользовательский пресет</string>
+    <string name="equalizer_rename_title">Переименовать пресет</string>
+    <string name="equalizer_rename_ok">Сохранить</string>
+    <string name="equalizer_rename_cancel">Отмена</string>
     <string name="equalizer_preset_flat">Ровный</string>
     <string name="equalizer_preset_voice">Голос</string>
     <string name="equalizer_preset_warm">Тёплый</string>

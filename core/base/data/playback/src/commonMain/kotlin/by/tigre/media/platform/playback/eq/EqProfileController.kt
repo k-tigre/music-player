@@ -162,7 +162,7 @@ class EqProfileController(
             id = 0,
             route = routeMonitor.currentRoute.value,
             content = content,
-            presetIndex = if (custom >= 0 && preset == custom) null else preset,
+            presetIndex = if (custom >= 0 && preset >= custom) null else preset,
             gainsDb = gains,
             title = null,
             updatedAtMs = System.currentTimeMillis(),
@@ -320,16 +320,24 @@ class EqProfileController(
     }
 
     private fun applyProfile(profile: EqProfile) {
-        val customIndex = playbackEqualizer.customPresetIndex.value
+        val firstCustom = playbackEqualizer.customPresetIndex.value
+        val customCount = playbackEqualizer.customPresetCount.value
         val gains = profile.gainsDb
-        if (gains.isNotEmpty() && customIndex >= 0) {
+        if (gains.isNotEmpty() && firstCustom >= 0 && customCount > 0) {
+            val selected = playbackEqualizer.selectedPresetIndex.value
+            val targetCustom =
+                if (selected >= firstCustom && selected < firstCustom + customCount) {
+                    selected
+                } else {
+                    firstCustom
+                }
             val centers = playbackEqualizer.bandCenterHz.value
             val aligned = if (centers.isEmpty()) {
                 gains
             } else {
                 EqGainInterpolation.alignOrRemapToUiBands(gains, centers.toFloatArray())
             }
-            playbackEqualizer.selectPreset(customIndex)
+            playbackEqualizer.selectPreset(targetCustom)
             aligned.forEachIndexed { index, gain ->
                 playbackEqualizer.setBandGainDb(index, gain)
             }

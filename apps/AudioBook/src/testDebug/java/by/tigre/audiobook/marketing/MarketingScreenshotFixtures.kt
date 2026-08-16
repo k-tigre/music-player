@@ -280,8 +280,11 @@ object MarketingScreenshotFixtures {
         override val bandGainDb: StateFlow<List<Float>> = MutableStateFlow(emptyList())
         override val builtInPresetBandGainsDb: StateFlow<List<List<Float>>> = MutableStateFlow(emptyList())
         override val customPresetIndex: StateFlow<Int> = MutableStateFlow(-1)
+        override val customPresetCount: StateFlow<Int> = MutableStateFlow(0)
         override val bandGainRangeDb: StateFlow<Pair<Float, Float>> = MutableStateFlow(-12f to 12f)
         override fun selectPreset(index: Int) = Unit
         override fun setBandGainDb(bandIndex: Int, gainDb: Float) = Unit
+        override fun addCustomPreset(): Boolean = false
+        override fun renameCustomPreset(presetIndex: Int, title: String): Boolean = false
     }
 }
