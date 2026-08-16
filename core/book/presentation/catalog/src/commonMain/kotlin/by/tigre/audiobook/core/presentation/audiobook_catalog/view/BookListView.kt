@@ -22,10 +22,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -37,6 +39,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -68,7 +71,6 @@ import by.tigre.audiobook.core.presentation.catalog.resources.folder_group_books
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -79,12 +81,17 @@ import by.tigre.audiobook.core.presentation.catalog.resources.library_space_add_
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_create
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_create_upsell
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_create_upsell_hint
+import by.tigre.audiobook.core.presentation.catalog.resources.library_space_edit_cd
+import by.tigre.audiobook.core.presentation.catalog.resources.library_space_edit_done
+import by.tigre.audiobook.core.presentation.catalog.resources.library_space_edit_hint
+import by.tigre.audiobook.core.presentation.catalog.resources.library_space_edit_title
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_empty_hint
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_empty_title
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_kids_suggestion
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_new_name_hint
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_picker_empty
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_picker_title
+import by.tigre.audiobook.core.presentation.catalog.resources.library_space_remove_cd
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_root_folder
 import by.tigre.audiobook.core.presentation.catalog.resources.library_spaces_sheet_title
 import by.tigre.media.platform.presentation.ScreenContentState
@@ -105,20 +112,25 @@ class BookListView(
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Draw(modifier: Modifier) {
+        val screenState by component.screenState.collectAsState()
+        val content = (screenState as? ScreenContentState.Content)?.value
+        val editMembership = content?.editMembership == true
+
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(
                     title = {
                         Text(
-                            text = stringResource(Res.string.audiobooks_title),
+                            text = stringResource(
+                                if (editMembership) Res.string.library_space_edit_title
+                                else Res.string.audiobooks_title,
+                            ),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     },
                     windowInsets = appTopBarWindowInsets(),
                     navigationIcon = {
-                        val screenState by component.screenState.collectAsState()
-                        val content = (screenState as? ScreenContentState.Content)?.value
                         if (content?.spacesVisible == true && content.activeSpace != null) {
                             Text(
                                 text = content.activeSpace.name,
@@ -128,7 +140,10 @@ class BookListView(
                                     .padding(start = 8.dp)
                                     .clip(RoundedCornerShape(20.dp))
                                     .background(MaterialTheme.colorScheme.primaryContainer)
-                                    .clickable(onClick = component::onSpaceChipClicked)
+                                    .clickable(
+                                        enabled = !editMembership,
+                                        onClick = component::onSpaceChipClicked,
+                                    )
                                     .padding(horizontal = 12.dp, vertical = 6.dp),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -136,24 +151,41 @@ class BookListView(
                         }
                     },
                     actions = {
-                        IconButton(onClick = component::onOpenSettings) {
-                            Icon(
-                                imageVector = Icons.Filled.Settings,
-                                contentDescription = stringResource(Res.string.cd_open_settings)
-                            )
+                        if (content?.spacesVisible == true) {
+                            if (editMembership) {
+                                TextButton(onClick = component::onDoneEditMembership) {
+                                    Text(stringResource(Res.string.library_space_edit_done))
+                                }
+                            } else {
+                                IconButton(onClick = component::onEditMembershipClicked) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Edit,
+                                        contentDescription = stringResource(
+                                            Res.string.library_space_edit_cd,
+                                        ),
+                                    )
+                                }
+                            }
+                        }
+                        if (!editMembership) {
+                            IconButton(onClick = component::onOpenSettings) {
+                                Icon(
+                                    imageVector = Icons.Filled.Settings,
+                                    contentDescription = stringResource(Res.string.cd_open_settings)
+                                )
+                            }
                         }
                     }
                 )
             },
             content = { paddingValues ->
-                val screenState by component.screenState.collectAsState()
                 val spaceSheetVisible by component.spaceSheetVisible.collectAsState()
                 val addBooksSheetVisible by component.addBooksSheetVisible.collectAsState()
 
                 if (spaceSheetVisible) {
-                    val content = (screenState as? ScreenContentState.Content)?.value
-                    if (content != null) {
-                        SpaceSwitcherSheet(content)
+                    val sheetContent = (screenState as? ScreenContentState.Content)?.value
+                    if (sheetContent != null) {
+                        SpaceSwitcherSheet(sheetContent)
                     }
                 }
                 if (addBooksSheetVisible) {
@@ -246,7 +278,18 @@ class BookListView(
                 state = listState,
                 contentPadding = bottomBarListContentPadding(),
             ) {
-                if (state.continueListeningBooks.isNotEmpty()) {
+                if (state.editMembership) {
+                    item(key = "edit_hint") {
+                        Text(
+                            text = stringResource(Res.string.library_space_edit_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        )
+                    }
+                }
+
+                if (!state.editMembership && state.continueListeningBooks.isNotEmpty()) {
                     stickyHeader(key = "continue_header") {
                         ContinueListeningHeader(
                             bookCount = state.continueListeningTotalCount,
@@ -288,11 +331,15 @@ class BookListView(
                     BookCard(
                         book = book,
                         isCurrent = book.id == state.currentBookId,
+                        editMembership = state.editMembership,
+                        onRemoveFromSpace = {
+                            component.onRemoveBookFromSpace(book.id)
+                        },
                     )
                 }
 
                 state.grouped.forEach { (path, booksInGroup) ->
-                    val isExpanded = state.expanded.contains(path)
+                    val isExpanded = state.editMembership || state.expanded.contains(path)
                     val booksToShow = if (isExpanded) {
                         booksInGroup
                     } else {
@@ -303,7 +350,11 @@ class BookListView(
                             path = path,
                             bookCount = booksInGroup.size,
                             isExpanded = isExpanded,
+                            editMembership = state.editMembership,
                             onClick = { component.toggleGroup(path) },
+                            onRemoveFromSpace = {
+                                component.onRemoveFolderFromSpace(path)
+                            },
                         )
                     }
                     if (booksToShow.isNotEmpty()) {
@@ -311,6 +362,10 @@ class BookListView(
                             BookCard(
                                 book = book,
                                 isCurrent = book.id == state.currentBookId,
+                                editMembership = state.editMembership,
+                                onRemoveFromSpace = {
+                                    component.onRemoveBookFromSpace(book.id)
+                                },
                             )
                         }
                     }
@@ -432,49 +487,63 @@ class BookListView(
                         modifier = Modifier.padding(vertical = 16.dp),
                     )
                 } else {
-                    if (picker.folders.isNotEmpty()) {
-                        Text(
-                            text = stringResource(Res.string.library_space_add_folder),
-                            style = MaterialTheme.typography.labelLarge,
-                            modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
-                        )
-                        picker.folders.forEach { (path, count) ->
-                            val label = if (path.isEmpty()) {
-                                stringResource(Res.string.library_space_root_folder)
-                            } else {
-                                path
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f, fill = false),
+                    ) {
+                        if (picker.folders.isNotEmpty()) {
+                            item(key = "folders_header") {
+                                Text(
+                                    text = stringResource(Res.string.library_space_add_folder),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
+                                )
                             }
-                            Text(
-                                text = "$label ($count)",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.primary,
+                            items(
+                                items = picker.folders,
+                                key = { (path, _) -> "folder:$path" },
+                            ) { (path, count) ->
+                                val label = if (path.isEmpty()) {
+                                    stringResource(Res.string.library_space_root_folder)
+                                } else {
+                                    path
+                                }
+                                Text(
+                                    text = "$label ($count)",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { component.addPickerFolder(path) }
+                                        .padding(vertical = 8.dp),
+                                )
+                            }
+                        }
+                        items(
+                            items = picker.candidates,
+                            key = { it.id.value },
+                        ) { book ->
+                            Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { component.addPickerFolder(path) }
-                                    .padding(vertical = 8.dp),
-                            )
-                        }
-                    }
-                    picker.candidates.forEach { book ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { component.togglePickerBook(book.id) }
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Checkbox(
-                                checked = book.id in picker.selectedIds,
-                                onCheckedChange = { component.togglePickerBook(book.id) },
-                            )
-                            Column(modifier = Modifier.padding(start = 4.dp)) {
-                                Text(text = book.title, style = MaterialTheme.typography.bodyLarge)
-                                if (book.subPath.isNotEmpty()) {
-                                    Text(
-                                        text = book.subPath,
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
+                                    .clickable { component.togglePickerBook(book.id) }
+                                    .padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Checkbox(
+                                    checked = book.id in picker.selectedIds,
+                                    onCheckedChange = { component.togglePickerBook(book.id) },
+                                )
+                                Column(modifier = Modifier.padding(start = 4.dp)) {
+                                    Text(text = book.title, style = MaterialTheme.typography.bodyLarge)
+                                    if (book.subPath.isNotEmpty()) {
+                                        Text(
+                                            text = book.subPath,
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -664,7 +733,9 @@ class BookListView(
         path: String,
         bookCount: Int,
         isExpanded: Boolean,
+        editMembership: Boolean,
         onClick: () -> Unit,
+        onRemoveFromSpace: () -> Unit,
     ) {
         val shape = RoundedCornerShape(12.dp)
         Column(
@@ -681,7 +752,7 @@ class BookListView(
                         color = MaterialTheme.colorScheme.outlineVariant,
                         shape = shape,
                     )
-                    .clickable(onClick = onClick),
+                    .clickable(enabled = !editMembership, onClick = onClick),
                 shape = shape,
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -693,13 +764,27 @@ class BookListView(
                         .padding(horizontal = 16.dp, vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Folder,
-                        contentDescription = null,
-                        modifier = Modifier.size(40.dp),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
+                    if (editMembership) {
+                        IconButton(
+                            onClick = onRemoveFromSpace,
+                            modifier = Modifier.size(40.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Remove,
+                                contentDescription = stringResource(Res.string.library_space_remove_cd),
+                                tint = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
+                    } else {
+                        Icon(
+                            imageVector = Icons.Filled.Folder,
+                            contentDescription = null,
+                            modifier = Modifier.size(40.dp),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                    }
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = path.replace("/", " / "),
@@ -714,14 +799,16 @@ class BookListView(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    Icon(
-                        imageVector = if (isExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                        contentDescription = stringResource(
-                            if (isExpanded) Res.string.cd_collapse_folder else Res.string.cd_expand_folder,
-                        ),
-                        modifier = Modifier.size(28.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    if (!editMembership) {
+                        Icon(
+                            imageVector = if (isExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                            contentDescription = stringResource(
+                                if (isExpanded) Res.string.cd_collapse_folder else Res.string.cd_expand_folder,
+                            ),
+                            modifier = Modifier.size(28.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }
@@ -731,6 +818,8 @@ class BookListView(
     private fun BookCard(
         book: Book,
         isCurrent: Boolean,
+        editMembership: Boolean = false,
+        onRemoveFromSpace: (() -> Unit)? = null,
         showNowPlayingBadge: Boolean = false,
         onDismiss: (() -> Unit)? = null,
     ) {
@@ -752,7 +841,7 @@ class BookListView(
                     color = borderColor,
                     shape = shape,
                 )
-                .clickable { component.onBookClicked(book) },
+                .clickable(enabled = !editMembership) { component.onBookClicked(book) },
             shape = shape,
             colors = CardDefaults.cardColors(containerColor = containerColor),
         ) {
@@ -760,6 +849,19 @@ class BookListView(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                if (editMembership && onRemoveFromSpace != null) {
+                    IconButton(
+                        onClick = onRemoveFromSpace,
+                        modifier = Modifier.size(40.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Remove,
+                            contentDescription = stringResource(Res.string.library_space_remove_cd),
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
                 CoverThumbnail(
                     model = book.coverUri,
                     size = 64.dp,

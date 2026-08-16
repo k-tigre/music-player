@@ -17,6 +17,7 @@ import by.tigre.media.platform.presentation.ScreenContentState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -28,6 +29,7 @@ interface BookListComponent {
     val spaceSheetVisible: StateFlow<Boolean>
     val addBooksSheetVisible: StateFlow<Boolean>
     val addBooksPicker: StateFlow<AddBooksPickerState>
+    val editMembership: StateFlow<Boolean>
 
     fun onBookClicked(book: Book)
     fun onOpenSettings()
@@ -48,6 +50,10 @@ interface BookListComponent {
     fun togglePickerBook(bookId: Book.Id)
     fun confirmAddSelectedBooks()
     fun addPickerFolder(subPath: String)
+    fun onEditMembershipClicked()
+    fun onDoneEditMembership()
+    fun onRemoveBookFromSpace(bookId: Book.Id)
+    fun onRemoveFolderFromSpace(subPath: String)
 
     data class BookListUiState(
         val continueListeningBooks: List<Book>,
@@ -64,6 +70,7 @@ interface BookListComponent {
         val spaces: List<LibrarySpace>,
         val canManageSpaces: Boolean,
         val emptySpaceNeedsBooks: Boolean,
+        val editMembership: Boolean,
     )
 
     data class AddBooksPickerState(
@@ -89,9 +96,11 @@ interface BookListComponent {
         private val expandedState = MutableStateFlow(emptySet<String>())
         private val continueListeningExpandedState = MutableStateFlow(true)
         private val scrollToBookNonce = MutableStateFlow(0L)
+        private val editMembershipState = MutableStateFlow(false)
         override val spaceSheetVisible = MutableStateFlow(false)
         override val addBooksSheetVisible = MutableStateFlow(false)
         override val addBooksPicker = MutableStateFlow(AddBooksPickerState())
+        override val editMembership: StateFlow<Boolean> = editMembershipState.asStateFlow()
 
         override val screenState: StateFlow<ScreenContentState<BookListUiState>> = combine(
             combine(
@@ -110,8 +119,11 @@ interface BookListComponent {
             ) { expanded, continueExpanded, scrollNonce, activeSpace, spaces ->
                 SpacesUi(expanded, continueExpanded, scrollNonce, activeSpace, spaces)
             },
-            dependency.entitlementsRepository.tier,
-        ) { catalog, spacesUi, _ ->
+            combine(
+                dependency.entitlementsRepository.tier,
+                editMembershipState,
+            ) { _, editMembership -> editMembership },
+        ) { catalog, spacesUi, editMembership ->
             val (books, continueListeningBooks, currentBook) = catalog
             val currentBookId = currentBook?.id
             val rootBooks = books.filter { it.subPath.isEmpty() }
@@ -144,18 +156,33 @@ interface BookListComponent {
                     emptySpaceNeedsBooks = books.isEmpty() &&
                         spacesUi.activeSpace != null &&
                         spacesUi.activeSpace?.isDefault != true,
+                    editMembership = editMembership && spacesVisible,
                 )
             )
         }
             .stateIn(this, SharingStarted.WhileSubscribed(), ScreenContentState.Loading)
 
+        init {
+            launch {
+                var previousSpaceId: LibrarySpace.Id? = null
+                spaceRepository.activeSpaceId.collect { spaceId ->
+                    if (previousSpaceId != null && previousSpaceId != spaceId) {
+                        editMembershipState.value = false
+                    }
+                    previousSpaceId = spaceId
+                }
+            }
+        }
+
         override fun onBookClicked(book: Book) {
+            if (editMembershipState.value) return
             eventAnalytics.trackEvent(AudiobookEvents.Action.CatalogSelectBook)
             playbackController.loadBook(book)
             onBookSelectedListener.onBookSelected()
         }
 
         override fun onOpenSettings() {
+            editMembershipState.value = false
             eventAnalytics.trackEvent(AudiobookEvents.Action.CatalogOpenSettings)
             navigator.showSettings()
         }
@@ -163,6 +190,10 @@ interface BookListComponent {
         override fun retry() = Unit
 
         override fun toggleGroup(path: String) {
+            if (editMembershipState.value) {
+                expandedState.update { it + path }
+                return
+            }
             expandedState.update { current ->
                 if (current.contains(path)) current - path else current + path
             }
@@ -200,6 +231,7 @@ interface BookListComponent {
         }
 
         override fun onSpaceChipClicked() {
+            if (editMembershipState.value) return
             spaceSheetVisible.value = true
         }
 
@@ -209,6 +241,7 @@ interface BookListComponent {
 
         override fun onSpaceSelected(spaceId: LibrarySpace.Id) {
             spaceRepository.setActiveSpace(spaceId)
+            editMembershipState.value = false
             spaceSheetVisible.value = false
         }
 
@@ -228,6 +261,7 @@ interface BookListComponent {
                 val id = spaceRepository.createSpace(name = name.trim().ifBlank { "Kids" })
                 if (id != null) {
                     spaceRepository.setActiveSpace(id)
+                    editMembershipState.value = false
                     spaceSheetVisible.value = false
                 } else if (entitlementsRepository.access(Feature.BookSpaces) ==
                     FeatureAccess.RequiresPurchase
@@ -268,6 +302,30 @@ interface BookListComponent {
             launch {
                 spaceRepository.addBooksBySubPath(spaceRepository.activeSpaceId.value, subPath)
                 openAddBooksPicker()
+            }
+        }
+
+        override fun onEditMembershipClicked() {
+            editMembershipState.value = true
+            expandedState.update { expanded ->
+                val content = (screenState.value as? ScreenContentState.Content)?.value
+                expanded + (content?.grouped?.map { it.first }.orEmpty())
+            }
+        }
+
+        override fun onDoneEditMembership() {
+            editMembershipState.value = false
+        }
+
+        override fun onRemoveBookFromSpace(bookId: Book.Id) {
+            launch {
+                spaceRepository.removeBook(spaceRepository.activeSpaceId.value, bookId)
+            }
+        }
+
+        override fun onRemoveFolderFromSpace(subPath: String) {
+            launch {
+                spaceRepository.removeBooksBySubPath(spaceRepository.activeSpaceId.value, subPath)
             }
         }
 

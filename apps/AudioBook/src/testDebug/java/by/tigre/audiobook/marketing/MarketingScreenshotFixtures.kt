@@ -64,6 +64,7 @@ object MarketingScreenshotFixtures {
                             spaces = emptyList(),
                             canManageSpaces = false,
                             emptySpaceNeedsBooks = false,
+                            editMembership = false,
                         )
                     )
                 )
@@ -72,6 +73,7 @@ object MarketingScreenshotFixtures {
             override val addBooksSheetVisible: StateFlow<Boolean> = MutableStateFlow(false)
             override val addBooksPicker: StateFlow<BookListComponent.AddBooksPickerState> =
                 MutableStateFlow(BookListComponent.AddBooksPickerState())
+            override val editMembership: StateFlow<Boolean> = MutableStateFlow(false)
 
             override fun onBookClicked(book: Book) = Unit
             override fun onOpenSettings() = Unit
@@ -92,6 +94,10 @@ object MarketingScreenshotFixtures {
             override fun togglePickerBook(bookId: Book.Id) = Unit
             override fun confirmAddSelectedBooks() = Unit
             override fun addPickerFolder(subPath: String) = Unit
+            override fun onEditMembershipClicked() = Unit
+            override fun onDoneEditMembership() = Unit
+            override fun onRemoveBookFromSpace(bookId: Book.Id) = Unit
+            override fun onRemoveFolderFromSpace(subPath: String) = Unit
         }
 
     fun playerComponent(context: Context, locale: MarketingScreenshotLocale): PlayerComponent {

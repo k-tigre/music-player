@@ -228,6 +228,9 @@ class AudiobookCatalogSourceImpl(
 
     override suspend fun getFolderSourcesList(): List<FolderSource> = storage.getFolderSources()
 
+    override suspend fun countBooksByFolderSource(folderSourceId: FolderSource.Id): Int =
+        storage.countBooksByFolderSource(folderSourceId)
+
     override suspend fun diagnoseFolderAccess(folder: FolderSource): FolderSourceAccessHealth =
         withContext(Dispatchers.IO) {
             val root = DocumentFile.fromTreeUri(context, Uri.parse(folder.uri))

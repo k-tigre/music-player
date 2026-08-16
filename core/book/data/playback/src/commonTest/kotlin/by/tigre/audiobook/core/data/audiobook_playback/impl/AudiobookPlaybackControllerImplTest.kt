@@ -189,6 +189,7 @@ class AudiobookPlaybackControllerImplTest {
         override suspend fun addBooks(spaceId: LibrarySpace.Id, bookIds: List<Book.Id>) = Unit
         override suspend fun addBooksBySubPath(spaceId: LibrarySpace.Id, subPath: String) = Unit
         override suspend fun removeBook(spaceId: LibrarySpace.Id, bookId: Book.Id) = Unit
+        override suspend fun removeBooksBySubPath(spaceId: LibrarySpace.Id, subPath: String) = Unit
         override suspend fun getBooksGlobal(): List<Book> = emptyList()
     }
 
@@ -206,6 +207,7 @@ class AudiobookPlaybackControllerImplTest {
         override suspend fun removeFolder(id: FolderSource.Id) = Unit
         override suspend fun rescanAllFolders() = Unit
         override suspend fun getFolderSourcesList(): List<FolderSource> = emptyList()
+        override suspend fun countBooksByFolderSource(folderSourceId: FolderSource.Id): Int = 0
         override suspend fun diagnoseFolderAccess(folder: FolderSource): FolderSourceAccessHealth =
             FolderSourceAccessHealth.Ok
         override suspend fun getBooks(): List<Book> = listOf(book)

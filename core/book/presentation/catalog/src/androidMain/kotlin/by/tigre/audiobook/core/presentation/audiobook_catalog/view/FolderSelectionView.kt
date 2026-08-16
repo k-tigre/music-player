@@ -4,10 +4,8 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,25 +15,24 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -47,7 +44,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.documentfile.provider.DocumentFile
@@ -64,7 +60,6 @@ import by.tigre.media.platform.tools.platform.compose.view.bottomBarListContentP
 import by.tigre.media.platform.tools.platform.compose.view.centeredScreenContentBottomPadding
 import `by`.tigre.audiobook.core.presentation.catalog.resources.Res
 import `by`.tigre.audiobook.core.presentation.catalog.resources.cd_add_folder
-import `by`.tigre.audiobook.core.presentation.catalog.resources.cd_remove_folder
 import `by`.tigre.audiobook.core.presentation.catalog.resources.cd_rescan_folders
 import `by`.tigre.audiobook.core.presentation.catalog.resources.folder_health_cannot_list
 import `by`.tigre.audiobook.core.presentation.catalog.resources.folder_health_empty_but_indexed
@@ -76,6 +71,12 @@ import `by`.tigre.audiobook.core.presentation.catalog.resources.folders_access_b
 import `by`.tigre.audiobook.core.presentation.catalog.resources.folders_empty_action
 import `by`.tigre.audiobook.core.presentation.catalog.resources.folders_empty_hint
 import `by`.tigre.audiobook.core.presentation.catalog.resources.folders_empty_title
+import `by`.tigre.audiobook.core.presentation.catalog.resources.folders_remove_confirm_body
+import `by`.tigre.audiobook.core.presentation.catalog.resources.folders_remove_confirm_cancel
+import `by`.tigre.audiobook.core.presentation.catalog.resources.folders_remove_confirm_title
+import `by`.tigre.audiobook.core.presentation.catalog.resources.folders_remove_from_library
+import `by`.tigre.audiobook.core.presentation.catalog.resources.folders_shared_banner
+import `by`.tigre.audiobook.core.presentation.catalog.resources.folders_source_subtitle
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
@@ -91,6 +92,7 @@ class FolderSelectionView(
         val scope = rememberCoroutineScope()
         val folderPersistErrorMessage = stringResource(Res.string.folder_persist_permission_error)
         val unknownFolderName = stringResource(Res.string.folder_unknown_name)
+        var pendingRemove by remember { mutableStateOf<FolderSelectionComponent.FolderSourceRow?>(null) }
 
         val treeLauncher = rememberLauncherForActivityResult(
             contract = OpenAudiobookFolderContract()
@@ -120,6 +122,36 @@ class FolderSelectionView(
                 component.refreshFolderAccessHealth()
             }
             wasScanActive = scanUi.active
+        }
+
+        pendingRemove?.let { row ->
+            AlertDialog(
+                onDismissRequest = { pendingRemove = null },
+                title = { Text(stringResource(Res.string.folders_remove_confirm_title)) },
+                text = {
+                    Text(
+                        stringResource(Res.string.folders_remove_confirm_body, row.folder.name),
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            component.onRemoveFolder(row.folder.id)
+                            pendingRemove = null
+                        },
+                    ) {
+                        Text(
+                            text = stringResource(Res.string.folders_remove_from_library),
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { pendingRemove = null }) {
+                        Text(stringResource(Res.string.folders_remove_confirm_cancel))
+                    }
+                },
+            )
         }
 
         Scaffold(
@@ -184,9 +216,10 @@ class FolderSelectionView(
 
                         is ScreenContentState.Content -> {
                             DrawContent(
-                                folders = state.value,
+                                rows = state.value,
                                 health = folderHealth,
                                 onAddFolder = { treeLauncher.launch(null) },
+                                onRequestRemove = { pendingRemove = it },
                             )
                         }
                     }
@@ -197,11 +230,12 @@ class FolderSelectionView(
 
     @Composable
     private fun DrawContent(
-        folders: List<FolderSource>,
+        rows: List<FolderSelectionComponent.FolderSourceRow>,
         health: Map<FolderSource.Id, FolderSourceAccessHealth>,
         onAddFolder: () -> Unit,
+        onRequestRemove: (FolderSelectionComponent.FolderSourceRow) -> Unit,
     ) {
-        if (folders.isEmpty()) {
+        if (rows.isEmpty()) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -234,13 +268,21 @@ class FolderSelectionView(
                 }
             }
         } else {
-            val anyIssue = folders.any { folder ->
-                health[folder.id] != null && health[folder.id] != FolderSourceAccessHealth.Ok
+            val anyIssue = rows.any { row ->
+                health[row.folder.id] != null && health[row.folder.id] != FolderSourceAccessHealth.Ok
             }
             LazyColumn(
                 contentPadding = bottomBarListContentPadding(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                item {
+                    Text(
+                        text = stringResource(Res.string.folders_shared_banner),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    )
+                    HorizontalDivider()
+                }
                 if (anyIssue) {
                     item {
                         Text(
@@ -251,58 +293,40 @@ class FolderSelectionView(
                         )
                     }
                 }
-                items(folders, key = { it.id.value }) { folder ->
-                    FolderSourceCard(
-                        folder = folder,
-                        healthHint = accessHealthHintText(health[folder.id]),
-                        onRemove = { component.onRemoveFolder(folder.id) },
+                items(rows, key = { it.folder.id.value }) { row ->
+                    FolderSourceRow(
+                        row = row,
+                        healthHint = accessHealthHintText(health[row.folder.id]),
+                        onRemove = { onRequestRemove(row) },
                     )
+                    HorizontalDivider(modifier = Modifier.padding(start = 16.dp))
                 }
+                item { Spacer(modifier = Modifier.height(8.dp)) }
             }
         }
     }
 
     @Composable
-    private fun FolderSourceCard(
-        folder: FolderSource,
+    private fun FolderSourceRow(
+        row: FolderSelectionComponent.FolderSourceRow,
         healthHint: String?,
         onRemove: () -> Unit,
     ) {
-        val shape = RoundedCornerShape(12.dp)
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    shape = shape,
-                ),
-            shape = shape,
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            ),
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Folder,
-                    contentDescription = null,
-                    modifier = Modifier.size(40.dp),
-                    tint = MaterialTheme.colorScheme.primary,
+        ListItem(
+            headlineContent = {
+                Text(
+                    text = row.folder.name,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
+            },
+            supportingContent = {
+                Column {
                     Text(
-                        text = folder.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
+                        text = stringResource(
+                            Res.string.folders_source_subtitle,
+                            row.bookCount,
+                        ),
                     )
                     healthHint?.let { hint ->
                         Text(
@@ -313,15 +337,18 @@ class FolderSelectionView(
                         )
                     }
                 }
-                IconButton(onClick = onRemove) {
-                    Icon(
-                        imageVector = Icons.Filled.Delete,
-                        contentDescription = stringResource(Res.string.cd_remove_folder),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            },
+            trailingContent = {
+                TextButton(onClick = onRemove) {
+                    Text(
+                        text = stringResource(Res.string.folders_remove_from_library),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.labelLarge,
                     )
                 }
-            }
-        }
+            },
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 
     @Composable

@@ -26,6 +26,7 @@ interface LibrarySpaceRepository {
     suspend fun addBooks(spaceId: LibrarySpace.Id, bookIds: List<Book.Id>)
     suspend fun addBooksBySubPath(spaceId: LibrarySpace.Id, subPath: String)
     suspend fun removeBook(spaceId: LibrarySpace.Id, bookId: Book.Id)
+    suspend fun removeBooksBySubPath(spaceId: LibrarySpace.Id, subPath: String)
     suspend fun getBooksGlobal(): List<Book>
 }
 
@@ -102,6 +103,13 @@ class LibrarySpaceRepositoryImpl(
 
     override suspend fun removeBook(spaceId: LibrarySpace.Id, bookId: Book.Id) {
         storage.removeBookFromSpace(spaceId, bookId)
+    }
+
+    override suspend fun removeBooksBySubPath(spaceId: LibrarySpace.Id, subPath: String) {
+        val ids = storage.getBooksInSpace(spaceId)
+            .filter { it.subPath == subPath }
+            .map { it.id }
+        ids.forEach { storage.removeBookFromSpace(spaceId, it) }
     }
 
     override suspend fun getBooksGlobal(): List<Book> = storage.getBooksGlobal()

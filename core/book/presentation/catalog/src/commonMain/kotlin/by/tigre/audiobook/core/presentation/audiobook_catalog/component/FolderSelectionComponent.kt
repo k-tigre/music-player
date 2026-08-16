@@ -16,7 +16,12 @@ import kotlinx.coroutines.launch
 
 interface FolderSelectionComponent {
 
-    val screenState: StateFlow<ScreenContentState<List<FolderSource>>>
+    data class FolderSourceRow(
+        val folder: FolderSource,
+        val bookCount: Int,
+    )
+
+    val screenState: StateFlow<ScreenContentState<List<FolderSourceRow>>>
     val catalogScanUi: StateFlow<CatalogScanUi>
     val folderAccessHealth: StateFlow<Map<FolderSource.Id, FolderSourceAccessHealth>>
 
@@ -39,10 +44,17 @@ interface FolderSelectionComponent {
 
         private val _folderAccessHealth =
             MutableStateFlow<Map<FolderSource.Id, FolderSourceAccessHealth>>(emptyMap())
+        private val _folderRows = MutableStateFlow<List<FolderSourceRow>>(emptyList())
 
         init {
             launch {
-                catalogSource.folderSources.collect {
+                catalogSource.folderSources.collect { folders ->
+                    _folderRows.value = folders.map { folder ->
+                        FolderSourceRow(
+                            folder = folder,
+                            bookCount = catalogSource.countBooksByFolderSource(folder.id),
+                        )
+                    }
                     runFolderHealthUpdate()
                 }
             }
@@ -56,13 +68,14 @@ interface FolderSelectionComponent {
 
         private val stateDelegate = ScreenContentStateDelegate(
             scope = this,
-            loadData = { catalogSource.folderSources },
-            mapDataToState = { folders ->
-                ScreenContentState.Content(folders)
+            loadData = { _folderRows },
+            mapDataToState = { rows ->
+                ScreenContentState.Content(rows)
             }
         )
 
-        override val screenState: StateFlow<ScreenContentState<List<FolderSource>>> = stateDelegate.screenState
+        override val screenState: StateFlow<ScreenContentState<List<FolderSourceRow>>> =
+            stateDelegate.screenState
         override val catalogScanUi: StateFlow<CatalogScanUi> = scanCoordinator.catalogScanUi
         override val folderAccessHealth: StateFlow<Map<FolderSource.Id, FolderSourceAccessHealth>> =
             _folderAccessHealth.asStateFlow()

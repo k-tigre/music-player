@@ -17,6 +17,7 @@ interface AudiobookCatalogSource {
     suspend fun rescanAllFolders()
 
     suspend fun getFolderSourcesList(): List<FolderSource>
+    suspend fun countBooksByFolderSource(folderSourceId: FolderSource.Id): Int
 
     suspend fun diagnoseFolderAccess(folder: FolderSource): FolderSourceAccessHealth
     suspend fun getBooks(): List<Book>
