@@ -1,5 +1,6 @@
 package by.tigre.media.platform.tools.platform.compose.view
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -29,19 +30,30 @@ fun CoverThumbnail(
         appIcon
     }
     val coilModel = rememberResolvedCoverModel(model)
+    val imageModifier = modifier
+        .size(size)
+        .clip(shape)
 
-    AsyncImage(
-        model = coilModel,
-        contentDescription = null,
-        modifier = modifier
-            .size(size)
-            .clip(shape),
-        contentScale = ContentScale.Crop,
-        placeholder = placeholder,
-        error = placeholder,
-        fallback = placeholder,
-        onError = { error ->
-            logCoverLoadError(model, error.result.throwable)
-        },
-    )
+    // Coil 3 throws NullRequestDataException if model is null; show placeholder instead.
+    if (coilModel == null) {
+        Image(
+            painter = placeholder,
+            contentDescription = null,
+            modifier = imageModifier,
+            contentScale = ContentScale.Crop,
+        )
+    } else {
+        AsyncImage(
+            model = coilModel,
+            contentDescription = null,
+            modifier = imageModifier,
+            contentScale = ContentScale.Crop,
+            placeholder = placeholder,
+            error = placeholder,
+            fallback = placeholder,
+            onError = { error ->
+                logCoverLoadError(model, error.result.throwable)
+            },
+        )
+    }
 }
