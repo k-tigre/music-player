@@ -1,6 +1,7 @@
 package by.tigre.media.platform.playback.impl
 
 import android.content.Context
+import android.os.Looper
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -20,17 +21,18 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 
 internal class PlaybackPlayerImpl(
-    context: Context,
+    private val context: Context,
     scope: CoreScope
 ) : AndroidPlaybackPlayer {
     override val state = MutableStateFlow(PlaybackPlayer.State.Idle)
@@ -93,16 +95,45 @@ internal class PlaybackPlayerImpl(
         }
     }
 
-    override val player: ExoPlayer by lazy {
+    /**
+     * ExoPlayer must be created and configured on the application (main) thread.
+     * First access may come from [Dispatchers.Default] (e.g. EQ warm-up / speed restore);
+     * without hopping to Main, Builder falls back to the main looper while the initializer
+     * still runs on the worker — and [ExoPlayer.getPlaybackParameters] then throws.
+     */
+    @Volatile
+    private var playerInstance: ExoPlayer? = null
+    private val playerLock = Any()
+
+    override val player: ExoPlayer
+        get() = playerInstance ?: ensurePlayerCreated()
+
+    private fun ensurePlayerCreated(): ExoPlayer {
+        playerInstance?.let { return it }
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            return synchronized(playerLock) {
+                playerInstance ?: createPlayer().also { playerInstance = it }
+            }
+        }
+        return runBlocking(Dispatchers.Main) {
+            synchronized(playerLock) {
+                playerInstance ?: createPlayer().also { playerInstance = it }
+            }
+        }
+    }
+
+    private fun createPlayer(): ExoPlayer {
         val audioAttributes = AudioAttributes.Builder()
             .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
             .setUsage(C.USAGE_MEDIA)
             .build()
 
-        ExoPlayer.Builder(context)
+        return ExoPlayer.Builder(context)
+            .setLooper(Looper.getMainLooper())
             .setAudioAttributes(audioAttributes, true)
             .setHandleAudioBecomingNoisy(true)
-            .build().also {
+            .build()
+            .also {
                 it.addListener(playerStateListener)
                 it.playbackParameters = it.playbackParameters.withSpeed(_playbackSpeed.value)
             }

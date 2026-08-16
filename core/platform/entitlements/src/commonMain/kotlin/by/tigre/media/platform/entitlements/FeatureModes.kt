@@ -61,6 +61,23 @@ fun resolveFeatureAccess(
 fun modeOrDefault(modes: Map<Feature, FeatureMode>, feature: Feature): FeatureMode =
     modes[feature] ?: FeatureMode.On
 
+/**
+ * Resolution for a single feature mode after Installation-ID overrides:
+ * 1. unlock allowlist → [FeatureMode.On]
+ * 2. force-paid allowlist → [FeatureMode.Paid]
+ * 3. Remote Config JSON / default on
+ */
+fun effectiveFeatureMode(
+    feature: Feature,
+    modes: Map<Feature, FeatureMode>,
+    unlocked: Boolean,
+    forcePaid: Boolean,
+): FeatureMode = when {
+    unlocked -> FeatureMode.On
+    forcePaid -> FeatureMode.Paid
+    else -> modeOrDefault(modes, feature)
+}
+
 enum class FeatureAccess {
     Allowed,
     RequiresPurchase,

@@ -25,9 +25,25 @@
     <string name="equalizer_title">Equalizer</string>
     <string name="equalizer_preset_picker">Presets</string>
     <string name="equalizer_custom">Custom</string>
+    <string name="equalizer_preset_flat">Flat</string>
+    <string name="equalizer_preset_voice">Voice</string>
+    <string name="equalizer_preset_warm">Warm</string>
+    <string name="equalizer_preset_bright">Bright</string>
+    <string name="equalizer_preset_night">Night</string>
     <string name="equalizer_unavailable">Equalizer is not available.</string>
     <string name="equalizer_app_volume">Volume</string>
     <string name="equalizer_app_volume_cd">In-app volume (does not change system volume)</string>
+    <string name="equalizer_autosave_hint">Changes are saved when you leave this screen</string>
+    <string name="equalizer_context_book">Book</string>
+    <string name="equalizer_context_folder">Series folder</string>
+    <string name="equalizer_context_album">Album</string>
+    <string name="equalizer_context_artist">Artist</string>
+    <string name="equalizer_carried_from_previous">Equalizer kept from previous</string>
+    <string name="equalizer_route_bluetooth">Headphones</string>
+    <string name="equalizer_route_speaker">Phone speaker</string>
+    <string name="equalizer_route_wired">Wired headset</string>
+    <string name="equalizer_route_other">Audio output</string>
+    <string name="equalizer_route_desktop">Computer</string>
 
     <string name="settings_title">Settings</string>
     <string name="settings_theme_mode_title">Theme</string>

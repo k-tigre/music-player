@@ -25,10 +25,26 @@
     <string name="equalizer_title">Эквалайзер</string>
     <string name="equalizer_preset_picker">Пресеты</string>
     <string name="equalizer_custom">Пользовательский</string>
+    <string name="equalizer_preset_flat">Ровный</string>
+    <string name="equalizer_preset_voice">Голос</string>
+    <string name="equalizer_preset_warm">Тёплый</string>
+    <string name="equalizer_preset_bright">Яркий</string>
+    <string name="equalizer_preset_night">Ночной</string>
     <string name="equalizer_unavailable">Эквалайзер недоступен.</string>
     <!-- Короткая подпись столбца: влезает в одну строку рядом с узкими полосами EQ -->
     <string name="equalizer_app_volume">Звук</string>
     <string name="equalizer_app_volume_cd">Громкость приложения (не системная)</string>
+    <string name="equalizer_autosave_hint">Изменения сохранятся, когда выйдете с экрана</string>
+    <string name="equalizer_context_book">Книга</string>
+    <string name="equalizer_context_folder">Папка серии</string>
+    <string name="equalizer_context_album">Альбом</string>
+    <string name="equalizer_context_artist">Артист</string>
+    <string name="equalizer_carried_from_previous">Эквалайзер оставлен как у предыдущего</string>
+    <string name="equalizer_route_bluetooth">Наушники</string>
+    <string name="equalizer_route_speaker">Динамик телефона</string>
+    <string name="equalizer_route_wired">Проводная гарнитура</string>
+    <string name="equalizer_route_other">Вывод звука</string>
+    <string name="equalizer_route_desktop">Компьютер</string>
 
     <string name="settings_title">Настройки</string>
     <string name="settings_theme_mode_title">Тема</string>

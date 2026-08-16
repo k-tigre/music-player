@@ -76,6 +76,7 @@ class MainActivity : AppCompatActivity() {
                         audiobookCatalogViewProvider = AndroidAudiobookCatalogViewProvider(),
                         catalogScanCoordinator = graph.catalogScanCoordinator,
                         billingMessages = graph.billingMessages,
+                        eqCarryNotices = graph.eqProfileController.carryForwardNotices,
                     ).Draw(Modifier)
                 }
             }

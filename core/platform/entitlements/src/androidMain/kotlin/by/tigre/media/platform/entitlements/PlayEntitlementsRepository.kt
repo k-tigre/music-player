@@ -28,6 +28,9 @@ class PlayEntitlementsRepository(
     @Volatile
     private var unlocked: Boolean = false
 
+    @Volatile
+    private var forcePaid: Boolean = false
+
     override val tier: StateFlow<Tier> = _tier.asStateFlow()
     override val ownedBasePlanIds: StateFlow<Map<String, String>> = _ownedBasePlanIds.asStateFlow()
 
@@ -37,18 +40,33 @@ class PlayEntitlementsRepository(
         resolveFeatureAccess(
             feature = feature,
             tier = _tier.value,
-            mode = modeOrDefault(featureModes, feature),
-            unlocked = unlocked,
+            mode = effectiveFeatureMode(
+                feature = feature,
+                modes = featureModes,
+                unlocked = unlocked,
+                forcePaid = forcePaid,
+            ),
+            unlocked = false, // already folded into [effectiveFeatureMode]
         )
 
     override fun playlistLimit(): Int {
-        val mode = modeOrDefault(featureModes, Feature.UnlimitedPlaylists)
+        val mode = effectiveFeatureMode(
+            feature = Feature.UnlimitedPlaylists,
+            modes = featureModes,
+            unlocked = unlocked,
+            forcePaid = forcePaid,
+        )
         val effectiveTier = limitTier(mode)
         return remoteConfig.playlistLimit(effectiveTier)
     }
 
     override fun continueListeningLimit(): Int {
-        val mode = modeOrDefault(featureModes, Feature.ContinueListeningExpanded)
+        val mode = effectiveFeatureMode(
+            feature = Feature.ContinueListeningExpanded,
+            modes = featureModes,
+            unlocked = unlocked,
+            forcePaid = forcePaid,
+        )
         val effectiveTier = limitTier(mode)
         return remoteConfig.continueListeningLimit(effectiveTier)
     }
@@ -86,6 +104,9 @@ class PlayEntitlementsRepository(
         val installationId = runCatching { fetchInstallationId() }.getOrNull()
         unlocked = installationId != null &&
             installationId in remoteConfig.unlockInstallationIds()
+        forcePaid = !unlocked &&
+            installationId != null &&
+            installationId in remoteConfig.forcePaidInstallationIds()
     }
 
     override suspend fun restore() = refresh()

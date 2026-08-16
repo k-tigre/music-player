@@ -21,6 +21,12 @@ Auto-generated from `@AnalyticsScope` annotations. Regenerate:
 | book | screen | `book_screen_playback_speed` | PlaybackSpeedSettings |  | ✓ |  |  | Playback speed settings |
 | book | screen | `book_screen_settings` | Settings |  | ✓ |  |  | App settings hub |
 | book | screen | `book_screen_theme_settings` | ThemeSettings |  | ✓ |  |  | Theme settings |
+| common | action | `common_eq_profile_deleted` | EqProfileDeleted | ✓ | ✓ | ✓ |  | EQ profile deleted |
+| common | action | `common_eq_profile_prompt_dismissed` | EqProfilePromptDismissed | ✓ | ✓ | ✓ |  | User dismissed EQ setup prompt |
+| common | action | `common_eq_profile_resolved` |  | ✓ | ✓ | ✓ |  | EQ profile resolved for current route/content (exact, carry, device_seed, none) |
+| common | action | `common_eq_profile_save_failed` | EqProfileSaveFailed | ✓ | ✓ | ✓ |  | EQ profile save failed (limit or missing content) |
+| common | action | `common_eq_profile_saved` |  | ✓ | ✓ | ✓ |  | EQ profile saved (manual autosave on leave) |
+| common | action | `common_eq_session_closed` |  | ✓ | ✓ | ✓ |  | EQ screen closed; dirty+prior auto/carry means user corrected autoset |
 | common | action | `common_feature_gate_blocked` | FeatureGateBlocked | ✓ | ✓ |  |  | Paid or unavailable feature blocked |
 | common | action | `common_nav_open_equalizer` | NavOpenEqualizer | ✓ | ✓ | ✓ |  | Open equalizer screen |
 | common | action | `common_nav_open_player` | NavOpenPlayer | ✓ | ✓ | ✓ |  | Open full player screen |

@@ -3,6 +3,9 @@ package by.tigre.music.player.desktop.di
 import by.tigre.music.player.core.data.catalog.di.CatalogModule
 import by.tigre.music.player.core.data.catalog.di.DesktopCatalogModule
 import by.tigre.media.platform.playback.di.DesktopBasePlaybackModule
+import by.tigre.media.platform.playback.eq.EqProfileController
+import by.tigre.media.platform.playback.eq.MutableEqContentKeyProvider
+import by.tigre.media.platform.player.eq.bindEqProfileAnalytics
 import by.tigre.music.player.core.data.playback.di.PlaybackModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.DesktopPlaybackQueueModule
 import by.tigre.media.platform.preferences.di.DesktopPreferencesModule
@@ -22,10 +25,11 @@ import by.tigre.media.platform.tools.analytics.music.MusicAnalyticsModuleImpl
 import by.tigre.media.platform.tools.analytics.music.MusicAnalyticsModule
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import java.io.File
 
 class DesktopApplicationGraph(
-    playbackModule: PlaybackModule,
+    private val playbackModule: PlaybackModule,
     playbackQueueModule: DesktopPlaybackQueueModule,
     private val desktopCatalogModule: DesktopCatalogModule,
     analyticsModule: MusicAnalyticsModule,
@@ -53,6 +57,9 @@ class DesktopApplicationGraph(
         get() = playlistModule.addToPlaylistCoordinator
 
     override val appPlaybackVolume = playbackModule.appPlaybackVolume
+
+    override val eqProfileController = playbackModule.eqProfileController
+    override val eqProfileRepository = playbackModule.eqProfileRepository
 
     override val basePlaybackController: BasePlaybackController by lazy {
         val controller = playbackController
@@ -96,13 +103,38 @@ class DesktopApplicationGraph(
             val desktopCatalogModule = DesktopCatalogModule(dbDir, preferencesModule.preferences)
             val coroutineModule = CoroutineModule.Impl()
             val playbackQueueModule = DesktopPlaybackQueueModule(dbDir, coroutineModule, preferencesModule)
-            val basePlaybackModule = DesktopBasePlaybackModule(preferencesModule.preferences)
+            val eqContentKeys = MutableEqContentKeyProvider()
+            val basePlaybackModule = DesktopBasePlaybackModule(
+                preferences = preferencesModule.preferences,
+                coroutineModule = coroutineModule,
+                dbDir = dbDir,
+                contentKeyProvider = eqContentKeys,
+                maxAutoProfiles = EqProfileController.MAX_AUTO_MUSIC,
+            )
             val playbackModule =
                 PlaybackModule.Impl(coroutineModule, playbackQueueModule, desktopCatalogModule, basePlaybackModule)
             val analyticsModule = MusicAnalyticsModuleImpl.create(
                 tracker = LogTracker(),
                 coroutineModule = coroutineModule,
             )
+
+            coroutineModule.scope.bindEqProfileAnalytics(
+                controller = basePlaybackModule.eqProfileController,
+                analytics = analyticsModule.eventAnalytics,
+            )
+
+            coroutineModule.scope.launch {
+                playbackModule.playbackController.currentItem.collect { song ->
+                    if (song == null) {
+                        eqContentKeys.clear()
+                    } else {
+                        eqContentKeys.setMusic(
+                            artistId = song.artistId.value,
+                            albumId = song.albumId.value,
+                        )
+                    }
+                }
+            }
 
             return DesktopApplicationGraph(
                 playbackModule = playbackModule,

@@ -47,6 +47,7 @@
     <string name="player_open_night_timer_cd">Ночной таймер</string>
     <string name="player_open_library_cd">Библиотека</string>
     <string name="player_open_equalizer_cd">Эквалайзер</string>
+    <string name="equalizer_carried_from_previous">Эквалайзер оставлен как у предыдущего</string>
     <string name="player_menu_settings">Настройки</string>
     <string name="player_menu_library">Библиотека</string>
     <string name="player_seek_back_1_minute">-1 мин</string>

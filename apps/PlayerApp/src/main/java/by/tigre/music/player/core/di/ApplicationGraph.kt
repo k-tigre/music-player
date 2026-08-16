@@ -13,6 +13,9 @@ import by.tigre.media.platform.entitlements.EntitlementsRepository
 import by.tigre.media.platform.entitlements.Feature
 import by.tigre.media.platform.entitlements.PlayEntitlementsRepository
 import by.tigre.media.platform.playback.di.AndroidBasePlaybackModule
+import by.tigre.media.platform.playback.eq.EqProfileController
+import by.tigre.media.platform.playback.eq.MutableEqContentKeyProvider
+import by.tigre.media.platform.player.eq.bindEqProfileAnalytics
 import by.tigre.music.player.core.data.playback.di.PlaybackModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.AndroidPlaybackQueueModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.PlaybackQueueModule
@@ -104,6 +107,16 @@ class ApplicationGraph(
         get() = playlistModule.addToPlaylistCoordinator
 
     override val appPlaybackVolume = playbackModule.appPlaybackVolume
+
+    override val eqProfileController = playbackModule.eqProfileController
+    override val eqProfileRepository = playbackModule.eqProfileRepository
+
+    override fun hasEqDeviceProfilesAccess(): Boolean =
+        entitlementsRepository.has(Feature.EqDeviceProfiles)
+
+    override fun requestEqDeviceProfilesPaywall() {
+        requestPaywall(Feature.EqDeviceProfiles, source = "equalizer_autosave")
+    }
 
     override fun requestPaywall(
         feature: Feature,
@@ -272,8 +285,17 @@ class ApplicationGraph(
             val catalogModule = AndroidCatalogModule(context, preferencesModule.preferences)
             val coroutineModule = CoroutineModule.Impl()
             val playbackQueueModule = AndroidPlaybackQueueModule(context, coroutineModule, preferencesModule)
+            val eqContentKeys = MutableEqContentKeyProvider()
             val basePlaybackModule =
-                AndroidBasePlaybackModule(context, coroutineModule, preferencesModule.preferences)
+                AndroidBasePlaybackModule(
+                    context,
+                    coroutineModule,
+                    preferencesModule.preferences,
+                    contentKeyProvider = eqContentKeys,
+                    maxAutoProfiles = EqProfileController.MAX_AUTO_MUSIC,
+                )
+            // Start EQ profile apply.
+            basePlaybackModule.eqProfileController
             val playbackModule =
                 PlaybackModule.Impl(coroutineModule, playbackQueueModule, catalogModule, basePlaybackModule)
 
@@ -294,6 +316,22 @@ class ApplicationGraph(
                 billingService = billingService,
                 entitlementsRepository = entitlementsRepository,
             )
+            coroutineModule.scope.bindEqProfileAnalytics(
+                controller = basePlaybackModule.eqProfileController,
+                analytics = graph.eventAnalytics,
+            )
+            coroutineModule.scope.launch {
+                playbackModule.playbackController.currentItem.collect { song ->
+                    if (song == null) {
+                        eqContentKeys.clear()
+                    } else {
+                        eqContentKeys.setMusic(
+                            artistId = song.artistId.value,
+                            albumId = song.albumId.value,
+                        )
+                    }
+                }
+            }
             coroutineModule.scope.launch {
                 var previousTier = entitlementsRepository.tier.value
                 entitlementsRepository.tier

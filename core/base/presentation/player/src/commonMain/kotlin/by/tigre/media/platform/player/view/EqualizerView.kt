@@ -23,6 +23,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -50,13 +51,30 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
+import by.tigre.media.platform.playback.eq.AudioRouteId
+import by.tigre.media.platform.playback.eq.EqContentKey
 import by.tigre.media.platform.player.component.EqualizerComponent
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.resources.Res
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_app_volume
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_app_volume_cd
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_autosave_hint
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_context_album
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_context_artist
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_context_book
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_context_folder
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_custom
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_preset_bright
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_preset_flat
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_preset_night
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_preset_picker
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_preset_voice
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_preset_warm
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_route_bluetooth
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_route_desktop
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_route_other
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_route_speaker
+import by.tigre.media.platform.tools.platform.compose.resources.equalizer_route_wired
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_title
 import by.tigre.media.platform.tools.platform.compose.resources.equalizer_unavailable
 import org.jetbrains.compose.resources.stringResource
@@ -146,17 +164,40 @@ class EqualizerView(
         val gains by component.playbackEqualizer.bandGainDb.collectAsState()
         val customIdx by component.playbackEqualizer.customPresetIndex.collectAsState()
         val gainRange by component.playbackEqualizer.bandGainRangeDb.collectAsState()
+        val profileStatus by component.profileStatus.collectAsState()
 
+        val bodyScroll = rememberScrollState()
         val presetScrollState = rememberScrollState()
         val bandsScrollState = rememberScrollState()
+
+        val routeLabel = routeLabel(profileStatus.route.kind)
+        val contentLabel = when (profileStatus.contentKind) {
+            EqContentKey.Kind.Book -> stringResource(Res.string.equalizer_context_book)
+            EqContentKey.Kind.Folder -> stringResource(Res.string.equalizer_context_folder)
+            EqContentKey.Kind.Album -> stringResource(Res.string.equalizer_context_album)
+            EqContentKey.Kind.Artist -> stringResource(Res.string.equalizer_context_artist)
+            EqContentKey.Kind.None -> null
+        }
+        val hintText = stringResource(Res.string.equalizer_autosave_hint)
 
         Column(
             modifier = modifier
                 .padding(contentPadding)
                 .fillMaxSize()
+                .verticalScroll(bodyScroll)
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            Text(
+                text = if (contentLabel != null) "$routeLabel · $contentLabel" else routeLabel,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                text = hintText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
             Text(
                 text = presetPickerTitle,
                 style = MaterialTheme.typography.titleMedium,
@@ -176,7 +217,7 @@ class EqualizerView(
                         if (index == customIdx && customPresetLabel.isNotEmpty()) {
                             customPresetLabel
                         } else {
-                            name
+                            localizedEqPresetLabel(name)
                         }
                     FilterChip(
                         selected = selected == index,
@@ -232,6 +273,15 @@ class EqualizerView(
                 }
             }
         }
+    }
+
+    @Composable
+    private fun routeLabel(kind: AudioRouteId.Kind): String = when (kind) {
+        AudioRouteId.Kind.Bluetooth -> stringResource(Res.string.equalizer_route_bluetooth)
+        AudioRouteId.Kind.Speaker -> stringResource(Res.string.equalizer_route_speaker)
+        AudioRouteId.Kind.Wired -> stringResource(Res.string.equalizer_route_wired)
+        AudioRouteId.Kind.Desktop -> stringResource(Res.string.equalizer_route_desktop)
+        AudioRouteId.Kind.Other -> stringResource(Res.string.equalizer_route_other)
     }
 
     @Composable
@@ -434,6 +484,17 @@ class EqualizerView(
         if (db >= 0f) "+%.1f".format(db).replace(",", ".")
         else "%.1f".format(db).replace(",", ".")
 }
+
+@Composable
+private fun localizedEqPresetLabel(nameOrId: String): String =
+    when (nameOrId.lowercase()) {
+        "flat" -> stringResource(Res.string.equalizer_preset_flat)
+        "voice" -> stringResource(Res.string.equalizer_preset_voice)
+        "warm" -> stringResource(Res.string.equalizer_preset_warm)
+        "bright" -> stringResource(Res.string.equalizer_preset_bright)
+        "night" -> stringResource(Res.string.equalizer_preset_night)
+        else -> nameOrId
+    }
 
 /**
  * Desktop often reports tiny [PointerInputChange.scrollDelta] per wheel notch (≈1); [ScrollState.dispatchRawDelta]

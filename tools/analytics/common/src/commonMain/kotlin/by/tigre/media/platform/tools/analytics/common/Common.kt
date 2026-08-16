@@ -134,6 +134,86 @@ object CommonEvents {
             }
         }
 
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("EQ profile saved (manual autosave on leave)")
+        data class EqProfileSaved(
+            private val target: String,
+            private val route: String,
+            private val contentKind: String = "",
+            private val seededDevice: Boolean = false,
+        ) : Action("common_eq_profile_saved"), WithPayload {
+            override val payload: Map<String, String> = buildMap {
+                put("target", target)
+                put("route", route)
+                if (contentKind.isNotEmpty()) put("content_kind", contentKind)
+                put("seeded_device", seededDevice.toString())
+            }
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("EQ profile save failed (limit or missing content)")
+        data class EqProfileSaveFailed(
+            private val reason: String,
+            private val target: String,
+        ) : Action("common_eq_profile_save_failed"), WithPayload {
+            override val payload: Map<String, String> = mapOf(
+                "reason" to reason,
+                "target" to target,
+            )
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("EQ profile deleted")
+        data object EqProfileDeleted : Action("common_eq_profile_deleted")
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("User dismissed EQ setup prompt")
+        data class EqProfilePromptDismissed(
+            private val route: String,
+        ) : Action("common_eq_profile_prompt_dismissed"), WithPayload {
+            override val payload: Map<String, String> = mapOf("route" to route)
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("EQ profile resolved for current route/content (exact, carry, device_seed, none)")
+        data class EqProfileResolved(
+            private val outcome: String,
+            private val matchLevel: String,
+            private val source: String,
+            private val routeKind: String,
+            private val contentKind: String,
+        ) : Action("common_eq_profile_resolved"), WithPayload {
+            override val payload: Map<String, String> = mapOf(
+                "outcome" to outcome,
+                "match_level" to matchLevel,
+                "source" to source,
+                "route_kind" to routeKind,
+                "content_kind" to contentKind,
+            )
+        }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK, AnalyticsApp.DESKTOP)
+        @AnalyticsDoc("EQ screen closed; dirty+prior auto/carry means user corrected autoset")
+        data class EqSessionClosed(
+            private val dirty: Boolean,
+            private val saved: String,
+            private val priorOutcome: String,
+            private val priorSource: String,
+            private val routeKind: String,
+            private val contentKind: String,
+            private val matchLevel: String,
+        ) : Action("common_eq_session_closed"), WithPayload {
+            override val payload: Map<String, String> = mapOf(
+                "dirty" to dirty.toString(),
+                "saved" to saved,
+                "prior_outcome" to priorOutcome,
+                "prior_source" to priorSource,
+                "route_kind" to routeKind,
+                "content_kind" to contentKind,
+                "match_level" to matchLevel,
+            )
+        }
+
         @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK)
         @AnalyticsDoc("Subscription tier changed")
         data class SubscriptionTierChanged(
