@@ -91,6 +91,89 @@ class AudiobookPlaybackControllerImplTest {
         waitForCondition { player.pauseCalls > 0 }
 
         assertEquals(1, player.pauseCalls)
+        assertEquals(PlaybackPlayer.State.Paused, player.state.value)
+    }
+
+    @Test
+    fun adoptActiveSpaceAfterSwitchClearsWhenNoLastBook() = runBlocking {
+        val book = testBook()
+        val chapter1 = testChapter(id = 1, bookId = book.id, title = "001", durationMs = 60_000, sort = 0)
+        val storage = FakeStorage(
+            lastBookId = book.id,
+            position = AudiobookPlaybackStorage.PlaybackPosition(chapter1.id, 10_000),
+        )
+        val controller = AudiobookPlaybackControllerImpl(
+            player = FakePlaybackPlayer(initialState = PlaybackPlayer.State.Paused, positionMs = 10_000),
+            catalog = FakeCatalog(book, listOf(chapter1)),
+            storage = storage,
+            speedPreferences = AudiobookPlaybackSpeedPreferences(FakePreferences()),
+            librarySpaceRepository = FakeSpaceRepository(),
+            scope = TestCoreScope(),
+        )
+
+        waitForCondition { controller.currentBook.value?.id == book.id }
+        storage.lastBookId = null
+
+        val restored = controller.adoptActiveSpaceAfterSwitch()
+
+        assertEquals(false, restored)
+        assertEquals(null, controller.currentBook.value)
+        assertEquals(null, controller.currentChapter.value)
+        assertTrue(controller.chapters.value.isEmpty())
+    }
+
+    @Test
+    fun adoptActiveSpaceAfterSwitchRestoresLastBook() = runBlocking {
+        val book = testBook()
+        val chapter1 = testChapter(id = 1, bookId = book.id, title = "001", durationMs = 60_000, sort = 0)
+        val storage = FakeStorage(
+            lastBookId = book.id,
+            position = AudiobookPlaybackStorage.PlaybackPosition(chapter1.id, 10_000),
+        )
+        val controller = AudiobookPlaybackControllerImpl(
+            player = FakePlaybackPlayer(initialState = PlaybackPlayer.State.Paused, positionMs = 10_000),
+            catalog = FakeCatalog(book, listOf(chapter1)),
+            storage = storage,
+            speedPreferences = AudiobookPlaybackSpeedPreferences(FakePreferences()),
+            librarySpaceRepository = FakeSpaceRepository(),
+            scope = TestCoreScope(),
+        )
+
+        waitForCondition { controller.currentBook.value?.id == book.id }
+
+        val restored = controller.adoptActiveSpaceAfterSwitch()
+
+        assertTrue(restored)
+        assertEquals(book.id, controller.currentBook.value?.id)
+        assertEquals(chapter1.id, controller.currentChapter.value?.id)
+    }
+
+    @Test
+    fun playBookWaitsForSpaceInitBeforePersistingPosition() = runBlocking {
+        val book = testBook()
+        val chapter1 = testChapter(id = 1, bookId = book.id, title = "001", durationMs = 60_000, sort = 0)
+        val realSpaceId = LibrarySpace.Id(1)
+        val spaceRepository = FakeSpaceRepository(
+            initialSpaceId = LibrarySpace.Id(0),
+            resolvedSpaceId = realSpaceId,
+        )
+        val storage = FakeStorage(lastBookId = null, position = null)
+        val player = FakePlaybackPlayer(initialState = PlaybackPlayer.State.Paused, positionMs = 5_000)
+        val controller = AudiobookPlaybackControllerImpl(
+            player = player,
+            catalog = FakeCatalog(book, listOf(chapter1)),
+            storage = storage,
+            speedPreferences = AudiobookPlaybackSpeedPreferences(FakePreferences()),
+            librarySpaceRepository = spaceRepository,
+            scope = TestCoreScope(),
+        )
+
+        controller.playBook(book)
+        waitForCondition { storage.lastSavePositionSpaceId != null }
+
+        assertEquals(realSpaceId, storage.lastSavePositionSpaceId)
+        assertEquals(realSpaceId, storage.lastSaveLastPlayedSpaceId)
+        assertTrue(spaceRepository.ensureInitializedCalls > 0)
     }
 
     private suspend fun waitForCondition(timeoutMs: Long = 1_000, condition: () -> Boolean) {
@@ -140,15 +223,21 @@ class AudiobookPlaybackControllerImplTest {
     }
 
     private class FakeStorage(
-        private val lastBookId: Book.Id?,
+        var lastBookId: Book.Id?,
         private var position: AudiobookPlaybackStorage.PlaybackPosition?,
     ) : AudiobookPlaybackStorage {
+        var lastSavePositionSpaceId: LibrarySpace.Id? = null
+            private set
+        var lastSaveLastPlayedSpaceId: LibrarySpace.Id? = null
+            private set
+
         override suspend fun savePosition(
             spaceId: LibrarySpace.Id,
             bookId: Book.Id,
             chapterId: Chapter.Id,
             positionMs: Long,
         ) {
+            lastSavePositionSpaceId = spaceId
             position = AudiobookPlaybackStorage.PlaybackPosition(chapterId, positionMs)
         }
 
@@ -164,23 +253,45 @@ class AudiobookPlaybackControllerImplTest {
             isCompleted: Boolean,
         ) = Unit
 
-        override suspend fun saveLastPlayedBook(spaceId: LibrarySpace.Id, bookId: Book.Id) = Unit
+        override suspend fun saveLastPlayedBook(spaceId: LibrarySpace.Id, bookId: Book.Id) {
+            lastSaveLastPlayedSpaceId = spaceId
+        }
 
         override suspend fun getLastPlayedBookId(spaceId: LibrarySpace.Id): Book.Id? = lastBookId
     }
 
-    private class FakeSpaceRepository : LibrarySpaceRepository {
-        private val space = LibrarySpace(
-            id = LibrarySpace.Id(1),
+    private class FakeSpaceRepository(
+        initialSpaceId: LibrarySpace.Id = LibrarySpace.Id(1),
+        private val resolvedSpaceId: LibrarySpace.Id = initialSpaceId,
+    ) : LibrarySpaceRepository {
+        private fun space(id: LibrarySpace.Id) = LibrarySpace(
+            id = id,
             name = LibrarySpace.DEFAULT_NAME,
             icon = LibrarySpace.DEFAULT_ICON,
             sortOrder = 0,
             isDefault = true,
         )
-        override val activeSpaceId = MutableStateFlow(space.id)
-        override val spaces = MutableStateFlow(listOf(space))
-        override val activeSpace = MutableStateFlow(space)
-        override suspend fun ensureInitialized() = Unit
+
+        override val activeSpaceId = MutableStateFlow(initialSpaceId)
+        override val spaces = MutableStateFlow(
+            if (initialSpaceId.value == 0L) emptyList() else listOf(space(initialSpaceId)),
+        )
+        override val activeSpace = MutableStateFlow(
+            if (initialSpaceId.value == 0L) null else space(initialSpaceId),
+        )
+
+        var ensureInitializedCalls: Int = 0
+            private set
+
+        override suspend fun ensureInitialized() {
+            ensureInitializedCalls++
+            delay(50)
+            val resolved = space(resolvedSpaceId)
+            spaces.value = listOf(resolved)
+            activeSpaceId.value = resolvedSpaceId
+            activeSpace.value = resolved
+        }
+
         override fun setActiveSpace(id: LibrarySpace.Id) = Unit
         override suspend fun refreshSpaces() = Unit
         override suspend fun createSpace(name: String, icon: String): LibrarySpace.Id? = null

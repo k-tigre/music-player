@@ -1,6 +1,9 @@
 package by.tigre.audiobook.presentation.root.component
 
 import android.app.Activity
+import by.tigre.audiobook.core.data.audiobook.spaces.LibrarySpaceRepository
+import by.tigre.audiobook.core.data.audiobook_playback.AudiobookPlaybackController
+import by.tigre.audiobook.core.entity.catalog.LibrarySpace
 import by.tigre.audiobook.core.presentation.audiobook_catalog.component.RootAudiobookCatalogComponent
 import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalogComponentProvider
 import by.tigre.audiobook.core.presentation.audiobook_catalog.navigation.OnBookSelectedListener
@@ -48,6 +51,7 @@ interface Root {
 
     val showGettingStartedGuide: StateFlow<Boolean>
     val paywallComponent: StateFlow<PaywallComponent?>
+    val spaceSheetVisible: StateFlow<Boolean>
 
     val mainComponent: Value<ChildStack<*, MainComponentChild>>
 
@@ -62,6 +66,16 @@ interface Root {
     fun onOpenPlaybackSpeedSettings()
 
     fun onClosePlaybackSpeedSettings()
+
+    fun onSpaceChipClicked()
+
+    fun dismissSpaceSheet()
+
+    fun onSpaceSelected(spaceId: LibrarySpace.Id)
+
+    fun onCreateSpaceClicked()
+
+    fun onConfirmCreateSpace(name: String)
 
     fun dismissGettingStartedGuide()
 
@@ -85,6 +99,8 @@ interface Root {
         private val eventAnalytics: BookEventAnalytics,
         private val audiobookGuideSettings: AudiobookGuideSettings,
         private val entitlementsRepository: EntitlementsRepository,
+        private val librarySpaceRepository: LibrarySpaceRepository,
+        private val audiobookPlaybackController: AudiobookPlaybackController,
         private val onPaywallRequest: (Feature) -> Unit,
         private val paywallRequests: Flow<PaywallRequest>,
         private val activity: Activity,
@@ -100,6 +116,9 @@ interface Root {
 
         private val paywallComponentState = MutableStateFlow<PaywallComponent?>(null)
         override val paywallComponent: StateFlow<PaywallComponent?> = paywallComponentState.asStateFlow()
+
+        private val spaceSheetVisibleState = MutableStateFlow(false)
+        override val spaceSheetVisible: StateFlow<Boolean> = spaceSheetVisibleState.asStateFlow()
 
         private val mainNavigation = StackNavigation<MainConfig>()
 
@@ -217,6 +236,58 @@ interface Root {
 
         override fun onClosePlaybackSpeedSettings() {
             mainNavigation.pop()
+        }
+
+        override fun onSpaceChipClicked() {
+            spaceSheetVisibleState.value = true
+        }
+
+        override fun dismissSpaceSheet() {
+            spaceSheetVisibleState.value = false
+        }
+
+        override fun onSpaceSelected(spaceId: LibrarySpace.Id) {
+            applySpaceSwitch(spaceId)
+        }
+
+        override fun onCreateSpaceClicked() {
+            when (entitlementsRepository.access(Feature.BookSpaces)) {
+                FeatureAccess.Allowed -> Unit
+                FeatureAccess.RequiresPurchase -> {
+                    spaceSheetVisibleState.value = false
+                    onPaywallRequest(Feature.BookSpaces)
+                }
+                FeatureAccess.Unavailable -> spaceSheetVisibleState.value = false
+            }
+        }
+
+        override fun onConfirmCreateSpace(name: String) {
+            launch {
+                val id = librarySpaceRepository.createSpace(name = name.trim().ifBlank { "Kids" })
+                if (id != null) {
+                    applySpaceSwitch(id)
+                } else if (entitlementsRepository.access(Feature.BookSpaces) ==
+                    FeatureAccess.RequiresPurchase
+                ) {
+                    onPaywallRequest(Feature.BookSpaces)
+                }
+            }
+        }
+
+        private fun applySpaceSwitch(spaceId: LibrarySpace.Id) {
+            val previous = librarySpaceRepository.activeSpaceId.value
+            if (previous == spaceId) {
+                spaceSheetVisibleState.value = false
+                return
+            }
+            librarySpaceRepository.setActiveSpace(spaceId)
+            spaceSheetVisibleState.value = false
+            if (librarySpaceRepository.activeSpaceId.value == previous) return
+            launch {
+                if (!audiobookPlaybackController.adoptActiveSpaceAfterSwitch()) {
+                    onShowCatalog()
+                }
+            }
         }
 
         override fun dismissGettingStartedGuide() {

@@ -46,6 +46,8 @@ class MainActivity : AppCompatActivity() {
             eventAnalytics = graph.eventAnalytics,
             audiobookGuideSettings = graph.audiobookGuideSettings,
             entitlementsRepository = graph.entitlementsRepository,
+            librarySpaceRepository = graph.librarySpaceRepository,
+            audiobookPlaybackController = graph.audiobookPlaybackController,
             onPaywallRequest = graph::requestPaywall,
             paywallRequests = graph.paywallRequests,
             activity = this,

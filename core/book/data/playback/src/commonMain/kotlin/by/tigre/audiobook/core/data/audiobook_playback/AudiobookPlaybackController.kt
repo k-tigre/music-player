@@ -37,4 +37,13 @@ interface AudiobookPlaybackController {
      * Does not apply the “rewind after pause” logic used for normal pause/resume.
      */
     suspend fun endPlaybackForNightTimer(rewindMs: Long?)
+
+    /**
+     * Call after the active library space has changed.
+     * Saves the previous session, clears playback, then restores the last book of the new space.
+     *
+     * @return `true` if a book was loaded for the new space; `false` if there is nothing to resume
+     * (caller should open the catalog).
+     */
+    suspend fun adoptActiveSpaceAfterSwitch(): Boolean
 }

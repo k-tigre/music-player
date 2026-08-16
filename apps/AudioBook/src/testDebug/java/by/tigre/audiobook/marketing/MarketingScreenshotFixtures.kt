@@ -208,6 +208,7 @@ object MarketingScreenshotFixtures {
             override fun resetPlaybackSpeed() = Unit
             override fun persistPlaybackPositionAfterSeek(positionMs: Long) = Unit
             override suspend fun endPlaybackForNightTimer(rewindMs: Long?) = Unit
+            override suspend fun adoptActiveSpaceAfterSwitch(): Boolean = false
         }
     }
 

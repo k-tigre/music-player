@@ -49,6 +49,7 @@ import by.tigre.audiobook.core.presentation.audiobook_catalog.di.AudiobookCatalo
 import by.tigre.audiobook.core.presentation.audiobook_catalog.scan.CatalogScanCoordinator
 import by.tigre.audiobook.core.presentation.audiobook_catalog.view.AudiobookChapterSelector
 import by.tigre.audiobook.core.presentation.audiobook_catalog.view.CatalogScanProgressBanner
+import by.tigre.audiobook.core.presentation.audiobook_catalog.view.LibrarySpaceSwitcherSheet
 import by.tigre.audiobook.core.presentation.audiobook_catalog.view.formatCatalogScanSummary
 import by.tigre.audiobook.nighttimer.NightTimerController
 import by.tigre.audiobook.nighttimer.NightTimerSettingsScreen
@@ -159,6 +160,7 @@ class RootView(
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
             DrawGettingStartedGuide()
+            DrawSpaceSwitcherSheet()
             paywallComponent?.let { paywall ->
                 PaywallView(paywall, paywall.initialSection).Draw(Modifier)
             }
@@ -217,7 +219,7 @@ class RootView(
                                     onOpenPlaybackSpeedSettings = component::onOpenPlaybackSpeedSettings,
                                     onShowEqualizer = child.component::showEqualizer,
                                     spaceChipLabel = activeSpace?.name.takeIf { showSpaceChip },
-                                    onSpaceChipClick = component::onShowCatalog.takeIf { showSpaceChip },
+                                    onSpaceChipClick = component::onSpaceChipClicked.takeIf { showSpaceChip },
                                 )
                             },
                         ).Draw(Modifier.fillMaxSize())
@@ -296,6 +298,27 @@ class RootView(
                 },
             )
         }
+    }
+
+    @Composable
+    private fun DrawSpaceSwitcherSheet() {
+        val spaceSheetVisible by component.spaceSheetVisible.collectAsState()
+        if (!spaceSheetVisible) return
+
+        val spaces by librarySpaceRepository.spaces.collectAsState()
+        val activeSpace by librarySpaceRepository.activeSpace.collectAsState()
+        val canManageSpaces =
+            entitlementsRepository.access(Feature.BookSpaces) == FeatureAccess.Allowed
+
+        LibrarySpaceSwitcherSheet(
+            spaces = spaces,
+            activeSpaceId = activeSpace?.id,
+            canManageSpaces = canManageSpaces,
+            onDismiss = component::dismissSpaceSheet,
+            onSpaceSelected = component::onSpaceSelected,
+            onCreateSpaceClicked = component::onCreateSpaceClicked,
+            onConfirmCreateSpace = component::onConfirmCreateSpace,
+        )
     }
 
     @Composable

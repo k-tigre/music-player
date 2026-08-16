@@ -70,30 +70,20 @@ import by.tigre.audiobook.core.presentation.catalog.resources.continue_listening
 import by.tigre.audiobook.core.presentation.catalog.resources.folder_group_books_count
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_add_books
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_add_folder
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_add_selected
-import by.tigre.audiobook.core.presentation.catalog.resources.library_space_create
-import by.tigre.audiobook.core.presentation.catalog.resources.library_space_create_upsell
-import by.tigre.audiobook.core.presentation.catalog.resources.library_space_create_upsell_hint
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_edit_cd
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_edit_done
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_edit_hint
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_edit_title
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_empty_hint
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_empty_title
-import by.tigre.audiobook.core.presentation.catalog.resources.library_space_kids_suggestion
-import by.tigre.audiobook.core.presentation.catalog.resources.library_space_new_name_hint
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_picker_empty
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_picker_title
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_remove_cd
 import by.tigre.audiobook.core.presentation.catalog.resources.library_space_root_folder
-import by.tigre.audiobook.core.presentation.catalog.resources.library_spaces_sheet_title
 import by.tigre.media.platform.presentation.ScreenContentState
 import by.tigre.media.platform.tools.platform.compose.ComposableView
 import by.tigre.media.platform.tools.platform.compose.appTopBarWindowInsets
@@ -185,7 +175,15 @@ class BookListView(
                 if (spaceSheetVisible) {
                     val sheetContent = (screenState as? ScreenContentState.Content)?.value
                     if (sheetContent != null) {
-                        SpaceSwitcherSheet(sheetContent)
+                        LibrarySpaceSwitcherSheet(
+                            spaces = sheetContent.spaces,
+                            activeSpaceId = sheetContent.activeSpace?.id,
+                            canManageSpaces = sheetContent.canManageSpaces,
+                            onDismiss = component::dismissSpaceSheet,
+                            onSpaceSelected = component::onSpaceSelected,
+                            onCreateSpaceClicked = component::onCreateSpaceClicked,
+                            onConfirmCreateSpace = component::onConfirmCreateSpace,
+                        )
                     }
                 }
                 if (addBooksSheetVisible) {
@@ -371,92 +369,6 @@ class BookListView(
                     }
                 }
             }
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    private fun SpaceSwitcherSheet(state: BookListComponent.BookListUiState) {
-        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        var creating by remember { mutableStateOf(false) }
-        var name by remember { mutableStateOf("") }
-        ModalBottomSheet(
-            onDismissRequest = component::dismissSpaceSheet,
-            sheetState = sheetState,
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .padding(bottom = 24.dp),
-            ) {
-                Text(
-                    text = stringResource(Res.string.library_spaces_sheet_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 12.dp),
-                )
-                state.spaces.forEach { space ->
-                    val selected = space.id == state.activeSpace?.id
-                    Text(
-                        text = space.name,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { component.onSpaceSelected(space.id) }
-                            .padding(vertical = 12.dp),
-                    )
-                }
-                if (creating && state.canManageSpaces) {
-                    OutlinedTextField(
-                        value = name,
-                        onValueChange = { name = it },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        label = { Text(stringResource(Res.string.library_space_new_name_hint)) },
-                        placeholder = { Text(stringResource(Res.string.library_space_kids_suggestion)) },
-                        singleLine = true,
-                    )
-                    val kidsSuggestion = stringResource(Res.string.library_space_kids_suggestion)
-                    TextButton(
-                        onClick = {
-                            component.onConfirmCreateSpace(name.ifBlank { kidsSuggestion })
-                            creating = false
-                        },
-                    ) {
-                        Text(stringResource(Res.string.library_space_create))
-                    }
-                } else {
-                    TextButton(
-                        onClick = {
-                            if (state.canManageSpaces) {
-                                creating = true
-                                name = ""
-                            } else {
-                                component.onCreateSpaceClicked()
-                            }
-                        },
-                        modifier = Modifier.padding(top = 8.dp),
-                    ) {
-                        Text(
-                            text = stringResource(
-                                if (state.canManageSpaces) Res.string.library_space_create
-                                else Res.string.library_space_create_upsell,
-                            ),
-                        )
-                    }
-                    if (!state.canManageSpaces) {
-                        Text(
-                            text = stringResource(Res.string.library_space_create_upsell_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 4.dp),
-                        )
-                    }
-                }
-            }
-        }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)

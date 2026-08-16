@@ -125,7 +125,7 @@ internal class AudiobookPlaybackControllerImpl(
     override fun playBookChapter(bookId: Book.Id, chapterId: Chapter.Id) {
         Log.d(TAG) { "playBookChapter: bookId=$bookId chapterId=$chapterId" }
         scope.launch {
-            launchSpaceId = librarySpaceRepository.activeSpaceId.value
+            val spaceId = resolveLaunchSpaceId()
             val book = catalog.getBook(bookId) ?: return@launch
             val chapterList = catalog.getChapters(bookId)
             val chapter = chapterList.firstOrNull { it.id == chapterId } ?: return@launch
@@ -135,7 +135,7 @@ internal class AudiobookPlaybackControllerImpl(
             currentBook.value = book
             loadCanonicalListenedMs = null
             mayPersistBelowCanonical = false
-            storage.saveLastPlayedBook(spaceId(), book.id)
+            storage.saveLastPlayedBook(spaceId, book.id)
             setChapter(chapter, 0L)
             isPlaying.value = true
             applyRewindBeforePlaybackResume()
@@ -145,7 +145,7 @@ internal class AudiobookPlaybackControllerImpl(
     }
 
     private suspend fun loadBookInternal(book: Book, autoPlay: Boolean) {
-        launchSpaceId = librarySpaceRepository.activeSpaceId.value
+        val spaceId = resolveLaunchSpaceId()
         val chapterList = catalog.getChapters(book.id)
         if (chapterList.isEmpty()) {
             Log.w(TAG) { "No chapters for book: ${book.title}" }
@@ -156,7 +156,7 @@ internal class AudiobookPlaybackControllerImpl(
         chapters.value = chapterList
         currentBook.value = book
 
-        val savedPosition = storage.getPosition(spaceId(), book.id)
+        val savedPosition = storage.getPosition(spaceId, book.id)
         val startChapter = if (savedPosition != null) {
             chapterList.firstOrNull { it.id == savedPosition.chapterId } ?: chapterList.first()
         } else {
@@ -167,7 +167,7 @@ internal class AudiobookPlaybackControllerImpl(
         setChapter(startChapter, startPosition)
         loadCanonicalListenedMs = null
         mayPersistBelowCanonical = false
-        storage.saveLastPlayedBook(spaceId(), book.id)
+        storage.saveLastPlayedBook(spaceId, book.id)
 
         if (autoPlay) {
             isPlaying.value = true
@@ -176,14 +176,29 @@ internal class AudiobookPlaybackControllerImpl(
         }
     }
 
-    private suspend fun restoreLastPlayedBook() {
-        librarySpaceRepository.ensureInitialized()
-        val spaceId = librarySpaceRepository.activeSpaceId.value
-        launchSpaceId = spaceId
-        val bookId = storage.getLastPlayedBookId(spaceId) ?: return
-        val book = catalog.getBook(bookId) ?: return
+    private suspend fun restoreLastPlayedBook(): Boolean {
+        val spaceId = resolveLaunchSpaceId()
+        val bookId = storage.getLastPlayedBookId(spaceId) ?: return false
+        val book = catalog.getBook(bookId) ?: return false
         Log.d(TAG) { "Restoring last played book: ${book.title}" }
         loadBookInternal(book, autoPlay = false)
+        return true
+    }
+
+    override suspend fun adoptActiveSpaceAfterSwitch(): Boolean {
+        Log.d(TAG) { "adoptActiveSpaceAfterSwitch launchSpaceId=$launchSpaceId" }
+        saveCurrentPosition()
+        clearPauseRewindState()
+        loadCanonicalListenedMs = null
+        mayPersistBelowCanonical = false
+        dismissBookFinishedBanner()
+        isPlaying.value = false
+        player.stop()
+        currentBook.value = null
+        currentChapter.value = null
+        chapters.value = emptyList()
+        launchSpaceId = null
+        return restoreLastPlayedBook()
     }
 
     override fun playNextChapter() {
@@ -613,8 +628,20 @@ internal class AudiobookPlaybackControllerImpl(
         Log.d(TAG) { "Marked book as completed: ${book.title}" }
     }
 
-    private fun spaceId(): LibrarySpace.Id =
-        launchSpaceId ?: librarySpaceRepository.activeSpaceId.value
+    /** Awaits space init so we never persist with placeholder id `0` (FK on SpacePlaybackPosition). */
+    private suspend fun resolveLaunchSpaceId(): LibrarySpace.Id {
+        librarySpaceRepository.ensureInitialized()
+        val active = librarySpaceRepository.activeSpaceId.value
+        val launch = launchSpaceId
+        val resolved = when {
+            launch != null && launch.value != 0L -> launch
+            else -> active
+        }
+        launchSpaceId = resolved
+        return resolved
+    }
+
+    private suspend fun spaceId(): LibrarySpace.Id = resolveLaunchSpaceId()
 
     private fun dismissBookFinishedBanner() {
         bookFinishedBannerVisible.value = false

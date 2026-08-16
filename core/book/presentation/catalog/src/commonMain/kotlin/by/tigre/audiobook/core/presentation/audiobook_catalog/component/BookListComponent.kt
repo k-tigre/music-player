@@ -240,9 +240,7 @@ interface BookListComponent {
         }
 
         override fun onSpaceSelected(spaceId: LibrarySpace.Id) {
-            spaceRepository.setActiveSpace(spaceId)
-            editMembershipState.value = false
-            spaceSheetVisible.value = false
+            applySpaceSwitch(spaceId)
         }
 
         override fun onCreateSpaceClicked() {
@@ -260,14 +258,28 @@ interface BookListComponent {
             launch {
                 val id = spaceRepository.createSpace(name = name.trim().ifBlank { "Kids" })
                 if (id != null) {
-                    spaceRepository.setActiveSpace(id)
-                    editMembershipState.value = false
-                    spaceSheetVisible.value = false
+                    applySpaceSwitch(id)
                 } else if (entitlementsRepository.access(Feature.BookSpaces) ==
                     FeatureAccess.RequiresPurchase
                 ) {
                     requestPaywall(Feature.BookSpaces, "library_spaces_limit")
                 }
+            }
+        }
+
+        private fun applySpaceSwitch(spaceId: LibrarySpace.Id) {
+            val previous = spaceRepository.activeSpaceId.value
+            if (previous == spaceId) {
+                editMembershipState.value = false
+                spaceSheetVisible.value = false
+                return
+            }
+            spaceRepository.setActiveSpace(spaceId)
+            editMembershipState.value = false
+            spaceSheetVisible.value = false
+            if (spaceRepository.activeSpaceId.value == previous) return
+            launch {
+                playbackController.adoptActiveSpaceAfterSwitch()
             }
         }
 
