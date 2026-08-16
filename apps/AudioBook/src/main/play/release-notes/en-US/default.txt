@@ -1,2 +1,5 @@
-• Optional Plus/Pro subscriptions: advanced sleep timer and equalizer (Plus), home widget (Pro); library and playback stay free
-• Soft paywall, restore purchases, and tip jar in Settings
+• Library Spaces (Pro): separate book collections, switch without stopping playback
+• Equalizer profiles per device and content type with autosave
+• Up to 3 custom equalizer presets with rename
+• More reliable purchases when the store is unavailable
+• More reliable cover display when artwork is missing

@@ -1,3 +1,4 @@
-• Optional Plus/Pro subscriptions: more user playlists and equalizer (Plus), home widget (Pro); catalog, queue, and player stay free
-• Soft paywall, restore purchases, and tip jar in Settings
-• Faster artist list loading in the catalog
+• Equalizer profiles per device and content type with autosave
+• Up to 3 custom equalizer presets with rename
+• More reliable purchases when the store is unavailable
+• Fixed catalog crashes with null artist names and missing MediaStore volumes

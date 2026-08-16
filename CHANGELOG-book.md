@@ -3,6 +3,21 @@
 Формат: секция `## [X.Y.Z]` с подсекциями `### RU` и `### EN` (списки `- …`).
 Перед релизом заполните секцию для новой версии, запустите `.\scripts\prepare-release.ps1 book X.Y.Z`, закоммитьте и создайте тег `v.b.X.Y.Z`.
 
+## [1.0.0] - 2026-08-16
+### RU
+- Библиотечные пространства (Pro): отдельные подборки книг, переключение без остановки воспроизведения
+- Профили эквалайзера по устройству и типу контента с автосохранением
+- До 3 пользовательских пресетов эквалайзера с переименованием
+- Устойчивее работа покупок, если магазин недоступен
+- Надёжнее отображение обложек без изображения
+
+### EN
+- Library Spaces (Pro): separate book collections, switch without stopping playback
+- Equalizer profiles per device and content type with autosave
+- Up to 3 custom equalizer presets with rename
+- More reliable purchases when the store is unavailable
+- More reliable cover display when artwork is missing
+
 ## [0.9.0] - 2026-08-07
 ### RU
 - Опциональные подписки Plus/Pro: расширенный ночной таймер и эквалайзер (Plus), виджет (Pro); библиотека и воспроизведение остаются бесплатными

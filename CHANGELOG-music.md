@@ -3,6 +3,19 @@
 Формат: секция `## [X.Y.Z]` с подсекциями `### RU` и `### EN` (списки `- …`).
 Перед релизом заполните секцию для новой версии, запустите `.\scripts\prepare-release.ps1 music X.Y.Z`, закоммитьте и создайте тег `v.m.X.Y.Z`.
 
+## [1.0.0] - 2026-08-16
+### RU
+- Профили эквалайзера по устройству и типу контента с автосохранением
+- До 3 пользовательских пресетов эквалайзера с переименованием
+- Устойчивее работа покупок, если магазин недоступен
+- Исправлены краши каталога при пустых именах исполнителей и отсутствующем томе MediaStore
+
+### EN
+- Equalizer profiles per device and content type with autosave
+- Up to 3 custom equalizer presets with rename
+- More reliable purchases when the store is unavailable
+- Fixed catalog crashes with null artist names and missing MediaStore volumes
+
 ## [0.23.0] - 2026-08-07
 ### RU
 - Опциональные подписки Plus/Pro: больше пользовательских плейлистов и эквалайзер (Plus), виджет (Pro); каталог, очередь и плеер остаются бесплатными
