@@ -3,6 +3,8 @@ package by.tigre.music.player.desktop.di
 import by.tigre.music.player.core.data.catalog.di.CatalogModule
 import by.tigre.music.player.core.data.catalog.di.DesktopCatalogModule
 import by.tigre.media.platform.playback.di.DesktopBasePlaybackModule
+import by.tigre.media.platform.playback.eq.EqProfileController
+import by.tigre.media.platform.playback.eq.MutableEqContentKeyProvider
 import by.tigre.music.player.core.data.playback.di.PlaybackModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.DesktopPlaybackQueueModule
 import by.tigre.media.platform.preferences.di.DesktopPreferencesModule
@@ -22,6 +24,7 @@ import by.tigre.media.platform.tools.analytics.music.MusicAnalyticsModuleImpl
 import by.tigre.media.platform.tools.analytics.music.MusicAnalyticsModule
 import by.tigre.media.platform.tools.coroutines.CoroutineModule
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import java.io.File
 
 class DesktopApplicationGraph(
@@ -99,10 +102,13 @@ class DesktopApplicationGraph(
             val desktopCatalogModule = DesktopCatalogModule(dbDir, preferencesModule.preferences)
             val coroutineModule = CoroutineModule.Impl()
             val playbackQueueModule = DesktopPlaybackQueueModule(dbDir, coroutineModule, preferencesModule)
+            val eqContentKeys = MutableEqContentKeyProvider()
             val basePlaybackModule = DesktopBasePlaybackModule(
                 preferences = preferencesModule.preferences,
                 coroutineModule = coroutineModule,
                 dbDir = dbDir,
+                contentKeyProvider = eqContentKeys,
+                maxAutoProfiles = EqProfileController.MAX_AUTO_MUSIC,
             )
             val playbackModule =
                 PlaybackModule.Impl(coroutineModule, playbackQueueModule, desktopCatalogModule, basePlaybackModule)
@@ -110,6 +116,19 @@ class DesktopApplicationGraph(
                 tracker = LogTracker(),
                 coroutineModule = coroutineModule,
             )
+
+            coroutineModule.scope.launch {
+                playbackModule.playbackController.currentItem.collect { song ->
+                    if (song == null) {
+                        eqContentKeys.clear()
+                    } else {
+                        eqContentKeys.setMusic(
+                            artistId = song.artistId.value,
+                            albumId = song.albumId.value,
+                        )
+                    }
+                }
+            }
 
             return DesktopApplicationGraph(
                 playbackModule = playbackModule,

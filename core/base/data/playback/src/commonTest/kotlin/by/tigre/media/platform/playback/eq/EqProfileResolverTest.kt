@@ -21,6 +21,7 @@ class EqProfileResolverTest {
         gainsDb = listOf(1f, 0f),
         title = null,
         updatedAtMs = id,
+        source = EqProfileSource.Manual,
     )
 
     @Test
@@ -61,6 +62,23 @@ class EqProfileResolverTest {
     }
 
     @Test
+    fun prefersAlbumOverArtistOverDevice() {
+        val profiles = listOf(
+            profile(1, bt, EqContentKey.None),
+            profile(2, bt, EqContentKey.Artist(7)),
+            profile(3, bt, EqContentKey.Album(99)),
+        )
+        val result = EqProfileResolver.resolveForMusic(
+            profiles = profiles,
+            route = bt,
+            albumId = 99,
+            artistId = 7,
+        )
+        assertEquals(EqMatchLevel.Album, result.matchLevel)
+        assertEquals(3L, result.profile?.id)
+    }
+
+    @Test
     fun noMatchOnDifferentRoute() {
         val profiles = listOf(profile(1, bt, EqContentKey.None))
         val result = EqProfileResolver.resolve(profiles, speaker, EqContentKey.None)
@@ -74,5 +92,7 @@ class EqProfileResolverTest {
         val parsed = EqContentKey.fromStorage(folder.kind, folder.storageKey)
         assertEquals(folder, parsed)
         assertEquals(EqContentKey.Book(5), EqContentKey.fromStorage(EqContentKey.Kind.Book, "5"))
+        assertEquals(EqContentKey.Album(9), EqContentKey.fromStorage(EqContentKey.Kind.Album, "9"))
+        assertEquals(EqContentKey.Artist(3), EqContentKey.fromStorage(EqContentKey.Kind.Artist, "3"))
     }
 }

@@ -76,4 +76,5 @@
     <string name="billing_restore_failed">Could not restore purchases</string>
     <string name="billing_purchase_failed">Purchase could not be completed</string>
     <string name="billing_tip_thanks">Thank you for your support!</string>
+    <string name="equalizer_carried_from_previous">Equalizer kept from previous</string>
 </resources>

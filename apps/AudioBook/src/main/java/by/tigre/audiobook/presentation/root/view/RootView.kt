@@ -76,6 +76,7 @@ class RootView(
     private val audiobookCatalogViewProvider: AudiobookCatalogViewProvider,
     private val catalogScanCoordinator: CatalogScanCoordinator,
     private val billingMessages: Flow<Int>,
+    private val eqCarryNotices: Flow<*>,
 ) : ComposableView {
 
     @Composable
@@ -123,6 +124,13 @@ class RootView(
         LaunchedEffect(billingMessages) {
             billingMessages.collect { messageRes ->
                 snackbarHostState.showSnackbar(context.getString(messageRes))
+            }
+        }
+
+        val eqCarriedMessage = stringResource(R.string.equalizer_carried_from_previous)
+        LaunchedEffect(eqCarryNotices) {
+            eqCarryNotices.collect {
+                snackbarHostState.showSnackbar(eqCarriedMessage)
             }
         }
 

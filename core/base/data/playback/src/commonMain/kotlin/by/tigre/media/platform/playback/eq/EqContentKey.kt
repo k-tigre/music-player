@@ -1,8 +1,8 @@
 package by.tigre.media.platform.playback.eq
 
 /**
- * Optional content scope for an EQ profile. Music v1 always uses [None].
- * Book v1 uses [Book] / [Folder] from catalog path grouping (`subPath`).
+ * Optional content scope for an EQ profile.
+ * Music uses [Album] / [Artist]; Book uses [Book] / [Folder].
  */
 sealed class EqContentKey {
     abstract val kind: Kind
@@ -31,10 +31,22 @@ sealed class EqContentKey {
         override val storageKey: String = "$folderUri\n$subPath"
     }
 
+    data class Album(val albumId: Long) : EqContentKey() {
+        override val kind: Kind = Kind.Album
+        override val storageKey: String = albumId.toString()
+    }
+
+    data class Artist(val artistId: Long) : EqContentKey() {
+        override val kind: Kind = Kind.Artist
+        override val storageKey: String = artistId.toString()
+    }
+
     enum class Kind(val storageName: String) {
         None("none"),
         Book("book"),
         Folder("folder"),
+        Album("album"),
+        Artist("artist"),
         ;
 
         companion object {
@@ -57,6 +69,14 @@ sealed class EqContentKey {
                 } else {
                     Folder(key.substring(0, nl), key.substring(nl + 1))
                 }
+            }
+            Kind.Album -> {
+                val id = key.toLongOrNull()
+                if (id == null) None else Album(id)
+            }
+            Kind.Artist -> {
+                val id = key.toLongOrNull()
+                if (id == null) None else Artist(id)
             }
         }
     }

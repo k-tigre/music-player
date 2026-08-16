@@ -90,6 +90,7 @@ class RootView(
     private val addToPlaylistCoordinator: AddToPlaylistCoordinator,
     private val eventAnalytics: MusicEventAnalytics,
     private val billingMessages: kotlinx.coroutines.flow.Flow<Int>,
+    private val eqCarryNotices: kotlinx.coroutines.flow.Flow<*>,
 ) : ComposableView {
 
     @OptIn(ExperimentalPermissionsApi::class)
@@ -125,6 +126,13 @@ class RootView(
         LaunchedEffect(billingMessages) {
             billingMessages.collect { messageRes ->
                 snackbarHostState.showSnackbar(context.getString(messageRes))
+            }
+        }
+
+        val eqCarriedMessage = stringResource(R.string.equalizer_carried_from_previous)
+        LaunchedEffect(eqCarryNotices) {
+            eqCarryNotices.collect {
+                snackbarHostState.showSnackbar(eqCarriedMessage)
             }
         }
 

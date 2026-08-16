@@ -8,27 +8,23 @@ import androidx.media3.exoplayer.ExoPlayer
 import by.tigre.logger.Log
 import by.tigre.media.platform.playback.AndroidPlaybackPlayer
 import by.tigre.media.platform.playback.PlaybackEqualizer
+import by.tigre.media.platform.playback.eq.EqGainInterpolation
+import by.tigre.media.platform.playback.eq.EqPresetSource
+import by.tigre.media.platform.playback.eq.UiEqConfig
 import by.tigre.media.platform.playback.prefs.EqualizerPreferences
-import by.tigre.media.platform.playback.prefs.alignGainsToBandCount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.runBlocking
-import kotlin.math.ln
 
 internal class AndroidPlaybackEqualizer(
     private val androidPlaybackPlayer: AndroidPlaybackPlayer,
     private val equalizerPrefs: EqualizerPreferences,
+    private val uiEqConfig: UiEqConfig = UiEqConfig.musicDefault(),
 ) : PlaybackEqualizer {
 
-    /**
-     * UI band centers (Hz), mapped to/from device bands via log-frequency interpolation.
-     * Must match [by.tigre.media.platform.playback.impl.dsp.DesktopEqualizerPresets.bandCentersHz].
-     */
-    private val uiBandCentersHz = floatArrayOf(
-        32f, 64f, 125f, 250f, 500f, 1000f, 2000f, 4000f, 8000f, 16000f, 20000f,
-    )
+    private val uiBandCentersHz: FloatArray = uiEqConfig.bandCentersHz
 
     private val _available = MutableStateFlow(false)
     override val isAvailable: StateFlow<Boolean> = _available.asStateFlow()
@@ -96,56 +92,95 @@ internal class AndroidPlaybackEqualizer(
         try {
             val eq = Equalizer(0, audioSessionId)
             eq.enabled = true
-            val n = eq.numberOfPresets.toInt()
-            if (n <= 0) {
-                eq.release()
-                clearUnavailable()
-                return
+            when (val source = uiEqConfig.presetSource) {
+                is EqPresetSource.HardwareFactory -> attachHardwareFactory(eq)
+                is EqPresetSource.Defined -> attachDefinedPresets(eq, source)
             }
-            equalizer = eq
-            factoryPresetCount = n
-            val bandCount = eq.numberOfBands.toInt()
-            if (bandCount <= 0) {
-                eq.release()
-                equalizer = null
-                clearUnavailable()
-                return
-            }
-
-            hardwareBandCentersHz = FloatArray(bandCount) { b ->
-                eq.getCenterFreq(b.toShort()) / 1000f
-            }
-
-            val range = eq.bandLevelRange
-            val minMb = range[0].toInt()
-            val maxMb = range[1].toInt()
-            _bandGainRangeDb.value = minMb / 100f to maxMb / 100f
-
-            _bandCenterHz.value = uiBandCentersHz.toList()
-
-            _presetNames.value = List(n) { i -> eq.getPresetName(i.toShort()) } + "Custom"
-            _customPresetIndex.value = n
-
-            _available.value = true
-            val customUiIdx = n
-            val savedIndex = equalizerPrefs.loadSelectedPresetIndex(0).coerceIn(0, customUiIdx)
-            _selected.value = savedIndex
-
-            if (savedIndex < n) {
-                eq.usePreset(savedIndex.toShort())
-                val hwGains = readHardwareGains(eq, bandCount)
-                _bandGainDb.value = expandHardwareGainsToUi(hwGains)
-            } else {
-                val ui8 = alignGainsToBandCount(equalizerPrefs.loadCustomBandGainsDb(), uiBandCentersHz.size)
-                applyHardwareFromUiGains(ui8)
-                _bandGainDb.value = ui8
-            }
-            customBandLevelsMb = ShortArray(bandCount) { b -> eq.getBandLevel(b.toShort()) }
         } catch (e: Exception) {
             Log.w("PlaybackEqualizer") { "Equalizer unavailable: ${e.message}" }
             clearUnavailable()
         }
     }
+
+    private fun attachHardwareFactory(eq: Equalizer) {
+        val n = eq.numberOfPresets.toInt()
+        if (n <= 0) {
+            eq.release()
+            clearUnavailable()
+            return
+        }
+        if (!initHardwareBands(eq)) return
+
+        equalizer = eq
+        factoryPresetCount = n
+        _builtInPresetBandGainsDb.value = emptyList()
+        _presetNames.value = List(n) { i -> eq.getPresetName(i.toShort()) } + "Custom"
+        _customPresetIndex.value = n
+        _available.value = true
+
+        val customUiIdx = n
+        val savedIndex = equalizerPrefs.loadSelectedPresetIndex(0).coerceIn(0, customUiIdx)
+        _selected.value = savedIndex
+
+        if (savedIndex < n) {
+            eq.usePreset(savedIndex.toShort())
+            val hwGains = readHardwareGains(eq, eq.numberOfBands.toInt())
+            _bandGainDb.value = expandHardwareGainsToUi(hwGains)
+        } else {
+            val uiGains = loadAlignedCustomGains()
+            applyHardwareFromUiGains(uiGains)
+            _bandGainDb.value = uiGains
+        }
+        customBandLevelsMb = ShortArray(eq.numberOfBands.toInt()) { b -> eq.getBandLevel(b.toShort()) }
+    }
+
+    private fun attachDefinedPresets(eq: Equalizer, source: EqPresetSource.Defined) {
+        if (!initHardwareBands(eq)) return
+
+        equalizer = eq
+        factoryPresetCount = source.presets.size
+        _builtInPresetBandGainsDb.value = source.presets.map { it.gainsDb.toList() }
+        _presetNames.value = source.presets.map { it.id } + "Custom"
+        _customPresetIndex.value = source.presets.size
+        _available.value = true
+
+        val customUiIdx = source.presets.size
+        val savedIndex = equalizerPrefs.loadSelectedPresetIndex(0).coerceIn(0, customUiIdx)
+        _selected.value = savedIndex
+
+        if (savedIndex < customUiIdx) {
+            val gains = source.presets[savedIndex].gainsDb.toList()
+            applyHardwareFromUiGains(gains)
+            _bandGainDb.value = gains
+        } else {
+            val uiGains = loadAlignedCustomGains()
+            applyHardwareFromUiGains(uiGains)
+            _bandGainDb.value = uiGains
+        }
+        customBandLevelsMb = ShortArray(eq.numberOfBands.toInt()) { b -> eq.getBandLevel(b.toShort()) }
+    }
+
+    private fun initHardwareBands(eq: Equalizer): Boolean {
+        val bandCount = eq.numberOfBands.toInt()
+        if (bandCount <= 0) {
+            eq.release()
+            clearUnavailable()
+            return false
+        }
+        hardwareBandCentersHz = FloatArray(bandCount) { b ->
+            eq.getCenterFreq(b.toShort()) / 1000f
+        }
+        val range = eq.bandLevelRange
+        _bandGainRangeDb.value = range[0] / 100f to range[1] / 100f
+        _bandCenterHz.value = uiBandCentersHz.toList()
+        return true
+    }
+
+    private fun loadAlignedCustomGains(): List<Float> =
+        EqGainInterpolation.alignOrRemapToUiBands(
+            equalizerPrefs.loadCustomBandGainsDb(),
+            uiBandCentersHz,
+        )
 
     private fun clearUnavailable() {
         _available.value = false
@@ -155,6 +190,7 @@ internal class AndroidPlaybackEqualizer(
         _builtInPresetBandGainsDb.value = emptyList()
         _customPresetIndex.value = -1
         hardwareBandCentersHz = FloatArray(0)
+        factoryPresetCount = 0
     }
 
     private fun readHardwareGains(eq: Equalizer, bandCount: Int): List<Float> =
@@ -172,30 +208,61 @@ internal class AndroidPlaybackEqualizer(
         val eq = equalizer ?: return
         val names = _presetNames.value
         if (index !in names.indices) return
-        val n = factoryPresetCount
         val customIdx = _customPresetIndex.value
         if (customIdx < 0) return
 
         _selected.value = index
         try {
-            if (index < n) {
-                eq.usePreset(index.toShort())
-                val bc = eq.numberOfBands.toInt()
-                val hwGains = readHardwareGains(eq, bc)
-                _bandGainDb.value = expandHardwareGainsToUi(hwGains)
-                customBandLevelsMb = ShortArray(bc) { b -> eq.getBandLevel(b.toShort()) }
-                equalizerPrefs.saveSelectedPresetIndex(index)
-            } else if (index == customIdx) {
-                val ui8 = alignGainsToBandCount(equalizerPrefs.loadCustomBandGainsDb(), uiBandCentersHz.size)
-                applyHardwareFromUiGains(ui8)
-                _bandGainDb.value = ui8
-                val bc = eq.numberOfBands.toInt()
-                customBandLevelsMb = ShortArray(bc) { b -> eq.getBandLevel(b.toShort()) }
-                equalizerPrefs.saveSelectedPresetIndex(customIdx)
-                equalizerPrefs.saveCustomBandGainsDb(ui8)
+            when (val source = uiEqConfig.presetSource) {
+                is EqPresetSource.HardwareFactory -> selectHardwarePreset(eq, index, customIdx)
+                is EqPresetSource.Defined -> selectDefinedPreset(eq, source, index, customIdx)
             }
         } catch (e: Exception) {
             Log.w("PlaybackEqualizer") { "selectPreset failed: ${e.message}" }
+        }
+    }
+
+    private fun selectHardwarePreset(eq: Equalizer, index: Int, customIdx: Int) {
+        val n = factoryPresetCount
+        if (index < n) {
+            eq.usePreset(index.toShort())
+            val bc = eq.numberOfBands.toInt()
+            val hwGains = readHardwareGains(eq, bc)
+            _bandGainDb.value = expandHardwareGainsToUi(hwGains)
+            customBandLevelsMb = ShortArray(bc) { b -> eq.getBandLevel(b.toShort()) }
+            equalizerPrefs.saveSelectedPresetIndex(index)
+        } else if (index == customIdx) {
+            val uiGains = loadAlignedCustomGains()
+            applyHardwareFromUiGains(uiGains)
+            _bandGainDb.value = uiGains
+            val bc = eq.numberOfBands.toInt()
+            customBandLevelsMb = ShortArray(bc) { b -> eq.getBandLevel(b.toShort()) }
+            equalizerPrefs.saveSelectedPresetIndex(customIdx)
+            equalizerPrefs.saveCustomBandGainsDb(uiGains)
+        }
+    }
+
+    private fun selectDefinedPreset(
+        eq: Equalizer,
+        source: EqPresetSource.Defined,
+        index: Int,
+        customIdx: Int,
+    ) {
+        if (index < customIdx) {
+            val gains = source.presets[index].gainsDb.toList()
+            applyHardwareFromUiGains(gains)
+            _bandGainDb.value = gains
+            val bc = eq.numberOfBands.toInt()
+            customBandLevelsMb = ShortArray(bc) { b -> eq.getBandLevel(b.toShort()) }
+            equalizerPrefs.saveSelectedPresetIndex(index)
+        } else if (index == customIdx) {
+            val uiGains = loadAlignedCustomGains()
+            applyHardwareFromUiGains(uiGains)
+            _bandGainDb.value = uiGains
+            val bc = eq.numberOfBands.toInt()
+            customBandLevelsMb = ShortArray(bc) { b -> eq.getBandLevel(b.toShort()) }
+            equalizerPrefs.saveSelectedPresetIndex(customIdx)
+            equalizerPrefs.saveCustomBandGainsDb(uiGains)
         }
     }
 
@@ -203,7 +270,7 @@ internal class AndroidPlaybackEqualizer(
         val eq = equalizer ?: return
         val customIdx = _customPresetIndex.value
         if (customIdx < 0) return
-        if (bandIndex !in 0 until uiBandCentersHz.size) return
+        if (bandIndex !in uiBandCentersHz.indices) return
 
         val range = _bandGainRangeDb.value
         val clamped = gainDb.coerceIn(range.first, range.second)
@@ -243,7 +310,7 @@ internal class AndroidPlaybackEqualizer(
         if (hwGains.size != hwC.size) return List(uiBandCentersHz.size) { 0f }
         val hwG = hwGains.toFloatArray()
         return List(uiBandCentersHz.size) { i ->
-            interpolateGainDb(uiBandCentersHz[i].toDouble(), hwC, hwG)
+            EqGainInterpolation.interpolateGainDb(uiBandCentersHz[i].toDouble(), hwC, hwG)
         }
     }
 
@@ -253,22 +320,7 @@ internal class AndroidPlaybackEqualizer(
         while (padded.size < uiBandCentersHz.size) padded.add(0f)
         val uiG = padded.take(uiBandCentersHz.size).toFloatArray()
         return List(hwC.size) { j ->
-            interpolateGainDb(hwC[j].toDouble(), uiBandCentersHz, uiG)
+            EqGainInterpolation.interpolateGainDb(hwC[j].toDouble(), uiBandCentersHz, uiG)
         }
-    }
-
-    private fun interpolateGainDb(hz: Double, centersHz: FloatArray, gainsDb: FloatArray): Float {
-        require(centersHz.size == gainsDb.size)
-        val log = ln(hz)
-        val logs = DoubleArray(centersHz.size) { ln(centersHz[it].toDouble()) }
-        if (log <= logs[0]) return gainsDb[0]
-        if (log >= logs[logs.lastIndex]) return gainsDb[gainsDb.lastIndex]
-        for (i in 0 until logs.lastIndex) {
-            if (log <= logs[i + 1]) {
-                val t = ((log - logs[i]) / (logs[i + 1] - logs[i])).toFloat()
-                return gainsDb[i] + t * (gainsDb[i + 1] - gainsDb[i])
-            }
-        }
-        return gainsDb[gainsDb.lastIndex]
     }
 }

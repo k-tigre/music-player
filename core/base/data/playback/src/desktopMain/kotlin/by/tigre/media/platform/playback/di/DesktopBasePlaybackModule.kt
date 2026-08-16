@@ -28,6 +28,7 @@ class DesktopBasePlaybackModule(
     coroutineModule: CoroutineModule,
     dbDir: File? = null,
     contentKeyProvider: EqContentKeyProvider = NullEqContentKeyProvider(),
+    private val maxAutoProfiles: Int = EqProfileController.MAX_AUTO_MUSIC,
 ) : BasePlaybackModule {
 
     private val equalizerPreferences = EqualizerPreferences(preferences)
@@ -99,8 +100,7 @@ class DesktopBasePlaybackModule(
             routeMonitor = audioRouteMonitor,
             contentKeyProvider = eqContentKeyProvider,
             playbackEqualizer = playbackEqualizer,
-            loadSuggestEnabled = { equalizerPreferences.loadSuggestSetup(true) },
-            saveSuggestEnabled = { equalizerPreferences.saveSuggestSetup(it) },
+            maxAutoProfiles = maxAutoProfiles,
         )
     }
 }

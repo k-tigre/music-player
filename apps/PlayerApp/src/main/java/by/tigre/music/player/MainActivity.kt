@@ -110,6 +110,7 @@ class MainActivity : AppCompatActivity() {
                         addToPlaylistCoordinator = graph.addToPlaylistCoordinator,
                         eventAnalytics = graph.eventAnalytics,
                         billingMessages = graph.billingMessages,
+                        eqCarryNotices = graph.eqProfileController.carryForwardNotices,
                     ).Draw(Modifier)
                 }
             }

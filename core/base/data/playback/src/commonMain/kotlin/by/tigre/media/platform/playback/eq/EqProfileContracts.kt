@@ -9,10 +9,12 @@ interface EqProfileRepository {
     suspend fun refresh()
 
     /**
-     * Insert or replace by (route, content). Returns false if [maxProfiles] would be exceeded
-     * for a new key (existing key replace always allowed).
+     * Insert or replace by (route, content).
+     * - Existing key: always updated (including auto → manual).
+     * - New [EqProfileSource.Auto]: if [maxAuto] autos already exist, replaces the oldest auto.
+     * - New [EqProfileSource.Manual]: fails only if [maxTotal] would be exceeded.
      */
-    suspend fun save(profile: EqProfile, maxProfiles: Int): Boolean
+    suspend fun save(profile: EqProfile, maxAuto: Int, maxTotal: Int): Boolean
 
     suspend fun delete(id: Long)
 }
@@ -22,6 +24,9 @@ interface EqContentKeyProvider {
     /** When playing a book, also expose folder for fallback resolve. */
     val folderKey: StateFlow<EqContentKey.Folder?>
     val bookId: StateFlow<Long?>
+    /** When playing music, artist for fallback resolve. */
+    val artistKey: StateFlow<EqContentKey.Artist?>
+    val albumId: StateFlow<Long?>
 }
 
 interface AudioRouteMonitor {

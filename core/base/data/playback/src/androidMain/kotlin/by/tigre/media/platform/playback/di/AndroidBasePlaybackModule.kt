@@ -16,6 +16,7 @@ import by.tigre.media.platform.playback.eq.EqContentKeyProvider
 import by.tigre.media.platform.playback.eq.EqProfileController
 import by.tigre.media.platform.playback.eq.EqProfileRepository
 import by.tigre.media.platform.playback.eq.NullEqContentKeyProvider
+import by.tigre.media.platform.playback.eq.UiEqConfig
 import by.tigre.media.platform.playback.eq.db.DatabaseEqProfiles
 import by.tigre.media.platform.playback.eq.impl.EqProfileRepositoryImpl
 import by.tigre.media.platform.playback.impl.AndroidAppPlaybackVolume
@@ -30,6 +31,8 @@ class AndroidBasePlaybackModule(
     coroutineModule: CoroutineModule,
     preferences: Preferences,
     contentKeyProvider: EqContentKeyProvider = NullEqContentKeyProvider(),
+    private val uiEqConfig: UiEqConfig = UiEqConfig.musicDefault(),
+    private val maxAutoProfiles: Int = EqProfileController.MAX_AUTO_MUSIC,
 ) : BasePlaybackModule {
 
     private val appContext = context.applicationContext
@@ -43,7 +46,7 @@ class AndroidBasePlaybackModule(
     }
 
     private val equalizer: AndroidPlaybackEqualizer by lazy {
-        AndroidPlaybackEqualizer(impl, equalizerPreferences)
+        AndroidPlaybackEqualizer(impl, equalizerPreferences, uiEqConfig)
     }
 
     private val appPlaybackVolumeImpl: AndroidAppPlaybackVolume by lazy {
@@ -115,8 +118,7 @@ class AndroidBasePlaybackModule(
             routeMonitor = audioRouteMonitor,
             contentKeyProvider = eqContentKeyProvider,
             playbackEqualizer = equalizer,
-            loadSuggestEnabled = { equalizerPreferences.loadSuggestSetup(true) },
-            saveSuggestEnabled = { equalizerPreferences.saveSuggestSetup(it) },
+            maxAutoProfiles = maxAutoProfiles,
         )
     }
 

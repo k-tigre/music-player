@@ -14,21 +14,34 @@ object EqProfileResolver {
         val routeKey = route.storageKey()
         val forRoute = profiles.filter { it.route.storageKey() == routeKey }
 
-        if (content is EqContentKey.Book) {
-            forRoute.firstOrNull { profile ->
-                val key = profile.content
-                key is EqContentKey.Book && key.bookId == content.bookId
-            }?.let { return EqResolveResult(it, EqMatchLevel.Book) }
-        }
-
-        val folderKey = content as? EqContentKey.Folder
-        if (folderKey != null) {
-            forRoute.firstOrNull { profile ->
-                val key = profile.content
-                key is EqContentKey.Folder &&
-                    key.folderUri == folderKey.folderUri &&
-                    key.subPath == folderKey.subPath
-            }?.let { return EqResolveResult(it, EqMatchLevel.Folder) }
+        when (content) {
+            is EqContentKey.Book -> {
+                forRoute.firstOrNull { profile ->
+                    val key = profile.content
+                    key is EqContentKey.Book && key.bookId == content.bookId
+                }?.let { return EqResolveResult(it, EqMatchLevel.Book) }
+            }
+            is EqContentKey.Album -> {
+                forRoute.firstOrNull { profile ->
+                    val key = profile.content
+                    key is EqContentKey.Album && key.albumId == content.albumId
+                }?.let { return EqResolveResult(it, EqMatchLevel.Album) }
+            }
+            is EqContentKey.Artist -> {
+                forRoute.firstOrNull { profile ->
+                    val key = profile.content
+                    key is EqContentKey.Artist && key.artistId == content.artistId
+                }?.let { return EqResolveResult(it, EqMatchLevel.Artist) }
+            }
+            is EqContentKey.Folder -> {
+                forRoute.firstOrNull { profile ->
+                    val key = profile.content
+                    key is EqContentKey.Folder &&
+                        key.folderUri == content.folderUri &&
+                        key.subPath == content.subPath
+                }?.let { return EqResolveResult(it, EqMatchLevel.Folder) }
+            }
+            EqContentKey.None -> Unit
         }
 
         forRoute.firstOrNull { it.content is EqContentKey.None }
@@ -37,9 +50,7 @@ object EqProfileResolver {
         return EqResolveResult(profile = null, matchLevel = EqMatchLevel.None)
     }
 
-    /**
-     * Book playback resolve: try book, then folder, then device.
-     */
+    /** Book playback: book → folder → device. */
     fun resolveForBook(
         profiles: List<EqProfile>,
         route: AudioRouteId,
@@ -52,6 +63,22 @@ object EqProfileResolver {
 
         val folderHit = resolve(profiles, route, EqContentKey.Folder(folderUri, subPath))
         if (folderHit.matchLevel == EqMatchLevel.Folder) return folderHit
+
+        return resolve(profiles, route, EqContentKey.None)
+    }
+
+    /** Music playback: album → artist → device. */
+    fun resolveForMusic(
+        profiles: List<EqProfile>,
+        route: AudioRouteId,
+        albumId: Long,
+        artistId: Long,
+    ): EqResolveResult {
+        val albumHit = resolve(profiles, route, EqContentKey.Album(albumId))
+        if (albumHit.matchLevel == EqMatchLevel.Album) return albumHit
+
+        val artistHit = resolve(profiles, route, EqContentKey.Artist(artistId))
+        if (artistHit.matchLevel == EqMatchLevel.Artist) return artistHit
 
         return resolve(profiles, route, EqContentKey.None)
     }

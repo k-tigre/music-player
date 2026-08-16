@@ -3,23 +3,20 @@ package by.tigre.media.platform.playback.eq
 import by.tigre.media.platform.playback.PlaybackEqualizer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-enum class EqSaveTarget {
-    Device,
-    Book,
-    Folder,
-}
-
 /**
  * Applies the best matching EQ profile when route or content changes.
- * Writes to DB only via [saveAs] / repository delete — never on slider moves.
+ * Manual writes happen via [endEqSessionAndSaveIfDirty] after leaving the EQ screen.
  * Hardware EQ is always touched on Main (ExoPlayer / Android Equalizer requirement).
  */
 class EqProfileController(
@@ -28,8 +25,8 @@ class EqProfileController(
     private val routeMonitor: AudioRouteMonitor,
     private val contentKeyProvider: EqContentKeyProvider,
     private val playbackEqualizer: PlaybackEqualizer,
-    private val loadSuggestEnabled: () -> Boolean = { true },
-    private val saveSuggestEnabled: (Boolean) -> Unit = {},
+    private val maxAutoProfiles: Int,
+    private val maxTotalProfiles: Int = DEFAULT_MAX_TOTAL,
 ) {
     private val _lastResolve = MutableStateFlow(EqResolveResult(null, EqMatchLevel.None))
     val lastResolve: StateFlow<EqResolveResult> = _lastResolve.asStateFlow()
@@ -38,29 +35,49 @@ class EqProfileController(
     val profiles: StateFlow<List<EqProfile>> = repository.profiles
     val bookId: StateFlow<Long?> = contentKeyProvider.bookId
     val folderKey: StateFlow<EqContentKey.Folder?> = contentKeyProvider.folderKey
+    val albumId: StateFlow<Long?> = contentKeyProvider.albumId
+    val artistKey: StateFlow<EqContentKey.Artist?> = contentKeyProvider.artistKey
+    val contentKey: StateFlow<EqContentKey> = contentKeyProvider.contentKey
 
-    private val _suggestEnabled = MutableStateFlow(loadSuggestEnabled())
-    val suggestEnabled: StateFlow<Boolean> = _suggestEnabled.asStateFlow()
+    private val _carryForwardNotices = MutableSharedFlow<EqCarryForwardNotice>(extraBufferCapacity = 1)
+    val carryForwardNotices: SharedFlow<EqCarryForwardNotice> = _carryForwardNotices.asSharedFlow()
 
-    private val _needsSetupPrompt = MutableStateFlow(false)
-    val needsSetupPrompt: StateFlow<Boolean> = _needsSetupPrompt.asStateFlow()
-
-    private var dismissedPair: String? = null
+    private var eqSessionOpen = false
+    private var sessionBaselineGains: List<Float> = emptyList()
+    private var sessionBaselinePreset: Int = -1
+    private var lastAppliedContent: EqContentKey = EqContentKey.None
+    private var lastAppliedRouteKey: String? = null
+    private var suppressResolve = false
 
     init {
         scope.launch {
             repository.refresh()
             combine(
-                repository.profiles,
-                routeMonitor.currentRoute,
-                contentKeyProvider.contentKey,
-                contentKeyProvider.folderKey,
-                contentKeyProvider.bookId,
-            ) { profiles, route, content, folder, bookId ->
-                ResolveInput(profiles, route, content, folder, bookId)
+                combine(
+                    repository.profiles,
+                    routeMonitor.currentRoute,
+                    contentKeyProvider.contentKey,
+                    contentKeyProvider.folderKey,
+                    contentKeyProvider.bookId,
+                ) { profiles, route, content, folder, bookId ->
+                    ResolvePartial(profiles, route, content, folder, bookId)
+                },
+                contentKeyProvider.artistKey,
+                contentKeyProvider.albumId,
+            ) { partial, artist, albumId ->
+                ResolveInput(
+                    profiles = partial.profiles,
+                    route = partial.route,
+                    content = partial.content,
+                    folder = partial.folder,
+                    bookId = partial.bookId,
+                    artist = artist,
+                    albumId = albumId,
+                )
             }
                 .distinctUntilChanged()
                 .collect { input ->
+                    if (suppressResolve) return@collect
                     withContext(Dispatchers.Main.immediate) {
                         applyResolve(input)
                     }
@@ -68,63 +85,66 @@ class EqProfileController(
         }
     }
 
-    fun setSuggestEnabled(enabled: Boolean) {
-        saveSuggestEnabled(enabled)
-        _suggestEnabled.value = enabled
-        if (!enabled) {
-            _needsSetupPrompt.value = false
-        }
+    fun beginEqSession() {
+        eqSessionOpen = true
+        captureBaseline()
     }
 
-    fun dismissSetupPrompt() {
-        val route = routeMonitor.currentRoute.value
-        dismissedPair = promptKey(route, contentKeyProvider.contentKey.value)
-        _needsSetupPrompt.value = false
+    fun isSessionDirty(): Boolean {
+        if (!eqSessionOpen) return false
+        val gains = playbackEqualizer.bandGainDb.value
+        val preset = playbackEqualizer.selectedPresetIndex.value
+        if (preset != sessionBaselinePreset) return true
+        if (gains.size != sessionBaselineGains.size) return true
+        return gains.indices.any { gains[it] != sessionBaselineGains[it] }
     }
 
-    fun availableSaveTargets(includeContent: Boolean): List<EqSaveTarget> = buildList {
-        add(EqSaveTarget.Device)
-        if (includeContent) {
-            if (contentKeyProvider.bookId.value != null) add(EqSaveTarget.Book)
-            if (contentKeyProvider.folderKey.value != null) add(EqSaveTarget.Folder)
-        }
-    }
-
-    /** One-tap save: book → folder → device (most specific available). */
-    fun preferredSaveTarget(includeContent: Boolean): EqSaveTarget {
-        val targets = availableSaveTargets(includeContent)
-        return when {
-            EqSaveTarget.Book in targets -> EqSaveTarget.Book
-            EqSaveTarget.Folder in targets -> EqSaveTarget.Folder
-            else -> EqSaveTarget.Device
-        }
+    fun discardEqSession() {
+        eqSessionOpen = false
     }
 
     /**
-     * Persist current EQ bands for [target] on the active route.
-     * @return false if profile limit reached for a new key
+     * Persist dirty EQ as a manual profile for the current content key.
+     * @return false if limit blocked a new profile
      */
-    suspend fun saveAs(
-        target: EqSaveTarget,
-        maxProfiles: Int,
-        title: String? = null,
-    ): Boolean {
-        val content = when (target) {
-            EqSaveTarget.Device -> EqContentKey.None
-            EqSaveTarget.Book -> {
-                val id = contentKeyProvider.bookId.value ?: return false
-                EqContentKey.Book(id)
-            }
-            EqSaveTarget.Folder -> contentKeyProvider.folderKey.value ?: return false
+    suspend fun endEqSessionAndSaveIfDirty(): Boolean {
+        if (!isSessionDirty()) {
+            eqSessionOpen = false
+            return true
         }
-        return saveCurrent(content, maxProfiles, title)
+        eqSessionOpen = false
+        return saveManualForCurrentContent()
     }
 
-    suspend fun saveCurrent(
-        content: EqContentKey,
-        maxProfiles: Int,
-        title: String? = null,
-    ): Boolean {
+    suspend fun deleteProfile(id: Long) {
+        repository.delete(id)
+    }
+
+    private fun captureBaseline() {
+        sessionBaselineGains = playbackEqualizer.bandGainDb.value.toList()
+        sessionBaselinePreset = playbackEqualizer.selectedPresetIndex.value
+    }
+
+    private suspend fun saveManualForCurrentContent(): Boolean {
+        val content = contentKeyProvider.contentKey.value
+        val ok = saveCurrent(content, EqProfileSource.Manual)
+        if (ok) {
+            maybeSeedDeviceDefault()
+        }
+        return ok
+    }
+
+    private suspend fun maybeSeedDeviceDefault() {
+        val route = routeMonitor.currentRoute.value
+        val hasDevice = repository.profiles.value.any {
+            it.route.storageKey() == route.storageKey() && it.content is EqContentKey.None
+        }
+        if (!hasDevice) {
+            saveCurrent(EqContentKey.None, EqProfileSource.Manual)
+        }
+    }
+
+    private suspend fun saveCurrent(content: EqContentKey, source: EqProfileSource): Boolean {
         val gains = playbackEqualizer.bandGainDb.value
         val preset = playbackEqualizer.selectedPresetIndex.value
         val custom = playbackEqualizer.customPresetIndex.value
@@ -134,64 +154,98 @@ class EqProfileController(
             content = content,
             presetIndex = if (custom >= 0 && preset == custom) null else preset,
             gainsDb = gains,
-            title = title,
+            title = null,
             updatedAtMs = System.currentTimeMillis(),
+            source = source,
         )
-        val ok = repository.save(profile, maxProfiles)
-        if (ok) {
-            dismissedPair = null
-            _needsSetupPrompt.value = false
-            withContext(Dispatchers.Main.immediate) {
-                applyResolve(
-                    ResolveInput(
-                        profiles = repository.profiles.value,
-                        route = routeMonitor.currentRoute.value,
-                        content = contentKeyProvider.contentKey.value,
-                        folder = contentKeyProvider.folderKey.value,
-                        bookId = contentKeyProvider.bookId.value,
-                    ),
-                )
-            }
-        }
-        return ok
-    }
-
-    /** Default: update active match, else device profile. */
-    suspend fun saveForActiveMatch(maxProfiles: Int): Boolean {
-        val content = _lastResolve.value.profile?.content ?: EqContentKey.None
-        return saveCurrent(content, maxProfiles)
-    }
-
-    suspend fun deleteProfile(id: Long) {
-        repository.delete(id)
+        return repository.save(profile, maxAuto = maxAutoProfiles, maxTotal = maxTotalProfiles)
     }
 
     private fun applyResolve(input: ResolveInput) {
-        val result = when {
-            input.bookId != null && input.folder != null -> {
-                EqProfileResolver.resolveForBook(
-                    profiles = input.profiles,
-                    route = input.route,
-                    bookId = input.bookId,
-                    folderUri = input.folder.folderUri,
-                    subPath = input.folder.subPath,
-                )
+        val result = resolveInput(input)
+        val routeKey = input.route.storageKey()
+        val contentChanged =
+            lastAppliedRouteKey == routeKey &&
+                lastAppliedContent != EqContentKey.None &&
+                input.content != EqContentKey.None &&
+                lastAppliedContent != input.content
+        val exactHit = when (result.matchLevel) {
+            EqMatchLevel.Book, EqMatchLevel.Folder, EqMatchLevel.Album, EqMatchLevel.Artist -> true
+            else -> false
+        }
+
+        when {
+            exactHit && result.profile != null -> {
+                _lastResolve.value = result
+                applyProfile(result.profile)
+                afterApply(input)
             }
-            input.content is EqContentKey.Folder -> {
-                EqProfileResolver.resolve(input.profiles, input.route, input.content)
+            contentChanged -> {
+                // Keep hardware gains; seed auto for the new content; soft toast.
+                _lastResolve.value = EqResolveResult(null, EqMatchLevel.None)
+                scope.launch {
+                    suppressResolve = true
+                    try {
+                        saveCurrent(input.content, EqProfileSource.Auto)
+                    } finally {
+                        suppressResolve = false
+                    }
+                    _carryForwardNotices.emit(EqCarryForwardNotice)
+                }
+                afterApply(input)
+                if (eqSessionOpen) captureBaseline()
+            }
+            result.profile != null && result.matchLevel == EqMatchLevel.Device -> {
+                _lastResolve.value = result
+                applyProfile(result.profile)
+                if (input.content !is EqContentKey.None) {
+                    scope.launch {
+                        suppressResolve = true
+                        try {
+                            saveCurrent(input.content, EqProfileSource.Auto)
+                        } finally {
+                            suppressResolve = false
+                        }
+                    }
+                }
+                afterApply(input)
             }
             else -> {
-                EqProfileResolver.resolve(input.profiles, input.route, input.content)
+                _lastResolve.value = EqResolveResult(null, EqMatchLevel.None)
+                afterApply(input)
             }
         }
-        _lastResolve.value = result
-        val profile = result.profile
-        if (profile != null) {
-            _needsSetupPrompt.value = false
-            applyProfile(profile)
-        } else {
-            val key = promptKey(input.route, input.content)
-            _needsSetupPrompt.value = _suggestEnabled.value && dismissedPair != key
+    }
+
+    private fun afterApply(input: ResolveInput) {
+        lastAppliedContent = input.content
+        lastAppliedRouteKey = input.route.storageKey()
+        if (eqSessionOpen) captureBaseline()
+    }
+
+    private fun resolveInput(input: ResolveInput): EqResolveResult = when {
+        input.bookId != null && input.folder != null -> {
+            EqProfileResolver.resolveForBook(
+                profiles = input.profiles,
+                route = input.route,
+                bookId = input.bookId,
+                folderUri = input.folder.folderUri,
+                subPath = input.folder.subPath,
+            )
+        }
+        input.albumId != null && input.artist != null -> {
+            EqProfileResolver.resolveForMusic(
+                profiles = input.profiles,
+                route = input.route,
+                albumId = input.albumId,
+                artistId = input.artist.artistId,
+            )
+        }
+        input.content is EqContentKey.Folder -> {
+            EqProfileResolver.resolve(input.profiles, input.route, input.content)
+        }
+        else -> {
+            EqProfileResolver.resolve(input.profiles, input.route, input.content)
         }
     }
 
@@ -199,8 +253,14 @@ class EqProfileController(
         val customIndex = playbackEqualizer.customPresetIndex.value
         val gains = profile.gainsDb
         if (gains.isNotEmpty() && customIndex >= 0) {
+            val centers = playbackEqualizer.bandCenterHz.value
+            val aligned = if (centers.isEmpty()) {
+                gains
+            } else {
+                EqGainInterpolation.alignOrRemapToUiBands(gains, centers.toFloatArray())
+            }
             playbackEqualizer.selectPreset(customIndex)
-            gains.forEachIndexed { index, gain ->
+            aligned.forEachIndexed { index, gain ->
                 playbackEqualizer.setBandGainDb(index, gain)
             }
         } else {
@@ -209,8 +269,13 @@ class EqProfileController(
         }
     }
 
-    private fun promptKey(route: AudioRouteId, content: EqContentKey): String =
-        "${route.storageKey()}|${content.kind.storageName}|${content.storageKey}"
+    private data class ResolvePartial(
+        val profiles: List<EqProfile>,
+        val route: AudioRouteId,
+        val content: EqContentKey,
+        val folder: EqContentKey.Folder?,
+        val bookId: Long?,
+    )
 
     private data class ResolveInput(
         val profiles: List<EqProfile>,
@@ -218,5 +283,13 @@ class EqProfileController(
         val content: EqContentKey,
         val folder: EqContentKey.Folder?,
         val bookId: Long?,
+        val artist: EqContentKey.Artist?,
+        val albumId: Long?,
     )
+
+    companion object {
+        const val DEFAULT_MAX_TOTAL = 128
+        const val MAX_AUTO_AUDIOBOOK = 5
+        const val MAX_AUTO_MUSIC = 16
+    }
 }

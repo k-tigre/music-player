@@ -36,6 +36,9 @@ import by.tigre.media.platform.entitlements.EntitlementsRepository
 import by.tigre.media.platform.entitlements.Feature
 import by.tigre.media.platform.entitlements.PlayEntitlementsRepository
 import by.tigre.media.platform.playback.di.AndroidBasePlaybackModule
+import by.tigre.media.platform.playback.eq.EqProfileController
+import by.tigre.media.platform.playback.eq.MutableEqContentKeyProvider
+import by.tigre.media.platform.playback.eq.UiEqConfig
 import by.tigre.media.platform.playback.di.BasePlaybackModule
 import by.tigre.media.platform.player.component.BasePlaybackController
 import by.tigre.media.platform.player.component.PlaybackSpeedSource
@@ -165,14 +168,12 @@ class ApplicationGraph(
 
     override val eqProfileController get() = basePlaybackModule.eqProfileController
     override val eqProfileRepository get() = basePlaybackModule.eqProfileRepository
-    override val eqProfileMaxCount: Int get() = 16
-    override val eqSupportsContentProfiles: Boolean get() = true
 
     override fun hasEqDeviceProfilesAccess(): Boolean =
         entitlementsRepository.has(Feature.EqDeviceProfiles)
 
     override fun requestEqDeviceProfilesPaywall() {
-        requestPaywall(Feature.EqDeviceProfiles, source = "equalizer_save")
+        requestPaywall(Feature.EqDeviceProfiles, source = "equalizer_autosave")
     }
 
     override val appPlaybackVolume = basePlaybackModule.appPlaybackVolume
@@ -359,13 +360,15 @@ class ApplicationGraph(
         ): ApplicationGraph {
             val preferencesModule = AndroidPreferencesModule(context)
             val coroutineModule = CoroutineModule.Impl()
-            val eqContentKeys = by.tigre.media.platform.playback.eq.MutableEqContentKeyProvider()
+            val eqContentKeys = MutableEqContentKeyProvider()
             val basePlaybackModule =
                 AndroidBasePlaybackModule(
                     context,
                     coroutineModule,
                     preferencesModule.preferences,
                     contentKeyProvider = eqContentKeys,
+                    uiEqConfig = UiEqConfig.audiobookSpeech(),
+                    maxAutoProfiles = EqProfileController.MAX_AUTO_AUDIOBOOK,
                 )
 
             val audiobookStorageModule = AndroidAudiobookCatalogStorageModule(context, coroutineModule)

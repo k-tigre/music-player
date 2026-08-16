@@ -76,4 +76,5 @@
     <string name="billing_restore_failed">Не удалось восстановить покупки</string>
     <string name="billing_purchase_failed">Не удалось завершить покупку</string>
     <string name="billing_tip_thanks">Спасибо за поддержку!</string>
+    <string name="equalizer_carried_from_previous">Эквалайзер оставлен как у предыдущего</string>
 </resources>
