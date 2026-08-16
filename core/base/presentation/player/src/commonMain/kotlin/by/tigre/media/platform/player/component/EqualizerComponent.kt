@@ -43,6 +43,12 @@ interface EqualizerComponent {
         private val controller: EqProfileController = dependency.eqProfileController
         private val analytics = dependency.eventAnalytics
 
+        private val sessionPriorOutcome = controller.activeOutcome.value
+        private val sessionPriorSource = controller.activeSource.value?.storageName ?: "none"
+        private val sessionMatchLevel = controller.lastResolve.value.matchLevel.name.lowercase()
+        private val sessionRouteKind = controller.currentRoute.value.kind.name.lowercase()
+        private val sessionContentKind = controller.contentKey.value.kind.storageName
+
         init {
             controller.beginEqSession()
         }
@@ -77,8 +83,8 @@ interface EqualizerComponent {
         override fun close() {
             scope.launch {
                 val dirty = controller.isSessionDirty()
-                when {
-                    !dirty -> controller.discardEqSession()
+                val savedLabel = when {
+                    !dirty -> "unchanged"
                     !dependency.hasEqDeviceProfilesAccess() -> {
                         controller.discardEqSession()
                         analytics.trackEvent(
@@ -89,16 +95,24 @@ interface EqualizerComponent {
                             ),
                         )
                         dependency.requestEqDeviceProfilesPaywall()
+                        "blocked"
                     }
                     else -> {
+                        val hadDeviceBefore = controller.profiles.value.any {
+                            it.route.storageKey() == controller.currentRoute.value.storageKey() &&
+                                it.content is EqContentKey.None
+                        }
                         val ok = controller.endEqSessionAndSaveIfDirty()
                         if (ok) {
                             analytics.trackEvent(
                                 CommonEvents.Action.EqProfileSaved(
                                     target = "manual_autosave",
                                     route = controller.currentRoute.value.storageKey(),
+                                    contentKind = controller.contentKey.value.kind.storageName,
+                                    seededDevice = !hadDeviceBefore,
                                 ),
                             )
+                            "yes"
                         } else {
                             analytics.trackEvent(
                                 CommonEvents.Action.EqProfileSaveFailed(
@@ -106,9 +120,24 @@ interface EqualizerComponent {
                                     target = "manual_autosave",
                                 ),
                             )
+                            "failed"
                         }
                     }
                 }
+                if (!dirty) {
+                    controller.discardEqSession()
+                }
+                analytics.trackEvent(
+                    CommonEvents.Action.EqSessionClosed(
+                        dirty = dirty,
+                        saved = savedLabel,
+                        priorOutcome = sessionPriorOutcome,
+                        priorSource = sessionPriorSource,
+                        routeKind = sessionRouteKind,
+                        contentKind = sessionContentKind,
+                        matchLevel = sessionMatchLevel,
+                    ),
+                )
                 onClose()
             }
         }

@@ -38,3 +38,15 @@ data class EqResolveResult(
 
 /** Soft toast when EQ was carried from previous content. */
 data object EqCarryForwardNotice
+
+/**
+ * Lifecycle signals for analytics (no analytics dependency in playback).
+ * [outcome] values: exact | carry | device_seed | none
+ */
+data class EqProfileLifecycleEvent(
+    val outcome: String,
+    val matchLevel: EqMatchLevel,
+    val source: EqProfileSource?,
+    val routeKind: String,
+    val contentKind: String,
+)

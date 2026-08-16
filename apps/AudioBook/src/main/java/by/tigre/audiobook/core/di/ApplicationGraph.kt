@@ -39,6 +39,7 @@ import by.tigre.media.platform.playback.di.AndroidBasePlaybackModule
 import by.tigre.media.platform.playback.eq.EqProfileController
 import by.tigre.media.platform.playback.eq.MutableEqContentKeyProvider
 import by.tigre.media.platform.playback.eq.UiEqConfig
+import by.tigre.media.platform.player.eq.bindEqProfileAnalytics
 import by.tigre.media.platform.playback.di.BasePlaybackModule
 import by.tigre.media.platform.player.component.BasePlaybackController
 import by.tigre.media.platform.player.component.PlaybackSpeedSource
@@ -442,6 +443,10 @@ class ApplicationGraph(
                 preferences = preferences,
             )
             requestPaywall = graph::requestPaywall
+            coroutineModule.scope.bindEqProfileAnalytics(
+                controller = basePlaybackModule.eqProfileController,
+                analytics = graph.eventAnalytics,
+            )
             coroutineModule.scope.launch {
                 var previousTier = entitlementsRepository.tier.value
                 entitlementsRepository.tier

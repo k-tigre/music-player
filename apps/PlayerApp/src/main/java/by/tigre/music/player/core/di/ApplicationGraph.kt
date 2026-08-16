@@ -15,6 +15,7 @@ import by.tigre.media.platform.entitlements.PlayEntitlementsRepository
 import by.tigre.media.platform.playback.di.AndroidBasePlaybackModule
 import by.tigre.media.platform.playback.eq.EqProfileController
 import by.tigre.media.platform.playback.eq.MutableEqContentKeyProvider
+import by.tigre.media.platform.player.eq.bindEqProfileAnalytics
 import by.tigre.music.player.core.data.playback.di.PlaybackModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.AndroidPlaybackQueueModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.PlaybackQueueModule
@@ -314,6 +315,10 @@ class ApplicationGraph(
                 preferences = preferencesModule.preferences,
                 billingService = billingService,
                 entitlementsRepository = entitlementsRepository,
+            )
+            coroutineModule.scope.bindEqProfileAnalytics(
+                controller = basePlaybackModule.eqProfileController,
+                analytics = graph.eventAnalytics,
             )
             coroutineModule.scope.launch {
                 playbackModule.playbackController.currentItem.collect { song ->

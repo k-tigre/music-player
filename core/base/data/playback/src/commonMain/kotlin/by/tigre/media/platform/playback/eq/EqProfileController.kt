@@ -42,12 +42,22 @@ class EqProfileController(
     private val _carryForwardNotices = MutableSharedFlow<EqCarryForwardNotice>(extraBufferCapacity = 1)
     val carryForwardNotices: SharedFlow<EqCarryForwardNotice> = _carryForwardNotices.asSharedFlow()
 
+    private val _lifecycleEvents = MutableSharedFlow<EqProfileLifecycleEvent>(extraBufferCapacity = 16)
+    val lifecycleEvents: SharedFlow<EqProfileLifecycleEvent> = _lifecycleEvents.asSharedFlow()
+
+    /** Last resolve outcome used when opening the EQ screen (for correction analytics). */
+    private val _activeOutcome = MutableStateFlow("none")
+    val activeOutcome: StateFlow<String> = _activeOutcome.asStateFlow()
+    private val _activeSource = MutableStateFlow<EqProfileSource?>(null)
+    val activeSource: StateFlow<EqProfileSource?> = _activeSource.asStateFlow()
+
     private var eqSessionOpen = false
     private var sessionBaselineGains: List<Float> = emptyList()
     private var sessionBaselinePreset: Int = -1
     private var lastAppliedContent: EqContentKey = EqContentKey.None
     private var lastAppliedRouteKey: String? = null
     private var suppressResolve = false
+    private var lastLifecycleEmitKey: String? = null
 
     init {
         scope.launch {
@@ -178,11 +188,25 @@ class EqProfileController(
             exactHit && result.profile != null -> {
                 _lastResolve.value = result
                 applyProfile(result.profile)
+                emitLifecycle(
+                    outcome = "exact",
+                    matchLevel = result.matchLevel,
+                    source = result.profile.source,
+                    route = input.route,
+                    content = input.content,
+                )
                 afterApply(input)
             }
             contentChanged -> {
                 // Keep hardware gains; seed auto for the new content; soft toast.
                 _lastResolve.value = EqResolveResult(null, EqMatchLevel.None)
+                emitLifecycle(
+                    outcome = "carry",
+                    matchLevel = EqMatchLevel.None,
+                    source = EqProfileSource.Auto,
+                    route = input.route,
+                    content = input.content,
+                )
                 scope.launch {
                     suppressResolve = true
                     try {
@@ -198,7 +222,15 @@ class EqProfileController(
             result.profile != null && result.matchLevel == EqMatchLevel.Device -> {
                 _lastResolve.value = result
                 applyProfile(result.profile)
-                if (input.content !is EqContentKey.None) {
+                val seeded = input.content !is EqContentKey.None
+                emitLifecycle(
+                    outcome = if (seeded) "device_seed" else "exact",
+                    matchLevel = EqMatchLevel.Device,
+                    source = result.profile.source,
+                    route = input.route,
+                    content = input.content,
+                )
+                if (seeded) {
                     scope.launch {
                         suppressResolve = true
                         try {
@@ -212,9 +244,47 @@ class EqProfileController(
             }
             else -> {
                 _lastResolve.value = EqResolveResult(null, EqMatchLevel.None)
+                emitLifecycle(
+                    outcome = "none",
+                    matchLevel = EqMatchLevel.None,
+                    source = null,
+                    route = input.route,
+                    content = input.content,
+                )
                 afterApply(input)
             }
         }
+    }
+
+    private fun emitLifecycle(
+        outcome: String,
+        matchLevel: EqMatchLevel,
+        source: EqProfileSource?,
+        route: AudioRouteId,
+        content: EqContentKey,
+    ) {
+        val sourceName = source?.storageName.orEmpty()
+        val key =
+            listOf(
+                route.storageKey(),
+                content.kind.storageName,
+                content.storageKey,
+                outcome,
+                sourceName,
+            ).joinToString("|")
+        if (key == lastLifecycleEmitKey) return
+        lastLifecycleEmitKey = key
+        _activeOutcome.value = outcome
+        _activeSource.value = source
+        _lifecycleEvents.tryEmit(
+            EqProfileLifecycleEvent(
+                outcome = outcome,
+                matchLevel = matchLevel,
+                source = source,
+                routeKind = route.kind.name.lowercase(),
+                contentKind = content.kind.storageName,
+            ),
+        )
     }
 
     private fun afterApply(input: ResolveInput) {
