@@ -34,18 +34,10 @@ class FeatureModesTest {
     }
 
     @Test
-    fun unlockedAllowsEverything() {
-        assertEquals(
-            FeatureAccess.Allowed,
-            resolveFeatureAccess(Feature.HomeWidget, Tier.Free, FeatureMode.Paid, unlocked = true),
-        )
-    }
-
-    @Test
     fun onAllowsWithoutSubscription() {
         assertEquals(
             FeatureAccess.Allowed,
-            resolveFeatureAccess(Feature.Equalizer, Tier.Free, FeatureMode.On, unlocked = false),
+            resolveFeatureAccess(Feature.Equalizer, Tier.Free, FeatureMode.On),
         )
     }
 
@@ -53,7 +45,7 @@ class FeatureModesTest {
     fun offIsUnavailable() {
         assertEquals(
             FeatureAccess.Unavailable,
-            resolveFeatureAccess(Feature.Equalizer, Tier.Pro, FeatureMode.Off, unlocked = false),
+            resolveFeatureAccess(Feature.Equalizer, Tier.Pro, FeatureMode.Off),
         )
     }
 
@@ -61,58 +53,11 @@ class FeatureModesTest {
     fun paidRequiresTier() {
         assertEquals(
             FeatureAccess.RequiresPurchase,
-            resolveFeatureAccess(Feature.HomeWidget, Tier.Plus, FeatureMode.Paid, unlocked = false),
+            resolveFeatureAccess(Feature.HomeWidget, Tier.Plus, FeatureMode.Paid),
         )
         assertEquals(
             FeatureAccess.Allowed,
-            resolveFeatureAccess(Feature.HomeWidget, Tier.Pro, FeatureMode.Paid, unlocked = false),
-        )
-    }
-
-    @Test
-    fun parseUnlockIds() {
-        assertEquals(
-            setOf("abc", "def"),
-            parseUnlockInstallationIds(" abc, def , "),
-        )
-    }
-
-    @Test
-    fun effectiveModeUnlockBeatsForcePaid() {
-        assertEquals(
-            FeatureMode.On,
-            effectiveFeatureMode(
-                feature = Feature.HomeWidget,
-                modes = mapOf(Feature.HomeWidget to FeatureMode.Off),
-                unlocked = true,
-                forcePaid = true,
-            ),
-        )
-    }
-
-    @Test
-    fun effectiveModeForcePaidOverridesJsonOn() {
-        assertEquals(
-            FeatureMode.Paid,
-            effectiveFeatureMode(
-                feature = Feature.Equalizer,
-                modes = mapOf(Feature.Equalizer to FeatureMode.On),
-                unlocked = false,
-                forcePaid = true,
-            ),
-        )
-    }
-
-    @Test
-    fun effectiveModeUsesJsonWhenNoOverrides() {
-        assertEquals(
-            FeatureMode.Off,
-            effectiveFeatureMode(
-                feature = Feature.HomeWidget,
-                modes = mapOf(Feature.HomeWidget to FeatureMode.Off),
-                unlocked = false,
-                forcePaid = false,
-            ),
+            resolveFeatureAccess(Feature.HomeWidget, Tier.Pro, FeatureMode.Paid),
         )
     }
 }

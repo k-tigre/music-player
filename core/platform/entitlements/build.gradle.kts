@@ -32,5 +32,4 @@ kotlin {
 dependencies {
     add("androidMainImplementation", platform(FirebaseLibrary.bom))
     add("androidMainImplementation", FirebaseLibrary.FirebaseConfig.notation)
-    add("androidMainImplementation", FirebaseLibrary.FirebaseInstallations.notation)
 }

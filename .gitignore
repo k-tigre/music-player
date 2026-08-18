@@ -19,3 +19,5 @@ local.properties
 /docs/*
 !/docs/analytics-events.md
 apps/*/src/main/play/contact-*.txt
+# Personal Firebase Installation ID conditions
+apps/*/firebase/remoteconfig.template.json

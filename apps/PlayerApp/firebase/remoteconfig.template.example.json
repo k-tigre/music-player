@@ -1,0 +1,24 @@
+{
+  "conditions": [],
+  "parameters": {
+    "ff_feature_modes": {
+      "defaultValue": {
+        "value": "{\"equalizer\":\"paid\",\"eq_device_profiles\":\"paid\",\"sleep_timer_advanced\":\"paid\",\"home_widget\":\"paid\",\"continue_listening_expanded\":\"paid\",\"unlimited_playlists\":\"paid\"}"
+      },
+      "description": "Production: gated features paid (Plus/Pro via Play Billing). Per-device unlock: copy to remoteconfig.template.json and add a condition on app.firebaseInstallationId (that file is gitignored).",
+      "valueType": "STRING"
+    },
+    "entitlements_playlist_limit_free": {
+      "defaultValue": {
+        "value": "3"
+      },
+      "valueType": "NUMBER"
+    },
+    "entitlements_playlist_limit_plus": {
+      "defaultValue": {
+        "value": "10"
+      },
+      "valueType": "NUMBER"
+    }
+  }
+}

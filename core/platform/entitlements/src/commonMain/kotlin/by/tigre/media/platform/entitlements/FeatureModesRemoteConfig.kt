@@ -2,11 +2,12 @@ package by.tigre.media.platform.entitlements
 
 object FeatureModesRemoteConfig {
     const val RC_FEATURE_MODES = "ff_feature_modes"
-    const val RC_UNLOCK_INSTALLATION_IDS = "ff_unlock_installation_ids"
-    /** CSV of Firebase Installation IDs that see all features as [FeatureMode.Paid]. */
-    const val RC_FORCE_PAID_INSTALLATION_IDS = "ff_force_paid_installation_ids"
 
-    /** Explicit free-for-all modes (same as missing keys → on, but clearer in Console). */
+    /**
+     * In-app fallback before the first Remote Config fetch (missing keys also → on).
+     * Production values live in Firebase; per-device unlock is a Console/template condition
+     * on `app.firebaseInstallationId`, not a client-side ID list.
+     */
     val DEFAULT_FEATURE_MODES_JSON: String =
         """
         {
@@ -19,16 +20,8 @@ object FeatureModesRemoteConfig {
         }
         """.trimIndent().replace("\n", "").replace(" ", "")
 
-    /**
-     * Placeholder Installation ID — replace in Firebase Console (or here) with a real FID.
-     * Devices with this id get paid gating; everyone else gets free (`on`) defaults.
-     */
-    const val FORCE_PAID_ID_PLACEHOLDER = "XXX"
-
     val remoteConfigDefaults: Map<String, String> = mapOf(
         RC_FEATURE_MODES to DEFAULT_FEATURE_MODES_JSON,
-        RC_UNLOCK_INSTALLATION_IDS to "",
-        RC_FORCE_PAID_INSTALLATION_IDS to FORCE_PAID_ID_PLACEHOLDER,
     )
 
     fun Feature.jsonKey(): String = when (this) {

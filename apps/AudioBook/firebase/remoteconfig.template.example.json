@@ -1,0 +1,37 @@
+{
+  "conditions": [],
+  "parameters": {
+    "ff_feature_modes": {
+      "defaultValue": {
+        "value": "{\"equalizer\":\"paid\",\"eq_device_profiles\":\"paid\",\"sleep_timer_advanced\":\"paid\",\"home_widget\":\"paid\",\"continue_listening_expanded\":\"paid\",\"unlimited_playlists\":\"paid\",\"book_spaces\":\"paid\"}"
+      },
+      "description": "Production: gated features paid (Plus/Pro via Play Billing). Per-device unlock: copy to remoteconfig.template.json and add a condition on app.firebaseInstallationId (that file is gitignored).",
+      "valueType": "STRING"
+    },
+    "entitlements_continue_listening_free": {
+      "defaultValue": {
+        "value": "3"
+      },
+      "valueType": "NUMBER"
+    },
+    "entitlements_continue_listening_plus": {
+      "defaultValue": {
+        "value": "5"
+      },
+      "valueType": "NUMBER"
+    },
+    "entitlements_continue_listening_pro": {
+      "defaultValue": {
+        "value": "10"
+      },
+      "valueType": "NUMBER"
+    },
+    "audiobook_night_timer_shake_config": {
+      "defaultValue": {
+        "value": "{\"gForceThreshold\":1.45,\"debounceMs\":150,\"pairMaxGapMs\":10000}"
+      },
+      "description": "Night timer shake detection settings (JSON).",
+      "valueType": "JSON"
+    }
+  }
+}
