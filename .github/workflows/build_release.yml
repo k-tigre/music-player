@@ -11,6 +11,7 @@ jobs:
   build_music_apk_aab:
     name: Build Music APK & AAB
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: startsWith(github.ref, 'refs/tags/v.m.')
     steps:
       - uses: actions/checkout@v6
@@ -47,6 +48,7 @@ jobs:
   build_book_apk_aab:
     name: Build Book APK & AAB
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: startsWith(github.ref, 'refs/tags/v.b.')
     steps:
       - uses: actions/checkout@v6

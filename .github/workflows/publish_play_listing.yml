@@ -16,6 +16,7 @@ jobs:
   publish-music-listing:
     name: Publish Music listing
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: inputs.app == 'music' || inputs.app == 'all'
     steps:
       - uses: actions/checkout@v6
@@ -33,6 +34,7 @@ jobs:
   publish-book-listing:
     name: Publish AudioBook listing
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: inputs.app == 'book' || inputs.app == 'all'
     steps:
       - uses: actions/checkout@v6
