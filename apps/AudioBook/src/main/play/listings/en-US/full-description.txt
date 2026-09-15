@@ -1,15 +1,15 @@
-AudioBook is a player for local audiobooks. Point it at your books folder, pick up where you left off, and listen comfortably — including at bedtime.
+An offline audiobook player for files already on your phone. Add a folder of books, pick up where you left off, and listen without streaming — including at bedtime.
 
 What the app does:
-• Library from a folder on your device (SAF)
+• Library from a folder on your device (mp3, m4b, and other audio files)
 • Chapters with saved playback position
-• Seek ±15s / ±1min
+• Seek ±15s / ±1 min
 • Playback speed control
 • Sleep timer with smooth volume fade-out
 • Extend the timer by shaking or flipping the phone
 • Equalizer
 • Home screen widgets
 • Android Auto: browse books and play
-• Background playback via MediaSession
+• Background playback
 
-No subscriptions or streaming — just your files on the device.
+No account and no streaming — just your files. Core listening is free; equalizer, extra sleep-timer options, and the home widget are available in Plus and Pro.

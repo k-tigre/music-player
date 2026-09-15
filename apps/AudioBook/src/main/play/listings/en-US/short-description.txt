@@ -1,1 +1,1 @@
-On-device audiobooks: chapters, progress, sleep timer, and speed.
+Offline audiobook player: local files, chapters, progress, sleep timer.
