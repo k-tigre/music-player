@@ -341,3 +341,18 @@ checks:
         diff_any: ["Player", "initialStack", "Catalog", "Night", "Speed"]
     should_if:
       - paths: ["**/apps/AudioBook/**/ApplicationGraph*"]
+
+  # --- In-App Review ---
+  RV-IN-APP:
+    title: Play In-App Review prompt
+    steps: |
+      Android Music и AudioBook: после 2-го cold start и ≥120с Playing вызвать request (системный диалог
+      может не показаться без установки из Play). RC music_in_app_review_enabled /
+      audiobook_in_app_review_enabled=false отключает. About Rate в AudioBook не должен меняться.
+      Не проверять Desktop.
+    must_if:
+      - paths: ["**/core/platform/in_app_review/**"]
+      - paths: ["**/InAppReview*", "**/PlayInAppReviewLauncher*"]
+    should_if:
+      - paths: ["**/apps/PlayerApp/**/MainActivity*", "**/apps/AudioBook/**/MainActivity*"]
+      - paths: ["**/apps/*/settings/InAppReview*"]

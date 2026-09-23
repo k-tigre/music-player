@@ -89,6 +89,11 @@ class MainActivity : AppCompatActivity() {
         initializeController()
     }
 
+    override fun onResume() {
+        super.onResume()
+        (application as App).graph.maybeLaunchInAppReview(this)
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)

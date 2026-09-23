@@ -225,6 +225,10 @@ object CommonEvents {
                 "to" to to,
             )
         }
+
+        @AnalyticsScope(AnalyticsApp.PLAYER, AnalyticsApp.AUDIOBOOK)
+        @AnalyticsDoc("Play In-App Review flow launch started")
+        data object InAppReviewRequested : Action("common_in_app_review_requested")
     }
 
     sealed class Screen(

@@ -19,12 +19,18 @@ import by.tigre.media.platform.player.eq.bindEqProfileAnalytics
 import by.tigre.music.player.core.data.playback.di.PlaybackModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.AndroidPlaybackQueueModule
 import by.tigre.music.player.core.data.storage.playback_queue.di.PlaybackQueueModule
+import by.tigre.media.platform.inappreview.InAppReviewController
+import by.tigre.media.platform.inappreview.InAppReviewPrompt
+import by.tigre.media.platform.inappreview.InAppReviewStore
+import by.tigre.media.platform.inappreview.PlayInAppReviewLauncher
+import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.media.platform.preferences.Preferences
 import by.tigre.media.platform.preferences.ThemePreferencesStorage
 import by.tigre.media.platform.preferences.di.AndroidPreferencesModule
 import by.tigre.music.player.platform.PlayerSettings
 import by.tigre.music.player.platform.PlayerSettingsImpl
 import by.tigre.music.player.platform.ThemeSettingsStore
+import by.tigre.music.player.settings.InAppReviewConfigRepository
 import by.tigre.music.player.car.MusicCarMediaLibrary
 import by.tigre.media.platform.background.car.CarMediaLibrary
 import by.tigre.media.platform.background.di.PlayerBackgroundDependency
@@ -71,6 +77,7 @@ class ApplicationGraph(
     private val preferences: Preferences,
     val billingService: AndroidBillingService,
     override val entitlementsRepository: EntitlementsRepository,
+    private val inAppReviewPrompt: InAppReviewPrompt,
 ) : CatalogDependency,
     PlayerDependency,
     PlayerBackgroundDependency,
@@ -110,6 +117,10 @@ class ApplicationGraph(
 
     override val eqProfileController = playbackModule.eqProfileController
     override val eqProfileRepository = playbackModule.eqProfileRepository
+
+    fun maybeLaunchInAppReview(activity: android.app.Activity) {
+        inAppReviewPrompt.maybeLaunch(activity)
+    }
 
     override fun hasEqDeviceProfilesAccess(): Boolean =
         entitlementsRepository.has(Feature.EqDeviceProfiles)
@@ -305,6 +316,20 @@ class ApplicationGraph(
                 billing = billingService,
                 app = AppSku.Music,
             )
+            val inAppReviewConfigRepository = InAppReviewConfigRepository(coroutineModule.scope)
+            val inAppReviewPrompt = InAppReviewPrompt(
+                controller = InAppReviewController(InAppReviewStore(preferencesModule.preferences)),
+                launcher = PlayInAppReviewLauncher(),
+                scope = coroutineModule.scope,
+                isRcEnabled = inAppReviewConfigRepository::isEnabled,
+                onRequested = {
+                    analyticsModule.eventAnalytics.trackEvent(CommonEvents.Action.InAppReviewRequested)
+                },
+            )
+            inAppReviewPrompt.onColdStart()
+            inAppReviewPrompt.bindIsPlaying(
+                playbackModule.playbackController.player.state.map { it == PlaybackPlayer.State.Playing },
+            )
             val graph = ApplicationGraph(
                 appContext = context.applicationContext,
                 coroutineScope = coroutineModule.scope,
@@ -315,6 +340,7 @@ class ApplicationGraph(
                 preferences = preferencesModule.preferences,
                 billingService = billingService,
                 entitlementsRepository = entitlementsRepository,
+                inAppReviewPrompt = inAppReviewPrompt,
             )
             coroutineModule.scope.bindEqProfileAnalytics(
                 controller = basePlaybackModule.eqProfileController,

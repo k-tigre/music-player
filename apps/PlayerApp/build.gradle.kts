@@ -134,6 +134,7 @@ dependencies {
     implementation(Project.Core.Platform.Permission)
     implementation(Project.Core.Platform.Billing)
     implementation(Project.Core.Platform.Entitlements)
+    implementation(Project.Core.Platform.InAppReview)
     implementation(Project.Core.Data.Storage.Preferences)
     implementation(Project.Core.Music.Data.Storage.Database)
     implementation(Project.Core.Music.Data.Playback)

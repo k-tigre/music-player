@@ -68,6 +68,7 @@ enum class Library(group: String, artifact: String, version: Version) {
 
     Mixpanel("com.mixpanel.android", "mixpanel-android", Version.Mixpanel),
     BillingKtx("com.android.billingclient", "billing-ktx", Version.BillingClient),
+    PlayReviewKtx("com.google.android.play", "review-ktx", Version.PlayReview),
 
     ComposeUiTestJunit4("androidx.compose.ui", "ui-test-junit4", Version.Compose),
     ComposeUiTestManifest("androidx.compose.ui", "ui-test-manifest", Version.Compose),
@@ -127,6 +128,7 @@ enum class Library(group: String, artifact: String, version: Version) {
         Jnativehook("2.2.2"),
         Mixpanel("8.9.0"),
         BillingClient("9.1.0"),
+        PlayReview("2.0.2"),
         JUnit4("4.13.2"),
         AndroidXTest("1.7.0"),
         Robolectric("4.16.1"),
@@ -324,6 +326,7 @@ sealed class Project(id: String) {
             object Permission : Platform("permission")
             object Billing : Platform("billing")
             object Entitlements : Platform("entitlements")
+            object InAppReview : Platform("in_app_review")
         }
 
         sealed class Domain(id: String) : Core("domain:$id")

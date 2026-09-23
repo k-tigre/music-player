@@ -18,6 +18,8 @@ local.properties
 .vscode
 /docs/*
 !/docs/analytics-events.md
+!/docs/superpowers/
+!/docs/superpowers/**
 apps/*/src/main/play/contact-*.txt
 # Personal Firebase Installation ID conditions
 apps/*/firebase/remoteconfig.template.json

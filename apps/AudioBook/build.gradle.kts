@@ -135,6 +135,7 @@ dependencies {
     implementation(Project.Core.Platform.Permission)
     implementation(Project.Core.Platform.Billing)
     implementation(Project.Core.Platform.Entitlements)
+    implementation(Project.Core.Platform.InAppReview)
     implementation(Project.Core.Data.Storage.Preferences)
     implementation(FirebaseLibrary.FirebaseAnalytics, FirebaseLibrary.FirebaseCrashLytics, FirebaseLibrary.FirebaseConfig, FirebaseLibrary.FirebaseInstallations)
 

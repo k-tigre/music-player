@@ -24,6 +24,7 @@ import by.tigre.audiobook.platform.AudiobookGuideSettings
 import by.tigre.audiobook.platform.AudiobookGuideSettingsImpl
 import by.tigre.audiobook.platform.ThemeSettingsStore
 import by.tigre.audiobook.scan.CatalogScanCoordinatorImpl
+import by.tigre.audiobook.settings.InAppReviewConfigRepository
 import by.tigre.audiobook.settings.RateAppConfigRepository
 import by.tigre.logger.Log
 import by.tigre.media.platform.background.R
@@ -35,6 +36,11 @@ import by.tigre.media.platform.entitlements.AppSku
 import by.tigre.media.platform.entitlements.EntitlementsRepository
 import by.tigre.media.platform.entitlements.Feature
 import by.tigre.media.platform.entitlements.PlayEntitlementsRepository
+import by.tigre.media.platform.inappreview.InAppReviewController
+import by.tigre.media.platform.inappreview.InAppReviewPrompt
+import by.tigre.media.platform.inappreview.InAppReviewStore
+import by.tigre.media.platform.inappreview.PlayInAppReviewLauncher
+import by.tigre.media.platform.playback.PlaybackPlayer
 import by.tigre.media.platform.playback.di.AndroidBasePlaybackModule
 import by.tigre.media.platform.playback.eq.EqProfileController
 import by.tigre.media.platform.playback.eq.MutableEqContentKeyProvider
@@ -90,6 +96,7 @@ class ApplicationGraph(
     val billingService: AndroidBillingService,
     override val entitlementsRepository: EntitlementsRepository,
     private val preferences: Preferences,
+    private val inAppReviewPrompt: InAppReviewPrompt,
 ) : PlayerDependency,
     PlayerBackgroundDependency,
     AudiobookCatalogDependency,
@@ -105,6 +112,10 @@ class ApplicationGraph(
 
     private val _tipsCount = MutableStateFlow(preferences.loadInt(TIPS_COUNT_KEY, 0))
     override val tipsCount: StateFlow<Int> = _tipsCount.asStateFlow()
+
+    fun maybeLaunchInAppReview(activity: android.app.Activity) {
+        inAppReviewPrompt.maybeLaunch(activity)
+    }
 
     override fun requestPaywall(
         feature: Feature,
@@ -432,6 +443,21 @@ class ApplicationGraph(
                 scope = coroutineModule.scope,
                 catalogSource = audiobookCatalogModule.audiobookCatalogSource,
             )
+            val inAppReviewConfigRepository = InAppReviewConfigRepository(coroutineModule.scope)
+            val inAppReviewPrompt = InAppReviewPrompt(
+                controller = InAppReviewController(InAppReviewStore(preferences)),
+                launcher = PlayInAppReviewLauncher(),
+                scope = coroutineModule.scope,
+                isRcEnabled = inAppReviewConfigRepository::isEnabled,
+                onRequested = {
+                    analyticsModule.eventAnalytics.trackEvent(CommonEvents.Action.InAppReviewRequested)
+                },
+            )
+            inAppReviewPrompt.onColdStart()
+            inAppReviewPrompt.bindIsPlaying(
+                audiobookPlaybackModule.audiobookPlaybackController.player.state
+                    .map { it == PlaybackPlayer.State.Playing },
+            )
             val graph = ApplicationGraph(
                 appContext = context.applicationContext,
                 coroutineScope = coroutineModule.scope,
@@ -447,6 +473,7 @@ class ApplicationGraph(
                 billingService = billingService,
                 entitlementsRepository = entitlementsRepository,
                 preferences = preferences,
+                inAppReviewPrompt = inAppReviewPrompt,
             )
             requestPaywall = graph::requestPaywall
             coroutineModule.scope.bindEqProfileAnalytics(

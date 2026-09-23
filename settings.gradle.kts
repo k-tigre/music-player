@@ -18,7 +18,11 @@ dependencyResolutionManagement {
             url = uri("https://maven.pkg.github.com/k-tigre/logger")
             credentials {
                 username = envOrPropertyNullable("GITHUB_ACTOR")
+                    ?: envOrPropertyNullable("gpr.user")
+                    ?: ""
                 password = envOrPropertyNullable("GITHUB_TOKEN")
+                    ?: envOrPropertyNullable("gpr.key")
+                    ?: ""
             }
         }
     }
@@ -42,6 +46,7 @@ include(":core:data:storage:preferences")
 include(":core:platform:permission")
 include(":core:platform:billing")
 include(":core:platform:entitlements")
+include(":core:platform:in_app_review")
 
 include(":core:music:entity:catalog")
 include(":core:music:entity:playlist")
