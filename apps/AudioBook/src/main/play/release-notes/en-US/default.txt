@@ -1,5 +1,2 @@
-• Library Spaces (Pro): separate book collections, switch without stopping playback
-• Equalizer profiles per device and content type with autosave
-• Up to 3 custom equalizer presets with rename
-• More reliable purchases when the store is unavailable
-• More reliable cover display when artwork is missing
+• Gentle Play Store rating prompt after you've spent some time with the app
+• More reliable sleep-timer extension by shake when the screen is off
