@@ -1,1 +1,1 @@
-• Gentle Play Store rating prompt after you've spent some time with the app
+• Fixed a rare crash when checking purchases
