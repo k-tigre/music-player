@@ -28,6 +28,7 @@ Auto-generated from `@AnalyticsScope` annotations. Regenerate:
 | common | action | `common_eq_profile_saved` |  | ✓ | ✓ | ✓ |  | EQ profile saved (manual autosave on leave) |
 | common | action | `common_eq_session_closed` |  | ✓ | ✓ | ✓ |  | EQ screen closed; dirty+prior auto/carry means user corrected autoset |
 | common | action | `common_feature_gate_blocked` | FeatureGateBlocked | ✓ | ✓ |  |  | Paid or unavailable feature blocked |
+| common | action | `common_in_app_review_requested` | InAppReviewRequested | ✓ | ✓ |  |  | Play In-App Review flow launch started |
 | common | action | `common_nav_open_equalizer` | NavOpenEqualizer | ✓ | ✓ | ✓ |  | Open equalizer screen |
 | common | action | `common_nav_open_player` | NavOpenPlayer | ✓ | ✓ | ✓ |  | Open full player screen |
 | common | action | `common_nav_open_settings` | NavOpenSettings | ✓ |  |  |  | Open settings screen |
