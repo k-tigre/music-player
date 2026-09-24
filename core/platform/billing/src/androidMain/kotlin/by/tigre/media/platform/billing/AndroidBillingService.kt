@@ -19,8 +19,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class AndroidBillingService(
     context: Context,
@@ -126,11 +124,11 @@ class AndroidBillingService(
         val params = AcknowledgePurchaseParams.newBuilder()
             .setPurchaseToken(purchase.purchaseToken)
             .build()
-        suspendCoroutine { continuation ->
-            client.acknowledgePurchase(params) {
-                continuation.resume(Unit)
-            }
+        val deferred = CompletableDeferred<Unit>()
+        client.acknowledgePurchase(params) {
+            deferred.complete(Unit)
         }
+        deferred.await()
     }
 
     override suspend fun consumeTip(purchase: PurchaseSnapshot) {
@@ -139,11 +137,11 @@ class AndroidBillingService(
         val params = ConsumeParams.newBuilder()
             .setPurchaseToken(purchase.purchaseToken)
             .build()
-        suspendCoroutine { continuation ->
-            client.consumeAsync(params) { _, _ ->
-                continuation.resume(Unit)
-            }
+        val deferred = CompletableDeferred<Unit>()
+        client.consumeAsync(params) { _, _ ->
+            deferred.complete(Unit)
         }
+        deferred.await()
     }
 
     private suspend fun launchPurchase(
@@ -316,11 +314,11 @@ class AndroidBillingService(
                 },
             )
             .build()
-        val result = suspendCoroutine { continuation ->
-            client.queryProductDetailsAsync(params) { billingResult, productDetailsResult ->
-                continuation.resume(billingResult to productDetailsResult.productDetailsList)
-            }
+        val deferred = CompletableDeferred<Pair<BillingResult, List<ProductDetails>>>()
+        client.queryProductDetailsAsync(params) { billingResult, productDetailsResult ->
+            deferred.complete(billingResult to productDetailsResult.productDetailsList)
         }
+        val result = deferred.await()
         if (result.first.responseCode != BillingClient.BillingResponseCode.OK) return
 
         result.second.forEach { details ->
@@ -334,17 +332,19 @@ class AndroidBillingService(
         val params = QueryPurchasesParams.newBuilder()
             .setProductType(type)
             .build()
-        return suspendCoroutine { continuation ->
-            client.queryPurchasesAsync(params) { billingResult, purchases ->
-                continuation.resume(
-                    if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                        purchases
-                    } else {
-                        emptyList()
-                    },
-                )
-            }
+        // Play Billing may invoke the listener twice (e.g. watchdog timeout + real
+        // response). CompletableDeferred.complete() keeps only the first result.
+        val deferred = CompletableDeferred<List<Purchase>>()
+        client.queryPurchasesAsync(params) { billingResult, purchases ->
+            deferred.complete(
+                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                    purchases
+                } else {
+                    emptyList()
+                },
+            )
         }
+        return deferred.await()
     }
 
     private fun onPurchasesUpdated(
