@@ -299,7 +299,8 @@ class ApplicationGraph(
                 controller.currentChapter,
             ) { book, chapter -> book to chapter }
                 .mapLatest { (book, chapter) ->
-                    if (book == null || chapter == null) {
+                    // Skip mismatched pairs (book switched before chapter cleared/updated).
+                    if (book == null || chapter == null || chapter.bookId != book.id) {
                         null
                     } else {
                         val cover = withContext(Dispatchers.IO) {
