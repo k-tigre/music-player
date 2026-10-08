@@ -18,11 +18,14 @@ app for local audiobooks that shares the same core modules.
 
 Stack: Kotlin, Jetpack Compose, Decompose (navigation), SQLDelight (queue), Coil, Firebase Crashlytics (mobile builds).
 
-**For AI agents and contributors:** architecture, module map, task routing, and build commands are in [`CLAUDE.md`](CLAUDE.md) (canonical) and [`AGENTS.md`](AGENTS.md) (quick index).
+Shared UI and domain logic live in `core:*` modules. App-specific wiring (dependency graph, root navigation, Android Auto, night timer)
+stays in `apps:*`. Module list: `settings.gradle.kts`.
+
+**For AI agents:** routing, architecture patterns, and build variants are in [`AGENTS.md`](AGENTS.md).
 
 ## Requirements
 
-- **JDK 17**
+- **JDK 21** (Gradle `jvmToolchain`)
 - **Android:** Android SDK (easiest via [Android Studio](https://developer.android.com/studio)); for device install, enable USB debugging or
   use an emulator.
 - **Desktop:** a JVM on the developer machine; for packaging a given OS, run the build on that OS (or use CI with the right environment—see
@@ -44,7 +47,7 @@ Build APK without installing:
 ./gradlew :apps:PlayerApp:assembleDebug
 ```
 
-**Release** builds need signing environment variables (see [`CLAUDE.md`](CLAUDE.md)): `MUSIC_PLAYER_RELEASE_JKS_STORE_PASSWORD`,
+**Release** builds need signing environment variables: `MUSIC_PLAYER_RELEASE_JKS_STORE_PASSWORD`,
 `MUSIC_PLAYER_RELEASE_JKS_KEY_PASSWORD`.
 
 ### Android — AudioBook (`:apps:AudioBook`)

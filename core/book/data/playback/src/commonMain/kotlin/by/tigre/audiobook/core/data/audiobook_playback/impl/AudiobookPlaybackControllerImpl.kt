@@ -132,6 +132,9 @@ internal class AudiobookPlaybackControllerImpl(
             catalog.setHiddenFromContinueListening(book.id, hidden = false)
             dismissBookFinishedBanner()
             chapters.value = chapterList
+            // Clear chapter before book so combine(currentBook, currentChapter) never pairs
+            // the new book with the previous book's chapter (wrong cover would be persisted).
+            currentChapter.value = null
             currentBook.value = book
             loadCanonicalListenedMs = null
             mayPersistBelowCanonical = false
@@ -154,6 +157,9 @@ internal class AudiobookPlaybackControllerImpl(
 
         dismissBookFinishedBanner()
         chapters.value = chapterList
+        // Clear chapter before book so combine(currentBook, currentChapter) never pairs
+        // the new book with the previous book's chapter (wrong cover would be persisted).
+        currentChapter.value = null
         currentBook.value = book
 
         val savedPosition = storage.getPosition(spaceId, book.id)

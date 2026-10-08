@@ -23,7 +23,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
 import kotlin.test.Test
@@ -176,6 +178,54 @@ class AudiobookPlaybackControllerImplTest {
         assertTrue(spaceRepository.ensureInitializedCalls > 0)
     }
 
+    @Test
+    fun switchingBooksNeverPairsNewBookWithPreviousChapter() = runBlocking {
+        val bookA = testBook(id = 1, title = "Book A")
+        val bookB = testBook(id = 2, title = "Book B")
+        val chapterA = testChapter(id = 10, bookId = bookA.id, title = "A1", durationMs = 60_000, sort = 0)
+        val chapterB = testChapter(id = 20, bookId = bookB.id, title = "B1", durationMs = 60_000, sort = 0)
+        val storage = FakeStorage(
+            lastBookId = bookA.id,
+            position = AudiobookPlaybackStorage.PlaybackPosition(chapterA.id, 1_000),
+            getPositionDelayMs = 80,
+        )
+        val controller = AudiobookPlaybackControllerImpl(
+            player = FakePlaybackPlayer(initialState = PlaybackPlayer.State.Paused, positionMs = 1_000),
+            catalog = FakeCatalog(
+                booksById = mapOf(bookA.id to bookA, bookB.id to bookB),
+                chaptersByBookId = mapOf(bookA.id to listOf(chapterA), bookB.id to listOf(chapterB)),
+            ),
+            storage = storage,
+            speedPreferences = AudiobookPlaybackSpeedPreferences(FakePreferences()),
+            librarySpaceRepository = FakeSpaceRepository(),
+            scope = TestCoreScope(),
+        )
+
+        waitForCondition { controller.currentChapter.value?.id == chapterA.id }
+
+        val mismatched = mutableListOf<Pair<Book.Id, Chapter.Id>>()
+        val collectJob = launch {
+            combine(
+                controller.currentBook,
+                controller.currentChapter,
+            ) { book, chapter -> book to chapter }
+                .collect { (book, chapter) ->
+                    if (book != null && chapter != null && chapter.bookId != book.id) {
+                        mismatched += book.id to chapter.id
+                    }
+                }
+        }
+
+        controller.playBook(bookB)
+        waitForCondition { controller.currentChapter.value?.id == chapterB.id }
+        delay(50)
+        collectJob.cancel()
+
+        assertEquals(emptyList(), mismatched, "new book must not briefly pair with previous chapter")
+        assertEquals(bookB.id, controller.currentBook.value?.id)
+        assertEquals(chapterB.id, controller.currentChapter.value?.id)
+    }
+
     private suspend fun waitForCondition(timeoutMs: Long = 1_000, condition: () -> Boolean) {
         val deadline = System.currentTimeMillis() + timeoutMs
         while (!condition() && System.currentTimeMillis() < deadline) {
@@ -184,10 +234,13 @@ class AudiobookPlaybackControllerImplTest {
         assertEquals(true, condition())
     }
 
-    private fun testBook() = Book(
-        id = Book.Id(1),
-        title = "Test Book",
-        folderUri = "content://folder",
+    private fun testBook(
+        id: Long = 1,
+        title: String = "Test Book",
+    ) = Book(
+        id = Book.Id(id),
+        title = title,
+        folderUri = "content://folder/$id",
         chapterCount = 2,
         subPath = "",
         totalDurationMs = 120_000,
@@ -225,6 +278,7 @@ class AudiobookPlaybackControllerImplTest {
     private class FakeStorage(
         var lastBookId: Book.Id?,
         private var position: AudiobookPlaybackStorage.PlaybackPosition?,
+        private val getPositionDelayMs: Long = 0,
     ) : AudiobookPlaybackStorage {
         var lastSavePositionSpaceId: LibrarySpace.Id? = null
             private set
@@ -244,7 +298,10 @@ class AudiobookPlaybackControllerImplTest {
         override suspend fun getPosition(
             spaceId: LibrarySpace.Id,
             bookId: Book.Id,
-        ): AudiobookPlaybackStorage.PlaybackPosition? = position
+        ): AudiobookPlaybackStorage.PlaybackPosition? {
+            if (getPositionDelayMs > 0) delay(getPositionDelayMs)
+            return position
+        }
 
         override suspend fun saveBookProgress(
             spaceId: LibrarySpace.Id,
@@ -255,6 +312,7 @@ class AudiobookPlaybackControllerImplTest {
 
         override suspend fun saveLastPlayedBook(spaceId: LibrarySpace.Id, bookId: Book.Id) {
             lastSaveLastPlayedSpaceId = spaceId
+            lastBookId = bookId
         }
 
         override suspend fun getLastPlayedBookId(spaceId: LibrarySpace.Id): Book.Id? = lastBookId
@@ -305,11 +363,16 @@ class AudiobookPlaybackControllerImplTest {
     }
 
     private class FakeCatalog(
-        private val book: Book,
-        private val chapters: List<Chapter>,
+        private val booksById: Map<Book.Id, Book>,
+        private val chaptersByBookId: Map<Book.Id, List<Chapter>>,
     ) : AudiobookCatalogSource {
-        override val books: Flow<List<Book>> = flowOf(listOf(book))
-        override val continueListeningBooks: Flow<List<Book>> = flowOf(listOf(book))
+        constructor(book: Book, chapters: List<Chapter>) : this(
+            booksById = mapOf(book.id to book),
+            chaptersByBookId = mapOf(book.id to chapters),
+        )
+
+        override val books: Flow<List<Book>> = flowOf(booksById.values.toList())
+        override val continueListeningBooks: Flow<List<Book>> = flowOf(booksById.values.toList())
         override val folderSources: Flow<List<FolderSource>> = flowOf(emptyList())
         override val catalogScanUi: StateFlow<CatalogScanUi> =
             MutableStateFlow(CatalogScanUi(detail = CatalogScanDetail.Preparing))
@@ -321,9 +384,10 @@ class AudiobookPlaybackControllerImplTest {
         override suspend fun countBooksByFolderSource(folderSourceId: FolderSource.Id): Int = 0
         override suspend fun diagnoseFolderAccess(folder: FolderSource): FolderSourceAccessHealth =
             FolderSourceAccessHealth.Ok
-        override suspend fun getBooks(): List<Book> = listOf(book)
-        override suspend fun getBook(bookId: Book.Id): Book? = book.takeIf { it.id == bookId }
-        override suspend fun getChapters(bookId: Book.Id): List<Chapter> = chapters
+        override suspend fun getBooks(): List<Book> = booksById.values.toList()
+        override suspend fun getBook(bookId: Book.Id): Book? = booksById[bookId]
+        override suspend fun getChapters(bookId: Book.Id): List<Chapter> =
+            chaptersByBookId[bookId].orEmpty()
         override suspend fun setHiddenFromContinueListening(bookId: Book.Id, hidden: Boolean) = Unit
         override suspend fun updateBookCoverUriIfEmpty(bookId: Book.Id, coverUri: String) = Unit
     }
