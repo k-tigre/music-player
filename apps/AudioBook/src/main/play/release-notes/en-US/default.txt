@@ -1,2 +1,2 @@
-• Gentle Play Store rating prompt after you've spent some time with the app
-• More reliable sleep-timer extension by shake when the screen is off
+• Fixed the wrong cover when switching between books
+• Fixed a rare crash when checking purchases
